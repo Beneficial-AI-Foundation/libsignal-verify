@@ -10,7 +10,10 @@ use aes::cipher::{InnerIvInit, KeyInit, StreamCipher, StreamCipherSeek};
 use crate::error::{Error, Result};
 
 /// A wrapper around [`ctr::Ctr32BE`] that uses a smaller nonce and supports an initial counter.
-pub struct Aes256Ctr32(ctr::Ctr32BE<Aes256>);
+// Modified for Aeneas: tuple struct → named field.
+// https://github.com/AeneasVerif/aeneas/issues/767
+#[charon::opaque]
+pub struct Aes256Ctr32 { inner: ctr::Ctr32BE<Aes256> }
 
 impl Aes256Ctr32 {
     pub const NONCE_SIZE: usize = <Aes256 as aes::cipher::BlockSizeUser>::BlockSize::USIZE - 4;
@@ -29,7 +32,7 @@ impl Aes256Ctr32 {
             (<Aes256 as aes::cipher::BlockSizeUser>::BlockSize::USIZE as u64) * (init_ctr as u64),
         );
 
-        Ok(Self(ctr))
+        Ok(Self { inner: ctr })
     }
 
     pub fn from_key(key: &[u8], nonce: &[u8], init_ctr: u32) -> Result<Self> {
@@ -41,6 +44,6 @@ impl Aes256Ctr32 {
     }
 
     pub fn process(&mut self, buf: &mut [u8]) {
-        self.0.apply_keystream(buf);
+        self.inner.apply_keystream(buf);
     }
 }

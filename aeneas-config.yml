@@ -1,0 +1,255 @@
+# Aeneas extraction configuration — combined (signal-crypto + libsignal-core)
+#
+# Extracts signal-crypto as the target crate, with libsignal-core as a
+# transparent dependency (`--include libsignal_core`).
+#
+# start_from_pub covers all pub items of signal-crypto (the target crate).
+# The start_from list below manually adds pub functions from libsignal-core
+# that aren't pulled in as dependencies of signal-crypto. Charon only
+# discovers foreign-crate items that are referenced from the target crate's
+# code, so core's inherent methods must be listed explicitly. We use the
+# `_::method` pattern to match methods across impl blocks.
+
+aeneas:
+  commit: "1180be60"
+  repo: "https://github.com/AeneasVerif/aeneas.git"
+
+upstream:
+  repo: "https://github.com/signalapp/libsignal"
+  commit: "0a58e80b"
+
+crate:
+  dir: "rust"
+  name: "signal_crypto"
+
+charon:
+  cargo_args: ["-p", "signal-crypto", "--features", "extraction"]
+  start_from_pub: true
+  start_from:
+    # libsignal-core free functions and constants
+    - "libsignal_core::try_scoped"
+    - "libsignal_core::derive_arrays"
+    - "libsignal_core::try_derive_arrays"
+    - "libsignal_core::version::VERSION"
+    # libsignal-core::e164 (E164)
+    - "libsignal_core::e164::_::new"
+    - "libsignal_core::e164::_::to_be_bytes"
+    - "libsignal_core::e164::_::from_be_bytes"
+    # libsignal-core::address (DeviceId, ServiceId, SpecificServiceId, ProtocolAddress)
+    - "libsignal_core::address::_::new"
+    - "libsignal_core::address::_::new_nonzero"
+    - "libsignal_core::address::_::kind"
+    - "libsignal_core::address::_::service_id_binary"
+    - "libsignal_core::address::_::service_id_fixed_width_binary"
+    - "libsignal_core::address::_::parse_from_service_id_binary"
+    - "libsignal_core::address::_::parse_from_service_id_fixed_width_binary"
+    - "libsignal_core::address::_::raw_uuid"
+    - "libsignal_core::address::_::from_uuid_bytes"
+    - "libsignal_core::address::_::from_uuid"
+    - "libsignal_core::address::_::name"
+    - "libsignal_core::address::_::device_id"
+    # libsignal-core::curve (PublicKey, PrivateKey, KeyPair)
+    - "libsignal_core::curve::_::deserialize"
+    - "libsignal_core::curve::_::serialize"
+    - "libsignal_core::curve::_::key_type"
+    - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::public_key_bytes"
+    - "libsignal_core::curve::_::from_djb_public_key_bytes"
+    - "libsignal_core::curve::_::verify_signature"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_canonical"
+    - "libsignal_core::curve::_::calculate_signature"
+    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
+    - "libsignal_core::curve::_::calculate_agreement"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::from_public_and_private"
+  include:
+    - "libsignal_core"
+  exclude:
+    # Formatting and error trait impls (not needed for verification)
+    - "signal_crypto::{impl core::fmt::Debug for _}"
+    - "signal_crypto::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::{impl core::error::Error for _}"
+    - "signal_crypto::_::{impl core::error::Error for _}"
+    - "libsignal_core::{impl core::fmt::Debug for _}"
+    - "libsignal_core::{impl core::fmt::Display for _}"
+    - "libsignal_core::_::{impl core::fmt::Debug for _}"
+    - "libsignal_core::_::{impl core::fmt::Display for _}"
+    - "libsignal_core::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_core::_::_::{impl core::fmt::Display for _}"
+    - "libsignal_core::{impl core::error::Error for _}"
+    - "libsignal_core::_::{impl core::error::Error for _}"
+    # libsignal-core functions that use unsupported features
+    - "libsignal_core::address::_::service_id_string"       # uses format! macro
+    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
+    - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
+    # Crate-level excludes
+    - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
+    - "signal_crypto::hpke"               # complex external crypto (hpke-rs)
+    - "core::str::pattern"                # GATs unsupported by Aeneas
+    - "rand::distr::uniform"              # mutually recursive traits
+    - "zerocopy"                          # raw pointer ops, GATs
+    - "log"
+  opaque:
+    # libsignal-core functions using zerocopy internals
+    - "libsignal_core::derive_arrays"
+    - "libsignal_core::try_derive_arrays"
+    # curve functions that call into curve25519_dalek or use log::warn!
+    - "libsignal_core::curve::_::deserialize"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_torsion_free"
+    - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::calculate_signature"
+    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
+    - "libsignal_core::curve::_::calculate_agreement"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::try_from"
+    # crypto functions calling external crypto primitives
+    - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
+    - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
+    - "signal_crypto::aes_ctr::_::new"
+    - "signal_crypto::aes_ctr::_::from_key"
+    - "signal_crypto::aes_ctr::_::process"
+    - "signal_crypto::aes_gcm::_::new"
+    - "signal_crypto::aes_gcm::_::update"
+    - "signal_crypto::aes_gcm::_::finalize"
+    - "signal_crypto::aes_gcm::setup_gcm"
+    - "signal_crypto::hash::_::new"
+    - "signal_crypto::hash::_::update"
+    - "signal_crypto::hash::_::finalize"
+
+aeneas_args:
+  options:
+    - split-files
+  dest: "."
+  subdir: "Libsignal/Code"
+
+# File splitting to break circular dependencies between Types and TypesExternal.
+#
+# Aeneas generates Types.lean (defs) and TypesExternal_Template.lean (axioms).
+# Types imports TypesExternal, but some axioms reference defs from Types —
+# creating a circular dependency. We break this by splitting into layers:
+#
+#   TypesPreBase ← TypesExternalPre_Template ← TypesPre ← TypesExternal_Template
+#       ↑             (axioms needed             (defs that        ↑
+#   (defs with         by TypesPre)              need axioms)   (remaining
+#    no axiom deps)                                              axioms)
+#
+# Full import chain:
+#   TypesPreBase ← TypesExternalPre ← TypesPre ← TypesExternal
+#     ← FunsPre ← Types ← FunsExternal ← Funs
+
+# Layer 1: Defs from Types.lean with no axiom dependencies.
+types_pre_base:
+  - "core.num.nonzero.private.Sealed"
+  - "core.num.nonzero.ZeroablePrimitive"
+  - "core.ops.arith.Add"
+  - "core.ops.arith.Sub"
+  - "core.ops.arith.Div"
+  - "core.ops.arith.Rem"
+  - "core.ops.bit.Shl"
+  - "typenum.uint.UTerm"
+  - "typenum.bit.B1"
+  - "typenum.bit.B0"
+  - "typenum.sealed.Sealed"
+  - "typenum.marker_traits.Unsigned"
+  - "typenum.marker_traits.Bit"
+  - "typenum.type_operators.IsLess"
+  - "typenum.marker_traits.NonZero"
+  - "typenum.type_operators.PartialDiv"
+  - "typenum.marker_traits.Ord"
+  - "typenum.Less"
+  - "typenum.Greater"
+  - "typenum.Equal"
+  - "typenum.private.PrivateCmp"
+  - "typenum.private.InternalMarker"
+  - "typenum.type_operators.Cmp"
+  - "typenum.private.IsLessPrivate"
+  - "typenum.private.Trim"
+  - "typenum.private.TrimTrailingZeros"
+  - "typenum.private.Invert"
+  - "typenum.private.PrivateInvert"
+  - "typenum.private.InvertedUTerm"
+  - "typenum.private.InvertedUnsigned"
+  - "typenum.private.PrivateSetBit"
+  - "typenum.private.PrivateDiv"
+  - "typenum.private.PrivateDivIf"
+  - "typenum.type_operators.Len"
+  - "typenum.uint.GetBit"
+  - "typenum.uint.SetBit"
+  - "generic_array.ArrayLength"
+  - "crypto_common.BlockSizeUser"
+  - "block_padding.PadType"
+  - "block_padding.UnpadError"
+  - "cipher.block.BlockCipher"
+  - "cipher.stream_core.Counter"
+  - "rand_core.RngCore"
+  - "rand_core.CryptoRng"
+  - "rand.rng.Rng"
+  - "rand.distr.distribution.Distribution"
+  - "rand.distr.StandardUniform"
+  - "rand.rng.Fill"
+  - "derive_more.convert.try_from.TryFromReprError"
+  - "aes_cbc.EncryptionError"
+  - "aes_cbc.DecryptionError"
+  - "error.Error"
+  - "libsignal_core.address.InvalidDeviceId"
+  - "libsignal_core.curve.KeyType"
+  - "libsignal_core.curve.CurveError"
+  - "libsignal_core.curve.PublicKeyData"
+  - "libsignal_core.curve.PublicKey"
+  - "libsignal_core.curve.PrivateKeyData"
+  - "libsignal_core.curve.PrivateKey"
+  - "libsignal_core.curve.KeyPair"
+
+# Layer 2: Axioms from TypesExternal_Template.lean needed by TypesPre defs.
+types_external_pre:
+  - "generic_array.GenericArray"
+  - "inout.inout.InOut"
+
+# Layer 3: Defs from Types.lean that reference axioms from TypesExternalPre.
+types_pre:
+  - "block_padding.Padding"
+  - "crypto_common.ParBlocksSizeUser"
+  - "cipher.block.BlockBackend"
+  - "cipher.block.BlockClosure"
+  - "cipher.block.BlockEncrypt"
+  - "cipher.block.BlockEncryptMut"
+  - "ctr.flavors.CtrFlavor"
+
+# Declarations to move from Funs.lean into FunsPre.lean (imported by Types.lean).
+# These are trait instances needed by type definitions in Types.lean.
+funs_pre:
+  # Clone function axioms (must come before Clone instances that reference them)
+  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone.clone"
+  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone"
+  # NonZeroU64Inner instances (needed by E164)
+  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone"
+  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
+  - "U64.Insts.CoreNumNonzeroPrivateSealed"
+  - "U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner"
+  # NonZeroU8Inner instances (needed by DeviceId)
+  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone"
+  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+  - "U8.Insts.CoreNumNonzeroPrivateSealed"
+  - "U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner"
+
+tweaks:
+  files: ["TypesPreBase.lean", "TypesExternalPre_Template.lean", "TypesPre.lean", "TypesExternal_Template.lean", "FunsPre.lean", "Types.lean", "FunsExternal_Template.lean", "Funs.lean"]
+  substitutions:
+    # Disable linters for auto-generated files
+    - find: |
+        set_option linter.unusedVariables false
+      replace: |
+        set_option linter.unusedVariables false
+        set_option linter.style.longLine false
+        set_option linter.style.setOption false
+        set_option linter.style.whitespace false
+
+    # Fix Aeneas codegen: Prop instead of Bool in scalar_is_in_range
+    - find: "then ok (i = 127#u8)"
+      replace: "then ok (i == 127#u8)"

@@ -4,6 +4,8 @@
 //
 
 #![warn(clippy::unwrap_used)]
+#![feature(register_tool)]
+#![register_tool(charon)]
 
 mod address;
 // Not exporting the members because they have overly-generic names.

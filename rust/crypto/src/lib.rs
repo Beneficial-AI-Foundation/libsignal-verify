@@ -4,6 +4,8 @@
 //
 
 #![deny(clippy::unwrap_used)]
+#![feature(register_tool)]
+#![register_tool(charon)]
 
 mod error;
 mod hash;
@@ -19,3 +21,4 @@ pub use aes_gcm::{Aes256GcmDecryption, Aes256GcmEncryption};
 pub use error::{Error, Result};
 pub use hash::{CryptographicHash, CryptographicMac};
 pub use hpke::{HpkeError, SimpleHpkeReceiver, SimpleHpkeSender};
+
