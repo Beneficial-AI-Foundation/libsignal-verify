@@ -535,7 +535,7 @@ inductive error.Error where
 | InvalidTag : error.Error
 
 /-- [libsignal_core::address::InvalidDeviceId]
-    Source: 'rust/core/src/address.rs', lines 687:0-687:26
+    Source: 'rust/core/src/address.rs', lines 691:0-691:26
     Name pattern: [libsignal_core::address::InvalidDeviceId]
     Visibility: public -/
 @[reducible, rust_type "libsignal_core::address::InvalidDeviceId"]
