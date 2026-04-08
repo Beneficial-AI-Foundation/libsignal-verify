@@ -45,7 +45,7 @@ structure libsignal_core.address.SpecificServiceId (RAW_KIND : Std.U8) where
   uuid : uuid.Uuid
 
 /-- [libsignal_core::address::ServiceId]
-    Source: 'rust/core/src/address.rs', lines 183:0-183:18
+    Source: 'rust/core/src/address.rs', lines 185:0-185:18
     Name pattern: [libsignal_core::address::ServiceId]
     Visibility: public -/
 @[discriminant isize, rust_type "libsignal_core::address::ServiceId"]
@@ -58,7 +58,7 @@ inductive libsignal_core.address.ServiceId where
   libsignal_core.address.ServiceId
 
 /-- [libsignal_core::address::DeviceId]
-    Source: 'rust/core/src/address.rs', lines 682:0-682:19
+    Source: 'rust/core/src/address.rs', lines 684:0-684:19
     Name pattern: [libsignal_core::address::DeviceId]
     Visibility: public -/
 @[rust_type "libsignal_core::address::DeviceId"]
@@ -67,7 +67,7 @@ structure libsignal_core.address.DeviceId where
     U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner
 
 /-- [libsignal_core::address::ProtocolAddress]
-    Source: 'rust/core/src/address.rs', lines 773:0-773:26
+    Source: 'rust/core/src/address.rs', lines 777:0-777:26
     Name pattern: [libsignal_core::address::ProtocolAddress]
     Visibility: public -/
 @[rust_type "libsignal_core::address::ProtocolAddress"]
@@ -85,7 +85,7 @@ structure libsignal_core.e164.E164 where
     U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner
 
 /-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure]
-    Source: 'rust/core/src/e164.rs', lines 25:55-25:62
+    Source: 'rust/core/src/e164.rs', lines 27:55-27:62
     Name pattern: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure] -/
 @[reducible, rust_type
   "libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure"]
