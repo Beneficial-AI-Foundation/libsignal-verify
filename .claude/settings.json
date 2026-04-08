@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep \"charon\" rust/core/src/*.rs rust/core/src/**/*.rs)",
-      "Bash(grep \"charon\" rust/crypto/src/*.rs)",
-      "Bash(npm run:*)"
-    ]
-  }
-}

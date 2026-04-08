@@ -278,18 +278,6 @@ diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.tom
  kyber768 = ["libcrux-ml-kem/kyber", "libcrux-ml-kem/mlkem768"]
  # ML-KEM matches the NIST standard version of Kyber. It may still change
  # incompatibly until the final version of the standard is published and
-diff -Naur --no-dereference a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.rs
---- a/rust/protocol/src/lib.rs
-+++ b/rust/protocol/src/lib.rs
-@@ -16,6 +16,8 @@
- 
- #![warn(clippy::unwrap_used)]
- #![deny(unsafe_code)]
-+#![feature(register_tool)]
-+#![register_tool(charon)]
- 
- // TODO(https://github.com/signalapp/libsignal/issues/285): it should be an aspiration to
- // eventually warn and then error for public members without docstrings. Also see
 diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
 --- a/rust/protocol/src/timestamp.rs
 +++ b/rust/protocol/src/timestamp.rs
