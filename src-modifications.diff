@@ -11,7 +11,7 @@ Upstream Commit: 0a58e80b
 diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.rs
 --- a/rust/core/src/address.rs
 +++ b/rust/core/src/address.rs
-@@ -57,8 +57,10 @@
+@@ -57,8 +57,12 @@
  /// A service ID with a known type.
  ///
  /// `RAW_KIND` is a raw [ServiceIdKind] (eventually Rust will allow enums as generic parameters).
@@ -19,11 +19,13 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
 +// https://github.com/AeneasVerif/aeneas/issues/767
  #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 -pub struct SpecificServiceId<const RAW_KIND: u8>(Uuid);
-+pub struct SpecificServiceId<const RAW_KIND: u8> { uuid: Uuid }
++pub struct SpecificServiceId<const RAW_KIND: u8> {
++    uuid: Uuid,
++}
  
  impl<const KIND: u8> SpecificServiceId<KIND> {
      /// Convenience function to go directly from bytes to a specific kind of service ID.
-@@ -71,7 +73,7 @@
+@@ -71,7 +75,7 @@
  
      #[inline]
      const fn from_uuid(uuid: Uuid) -> Self {
@@ -32,7 +34,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-@@ -79,7 +81,7 @@
+@@ -79,7 +83,7 @@
  // https://github.com/uuid-rs/uuid/issues/775
  impl<const KIND: u8> std::hash::Hash for SpecificServiceId<KIND> {
      fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -41,7 +43,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-@@ -145,7 +147,7 @@
+@@ -145,7 +149,7 @@
  impl<const KIND: u8> From<SpecificServiceId<KIND>> for Uuid {
      #[inline]
      fn from(value: SpecificServiceId<KIND>) -> Self {
@@ -50,7 +52,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-@@ -201,7 +203,7 @@
+@@ -201,7 +205,7 @@
      #[inline]
      pub fn service_id_binary(&self) -> Vec<u8> {
          if let Self::Aci(aci) = self {
@@ -59,7 +61,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
          } else {
              self.service_id_fixed_width_binary().to_vec()
          }
-@@ -219,7 +221,7 @@
+@@ -219,7 +223,7 @@
      /// The standard string representation for a Signal service ID.
      pub fn service_id_string(&self) -> String {
          if let Self::Aci(aci) = self {
@@ -68,7 +70,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
          } else {
              format!("{}:{}", self.kind(), self.raw_uuid())
          }
-@@ -674,8 +676,10 @@
+@@ -674,8 +678,12 @@
  /// represents some user.
  ///
  /// Used in [ProtocolAddress].
@@ -76,11 +78,13 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
 +// https://github.com/AeneasVerif/aeneas/issues/767
  #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 -pub struct DeviceId(NonZeroU8);
-+pub struct DeviceId { id: NonZeroU8 }
++pub struct DeviceId {
++    id: NonZeroU8,
++}
  
  #[derive(Copy, Clone, Debug, Eq, PartialEq, thiserror::Error)]
  #[error("device ID is out of range")]
-@@ -701,7 +705,7 @@
+@@ -701,7 +709,7 @@
      /// returned instead.
      pub const fn new_nonzero(id: NonZeroU8) -> Result<Self, InvalidDeviceId> {
          if id.get() <= MAX_VALID_DEVICE_ID {
@@ -89,7 +93,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
          } else {
              Err(InvalidDeviceId)
          }
-@@ -712,19 +716,19 @@
+@@ -712,19 +720,19 @@
  
  impl From<DeviceId> for u32 {
      fn from(value: DeviceId) -> Self {
@@ -112,7 +116,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-@@ -751,16 +755,16 @@
+@@ -751,16 +759,16 @@
  
  impl fmt::Display for DeviceId {
      fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -136,7 +140,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
 diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
 --- a/rust/core/src/e164.rs
 +++ b/rust/core/src/e164.rs
-@@ -7,20 +7,22 @@
+@@ -7,20 +7,24 @@
  use std::num::{NonZeroU64, ParseIntError};
  use std::str::FromStr;
  
@@ -144,7 +148,9 @@ diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
 +// https://github.com/AeneasVerif/aeneas/issues/767
  #[derive(Copy, Clone, Debug, PartialEq, Eq, derive_more::Into)]
 -pub struct E164(NonZeroU64);
-+pub struct E164 { inner: NonZeroU64 }
++pub struct E164 {
++    inner: NonZeroU64,
++}
  
  impl E164 {
      pub const fn new(number: NonZeroU64) -> Self {
@@ -163,7 +169,7 @@ diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
      }
  }
  
-@@ -28,13 +30,13 @@
+@@ -28,13 +32,13 @@
      type Err = ParseIntError;
      fn from_str(s: &str) -> Result<Self, Self::Err> {
          let s = s.strip_prefix('+').unwrap_or(s);
@@ -207,7 +213,7 @@ diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
 diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs
 --- a/rust/crypto/src/aes_ctr.rs
 +++ b/rust/crypto/src/aes_ctr.rs
-@@ -10,7 +10,10 @@
+@@ -10,7 +10,12 @@
  use crate::error::{Error, Result};
  
  /// A wrapper around [`ctr::Ctr32BE`] that uses a smaller nonce and supports an initial counter.
@@ -215,11 +221,13 @@ diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_c
 +// Modified for Aeneas: tuple struct → named field.
 +// https://github.com/AeneasVerif/aeneas/issues/767
 +#[charon::opaque]
-+pub struct Aes256Ctr32 { inner: ctr::Ctr32BE<Aes256> }
++pub struct Aes256Ctr32 {
++    inner: ctr::Ctr32BE<Aes256>,
++}
  
  impl Aes256Ctr32 {
      pub const NONCE_SIZE: usize = <Aes256 as aes::cipher::BlockSizeUser>::BlockSize::USIZE - 4;
-@@ -29,7 +32,7 @@
+@@ -29,7 +34,7 @@
              (<Aes256 as aes::cipher::BlockSizeUser>::BlockSize::USIZE as u64) * (init_ctr as u64),
          );
  
@@ -228,7 +236,7 @@ diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_c
      }
  
      pub fn from_key(key: &[u8], nonce: &[u8], init_ctr: u32) -> Result<Self> {
-@@ -41,6 +44,6 @@
+@@ -41,6 +46,6 @@
      }
  
      pub fn process(&mut self, buf: &mut [u8]) {
@@ -271,11 +279,6 @@ diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
  
  mod error;
  mod hash;
-@@ -19,3 +21,4 @@
- pub use error::{Error, Result};
- pub use hash::{CryptographicHash, CryptographicMac};
- pub use hpke::{HpkeError, SimpleHpkeReceiver, SimpleHpkeSender};
-+
 diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
 --- a/rust/protocol/Cargo.toml
 +++ b/rust/protocol/Cargo.toml
@@ -302,7 +305,7 @@ diff -Naur --no-dereference a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.r
 diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
 --- a/rust/protocol/src/timestamp.rs
 +++ b/rust/protocol/src/timestamp.rs
-@@ -3,28 +3,30 @@
+@@ -3,28 +3,38 @@
  // SPDX-License-Identifier: AGPL-3.0-only
  //
  
@@ -315,12 +318,16 @@ diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src
 +#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
  #[repr(transparent)]
 -pub struct Timestamp(u64);
-+pub struct Timestamp { millis: u64 }
++pub struct Timestamp {
++    millis: u64,
++}
  
  impl Timestamp {
      pub const fn from_epoch_millis(milliseconds: u64) -> Self {
 -        Self(milliseconds)
-+        Self { millis: milliseconds }
++        Self {
++            millis: milliseconds,
++        }
      }
  
      pub const fn epoch_millis(&self) -> u64 {
@@ -330,16 +337,20 @@ diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src
  
      pub fn add_millis(&self, milliseconds: u64) -> Self {
 -        Self(self.0 + milliseconds)
-+        Self { millis: self.millis + milliseconds }
++        Self {
++            millis: self.millis + milliseconds,
++        }
      }
  
      pub fn sub_millis(&self, milliseconds: u64) -> Timestamp {
 -        Self(self.0 - milliseconds)
-+        Self { millis: self.millis - milliseconds }
++        Self {
++            millis: self.millis - milliseconds,
++        }
      }
  }
  
-@@ -34,8 +36,9 @@
+@@ -34,8 +44,11 @@
      }
  }
  
@@ -347,6 +358,8 @@ diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src
  impl rand::distr::Distribution<Timestamp> for rand::distr::StandardUniform {
      fn sample<R: rand::prelude::Rng + ?Sized>(&self, rng: &mut R) -> Timestamp {
 -        Timestamp(Self::sample(self, rng))
-+        Timestamp { millis: Self::sample(self, rng) }
++        Timestamp {
++            millis: Self::sample(self, rng),
++        }
      }
  }
