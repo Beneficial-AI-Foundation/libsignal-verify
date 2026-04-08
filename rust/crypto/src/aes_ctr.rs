@@ -12,7 +12,7 @@ use crate::error::{Error, Result};
 /// A wrapper around [`ctr::Ctr32BE`] that uses a smaller nonce and supports an initial counter.
 // Modified for Aeneas: tuple struct → named field.
 // https://github.com/AeneasVerif/aeneas/issues/767
-#[charon::opaque]
+#[cfg_attr(feature = "extraction", charon::opaque)]
 pub struct Aes256Ctr32 {
     inner: ctr::Ctr32BE<Aes256>,
 }

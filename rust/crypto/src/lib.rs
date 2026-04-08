@@ -4,8 +4,8 @@
 //
 
 #![deny(clippy::unwrap_used)]
-#![feature(register_tool)]
-#![register_tool(charon)]
+#![cfg_attr(feature = "extraction", feature(register_tool))]
+#![cfg_attr(feature = "extraction", register_tool(charon))]
 
 mod error;
 mod hash;

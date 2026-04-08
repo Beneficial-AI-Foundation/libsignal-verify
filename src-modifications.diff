@@ -185,18 +185,6 @@ diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
      }
  }
  
-diff -Naur --no-dereference a/rust/core/src/lib.rs b/rust/core/src/lib.rs
---- a/rust/core/src/lib.rs
-+++ b/rust/core/src/lib.rs
-@@ -4,6 +4,8 @@
- //
- 
- #![warn(clippy::unwrap_used)]
-+#![feature(register_tool)]
-+#![register_tool(charon)]
- 
- mod address;
- // Not exporting the members because they have overly-generic names.
 diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
 --- a/rust/crypto/Cargo.toml
 +++ b/rust/crypto/Cargo.toml
@@ -220,7 +208,7 @@ diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_c
 -pub struct Aes256Ctr32(ctr::Ctr32BE<Aes256>);
 +// Modified for Aeneas: tuple struct → named field.
 +// https://github.com/AeneasVerif/aeneas/issues/767
-+#[charon::opaque]
++#[cfg_attr(feature = "extraction", charon::opaque)]
 +pub struct Aes256Ctr32 {
 +    inner: ctr::Ctr32BE<Aes256>,
 +}
@@ -253,7 +241,7 @@ diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
  
 -#[derive(Clone)]
 +#[cfg_attr(not(feature = "extraction"), derive(Clone))]
-+#[charon::opaque]
++#[cfg_attr(feature = "extraction", charon::opaque)]
  pub enum CryptographicMac {
      HmacSha256(Hmac<Sha256>),
      HmacSha1(Hmac<Sha1>),
@@ -263,7 +251,7 @@ diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
  
 -#[derive(Clone)]
 +#[cfg_attr(not(feature = "extraction"), derive(Clone))]
-+#[charon::opaque]
++#[cfg_attr(feature = "extraction", charon::opaque)]
  pub enum CryptographicHash {
      Sha1(Sha1),
      Sha256(Sha256),
@@ -274,8 +262,8 @@ diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
  //
  
  #![deny(clippy::unwrap_used)]
-+#![feature(register_tool)]
-+#![register_tool(charon)]
++#![cfg_attr(feature = "extraction", feature(register_tool))]
++#![cfg_attr(feature = "extraction", register_tool(charon))]
  
  mod error;
  mod hash;
