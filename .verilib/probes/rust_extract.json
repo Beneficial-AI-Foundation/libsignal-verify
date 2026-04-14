@@ -1,0 +1,1532 @@
+{
+  "schema": "probe-rust/extract",
+  "schema-version": "2.3",
+  "tool": {
+    "name": "probe-rust",
+    "version": "0.6.0",
+    "command": "extract"
+  },
+  "source": {
+    "repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
+    "commit": "edbb363c7a2533e6375f36679cb45b0eb5c619b5",
+    "language": "rust",
+    "package": "signal-crypto",
+    "package-version": "0.1.0"
+  },
+  "timestamp": "2026-04-14T20:43:58Z",
+  "data": {
+    "probe:alloc/https://github.com/rust-lang/rust/library/alloc/slice/impl#[`[T]`]to_vec()": {
+      "display-name": "to_vec",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/alloc/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`Index<I>`]index()": {
+      "display-name": "index",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/array",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`IndexMut<I>`]index_mut()": {
+      "display-name": "index_mut",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/array",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/PartialEq#eq()": {
+      "display-name": "eq",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialEq<Self>`]ne()": {
+      "display-name": "ne",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialOrd<Self>`]gt()": {
+      "display-name": "gt",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]eq()": {
+      "display-name": "eq",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]ne()": {
+      "display-name": "ne",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialOrd<Self>`]ge()": {
+      "display-name": "ge",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialOrd<Self>`]gt()": {
+      "display-name": "gt",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/cmp/impls",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/num/impl#[u64]to_be_bytes()": {
+      "display-name": "to_be_bytes",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/num",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/Sub#sub()": {
+      "display-name": "sub",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`Add<Self>`]add()": {
+      "display-name": "add",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`AddAssign<Self>`]add_assign()": {
+      "display-name": "add_assign",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[u64][`Mul<Self>`]mul()": {
+      "display-name": "mul",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Add<Self>`]add()": {
+      "display-name": "add",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`AddAssign<Self>`]add_assign()": {
+      "display-name": "add_assign",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Div<Self>`]div()": {
+      "display-name": "div",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Mul<Self>`]mul()": {
+      "display-name": "mul",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Rem<Self>`]rem()": {
+      "display-name": "rem",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Sub<Self>`]sub()": {
+      "display-name": "sub",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/arith",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/bit/BitXorAssign#bitxor_assign()": {
+      "display-name": "bitxor_assign",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/bit",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/bit/Not#not()": {
+      "display-name": "not",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/bit",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/deref/DerefMut#deref_mut()": {
+      "display-name": "deref_mut",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/deref",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/deref/impl#[`&T`][Deref]deref()": {
+      "display-name": "deref",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/deref",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/Index#index()": {
+      "display-name": "index",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/index",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/IndexMut#index_mut()": {
+      "display-name": "index_mut",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/index",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()": {
+      "display-name": "branch",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ops/try_trait",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/option/impl#[`Option<T>`]ok_or()": {
+      "display-name": "ok_or",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/option",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/ptr/const_ptr/impl#[`*const/T`]cast()": {
+      "display-name": "cast",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/ptr/const_ptr",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]as_ptr()": {
+      "display-name": "as_ptr",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]copy_from_slice()": {
+      "display-name": "copy_from_slice",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]is_empty()": {
+      "display-name": "is_empty",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()": {
+      "display-name": "len",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]split_at_checked()": {
+      "display-name": "split_at_checked",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]split_last_chunk()": {
+      "display-name": "split_last_chunk",
+      "dependencies": [],
+      "code-module": "/github.com/rust-lang/rust/library/core/slice",
+      "code-path": "",
+      "code-text": {
+        "lines-start": 0,
+        "lines-end": 0
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/aes_cbc/aes_256_cbc_decrypt()": {
+      "display-name": "aes_256_cbc_decrypt",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Rem<Self>`]rem()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]is_empty()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()"
+      ],
+      "code-module": "aes_cbc",
+      "code-path": "src/aes_cbc.rs",
+      "code-text": {
+        "lines-start": 37,
+        "lines-end": 53
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_decrypt",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_cbc/aes_256_cbc_encrypt()": {
+      "display-name": "aes_256_cbc_encrypt",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()"
+      ],
+      "code-module": "aes_cbc",
+      "code-path": "src/aes_cbc.rs",
+      "code-text": {
+        "lines-start": 26,
+        "lines-end": 35
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_encrypt",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_cbc/test/aes_cbc_test()": {
+      "display-name": "aes_cbc_test",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/aes_cbc/aes_256_cbc_decrypt()",
+        "probe:signal-crypto/0.1.0/aes_cbc/aes_256_cbc_encrypt()"
+      ],
+      "code-module": "aes_cbc/test",
+      "code-path": "src/aes_cbc.rs",
+      "code-text": {
+        "lines-start": 62,
+        "lines-end": 85
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_cbc::aes_cbc_test",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_ctr/&Aes256Ctr32#impl<&[u8]>#[Aes256Ctr32]process()": {
+      "display-name": "Aes256Ctr32::process",
+      "dependencies": [],
+      "code-module": "aes_ctr",
+      "code-path": "src/aes_ctr.rs",
+      "code-text": {
+        "lines-start": 48,
+        "lines-end": 50
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::process",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]from_key()": {
+      "display-name": "Aes256Ctr32::from_key",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]new()"
+      ],
+      "code-module": "aes_ctr",
+      "code-path": "src/aes_ctr.rs",
+      "code-text": {
+        "lines-start": 40,
+        "lines-end": 46
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::from_key",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]new()": {
+      "display-name": "Aes256Ctr32::new",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[u64][`Mul<Self>`]mul()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/IndexMut#index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]copy_from_slice()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()"
+      ],
+      "code-module": "aes_ctr",
+      "code-path": "src/aes_ctr.rs",
+      "code-text": {
+        "lines-start": 23,
+        "lines-end": 38
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::new",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_ctr_long_test()": {
+      "display-name": "aes_ctr_long_test",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialOrd<Self>`]gt()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/Sub#sub()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`Add<Self>`]add()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`AddAssign<Self>`]add_assign()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/IndexMut#index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]from_key()"
+      ],
+      "code-module": "",
+      "code-path": "tests/aes_ctr.rs",
+      "code-text": {
+        "lines-start": 32,
+        "lines-end": 71
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_ctr_smoke_test()": {
+      "display-name": "aes_ctr_smoke_test",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]from_key()"
+      ],
+      "code-module": "",
+      "code-path": "tests/aes_ctr.rs",
+      "code-text": {
+        "lines-start": 10,
+        "lines-end": 29
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm()": {
+      "display-name": "aes_gcm",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/deref/impl#[`&T`][Deref]deref()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmDecryption]new()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()"
+      ],
+      "code-module": "",
+      "code-path": "benches/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 8,
+        "lines-end": 38
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]decrypt()": {
+      "display-name": "Aes256GcmDecryption::decrypt",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/aes_ctr/&Aes256Ctr32#impl<&[u8]>#[Aes256Ctr32]process()",
+        "probe:signal-crypto/0.1.0/aes_gcm/&GcmGhash#impl<&[u8]>#[GcmGhash]update()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 171,
+        "lines-end": 174
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::decrypt",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmEncryption#impl<&[u8]>#[Aes256GcmEncryption]encrypt()": {
+      "display-name": "Aes256GcmEncryption::encrypt",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/aes_ctr/&Aes256Ctr32#impl<&[u8]>#[Aes256Ctr32]process()",
+        "probe:signal-crypto/0.1.0/aes_gcm/&GcmGhash#impl<&[u8]>#[GcmGhash]update()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 147,
+        "lines-end": 150
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::encrypt",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/&GcmGhash#impl<&[u8]>#[GcmGhash]update()": {
+      "display-name": "GcmGhash::update",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`IndexMut<I>`]index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]eq()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialOrd<Self>`]gt()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Add<Self>`]add()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`AddAssign<Self>`]add_assign()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Div<Self>`]div()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Mul<Self>`]mul()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Sub<Self>`]sub()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/Index#index()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ptr/const_ptr/impl#[`*const/T`]cast()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]as_ptr()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]copy_from_slice()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 44,
+        "lines-end": 88
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::update",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]verify_tag()": {
+      "display-name": "Aes256GcmDecryption::verify_tag",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/bit/Not#not()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()",
+        "probe:signal-crypto/0.1.0/aes_gcm/GcmGhash#impl<[u8;/{const}]>#[GcmGhash]finalize()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 176,
+        "lines-end": 190
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::verify_tag",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmEncryption#impl<[u8;/{const}]>#[Aes256GcmEncryption]compute_tag()": {
+      "display-name": "Aes256GcmEncryption::compute_tag",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/aes_gcm/GcmGhash#impl<[u8;/{const}]>#[GcmGhash]finalize()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 152,
+        "lines-end": 154
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::compute_tag",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/GcmGhash#impl<[u8;/{const}]>#[GcmGhash]finalize()": {
+      "display-name": "GcmGhash::finalize",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`Index<I>`]index()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`IndexMut<I>`]index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialOrd<Self>`]gt()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/num/impl#[u64]to_be_bytes()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[u64][`Mul<Self>`]mul()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/bit/BitXorAssign#bitxor_assign()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/deref/DerefMut#deref_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/Index#index()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]copy_from_slice()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 90,
+        "lines-end": 108
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::finalize",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmDecryption]new()": {
+      "display-name": "Aes256GcmDecryption::new",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_gcm/setup_gcm()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 166,
+        "lines-end": 169
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()": {
+      "display-name": "Aes256GcmEncryption::new",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_gcm/setup_gcm()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 142,
+        "lines-end": 145
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/impl<[u8;/{const}]>#[GcmGhash]new()": {
+      "display-name": "GcmGhash::new",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()"
+      ],
+      "code-module": "aes_gcm/impl<[u8;",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 29,
+        "lines-end": 42
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::GcmGhash::new",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm/setup_gcm()": {
+      "display-name": "setup_gcm",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()",
+        "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]new()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<[u8;/{const}]>#[GcmGhash]new()"
+      ],
+      "code-module": "aes_gcm",
+      "code-path": "src/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 111,
+        "lines-end": 131
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::aes_gcm::setup_gcm",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm_smoke_test()": {
+      "display-name": "aes_gcm_smoke_test",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()"
+      ],
+      "code-module": "",
+      "code-path": "tests/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 159,
+        "lines-end": 180
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/aes_gcm_wycheproof_kats()": {
+      "display-name": "aes_gcm_wycheproof_kats",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/PartialEq#eq()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/test_kat()"
+      ],
+      "code-module": "",
+      "code-path": "tests/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 141,
+        "lines-end": 156
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hash/&CryptographicHash#impl<&[u8]>#[CryptographicHash]update()": {
+      "display-name": "CryptographicHash::update",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 70,
+        "lines-end": 76
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::update",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/&CryptographicHash#impl<Vec<u8>>#[CryptographicHash]finalize()": {
+      "display-name": "CryptographicHash::finalize",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 78,
+        "lines-end": 84
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::finalize",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update()": {
+      "display-name": "CryptographicMac::update",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 32,
+        "lines-end": 37
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update_and_get()": {
+      "display-name": "CryptographicMac::update_and_get",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update()"
+      ],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 39,
+        "lines-end": 42
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update_and_get",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<Vec<u8>>#[CryptographicMac]finalize()": {
+      "display-name": "CryptographicMac::finalize",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 44,
+        "lines-end": 49
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::finalize",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/impl<&[u8]>#[CryptographicMac]new()": {
+      "display-name": "CryptographicMac::new",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 20,
+        "lines-end": 30
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::new",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hash/impl<&str>#[CryptographicHash]new()": {
+      "display-name": "CryptographicHash::new",
+      "dependencies": [],
+      "code-module": "hash",
+      "code-path": "src/hash.rs",
+      "code-text": {
+        "lines-start": 61,
+        "lines-end": 68
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::new",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hpke()": {
+      "display-name": "hpke",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/deref/impl#[`&T`][Deref]deref()"
+      ],
+      "code-module": "",
+      "code-path": "benches/hpke.rs",
+      "code-text": {
+        "lines-start": 10,
+        "lines-end": 35
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": true
+    },
+    "probe:signal-crypto/0.1.0/hpke/&{unknown}#impl<&[u8]>#[_][SimpleHpkeReceiver]open()": {
+      "display-name": "_::open",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/Index#index()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/option/impl#[`Option<T>`]ok_or()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]split_at_checked()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<Hpke<provider::CryptoProvider>>#[SignalHpkeCiphertextType]set_up()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KemAlgorithm>#[SignalHpkeCiphertextType]kem_algorithm()"
+      ],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 129,
+        "lines-end": 161
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::{impl ?}::open",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/&{unknown}#impl<&[u8]>#[_][SimpleHpkeSender]seal()": {
+      "display-name": "_::seal",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<Hpke<provider::CryptoProvider>>#[SignalHpkeCiphertextType]set_up()"
+      ],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 82,
+        "lines-end": 112
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::{impl ?}::seal",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<Hpke<provider::CryptoProvider>>#[SignalHpkeCiphertextType]set_up()": {
+      "display-name": "SignalHpkeCiphertextType::set_up",
+      "dependencies": [
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<HpkeMode>#[SignalHpkeCiphertextType]mode()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::AeadAlgorithm>#[SignalHpkeCiphertextType]aead_algorithm()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KdfAlgorithm>#[SignalHpkeCiphertextType]kdf_algorithm()",
+        "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KemAlgorithm>#[SignalHpkeCiphertextType]kem_algorithm()"
+      ],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 28,
+        "lines-end": 35
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::set_up",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<HpkeMode>#[SignalHpkeCiphertextType]mode()": {
+      "display-name": "SignalHpkeCiphertextType::mode",
+      "dependencies": [],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 37,
+        "lines-end": 41
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::mode",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::AeadAlgorithm>#[SignalHpkeCiphertextType]aead_algorithm()": {
+      "display-name": "SignalHpkeCiphertextType::aead_algorithm",
+      "dependencies": [],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 59,
+        "lines-end": 65
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::aead_algorithm",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KdfAlgorithm>#[SignalHpkeCiphertextType]kdf_algorithm()": {
+      "display-name": "SignalHpkeCiphertextType::kdf_algorithm",
+      "dependencies": [],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 51,
+        "lines-end": 57
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kdf_algorithm",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KemAlgorithm>#[SignalHpkeCiphertextType]kem_algorithm()": {
+      "display-name": "SignalHpkeCiphertextType::kem_algorithm",
+      "dependencies": [],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 43,
+        "lines-end": 49
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kem_algorithm",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/impl<SignalHpkeCiphertextType>#[u8]from()": {
+      "display-name": "u8::from",
+      "dependencies": [],
+      "code-module": "hpke",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 22,
+        "lines-end": 24
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::{impl ?}::from",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl#[Rng]zeroize()": {
+      "display-name": "Rng::zeroize",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 191,
+        "lines-end": 191
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::zeroize",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]fill_bytes()": {
+      "display-name": "Rng::fill_bytes",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 211,
+        "lines-end": 213
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::fill_bytes",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]seed()": {
+      "display-name": "Rng::seed",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/array/impl#[`[T;/N]`][`IndexMut<I>`]index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[usize][`PartialOrd<Self>`]ge()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/Index#index()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]copy_from_slice()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 225,
+        "lines-end": 235
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::seed",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]try_fill_test_bytes()": {
+      "display-name": "Rng::try_fill_test_bytes",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 221,
+        "lines-end": 223
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::try_fill_test_bytes",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<u32>#[Rng]next_u32()": {
+      "display-name": "Rng::next_u32",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 203,
+        "lines-end": 205
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u32",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<u64>#[Rng]next_u64()": {
+      "display-name": "Rng::next_u64",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 207,
+        "lines-end": 209
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u64",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl#[Rng]default()": {
+      "display-name": "Rng::default",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 195,
+        "lines-end": 199
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::Rng::default",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&Self::HpkePrng>#[CryptoProvider]kem_key_gen()": {
+      "display-name": "CryptoProvider::kem_key_gen",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 104,
+        "lines-end": 111
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]aead_open()": {
+      "display-name": "CryptoProvider::aead_open",
+      "dependencies": [
+        "probe:alloc/https://github.com/rust-lang/rust/library/alloc/slice/impl#[`[T]`]to_vec()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/option/impl#[`Option<T>`]ok_or()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]split_last_chunk()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmDecryption]new()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 158,
+        "lines-end": 179
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_open",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]aead_seal()": {
+      "display-name": "CryptoProvider::aead_seal",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[usize][`Add<Self>`]add()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/IndexMut#index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/slice/impl#[`[T]`]len()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 136,
+        "lines-end": 156
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_seal",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]dh()": {
+      "display-name": "CryptoProvider::dh",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 77,
+        "lines-end": 89
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]dh_validate_sk()": {
+      "display-name": "CryptoProvider::dh_validate_sk",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 132,
+        "lines-end": 134
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh_validate_sk",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kdf_expand()": {
+      "display-name": "CryptoProvider::kdf_expand",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 58,
+        "lines-end": 75
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_expand",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kdf_extract()": {
+      "display-name": "CryptoProvider::kdf_extract",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 49,
+        "lines-end": 56
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_extract",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_decaps()": {
+      "display-name": "CryptoProvider::kem_decaps",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 128,
+        "lines-end": 130
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_decaps",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_encaps()": {
+      "display-name": "CryptoProvider::kem_encaps",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 120,
+        "lines-end": 126
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_encaps",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_key_gen_derand()": {
+      "display-name": "CryptoProvider::kem_key_gen_derand",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 113,
+        "lines-end": 118
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen_derand",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]secret_to_public()": {
+      "display-name": "CryptoProvider::secret_to_public",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()"
+      ],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 91,
+        "lines-end": 102
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::secret_to_public",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<AeadAlgorithm>#[CryptoProvider]supports_aead()": {
+      "display-name": "CryptoProvider::supports_aead",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 38,
+        "lines-end": 43
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_aead",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<KdfAlgorithm>#[CryptoProvider]supports_kdf()": {
+      "display-name": "CryptoProvider::supports_kdf",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 24,
+        "lines-end": 29
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kdf",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<KemAlgorithm>#[CryptoProvider]supports_kem()": {
+      "display-name": "CryptoProvider::supports_kem",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 31,
+        "lines-end": 36
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kem",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<Self::HpkePrng>#[CryptoProvider]prng()": {
+      "display-name": "CryptoProvider::prng",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 45,
+        "lines-end": 47
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::prng",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/provider/impl<String>#[CryptoProvider]name()": {
+      "display-name": "CryptoProvider::name",
+      "dependencies": [],
+      "code-module": "hpke/provider",
+      "code-path": "src/hpke/provider.rs",
+      "code-text": {
+        "lines-start": 20,
+        "lines-end": 22
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::name",
+      "is-disabled": false
+    },
+    "probe:signal-crypto/0.1.0/hpke/test/basic()": {
+      "display-name": "basic",
+      "dependencies": [],
+      "code-module": "hpke/test",
+      "code-path": "src/hpke.rs",
+      "code-text": {
+        "lines-start": 172,
+        "lines-end": 196
+      },
+      "kind": "exec",
+      "language": "rust",
+      "rust-qualified-name": "signal_crypto::hpke::basic",
+      "is-disabled": false,
+      "is-public": false
+    },
+    "probe:signal-crypto/0.1.0/test_kat()": {
+      "display-name": "test_kat",
+      "dependencies": [
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialEq<Self>`]ne()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/cmp/impls/impl#[i32][`PartialOrd<Self>`]gt()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/Sub#sub()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`Add<Self>`]add()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/arith/impl#[i32][`AddAssign<Self>`]add_assign()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/index/IndexMut#index_mut()",
+        "probe:core/https://github.com/rust-lang/rust/library/core/ops/try_trait/Try#branch()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmDecryption]new()",
+        "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()"
+      ],
+      "code-module": "",
+      "code-path": "tests/aes_gcm.rs",
+      "code-text": {
+        "lines-start": 65,
+        "lines-end": 138
+      },
+      "kind": "exec",
+      "language": "rust",
+      "is-disabled": false,
+      "is-public": false
+    }
+  }
+}
