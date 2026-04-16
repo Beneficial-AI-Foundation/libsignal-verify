@@ -139,9 +139,13 @@ Axioms — propositions assumed without proof.
 
 None
 
-## 4. Unverified and failed functions (0)
+## 4. Unverified and failed functions (5)
 
-None
+- `probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]decrypt()`
+- `probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmEncryption#impl<&[u8]>#[Aes256GcmEncryption]encrypt()`
+- `probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]verify_tag()`
+- `probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmEncryption#impl<[u8;/{const}]>#[Aes256GcmEncryption]compute_tag()`
+- `probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update_and_get()`
 
 ## 5. Verified remaining Lean functions (224)
 

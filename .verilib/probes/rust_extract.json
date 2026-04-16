@@ -8,12 +8,12 @@
   },
   "source": {
     "repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
-    "commit": "edbb363c7a2533e6375f36679cb45b0eb5c619b5",
+    "commit": "390e07a6069a2e78029c178d82f6617c698b530d",
     "language": "rust",
     "package": "signal-crypto",
     "package-version": "0.1.0"
   },
-  "timestamp": "2026-04-14T20:43:58Z",
+  "timestamp": "2026-04-16T19:21:38Z",
   "data": {
     "probe:alloc/https://github.com/rust-lang/rust/library/alloc/slice/impl#[`[T]`]to_vec()": {
       "display-name": "to_vec",
@@ -502,7 +502,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_decrypt",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_cbc/aes_256_cbc_encrypt()": {
       "display-name": "aes_256_cbc_encrypt",
@@ -519,7 +520,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_encrypt",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_cbc/test/aes_cbc_test()": {
       "display-name": "aes_cbc_test",
@@ -537,7 +539,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_cbc::aes_cbc_test",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_ctr/&Aes256Ctr32#impl<&[u8]>#[Aes256Ctr32]process()": {
       "display-name": "Aes256Ctr32::process",
@@ -552,7 +555,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::process",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]from_key()": {
       "display-name": "Aes256Ctr32::from_key",
@@ -570,7 +574,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::from_key",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_ctr/impl<&[u8]>#[Aes256Ctr32]new()": {
       "display-name": "Aes256Ctr32::new",
@@ -591,7 +596,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::new",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_ctr_long_test()": {
       "display-name": "aes_ctr_long_test",
@@ -667,7 +673,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::decrypt",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmEncryption#impl<&[u8]>#[Aes256GcmEncryption]encrypt()": {
       "display-name": "Aes256GcmEncryption::encrypt",
@@ -685,7 +692,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::encrypt",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/&GcmGhash#impl<&[u8]>#[GcmGhash]update()": {
       "display-name": "GcmGhash::update",
@@ -714,7 +722,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::update",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]verify_tag()": {
       "display-name": "Aes256GcmDecryption::verify_tag",
@@ -734,7 +743,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::verify_tag",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/Aes256GcmEncryption#impl<[u8;/{const}]>#[Aes256GcmEncryption]compute_tag()": {
       "display-name": "Aes256GcmEncryption::compute_tag",
@@ -751,7 +761,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::compute_tag",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/GcmGhash#impl<[u8;/{const}]>#[GcmGhash]finalize()": {
       "display-name": "GcmGhash::finalize",
@@ -776,7 +787,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::finalize",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmDecryption]new()": {
       "display-name": "Aes256GcmDecryption::new",
@@ -794,7 +806,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/impl<&[u8]>#[Aes256GcmEncryption]new()": {
       "display-name": "Aes256GcmEncryption::new",
@@ -812,7 +825,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/impl<[u8;/{const}]>#[GcmGhash]new()": {
       "display-name": "GcmGhash::new",
@@ -829,7 +843,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::GcmGhash::new",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm/setup_gcm()": {
       "display-name": "setup_gcm",
@@ -850,7 +865,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::aes_gcm::setup_gcm",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/aes_gcm_smoke_test()": {
       "display-name": "aes_gcm_smoke_test",
@@ -900,7 +916,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::update",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/&CryptographicHash#impl<Vec<u8>>#[CryptographicHash]finalize()": {
       "display-name": "CryptographicHash::finalize",
@@ -915,7 +932,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::finalize",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update()": {
       "display-name": "CryptographicMac::update",
@@ -930,7 +948,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<&[u8]>#[CryptographicMac]update_and_get()": {
       "display-name": "CryptographicMac::update_and_get",
@@ -947,7 +966,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update_and_get",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/&CryptographicMac#impl<Vec<u8>>#[CryptographicMac]finalize()": {
       "display-name": "CryptographicMac::finalize",
@@ -962,7 +982,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::finalize",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/impl<&[u8]>#[CryptographicMac]new()": {
       "display-name": "CryptographicMac::new",
@@ -977,7 +998,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::new",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hash/impl<&str>#[CryptographicHash]new()": {
       "display-name": "CryptographicHash::new",
@@ -992,7 +1014,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::new",
       "is-disabled": false,
-      "is-public": true
+      "is-public": true,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke()": {
       "display-name": "hpke",
@@ -1029,7 +1052,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::open",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/&{unknown}#impl<&[u8]>#[_][SimpleHpkeSender]seal()": {
       "display-name": "_::seal",
@@ -1046,7 +1070,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::seal",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<Hpke<provider::CryptoProvider>>#[SignalHpkeCiphertextType]set_up()": {
       "display-name": "SignalHpkeCiphertextType::set_up",
@@ -1066,7 +1091,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::set_up",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<HpkeMode>#[SignalHpkeCiphertextType]mode()": {
       "display-name": "SignalHpkeCiphertextType::mode",
@@ -1081,7 +1107,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::mode",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::AeadAlgorithm>#[SignalHpkeCiphertextType]aead_algorithm()": {
       "display-name": "SignalHpkeCiphertextType::aead_algorithm",
@@ -1096,7 +1123,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::aead_algorithm",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KdfAlgorithm>#[SignalHpkeCiphertextType]kdf_algorithm()": {
       "display-name": "SignalHpkeCiphertextType::kdf_algorithm",
@@ -1111,7 +1139,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kdf_algorithm",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/SignalHpkeCiphertextType#impl<hpke_types::KemAlgorithm>#[SignalHpkeCiphertextType]kem_algorithm()": {
       "display-name": "SignalHpkeCiphertextType::kem_algorithm",
@@ -1126,7 +1155,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kem_algorithm",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/impl<SignalHpkeCiphertextType>#[u8]from()": {
       "display-name": "u8::from",
@@ -1140,7 +1170,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::from",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl#[Rng]zeroize()": {
       "display-name": "Rng::zeroize",
@@ -1154,7 +1185,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::zeroize",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]fill_bytes()": {
       "display-name": "Rng::fill_bytes",
@@ -1168,7 +1200,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::fill_bytes",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]seed()": {
       "display-name": "Rng::seed",
@@ -1188,7 +1221,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::seed",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<&[u8]>#[Rng]try_fill_test_bytes()": {
       "display-name": "Rng::try_fill_test_bytes",
@@ -1202,7 +1236,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::try_fill_test_bytes",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<u32>#[Rng]next_u32()": {
       "display-name": "Rng::next_u32",
@@ -1216,7 +1251,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u32",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/&Rng#impl<u64>#[Rng]next_u64()": {
       "display-name": "Rng::next_u64",
@@ -1230,7 +1266,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u64",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl#[Rng]default()": {
       "display-name": "Rng::default",
@@ -1245,7 +1282,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::Rng::default",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&Self::HpkePrng>#[CryptoProvider]kem_key_gen()": {
       "display-name": "CryptoProvider::kem_key_gen",
@@ -1259,7 +1297,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]aead_open()": {
       "display-name": "CryptoProvider::aead_open",
@@ -1279,7 +1318,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_open",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]aead_seal()": {
       "display-name": "CryptoProvider::aead_seal",
@@ -1299,7 +1339,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_seal",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]dh()": {
       "display-name": "CryptoProvider::dh",
@@ -1315,7 +1356,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]dh_validate_sk()": {
       "display-name": "CryptoProvider::dh_validate_sk",
@@ -1329,7 +1371,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh_validate_sk",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kdf_expand()": {
       "display-name": "CryptoProvider::kdf_expand",
@@ -1345,7 +1388,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_expand",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kdf_extract()": {
       "display-name": "CryptoProvider::kdf_extract",
@@ -1359,7 +1403,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_extract",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_decaps()": {
       "display-name": "CryptoProvider::kem_decaps",
@@ -1373,7 +1418,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_decaps",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_encaps()": {
       "display-name": "CryptoProvider::kem_encaps",
@@ -1387,7 +1433,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_encaps",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]kem_key_gen_derand()": {
       "display-name": "CryptoProvider::kem_key_gen_derand",
@@ -1401,7 +1448,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen_derand",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<&[u8]>#[CryptoProvider]secret_to_public()": {
       "display-name": "CryptoProvider::secret_to_public",
@@ -1417,7 +1465,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::secret_to_public",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<AeadAlgorithm>#[CryptoProvider]supports_aead()": {
       "display-name": "CryptoProvider::supports_aead",
@@ -1431,7 +1480,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_aead",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<KdfAlgorithm>#[CryptoProvider]supports_kdf()": {
       "display-name": "CryptoProvider::supports_kdf",
@@ -1445,7 +1495,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kdf",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<KemAlgorithm>#[CryptoProvider]supports_kem()": {
       "display-name": "CryptoProvider::supports_kem",
@@ -1459,7 +1510,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kem",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<Self::HpkePrng>#[CryptoProvider]prng()": {
       "display-name": "CryptoProvider::prng",
@@ -1473,7 +1525,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::prng",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/provider/impl<String>#[CryptoProvider]name()": {
       "display-name": "CryptoProvider::name",
@@ -1487,7 +1540,8 @@
       "kind": "exec",
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::name",
-      "is-disabled": false
+      "is-disabled": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/hpke/test/basic()": {
       "display-name": "basic",
@@ -1502,7 +1556,8 @@
       "language": "rust",
       "rust-qualified-name": "signal_crypto::hpke::basic",
       "is-disabled": false,
-      "is-public": false
+      "is-public": false,
+      "is-public-api": false
     },
     "probe:signal-crypto/0.1.0/test_kat()": {
       "display-name": "test_kat",

@@ -1,11 +1,11 @@
-{"tool": {"version": "0.5.0", "name": "probe-lean", "command": "extract"},
- "timestamp": "2026-04-14T20:46:58Z",
+{"tool": {"version": "0.6.1", "name": "probe-lean", "command": "extract"},
+ "timestamp": "2026-04-16T19:21:47Z",
  "source":
  {"repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
   "package-version": "0.1.0",
   "package": "Libsignal",
   "language": "lean",
-  "commit": "edbb363c7a2533e6375f36679cb45b0eb5c619b5"},
+  "commit": "390e07a6069a2e78029c178d82f6617c698b530d"},
  "schema-version": "2.0",
  "schema": "probe-lean/extract",
  "data":
