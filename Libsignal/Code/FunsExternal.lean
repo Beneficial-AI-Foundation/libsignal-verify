@@ -175,15 +175,23 @@ axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
     Name pattern: [uuid::{uuid::Uuid}::as_bytes]
     Visibility: public -/
 @[rust_fun "uuid::{uuid::Uuid}::as_bytes"]
-axiom uuid.Uuid.as_bytes : uuid.Uuid → Result (Array Std.U8 16#usize)
+def uuid.Uuid.as_bytes (self : uuid.Uuid) : Result (Array Std.U8 16#usize) :=
+  ok self.bytes
+
+/-- An axiom representing a UUID byte length error (returned when slice length ≠ 16) -/
+axiom uuid.error.Error.byteLengthError : uuid.error.Error
 
 /-- [uuid::builder::{uuid::Uuid}::from_slice]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs', lines 287:4-287:54
     Name pattern: [uuid::builder::{uuid::Uuid}::from_slice]
     Visibility: public -/
 @[rust_fun "uuid::builder::{uuid::Uuid}::from_slice"]
-axiom uuid.builder.Uuid.from_slice
-  : Slice Std.U8 → Result (core.result.Result uuid.Uuid uuid.error.Error)
+noncomputable def uuid.builder.Uuid.from_slice
+  (s : Slice Std.U8) : Result (core.result.Result uuid.Uuid uuid.error.Error) :=
+  if h: s.len = 16#usize then
+    ok (.Ok ⟨⟨s.val, by scalar_tac⟩⟩)
+  else
+    ok (.Err uuid.error.Error.byteLengthError)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message]:
     Source: 'rust/core/src/curve.rs', lines 138:4-142:13
@@ -906,5 +914,3 @@ axiom hash.CryptographicHash.finalize
   :
   hash.CryptographicHash → Result ((alloc.vec.Vec Std.U8) ×
     hash.CryptographicHash)
-
-

@@ -141,7 +141,8 @@ axiom ghash.GHash : Type
     Name pattern: [uuid::Uuid]
     Visibility: public -/
 @[rust_type "uuid::Uuid"]
-axiom uuid.Uuid : Type
+structure uuid.Uuid where
+  bytes : Array Std.U8 16#usize
 
 /-- [uuid::error::Error]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/error.rs', lines 5:0-5:16
