@@ -19,7 +19,7 @@ upstream:
   commit: "0a58e80b"
 
 crate:
-  dir: "rust"
+  dir: "."
   name: "signal_crypto"
 
 charon:
