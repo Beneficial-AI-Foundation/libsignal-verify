@@ -3,7 +3,7 @@
   "schema-version": "2.0",
   "tool": {
     "name": "probe-aeneas",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "command": "extract"
   },
   "inputs": [
@@ -11,7 +11,7 @@
       "schema": "probe-rust/extract",
       "source": {
         "repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
-        "commit": "390e07a6069a2e78029c178d82f6617c698b530d",
+        "commit": "3d43666b3e438b07e14f437ea2ba562d9f7bfba2",
         "language": "rust",
         "package": "signal-crypto",
         "package-version": "0.1.0"
@@ -21,14 +21,14 @@
       "schema": "probe-lean/extract",
       "source": {
         "repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
-        "commit": "390e07a6069a2e78029c178d82f6617c698b530d",
+        "commit": "3d43666b3e438b07e14f437ea2ba562d9f7bfba2",
         "language": "lean",
         "package": "Libsignal",
         "package-version": "0.1.0"
       }
     }
   ],
-  "timestamp": "2026-04-16T19:21:47Z",
+  "timestamp": "2026-04-18T06:15:17Z",
   "data": {
     "probe:Bool.Insts.CoreConvertFromChoice.from": {
       "display-name": "from",
@@ -38,8 +38,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 231,
-        "lines-end": 236
+        "lines-start": 239,
+        "lines-end": 244
       },
       "kind": "axiom",
       "language": "lean",
@@ -94,8 +94,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 238,
-        "lines-end": 245
+        "lines-start": 246,
+        "lines-end": 253
       },
       "kind": "axiom",
       "language": "lean",
@@ -124,8 +124,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 247,
-        "lines-end": 253
+        "lines-start": 255,
+        "lines-end": 261
       },
       "kind": "axiom",
       "language": "lean",
@@ -178,8 +178,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 810,
-        "lines-end": 816
+        "lines-start": 818,
+        "lines-end": 824
       },
       "kind": "axiom",
       "language": "lean",
@@ -204,8 +204,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 802,
-        "lines-end": 808
+        "lines-start": 810,
+        "lines-end": 816
       },
       "kind": "axiom",
       "language": "lean",
@@ -228,8 +228,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 169,
-        "lines-end": 172
+        "lines-start": 170,
+        "lines-end": 173
       },
       "kind": "axiom",
       "language": "lean",
@@ -253,8 +253,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 826,
-        "lines-end": 832
+        "lines-start": 834,
+        "lines-end": 840
       },
       "kind": "axiom",
       "language": "lean",
@@ -282,8 +282,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 818,
-        "lines-end": 824
+        "lines-start": 826,
+        "lines-end": 832
       },
       "kind": "axiom",
       "language": "lean",
@@ -310,8 +310,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 834,
-        "lines-end": 840
+        "lines-start": 842,
+        "lines-end": 848
       },
       "kind": "axiom",
       "language": "lean",
@@ -337,8 +337,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 860,
-        "lines-end": 866
+        "lines-start": 868,
+        "lines-end": 874
       },
       "kind": "axiom",
       "language": "lean",
@@ -365,8 +365,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 852,
-        "lines-end": 858
+        "lines-start": 860,
+        "lines-end": 866
       },
       "kind": "axiom",
       "language": "lean",
@@ -392,8 +392,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 847,
-        "lines-end": 850
+        "lines-start": 855,
+        "lines-end": 858
       },
       "kind": "axiom",
       "language": "lean",
@@ -418,8 +418,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 842,
-        "lines-end": 845
+        "lines-start": 850,
+        "lines-end": 853
       },
       "kind": "axiom",
       "language": "lean",
@@ -1653,8 +1653,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 179,
-        "lines-end": 182
+        "lines-start": 180,
+        "lines-end": 183
       },
       "kind": "axiom",
       "language": "lean",
@@ -1677,8 +1677,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 902,
-        "lines-end": 908
+        "lines-start": 910,
+        "lines-end": 916
       },
       "kind": "axiom",
       "language": "lean",
@@ -1704,8 +1704,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 890,
-        "lines-end": 894
+        "lines-start": 898,
+        "lines-end": 902
       },
       "kind": "axiom",
       "language": "lean",
@@ -1731,8 +1731,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 896,
-        "lines-end": 900
+        "lines-start": 904,
+        "lines-end": 908
       },
       "kind": "axiom",
       "language": "lean",
@@ -1755,8 +1755,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 174,
-        "lines-end": 177
+        "lines-start": 175,
+        "lines-end": 178
       },
       "kind": "axiom",
       "language": "lean",
@@ -1779,8 +1779,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 882,
-        "lines-end": 888
+        "lines-start": 890,
+        "lines-end": 896
       },
       "kind": "axiom",
       "language": "lean",
@@ -1806,8 +1806,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 868,
-        "lines-end": 874
+        "lines-start": 876,
+        "lines-end": 882
       },
       "kind": "axiom",
       "language": "lean",
@@ -1833,8 +1833,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 876,
-        "lines-end": 880
+        "lines-start": 884,
+        "lines-end": 888
       },
       "kind": "axiom",
       "language": "lean",
@@ -2193,7 +2193,11 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": true,
+      "primary-spec": "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
       "rust-source": null,
+      "specs": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind.read_discriminant"
@@ -2212,8 +2216,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 219,
-        "lines-end": 229
+        "lines-start": 227,
+        "lines-end": 237
       },
       "kind": "axiom",
       "language": "lean",
@@ -2243,8 +2247,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 207,
-        "lines-end": 217
+        "lines-start": 215,
+        "lines-end": 225
       },
       "kind": "axiom",
       "language": "lean",
@@ -2273,8 +2277,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 199,
-        "lines-end": 205
+        "lines-start": 207,
+        "lines-end": 213
       },
       "kind": "axiom",
       "language": "lean",
@@ -2302,8 +2306,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 188,
-        "lines-end": 197
+        "lines-start": 196,
+        "lines-end": 205
       },
       "kind": "axiom",
       "language": "lean",
@@ -2342,7 +2346,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
     },
@@ -2361,7 +2364,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
     },
@@ -2381,9 +2383,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
-      "rust-qualified-name": "signal_crypto::aes_cbc::aes_cbc_test"
+      "rust-qualified-name": "signal_crypto::aes_cbc::test::aes_cbc_test"
     },
     "probe:signal-crypto/0.1.0/aes_ctr/&Aes256Ctr32#impl<&[u8]>#[Aes256Ctr32]process()": {
       "display-name": "Aes256Ctr32::process",
@@ -2398,7 +2399,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::process"
     },
@@ -2418,7 +2418,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::from_key"
     },
@@ -2441,7 +2440,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::new"
     },
@@ -2467,7 +2465,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::aes_ctr_long_test"
     },
     "probe:signal-crypto/0.1.0/aes_ctr_smoke_test()": {
       "display-name": "aes_ctr_smoke_test",
@@ -2485,7 +2484,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::aes_ctr_smoke_test"
     },
     "probe:signal-crypto/0.1.0/aes_gcm()": {
       "display-name": "aes_gcm",
@@ -2504,7 +2504,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::aes_gcm"
     },
     "probe:signal-crypto/0.1.0/aes_gcm/&Aes256GcmDecryption#impl<&[u8]>#[Aes256GcmDecryption]decrypt()": {
       "display-name": "Aes256GcmDecryption::decrypt",
@@ -2522,7 +2523,6 @@
       "language": "rust",
       "is-disabled": false,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": true,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::decrypt",
       "translation-name": "probe:signal_crypto.aes_gcm.Aes256GcmDecryption.decrypt",
@@ -2549,7 +2549,6 @@
       "language": "rust",
       "is-disabled": false,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": true,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::encrypt",
       "translation-name": "probe:signal_crypto.aes_gcm.Aes256GcmEncryption.encrypt",
@@ -2587,7 +2586,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::update"
     },
@@ -2609,7 +2607,6 @@
       "language": "rust",
       "is-disabled": false,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": true,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::verify_tag",
       "translation-name": "probe:signal_crypto.aes_gcm.Aes256GcmDecryption.verify_tag",
@@ -2635,7 +2632,6 @@
       "language": "rust",
       "is-disabled": false,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": true,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::compute_tag",
       "translation-name": "probe:signal_crypto.aes_gcm.Aes256GcmEncryption.compute_tag",
@@ -2669,7 +2665,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::GcmGhash}::finalize"
     },
@@ -2689,7 +2684,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new"
     },
@@ -2709,7 +2703,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new"
     },
@@ -2728,7 +2721,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::GcmGhash::new"
     },
@@ -2751,7 +2743,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::aes_gcm::setup_gcm"
     },
@@ -2771,7 +2762,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::aes_gcm_smoke_test"
     },
     "probe:signal-crypto/0.1.0/aes_gcm_wycheproof_kats()": {
       "display-name": "aes_gcm_wycheproof_kats",
@@ -2790,7 +2782,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::aes_gcm_wycheproof_kats"
     },
     "probe:signal-crypto/0.1.0/hash/&CryptographicHash#impl<&[u8]>#[CryptographicHash]update()": {
       "display-name": "CryptographicHash::update",
@@ -2805,7 +2798,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::update"
     },
@@ -2822,7 +2814,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::finalize"
     },
@@ -2839,7 +2830,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update"
     },
@@ -2858,7 +2848,6 @@
       "language": "rust",
       "is-disabled": false,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": true,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::update_and_get",
       "translation-name": "probe:signal_crypto.hash.CryptographicMac.update_and_get",
@@ -2882,7 +2871,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::finalize"
     },
@@ -2899,7 +2887,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::new"
     },
@@ -2916,7 +2903,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hash::{signal_crypto::hash::CryptographicHash}::new"
     },
@@ -2935,7 +2921,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": true,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::hpke"
     },
     "probe:signal-crypto/0.1.0/hpke/&{unknown}#impl<&[u8]>#[_][SimpleHpkeReceiver]open()": {
       "display-name": "_::open",
@@ -2957,7 +2944,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::open"
     },
@@ -2977,7 +2963,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::seal"
     },
@@ -2999,7 +2984,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::set_up"
     },
@@ -3016,7 +3000,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::mode"
     },
@@ -3033,7 +3016,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::aead_algorithm"
     },
@@ -3050,7 +3032,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kdf_algorithm"
     },
@@ -3067,7 +3048,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::SignalHpkeCiphertextType::kem_algorithm"
     },
@@ -3084,7 +3064,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::{impl ?}::from"
     },
@@ -3101,7 +3080,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::zeroize"
     },
@@ -3118,7 +3096,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::fill_bytes"
     },
@@ -3141,7 +3118,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::seed"
     },
@@ -3158,7 +3134,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::try_fill_test_bytes"
     },
@@ -3175,7 +3150,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u32"
     },
@@ -3192,7 +3166,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::next_u64"
     },
@@ -3209,7 +3182,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::Rng::default"
     },
@@ -3226,7 +3198,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen"
     },
@@ -3249,7 +3220,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_open"
     },
@@ -3272,7 +3242,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::aead_seal"
     },
@@ -3291,7 +3260,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh"
     },
@@ -3308,7 +3276,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::dh_validate_sk"
     },
@@ -3327,7 +3294,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_expand"
     },
@@ -3344,7 +3310,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kdf_extract"
     },
@@ -3361,7 +3326,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_decaps"
     },
@@ -3378,7 +3342,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_encaps"
     },
@@ -3395,7 +3358,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::kem_key_gen_derand"
     },
@@ -3414,7 +3376,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::secret_to_public"
     },
@@ -3431,7 +3392,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_aead"
     },
@@ -3448,7 +3408,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kdf"
     },
@@ -3465,7 +3424,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::supports_kem"
     },
@@ -3482,7 +3440,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::prng"
     },
@@ -3499,7 +3456,6 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
       "rust-qualified-name": "signal_crypto::hpke::provider::{impl ?}::name"
     },
@@ -3516,9 +3472,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-public-api": false,
       "is-relevant": false,
-      "rust-qualified-name": "signal_crypto::hpke::basic"
+      "rust-qualified-name": "signal_crypto::hpke::test::basic"
     },
     "probe:signal-crypto/0.1.0/test_kat()": {
       "display-name": "test_kat",
@@ -3543,7 +3498,8 @@
       "language": "rust",
       "is-disabled": true,
       "is-public": false,
-      "is-relevant": false
+      "is-relevant": false,
+      "rust-qualified-name": "signal_crypto::test_kat"
     },
     "probe:signal_crypto.U64.Insts.CoreNumNonzeroPrivateSealed": {
       "display-name": "CoreNumNonzeroPrivateSealed",
@@ -3634,7 +3590,11 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind"
@@ -3666,13 +3626,59 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:instDiscriminantServiceIdKindU8",
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind"
       ],
       "type-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind"
+      ],
+      "verification-status": "verified"
+    },
+    "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec": {
+      "display-name": "from_spec",
+      "dependencies": [
+        "probe:instDiscriminantServiceIdKindU8",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni"
+      ],
+      "code-module": "Libsignal.Specs.Core.Address.From",
+      "code-path": "Libsignal/Specs/Core/Address/From.lean",
+      "code-text": {
+        "lines-start": 57,
+        "lines-end": 64
+      },
+      "kind": "theorem",
+      "language": "lean",
+      "attributes": [
+        "step"
+      ],
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [
+        "probe:instDiscriminantServiceIdKindU8",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni"
+      ],
+      "type-dependencies": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni"
       ],
       "verification-status": "verified"
     },
@@ -7037,6 +7043,12 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [],
       "type-dependencies": [],
       "verification-status": "verified"
@@ -7066,7 +7078,12 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId",
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
@@ -7077,6 +7094,57 @@
       "type-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId",
         "probe:signal_crypto.libsignal_core.address.ServiceIdKind"
+      ],
+      "verification-status": "verified"
+    },
+    "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec": {
+      "display-name": "kind_spec",
+      "dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId"
+      ],
+      "code-module": "Libsignal.Specs.Core.Address.Kind",
+      "code-path": "Libsignal/Specs/Core/Address/Kind.lean",
+      "code-text": {
+        "lines-start": 61,
+        "lines-end": 67
+      },
+      "kind": "theorem",
+      "language": "lean",
+      "attributes": [
+        "step"
+      ],
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId"
+      ],
+      "type-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId"
       ],
       "verification-status": "verified"
     },
@@ -7218,7 +7286,12 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId",
         "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
@@ -7227,6 +7300,58 @@
       ],
       "type-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:uuid.Uuid"
+      ],
+      "verification-status": "verified"
+    },
+    "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec": {
+      "display-name": "raw_uuid_spec",
+      "dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:signal_crypto.uuid.Uuid.Insts.CoreConvertFromSpecificServiceId",
+        "probe:signal_crypto.uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from",
+        "probe:uuid.Uuid"
+      ],
+      "code-module": "Libsignal.Specs.Core.Address.RawUuid",
+      "code-path": "Libsignal/Specs/Core/Address/RawUuid.lean",
+      "code-text": {
+        "lines-start": 67,
+        "lines-end": 73
+      },
+      "kind": "theorem",
+      "language": "lean",
+      "attributes": [
+        "step"
+      ],
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:signal_crypto.uuid.Uuid.Insts.CoreConvertFromSpecificServiceId",
+        "probe:signal_crypto.uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from",
+        "probe:uuid.Uuid"
+      ],
+      "type-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
         "probe:uuid.Uuid"
       ],
       "verification-status": "verified"
@@ -7289,7 +7414,11 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId",
         "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
@@ -7299,6 +7428,62 @@
       ],
       "type-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId"
+      ],
+      "verification-status": "verified"
+    },
+    "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec": {
+      "display-name": "service_id_binary_spec",
+      "dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.as_bytes",
+        "probe:uuid.Uuid.bytes"
+      ],
+      "code-module": "Libsignal.Specs.Core.Address.ServiceIdBinary",
+      "code-path": "Libsignal/Specs/Core/Address/ServiceIdBinary.lean",
+      "code-text": {
+        "lines-start": 63,
+        "lines-end": 85
+      },
+      "kind": "theorem",
+      "language": "lean",
+      "attributes": [
+        "step"
+      ],
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.as_bytes",
+        "probe:uuid.Uuid.bytes"
+      ],
+      "type-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:uuid.Uuid.bytes"
       ],
       "verification-status": "verified"
     },
@@ -7329,7 +7514,12 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind",
         "probe:signal_crypto.libsignal_core.address.ServiceId",
@@ -7341,6 +7531,76 @@
       ],
       "type-dependencies": [
         "probe:signal_crypto.libsignal_core.address.ServiceId"
+      ],
+      "verification-status": "verified"
+    },
+    "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec": {
+      "display-name": "service_id_fixed_width_binary_spec",
+      "dependencies": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.as_bytes",
+        "probe:uuid.Uuid.bytes"
+      ],
+      "code-module": "Libsignal.Specs.Core.Address.ServiceIdFixedWidthBinary",
+      "code-path": "Libsignal/Specs/Core/Address/ServiceIdFixedWidthBinary.lean",
+      "code-text": {
+        "lines-start": 83,
+        "lines-end": 117
+      },
+      "kind": "theorem",
+      "language": "lean",
+      "attributes": [
+        "step"
+      ],
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from",
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceIdKind.Pni",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.as_bytes",
+        "probe:uuid.Uuid.bytes"
+      ],
+      "type-dependencies": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Aci",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.Pni",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary",
+        "probe:signal_crypto.libsignal_core.address.SpecificServiceId"
       ],
       "verification-status": "verified"
     },
@@ -7365,6 +7625,11 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.U8.Insts.CoreConvertFromServiceIdKind.from_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [],
       "type-dependencies": [],
       "verification-status": "verified"
@@ -7491,6 +7756,12 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.kind_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [],
       "type-dependencies": [],
       "verification-status": "verified"
@@ -7618,6 +7889,11 @@
       "is-in-package": true,
       "is-relevant": true,
       "rust-source": null,
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.SpecificServiceId"
       ],
@@ -11768,7 +12044,11 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
         "probe:signal_crypto.uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from",
@@ -11803,7 +12083,11 @@
       "is-ignored": false,
       "is-in-package": true,
       "is-relevant": false,
+      "primary-spec": "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
       "rust-source": "rust/core/src/address.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec"
+      ],
       "term-dependencies": [
         "probe:signal_crypto.libsignal_core.address.SpecificServiceId",
         "probe:signal_crypto.libsignal_core.address.SpecificServiceId.uuid",
@@ -11821,8 +12105,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 153,
-        "lines-end": 158
+        "lines-start": 154,
+        "lines-end": 159
       },
       "kind": "axiom",
       "language": "lean",
@@ -11848,8 +12132,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 255,
-        "lines-end": 261
+        "lines-start": 263,
+        "lines-end": 269
       },
       "kind": "axiom",
       "language": "lean",
@@ -11877,8 +12161,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 263,
-        "lines-end": 268
+        "lines-start": 271,
+        "lines-end": 276
       },
       "kind": "axiom",
       "language": "lean",
@@ -11904,8 +12188,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 309,
-        "lines-end": 315
+        "lines-start": 317,
+        "lines-end": 323
       },
       "kind": "axiom",
       "language": "lean",
@@ -11929,8 +12213,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 317,
-        "lines-end": 323
+        "lines-start": 325,
+        "lines-end": 331
       },
       "kind": "axiom",
       "language": "lean",
@@ -11956,8 +12240,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 301,
-        "lines-end": 307
+        "lines-start": 309,
+        "lines-end": 315
       },
       "kind": "axiom",
       "language": "lean",
@@ -11983,8 +12267,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 285,
-        "lines-end": 291
+        "lines-start": 293,
+        "lines-end": 299
       },
       "kind": "axiom",
       "language": "lean",
@@ -12008,8 +12292,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 293,
-        "lines-end": 299
+        "lines-start": 301,
+        "lines-end": 307
       },
       "kind": "axiom",
       "language": "lean",
@@ -12035,8 +12319,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 270,
-        "lines-end": 276
+        "lines-start": 278,
+        "lines-end": 284
       },
       "kind": "axiom",
       "language": "lean",
@@ -12064,8 +12348,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 278,
-        "lines-end": 283
+        "lines-start": 286,
+        "lines-end": 291
       },
       "kind": "axiom",
       "language": "lean",
@@ -12091,8 +12375,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 349,
-        "lines-end": 355
+        "lines-start": 357,
+        "lines-end": 363
       },
       "kind": "axiom",
       "language": "lean",
@@ -12116,8 +12400,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 357,
-        "lines-end": 363
+        "lines-start": 365,
+        "lines-end": 371
       },
       "kind": "axiom",
       "language": "lean",
@@ -12143,8 +12427,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 341,
-        "lines-end": 347
+        "lines-start": 349,
+        "lines-end": 355
       },
       "kind": "axiom",
       "language": "lean",
@@ -12170,8 +12454,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 325,
-        "lines-end": 331
+        "lines-start": 333,
+        "lines-end": 339
       },
       "kind": "axiom",
       "language": "lean",
@@ -12195,8 +12479,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 333,
-        "lines-end": 339
+        "lines-start": 341,
+        "lines-end": 347
       },
       "kind": "axiom",
       "language": "lean",
@@ -12223,8 +12507,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 160,
-        "lines-end": 167
+        "lines-start": 161,
+        "lines-end": 168
       },
       "kind": "axiom",
       "language": "lean",
@@ -12278,8 +12562,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 560,
-        "lines-end": 569
+        "lines-start": 568,
+        "lines-end": 577
       },
       "kind": "axiom",
       "language": "lean",
@@ -12307,8 +12591,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 571,
-        "lines-end": 580
+        "lines-start": 579,
+        "lines-end": 588
       },
       "kind": "axiom",
       "language": "lean",
@@ -12337,8 +12621,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 732,
-        "lines-end": 740
+        "lines-start": 740,
+        "lines-end": 748
       },
       "kind": "axiom",
       "language": "lean",
@@ -12368,8 +12652,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 722,
-        "lines-end": 730
+        "lines-start": 730,
+        "lines-end": 738
       },
       "kind": "axiom",
       "language": "lean",
@@ -12399,8 +12683,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 712,
-        "lines-end": 720
+        "lines-start": 720,
+        "lines-end": 728
       },
       "kind": "axiom",
       "language": "lean",
@@ -12430,8 +12714,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 742,
-        "lines-end": 750
+        "lines-start": 750,
+        "lines-end": 758
       },
       "kind": "axiom",
       "language": "lean",
@@ -12461,8 +12745,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 702,
-        "lines-end": 710
+        "lines-start": 710,
+        "lines-end": 718
       },
       "kind": "axiom",
       "language": "lean",
@@ -12492,8 +12776,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 782,
-        "lines-end": 790
+        "lines-start": 790,
+        "lines-end": 798
       },
       "kind": "axiom",
       "language": "lean",
@@ -12523,8 +12807,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 772,
-        "lines-end": 780
+        "lines-start": 780,
+        "lines-end": 788
       },
       "kind": "axiom",
       "language": "lean",
@@ -12554,8 +12838,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 762,
-        "lines-end": 770
+        "lines-start": 770,
+        "lines-end": 778
       },
       "kind": "axiom",
       "language": "lean",
@@ -12585,8 +12869,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 792,
-        "lines-end": 800
+        "lines-start": 800,
+        "lines-end": 808
       },
       "kind": "axiom",
       "language": "lean",
@@ -12616,8 +12900,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 752,
-        "lines-end": 760
+        "lines-start": 760,
+        "lines-end": 768
       },
       "kind": "axiom",
       "language": "lean",
@@ -12647,8 +12931,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 618,
-        "lines-end": 628
+        "lines-start": 626,
+        "lines-end": 636
       },
       "kind": "axiom",
       "language": "lean",
@@ -12678,8 +12962,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 606,
-        "lines-end": 616
+        "lines-start": 614,
+        "lines-end": 624
       },
       "kind": "axiom",
       "language": "lean",
@@ -12709,8 +12993,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 594,
-        "lines-end": 604
+        "lines-start": 602,
+        "lines-end": 612
       },
       "kind": "axiom",
       "language": "lean",
@@ -12740,8 +13024,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 630,
-        "lines-end": 640
+        "lines-start": 638,
+        "lines-end": 648
       },
       "kind": "axiom",
       "language": "lean",
@@ -12771,8 +13055,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 582,
-        "lines-end": 592
+        "lines-start": 590,
+        "lines-end": 600
       },
       "kind": "axiom",
       "language": "lean",
@@ -12802,8 +13086,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 678,
-        "lines-end": 688
+        "lines-start": 686,
+        "lines-end": 696
       },
       "kind": "axiom",
       "language": "lean",
@@ -12833,8 +13117,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 666,
-        "lines-end": 676
+        "lines-start": 674,
+        "lines-end": 684
       },
       "kind": "axiom",
       "language": "lean",
@@ -12864,8 +13148,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 654,
-        "lines-end": 664
+        "lines-start": 662,
+        "lines-end": 672
       },
       "kind": "axiom",
       "language": "lean",
@@ -12895,8 +13179,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 690,
-        "lines-end": 700
+        "lines-start": 698,
+        "lines-end": 708
       },
       "kind": "axiom",
       "language": "lean",
@@ -12926,8 +13210,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 642,
-        "lines-end": 652
+        "lines-start": 650,
+        "lines-end": 660
       },
       "kind": "axiom",
       "language": "lean",
@@ -12956,8 +13240,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 365,
-        "lines-end": 371
+        "lines-start": 373,
+        "lines-end": 379
       },
       "kind": "axiom",
       "language": "lean",
@@ -12985,8 +13269,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 373,
-        "lines-end": 380
+        "lines-start": 381,
+        "lines-end": 388
       },
       "kind": "axiom",
       "language": "lean",
@@ -13012,8 +13296,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 499,
-        "lines-end": 506
+        "lines-start": 507,
+        "lines-end": 514
       },
       "kind": "axiom",
       "language": "lean",
@@ -13037,8 +13321,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 490,
-        "lines-end": 497
+        "lines-start": 498,
+        "lines-end": 505
       },
       "kind": "axiom",
       "language": "lean",
@@ -13062,8 +13346,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 481,
-        "lines-end": 488
+        "lines-start": 489,
+        "lines-end": 496
       },
       "kind": "axiom",
       "language": "lean",
@@ -13087,8 +13371,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 508,
-        "lines-end": 514
+        "lines-start": 516,
+        "lines-end": 522
       },
       "kind": "axiom",
       "language": "lean",
@@ -13112,8 +13396,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 472,
-        "lines-end": 479
+        "lines-start": 480,
+        "lines-end": 487
       },
       "kind": "axiom",
       "language": "lean",
@@ -13137,8 +13421,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 543,
-        "lines-end": 550
+        "lines-start": 551,
+        "lines-end": 558
       },
       "kind": "axiom",
       "language": "lean",
@@ -13162,8 +13446,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 534,
-        "lines-end": 541
+        "lines-start": 542,
+        "lines-end": 549
       },
       "kind": "axiom",
       "language": "lean",
@@ -13187,8 +13471,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 525,
-        "lines-end": 532
+        "lines-start": 533,
+        "lines-end": 540
       },
       "kind": "axiom",
       "language": "lean",
@@ -13212,8 +13496,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 552,
-        "lines-end": 558
+        "lines-start": 560,
+        "lines-end": 566
       },
       "kind": "axiom",
       "language": "lean",
@@ -13237,8 +13521,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 516,
-        "lines-end": 523
+        "lines-start": 524,
+        "lines-end": 531
       },
       "kind": "axiom",
       "language": "lean",
@@ -13262,8 +13546,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 409,
-        "lines-end": 416
+        "lines-start": 417,
+        "lines-end": 424
       },
       "kind": "axiom",
       "language": "lean",
@@ -13287,8 +13571,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 400,
-        "lines-end": 407
+        "lines-start": 408,
+        "lines-end": 415
       },
       "kind": "axiom",
       "language": "lean",
@@ -13312,8 +13596,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 391,
-        "lines-end": 398
+        "lines-start": 399,
+        "lines-end": 406
       },
       "kind": "axiom",
       "language": "lean",
@@ -13337,8 +13621,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 418,
-        "lines-end": 425
+        "lines-start": 426,
+        "lines-end": 433
       },
       "kind": "axiom",
       "language": "lean",
@@ -13362,8 +13646,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 382,
-        "lines-end": 389
+        "lines-start": 390,
+        "lines-end": 397
       },
       "kind": "axiom",
       "language": "lean",
@@ -13387,8 +13671,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 454,
-        "lines-end": 461
+        "lines-start": 462,
+        "lines-end": 469
       },
       "kind": "axiom",
       "language": "lean",
@@ -13412,8 +13696,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 445,
-        "lines-end": 452
+        "lines-start": 453,
+        "lines-end": 460
       },
       "kind": "axiom",
       "language": "lean",
@@ -13437,8 +13721,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 436,
-        "lines-end": 443
+        "lines-start": 444,
+        "lines-end": 451
       },
       "kind": "axiom",
       "language": "lean",
@@ -13462,8 +13746,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 463,
-        "lines-end": 470
+        "lines-start": 471,
+        "lines-end": 478
       },
       "kind": "axiom",
       "language": "lean",
@@ -13487,8 +13771,8 @@
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 427,
-        "lines-end": 434
+        "lines-start": 435,
+        "lines-end": 442
       },
       "kind": "axiom",
       "language": "lean",
@@ -13513,9 +13797,9 @@
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
         "lines-start": 139,
-        "lines-end": 144
+        "lines-end": 145
       },
-      "kind": "axiom",
+      "kind": "structure",
       "language": "lean",
       "attributes": [
         "rust_type"
@@ -13526,23 +13810,29 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.raw_uuid_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
       "term-dependencies": [],
-      "trusted-reason": "axiom",
+      "trusted-reason": "external",
       "type-dependencies": [],
       "verification-status": "trusted"
     },
     "probe:uuid.Uuid.as_bytes": {
       "display-name": "as_bytes",
       "dependencies": [
-        "probe:uuid.Uuid"
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.bytes"
       ],
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
         "lines-start": 173,
-        "lines-end": 178
+        "lines-end": 179
       },
-      "kind": "axiom",
+      "kind": "def",
       "language": "lean",
       "attributes": [
         "rust_fun"
@@ -13553,8 +13843,47 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs",
-      "term-dependencies": [],
-      "trusted-reason": "axiom",
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
+      "term-dependencies": [
+        "probe:uuid.Uuid",
+        "probe:uuid.Uuid.bytes"
+      ],
+      "trusted-reason": "external",
+      "type-dependencies": [
+        "probe:uuid.Uuid"
+      ],
+      "verification-status": "trusted"
+    },
+    "probe:uuid.Uuid.bytes": {
+      "display-name": "bytes",
+      "dependencies": [
+        "probe:uuid.Uuid"
+      ],
+      "code-module": "Libsignal.Code.TypesExternal",
+      "code-path": "Libsignal/Code/TypesExternal.lean",
+      "code-text": {
+        "lines-start": 145,
+        "lines-end": 145
+      },
+      "kind": "projection",
+      "language": "lean",
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "specs": [
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_binary_spec",
+        "probe:signal_crypto.libsignal_core.address.ServiceId.service_id_fixed_width_binary_spec"
+      ],
+      "term-dependencies": [
+        "probe:uuid.Uuid"
+      ],
+      "trusted-reason": "external",
       "type-dependencies": [
         "probe:uuid.Uuid"
       ],
@@ -13593,15 +13922,16 @@
       "display-name": "from_slice",
       "dependencies": [
         "probe:uuid.Uuid",
-        "probe:uuid.error.Error"
+        "probe:uuid.error.Error",
+        "probe:uuid.error.Error.byteLengthError"
       ],
       "code-module": "Libsignal.Code.FunsExternal",
       "code-path": "Libsignal/Code/FunsExternal.lean",
       "code-text": {
-        "lines-start": 180,
-        "lines-end": 186
+        "lines-start": 184,
+        "lines-end": 194
       },
-      "kind": "axiom",
+      "kind": "def",
       "language": "lean",
       "attributes": [
         "rust_fun"
@@ -13612,8 +13942,12 @@
       "is-in-package": true,
       "is-relevant": false,
       "rust-source": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs",
-      "term-dependencies": [],
-      "trusted-reason": "axiom",
+      "term-dependencies": [
+        "probe:uuid.Uuid",
+        "probe:uuid.error.Error",
+        "probe:uuid.error.Error.byteLengthError"
+      ],
+      "trusted-reason": "external",
       "type-dependencies": [
         "probe:uuid.Uuid",
         "probe:uuid.error.Error"
@@ -13626,8 +13960,8 @@
       "code-module": "Libsignal.Code.TypesExternal",
       "code-path": "Libsignal/Code/TypesExternal.lean",
       "code-text": {
-        "lines-start": 146,
-        "lines-end": 151
+        "lines-start": 147,
+        "lines-end": 152
       },
       "kind": "axiom",
       "language": "lean",
@@ -13643,6 +13977,32 @@
       "term-dependencies": [],
       "trusted-reason": "axiom",
       "type-dependencies": [],
+      "verification-status": "trusted"
+    },
+    "probe:uuid.error.Error.byteLengthError": {
+      "display-name": "byteLengthError",
+      "dependencies": [
+        "probe:uuid.error.Error"
+      ],
+      "code-module": "Libsignal.Code.FunsExternal",
+      "code-path": "Libsignal/Code/FunsExternal.lean",
+      "code-text": {
+        "lines-start": 181,
+        "lines-end": 182
+      },
+      "kind": "axiom",
+      "language": "lean",
+      "is-extraction-artifact": false,
+      "is-hidden": false,
+      "is-ignored": false,
+      "is-in-package": true,
+      "is-relevant": true,
+      "rust-source": null,
+      "term-dependencies": [],
+      "trusted-reason": "axiom",
+      "type-dependencies": [
+        "probe:uuid.error.Error"
+      ],
       "verification-status": "trusted"
     }
   }
