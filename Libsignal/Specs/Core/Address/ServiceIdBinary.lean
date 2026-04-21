@@ -67,21 +67,6 @@ theorem service_id_binary_spec
       (∀ aci, self = .Aci aci → result.val = aci.uuid.bytes.val) ∧
       (∀ pni, self = .Pni pni → alloc.vec.Vec.index_usize result 0#usize = ok 1#u8) ⦄ := by
   unfold service_id_binary uuid.Uuid.as_bytes
-  step*
-  constructor
-  · intro aci h
-    simp_all
-  · intro pni h
-    simp only [reduceCtorEq] at *
-  · simp_all only [reduceCtorEq, Pni.injEq, ok.injEq, Nat.not_eq,
-    UScalar.ofNatCore_val_eq, ne_eq, one_ne_zero,
-    not_true_eq_false, zero_ne_one, not_lt_zero,
-    zero_lt_one, or_self, UScalar.val_not_eq_imp_not_eq, implies_true,
-    forall_eq', Array.val_to_slice, IsEmpty.forall_iff, true_and]
-    simp only [Array.index_usize, Array.getElem?_Usize_eq,
-    UScalar.ofNatCore_val_eq, List.Vector.length_val,
-    Nat.ofNat_pos, getElem?_pos, ok.injEq, alloc.vec.Vec.index_usize, alloc.vec.Vec.getElem?_Nat_eq,
-    Array.val_to_slice] at *
-    exact a_post2
+  step* <;> simp_all [Array.index_usize, alloc.vec.Vec.index_usize]
 
 end signal_crypto.libsignal_core.address.ServiceId
