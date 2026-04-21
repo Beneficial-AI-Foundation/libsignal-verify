@@ -8,12 +8,12 @@
   },
   "source": {
     "repo": "https://github.com/Beneficial-AI-Foundation/libsignal-verify.git",
-    "commit": "3d43666b3e438b07e14f437ea2ba562d9f7bfba2",
+    "commit": "46dc9d05ad1a56d12ce9946e33a18698e85a807e",
     "language": "rust",
     "package": "libsignal-verify",
-    "package-version": "3d43666"
+    "package-version": "46dc9d0"
   },
-  "timestamp": "2026-04-18T13:26:18Z",
+  "timestamp": "2026-04-20T18:45:34Z",
   "data": {
     "probe:alloc/https://github.com/rust-lang/rust/library/alloc/slice/impl#[`[T]`]concat()": {
       "display-name": "concat",
@@ -8450,9 +8450,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "device_transfer::KeyFormat::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:device-transfer/0.1.0/private_key_to_der()": {
       "display-name": "private_key_to_der",
@@ -9322,9 +9322,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_bridge_macros::ResultInfo::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-bridge-macros/0.1.0/impl<parse::ParseStream>#[BridgeIoParams]parse()": {
       "display-name": "BridgeIoParams::parse",
@@ -21325,9 +21325,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceIdKind> for libsignal_core::address::ServiceIdKind}::eq",
+      "rust-qualified-name": "libsignal_core::address::ServiceId::eq",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/&ServiceId#impl<&fmt::Formatter<'_>>#[ServiceId]fmt()": {
       "display-name": "ServiceId::fmt",
@@ -21489,9 +21489,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceIdKind> for libsignal_core::address::ServiceIdKind}::eq",
+      "rust-qualified-name": "libsignal_core::address::SpecificServiceId<KIND>::eq",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/&SpecificServiceId<KIND>#impl<&fmt::Formatter<'_>>#[`SpecificServiceId<KIND>`]fmt()": {
       "display-name": "SpecificServiceId<KIND>::fmt",
@@ -21790,9 +21790,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::convert::TryFrom<derive_more::convert::try_from::TryFromReprError> for libsignal_core::address::ServiceIdKind}::try_from",
+      "rust-qualified-name": "libsignal_core::address::SpecificServiceId<KIND>::try_from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/impl<ServiceIdKind>#[u8]from()": {
       "display-name": "u8::from",
@@ -21887,9 +21887,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::convert::TryFrom<derive_more::convert::try_from::TryFromReprError> for libsignal_core::address::ServiceIdKind}::try_from",
+      "rust-qualified-name": "libsignal_core::address::DeviceId::try_from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/impl<u32>#[DeviceId]try_from()": {
       "display-name": "DeviceId::try_from",
@@ -21905,9 +21905,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::convert::TryFrom<derive_more::convert::try_from::TryFromReprError> for libsignal_core::address::ServiceIdKind}::try_from",
+      "rust-qualified-name": "libsignal_core::address::DeviceId::try_from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/impl<u8>#[DeviceId]new()": {
       "display-name": "DeviceId::new",
@@ -21939,9 +21939,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "libsignal_core::address::{core::convert::TryFrom<derive_more::convert::try_from::TryFromReprError> for libsignal_core::address::ServiceIdKind}::try_from",
+      "rust-qualified-name": "libsignal_core::address::DeviceId::try_from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-core/0.1.0/address/service_id_tests/accepts_ios_system_story_aci()": {
       "display-name": "accepts_ios_system_story_aci",
@@ -24782,9 +24782,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_keytrans::VerifyingKeys::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-keytrans/0.0.1/impl<Option<LastTreeHead>>#[_]into_last_tree_head()": {
       "display-name": "_::into_last_tree_head",
@@ -24849,9 +24849,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_keytrans::MonitoringData::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-keytrans/0.0.1/impl<SystemTime>#[LastTreeHead]into_stored()": {
       "display-name": "LastTreeHead::into_stored",
@@ -27390,9 +27390,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_message_backup_macros::VisitField::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-message-backup-macros/0.1.0/impl<syn::Type>#[FieldType]from()": {
       "display-name": "FieldType::from",
@@ -27405,9 +27405,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_message_backup_macros::FieldType::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-message-backup-macros/0.1.0/test/has_unknown_fields()": {
       "display-name": "has_unknown_fields",
@@ -37886,9 +37886,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_message_backup::Error::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-message-backup/0.1.0/impl<futures::io::Result<Self::Reader>>#[`YieldingReader<CursorFactory<&'a/B>>`][ReaderFactory]make_reader()": {
       "display-name": "B>>::make_reader",
@@ -48274,9 +48274,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_net_grpc::_::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-net-grpc/0.1.0/impl<libsignal_core::Pni>#[_]from()": {
       "display-name": "_::from",
@@ -48289,9 +48289,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_net_grpc::_::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-net-grpc/0.1.0/impl<libsignal_core::ServiceId>#[_]from()": {
       "display-name": "_::from",
@@ -48304,9 +48304,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_net_grpc::_::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-net-grpc/0.1.0/main()": {
       "display-name": "main",
@@ -51560,9 +51560,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_net_infra::IpType::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-net-infra/0.1.0/impl<&[u8]>#[Alpn]try_from()": {
       "display-name": "Alpn::try_from",
@@ -67195,9 +67195,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_node::_::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-node/0.90.0/impl<Handle<'a>#[`ArrayBuilder<'a>`]push()": {
       "display-name": "ArrayBuilder<'a>::push",
@@ -69055,9 +69055,9 @@
       },
       "kind": "exec",
       "language": "rust",
-      "rust-qualified-name": "subtle::{core::convert::From<subtle::Choice> for bool}::from",
+      "rust-qualified-name": "libsignal_protocol::libsignal_protocol::kem::KeyType::from",
       "is-disabled": false,
-      "is-public": true
+      "is-public": false
     },
     "probe:libsignal-protocol/0.1.0/incremental_mac/&Incremental<M>#impl<&[u8]>#[`Incremental<M>`]update()": {
       "display-name": "Incremental<M>::update",
