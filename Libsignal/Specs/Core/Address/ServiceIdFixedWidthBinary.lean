@@ -86,34 +86,13 @@ theorem service_id_fixed_width_binary_spec
     service_id_fixed_width_binary self ⦃ result =>
       (∀ aci, self = .Aci aci → Array.index_usize result 0#usize = ok 0#u8) ∧
       (∀ pni, self = .Pni pni → Array.index_usize result 0#usize = ok 1#u8) ⦄ := by
-  unfold service_id_fixed_width_binary
-  step*
-  unfold uuid.Uuid.as_bytes
+  unfold service_id_fixed_width_binary uuid.Uuid.as_bytes
   step*
   constructor
-  · intro h h0
-    simp only [Array.index_usize, Array.getElem?_Usize_eq,
-    UScalar.ofNatCore_val_eq, List.Vector.length_val,
-    Nat.ofNat_pos, getElem?_pos, ok.injEq]
-    simp_all only [Aci.injEq, forall_eq', reduceCtorEq, imp_self, implies_true, forall_const,
-    Nat.not_eq, UScalar.ofNatCore_val_eq, ne_eq, zero_ne_one, not_true_eq_false,
-    one_ne_zero, zero_lt_one, not_lt_zero, or_self,
-    UScalar.val_not_eq_imp_not_eq, Array.set_val_eq, Array.repeat_val, List.reduceReplicate,
-    List.set_cons_zero, List.drop_succ_cons, List.drop_zero, Slice.length,
-    Nat.add_one_sub_one, IsEmpty.forall_iff, Array.val_to_slice]
-    simp_lists [Array.setSlice!]
-  · intro h h0
-    simp only [Array.index_usize, Array.getElem?_Usize_eq,
-    UScalar.ofNatCore_val_eq, List.Vector.length_val,
-    Nat.ofNat_pos, getElem?_pos, ok.injEq]
-    simp_all only [reduceCtorEq, Pni.injEq, imp_self, implies_true,
-    forall_eq', Nat.not_eq, UScalar.ofNatCore_val_eq,
-    ne_eq, one_ne_zero, not_true_eq_false, zero_ne_one, not_lt_zero, zero_lt_one, or_self,
-    UScalar.val_not_eq_imp_not_eq, forall_const, Array.set_val_eq,
-    Array.repeat_val, List.reduceReplicate,
-    List.set_cons_zero, List.drop_succ_cons, List.drop_zero,
-    Slice.length, Nat.add_one_sub_one, IsEmpty.forall_iff,
-    Array.val_to_slice]
-    simp_lists [Array.setSlice!]
+  all_goals
+    simp only [Array.index_usize, Array.getElem?_Usize_eq, UScalar.ofNatCore_val_eq, Nat.ofNat_pos,
+      getElem?_pos, List.Vector.length_val]
+    simp_all only [Aci.injEq, Pni.injEq]
+    simp_lists
 
 end signal_crypto.libsignal_core.address.ServiceId
