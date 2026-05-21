@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build Lean Project
     runs-on: ubuntu-latest
 
     steps:
