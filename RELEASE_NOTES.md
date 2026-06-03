@@ -1,7 +1,7 @@
-v0.90.0
+v0.94.4
 
-- Add support for a retry later duration in rate limit responses
+- Internal: libsignal now uses Android Gradle Plugin 9.1.1
 
-- keytrans: Simplify the top-level API
+- zkgroup: Add AvatarUploadCredential, an anonymous credential used to rate-limit avatar uploads.
 
-- Use CDSI enclave 3a1ac5e5 in staging.
+- Several new requests have been added to UnauthBackupsService; however, they are only usable when an H2 connection is guaranteed, and should not be adopted otherwise.

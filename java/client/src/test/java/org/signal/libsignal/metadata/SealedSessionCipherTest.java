@@ -5,13 +5,16 @@
 
 package org.signal.libsignal.metadata;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
-import junit.framework.TestCase;
+import org.junit.Test;
 import org.signal.libsignal.metadata.SealedSessionCipher.DecryptionResult;
 import org.signal.libsignal.metadata.certificate.CertificateValidator;
 import org.signal.libsignal.metadata.certificate.InvalidCertificateException;
@@ -48,7 +51,7 @@ import org.signal.libsignal.protocol.state.SessionRecord;
 import org.signal.libsignal.protocol.state.SignedPreKeyRecord;
 import org.signal.libsignal.protocol.util.Hex;
 
-public class SealedSessionCipherTest extends TestCase {
+public class SealedSessionCipherTest {
 
   private static SignedPreKeyRecord generateSignedPreKey(
       IdentityKeyPair identityKeyPair, int signedPreKeyId) throws InvalidKeyException {
@@ -68,6 +71,7 @@ public class SealedSessionCipherTest extends TestCase {
     return new KyberPreKeyRecord(kyberPreKeyId, System.currentTimeMillis(), keyPair, signature);
   }
 
+  @Test
   public void testEncryptDecrypt()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -87,8 +91,10 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress = new SignalProtocolAddress("+14152222222", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     SenderCertificate senderCertificate =
@@ -138,12 +144,15 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptDecryptUntrusted() throws Exception {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress = new SignalProtocolAddress("+14152222222", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     ECKeyPair falseTrustRoot = ECKeyPair.generate();
@@ -175,12 +184,15 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptDecryptExpired() throws Exception {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress = new SignalProtocolAddress("+14152222222", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     SenderCertificate senderCertificate =
@@ -211,12 +223,15 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptFromWrongIdentity() throws Exception {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress = new SignalProtocolAddress("+14152222222", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     ECKeyPair randomKeyPair = ECKeyPair.generate();
@@ -246,6 +261,7 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptDecryptGroup()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -270,8 +286,10 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress =
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     SenderCertificate senderCertificate =
@@ -330,6 +348,7 @@ public class SealedSessionCipherTest extends TestCase {
     assertTrue(Arrays.equals(plaintext.getGroupId().get(), new byte[] {42, 43}));
   }
 
+  @Test
   public void testEncryptGroupWithBadRegistrationId()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -353,6 +372,8 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress =
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
     ECKeyPair bobPreKey = ECKeyPair.generate();
     IdentityKeyPair bobIdentityKey = bobStore.getIdentityKeyPair();
@@ -372,7 +393,7 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             bobKyberPreKey.getKeyPair().getPublicKey(),
             bobKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilder = new SessionBuilder(aliceStore, bobAddress);
+    SessionBuilder aliceSessionBuilder = new SessionBuilder(aliceStore, bobAddress, aliceAddress);
     aliceSessionBuilder.process(bobBundle);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
@@ -416,6 +437,7 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptGroupWithManyRecipients()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -442,6 +464,8 @@ public class SealedSessionCipherTest extends TestCase {
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
     SignalProtocolAddress carolAddress =
         new SignalProtocolAddress("38381c3b-2606-4ca7-9310-7cb927f2ab4a", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
     ECKeyPair bobPreKey = ECKeyPair.generate();
     IdentityKeyPair bobIdentityKey = bobStore.getIdentityKeyPair();
@@ -461,7 +485,8 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             bobKyberPreKey.getKeyPair().getPublicKey(),
             bobKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilderForBob = new SessionBuilder(aliceStore, bobAddress);
+    SessionBuilder aliceSessionBuilderForBob =
+        new SessionBuilder(aliceStore, bobAddress, aliceAddress);
     aliceSessionBuilderForBob.process(bobBundle);
 
     ECKeyPair carolPreKey = ECKeyPair.generate();
@@ -482,7 +507,8 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             carolKyberPreKey.getKeyPair().getPublicKey(),
             carolKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilderForCarol = new SessionBuilder(aliceStore, carolAddress);
+    SessionBuilder aliceSessionBuilderForCarol =
+        new SessionBuilder(aliceStore, carolAddress, aliceAddress);
     aliceSessionBuilderForCarol.process(carolBundle);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
@@ -528,6 +554,7 @@ public class SealedSessionCipherTest extends TestCase {
     byte[] aliceMessage = aliceCipher.multiRecipientEncrypt(addresses, usmcFromAlice);
   }
 
+  @Test
   public void testEncryptGroupWithMissingSession()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -553,6 +580,8 @@ public class SealedSessionCipherTest extends TestCase {
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
     SignalProtocolAddress carolAddress =
         new SignalProtocolAddress("38381c3b-2606-4ca7-9310-7cb927f2ab4a", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
     ECKeyPair bobPreKey = ECKeyPair.generate();
     IdentityKeyPair bobIdentityKey = bobStore.getIdentityKeyPair();
@@ -572,7 +601,8 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             bobKyberPreKey.getKeyPair().getPublicKey(),
             bobKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilderForBob = new SessionBuilder(aliceStore, bobAddress);
+    SessionBuilder aliceSessionBuilderForBob =
+        new SessionBuilder(aliceStore, bobAddress, aliceAddress);
     aliceSessionBuilderForBob.process(bobBundle);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
@@ -622,6 +652,7 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testEncryptGroupWithExcludedRecipients()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -645,6 +676,8 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore carolStore = new TestInMemorySignalProtocolStore();
+    final SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("7c32784d-37b5-4cb2-969d-b16e02d52fd7", 1);
     SignalProtocolAddress bobAddress =
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
     SignalProtocolAddress carolAddress =
@@ -668,7 +701,8 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             bobKyberPreKey.getKeyPair().getPublicKey(),
             bobKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilderForBob = new SessionBuilder(aliceStore, bobAddress);
+    SessionBuilder aliceSessionBuilderForBob =
+        new SessionBuilder(aliceStore, bobAddress, aliceAddress);
     aliceSessionBuilderForBob.process(bobBundle);
 
     ECKeyPair carolPreKey = ECKeyPair.generate();
@@ -689,7 +723,8 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             carolKyberPreKey.getKeyPair().getPublicKey(),
             carolKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilderForCarol = new SessionBuilder(aliceStore, carolAddress);
+    SessionBuilder aliceSessionBuilderForCarol =
+        new SessionBuilder(aliceStore, carolAddress, aliceAddress);
     aliceSessionBuilderForCarol.process(carolBundle);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
@@ -750,6 +785,7 @@ public class SealedSessionCipherTest extends TestCase {
     assertEquals(0, aliceMessage[indexOfM / 2 + 17]);
   }
 
+  @Test
   public void testProtocolException()
       throws UntrustedIdentityException,
           InvalidKeyException,
@@ -773,8 +809,10 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress =
         new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("469e88ac-af84-4908-bf16-8323cc1d579e", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     SenderCertificate senderCertificate =
@@ -832,6 +870,7 @@ public class SealedSessionCipherTest extends TestCase {
     }
   }
 
+  @Test
   public void testDecryptionErrorMessage()
       throws InvalidCertificateException,
           InvalidKeyException,
@@ -852,8 +891,10 @@ public class SealedSessionCipherTest extends TestCase {
     TestInMemorySignalProtocolStore aliceStore = new TestInMemorySignalProtocolStore();
     TestInMemorySignalProtocolStore bobStore = new TestInMemorySignalProtocolStore();
     SignalProtocolAddress bobAddress = new SignalProtocolAddress("+14152222222", 1);
+    SignalProtocolAddress aliceAddress =
+        new SignalProtocolAddress("9d0652a3-dcc3-4d11-975f-74d61598733f", 1);
 
-    initializeSessions(aliceStore, bobStore, bobAddress);
+    initializeSessions(aliceStore, bobStore, bobAddress, aliceAddress);
 
     ECKeyPair trustRoot = ECKeyPair.generate();
     CertificateValidator certificateValidator = new CertificateValidator(trustRoot.getPublicKey());
@@ -880,9 +921,9 @@ public class SealedSessionCipherTest extends TestCase {
     bobCipher.decrypt(certificateValidator, ciphertext, 31335);
 
     // Pretend Bob's reply fails to decrypt.
-    SignalProtocolAddress aliceAddress =
-        new SignalProtocolAddress("9d0652a3-dcc3-4d11-975f-74d61598733f", 1);
-    SessionCipher bobUnsealedCipher = new SessionCipher(bobStore, aliceAddress);
+    SignalProtocolAddress bobAddressForReply =
+        new SignalProtocolAddress("e80f7bbe-5b94-471e-bd8c-2173654ea3d1", 1);
+    SessionCipher bobUnsealedCipher = new SessionCipher(bobStore, bobAddressForReply, aliceAddress);
     CiphertextMessage bobMessage = bobUnsealedCipher.encrypt("reply".getBytes());
 
     DecryptionErrorMessage errorMessage =
@@ -931,7 +972,8 @@ public class SealedSessionCipherTest extends TestCase {
   private void initializeSessions(
       TestInMemorySignalProtocolStore aliceStore,
       TestInMemorySignalProtocolStore bobStore,
-      SignalProtocolAddress bobAddress)
+      SignalProtocolAddress bobAddress,
+      SignalProtocolAddress aliceAddress)
       throws InvalidKeyException, UntrustedIdentityException {
     ECKeyPair bobPreKey = ECKeyPair.generate();
     IdentityKeyPair bobIdentityKey = bobStore.getIdentityKeyPair();
@@ -951,7 +993,7 @@ public class SealedSessionCipherTest extends TestCase {
             12,
             bobKyberPreKey.getKeyPair().getPublicKey(),
             bobKyberPreKey.getSignature());
-    SessionBuilder aliceSessionBuilder = new SessionBuilder(aliceStore, bobAddress);
+    SessionBuilder aliceSessionBuilder = new SessionBuilder(aliceStore, bobAddress, aliceAddress);
     aliceSessionBuilder.process(bobBundle);
 
     bobStore.storeSignedPreKey(2, bobSignedPreKey);
