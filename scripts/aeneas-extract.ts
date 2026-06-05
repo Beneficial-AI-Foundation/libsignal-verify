@@ -74,9 +74,28 @@ async function main(): Promise<void> {
 
   fs.mkdirSync(logsDir, { recursive: true });
 
+  // Optional profiling: charon translates one item at a time, each wrapped in a
+  // `#[tracing::instrument]` span, and its logger uses a HierarchicalLayer with an
+  // uptime timer (RUST_LOG-controlled). Setting RUST_LOG therefore makes charon
+  // write timestamped, nested, per-item translation spans to charon.log, so the
+  // slow items show up as large uptime gaps / span durations.
+  //   - `CHARON_PROFILE=1 npm run aeneas-extract`  → sensible default (per-item, info)
+  //   - `RUST_LOG=charon_driver=trace ...`         → explicit override (also honored)
+  // Off by default so normal runs keep a clean log.
+  const charonEnv: Record<string, string> = {};
+  if (process.env.RUST_LOG) {
+    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit user setting wins
+  } else if (process.env.CHARON_PROFILE) {
+    charonEnv.RUST_LOG = "charon_driver=info";
+  }
+  if (charonEnv.RUST_LOG) {
+    console.log(chalk.yellow(`  Profiling charon with RUST_LOG=${charonEnv.RUST_LOG} (per-item timings in charon.log)`));
+  }
+
   await runStreaming(charonBin, charonArgs, {
     cwd: root,
     logFile: path.join(logsDir, "charon.log"),
+    env: Object.keys(charonEnv).length > 0 ? charonEnv : undefined,
   });
 
   if (!fs.existsSync(llbcPath)) {
@@ -106,16 +125,11 @@ async function main(): Promise<void> {
 
   console.log(chalk.green(`  Lean files generated in ${config.aeneas_args.dest}/\n`));
 
-  // ── Step 3: Split Types.lean ───────────────────────────────────────
-  // Move declarations that don't reference TypesExternal axioms into
-  // TypesPre.lean to break the circular dependency.
-  const { execSync } = await import("node:child_process");
-  execSync("npx tsx scripts/split-types.ts", { cwd: root, stdio: "inherit" });
-  console.log();
-
-  // ── Step 4: Tweaks ──────────────────────────────────────────────────
+  // ── Step 3: Tweaks ──────────────────────────────────────────────────
+  // Applied only to the auto-generated files (Types/Funs/*_Template) listed in
+  // config.tweaks.files — never the hand-maintained TypesExternal/FunsExternal.
   if (config.tweaks.substitutions.length > 0 && config.tweaks.files.length > 0) {
-    console.log(chalk.bold("Step 4: Applying tweaks..."));
+    console.log(chalk.bold("Step 3: Applying tweaks..."));
 
     const matchedPerFile: Set<number>[] = [];
     for (const file of config.tweaks.files) {
@@ -131,6 +145,27 @@ async function main(): Promise<void> {
     warnUnmatchedTweaks(config.tweaks.substitutions, matchedPerFile);
     console.log();
   }
+
+  // ── Step 4: Realize external templates ─────────────────────────────
+  // TEMPORARY (remove before committing): copies the (already-tweaked) axiom
+  // stubs `*External_Template.lean` → their non-template names. Right now every
+  // external item is an opaque axiom with no hand-written realization, so this
+  // is a convenience. Once others fill in real realizations, TypesExternal.lean /
+  // FunsExternal.lean become hand-maintained and this copy MUST be removed so it
+  // doesn't overwrite their edits.
+  //
+  // This replaces the former TypesPre/TypesPreBase/FunsPre layer-splitting hack,
+  // which worked around an Aeneas Types↔TypesExternal circular-dependency
+  // limitation that is now fixed upstream (the `*_Template.lean` are self-contained).
+  for (const base of ["TypesExternal", "FunsExternal"]) {
+    const tmpl = path.join(outputDir, `${base}_Template.lean`);
+    const dest = path.join(outputDir, `${base}.lean`);
+    if (fs.existsSync(tmpl)) {
+      fs.copyFileSync(tmpl, dest);
+      console.log(chalk.green(`  Realized ${base}.lean from ${base}_Template.lean`));
+    }
+  }
+  console.log();
 
   // ── Step 5: Lean toolchain sync ─────────────────────────────────────
   syncLeanToolchain(root);

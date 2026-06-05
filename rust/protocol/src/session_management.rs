@@ -797,7 +797,7 @@ mod legacy_interop_tests {
             bob_kyber_key,
             *alice_identity.identity_key(),
             alice_base_key.public_key,
-            &kyber_ct,
+            kyber_ct,
             false,
         );
 

@@ -95,6 +95,7 @@ impl<'a> UnacknowledgedPreKeyMessageItems<'a> {
     }
 }
 
+#[cfg(not(feature = "extraction"))]
 bitflags! {
     /// Specifies which criteria make a session "usable" beyond simply having a present sender
     /// chain.
@@ -128,6 +129,33 @@ bitflags! {
         /// "not usable" upon receiving a response. Therefore, this should not be used to determine
         /// whether a session is usable unless future downgrades will also be rejected.
         const Spqr = 1 << 2;
+    }
+}
+
+// Extraction: `bitflags!` generates a `Flags` trait impl + generic iterator
+// machinery (`Iter<Self>`, `IntoIterator`, `const FLAGS: &'static [Flag<Self>]`)
+// that Aeneas cannot extract — generic type-var instantiation over `B: Flags`
+// plus a static slice of structs holding `&'static str`. The underlying type
+// is just a `u32` newtype, so under extraction we provide a plain equivalent
+// exposing only the API the crate actually uses (`all`, `contains`, the consts).
+#[cfg(feature = "extraction")]
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct SessionUsabilityRequirements(u32);
+
+#[cfg(feature = "extraction")]
+#[allow(non_upper_case_globals)]
+impl SessionUsabilityRequirements {
+    pub const NotStale: Self = Self(1 << 0);
+    pub const EstablishedWithPqxdh: Self = Self(1 << 1);
+    pub const Spqr: Self = Self(1 << 2);
+
+    pub const fn all() -> Self {
+        Self((1 << 0) | (1 << 1) | (1 << 2))
+    }
+
+    pub fn contains(&self, other: Self) -> bool {
+        self.0 & other.0 == other.0
     }
 }
 

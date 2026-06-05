@@ -8,8 +8,9 @@ mod keys;
 use rand::{CryptoRng, Rng};
 
 pub(crate) use self::keys::{ChainKey, MessageKeyGenerator, RootKey};
-use crate::handshake::Handshake;
-use crate::pqxdh::{HandshakeKeys, Pqxdh};
+// Call the pqxdh free functions directly rather than via the `Handshake`
+// trait impl on `Pqxdh`
+use crate::pqxdh::{HandshakeKeys, InitiatorAgreement, pqxdh_accept, pqxdh_initiate};
 // Re-export the parameter types for backward compatibility.
 // Callers (session.rs, tests) use these via `ratchet::`.
 pub use crate::pqxdh::{InitiatorParameters, RecipientParameters};
@@ -22,7 +23,7 @@ use crate::{KeyPair, Result, SessionRecord, SignalProtocolError, consts};
 #[doc(hidden)]
 pub type AliceSignalProtocolParameters = InitiatorParameters;
 #[doc(hidden)]
-pub type BobSignalProtocolParameters<'a> = RecipientParameters<'a>;
+pub type BobSignalProtocolParameters = RecipientParameters;
 
 fn spqr_chain_params(self_connection: bool) -> spqr::ChainParams {
     #[allow(clippy::needless_update)]
@@ -45,14 +46,15 @@ pub(crate) fn initialize_alice_session<R: Rng + CryptoRng>(
     parameters: &InitiatorParameters,
     csprng: &mut R,
 ) -> Result<SessionState> {
-    let (
+    let InitiatorAgreement {
         kyber_ciphertext,
-        HandshakeKeys {
-            root_key,
-            chain_key,
-            pqr_key,
-        },
-    ) = Pqxdh::initiate(parameters, csprng)?;
+        keys:
+            HandshakeKeys {
+                root_key,
+                chain_key,
+                pqr_key,
+            },
+    } = pqxdh_initiate(parameters, csprng)?;
 
     initialize_initiator_session(
         parameters,
@@ -123,7 +125,7 @@ pub(crate) fn initialize_bob_session(
         root_key,
         chain_key,
         pqr_key,
-    } = Pqxdh::accept(parameters)?;
+    } = pqxdh_accept(parameters)?;
 
     initialize_recipient_session(
         parameters,

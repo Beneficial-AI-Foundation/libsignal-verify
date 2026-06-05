@@ -16,6 +16,8 @@
 
 #![warn(clippy::unwrap_used)]
 #![deny(unsafe_code)]
+#![cfg_attr(feature = "extraction", feature(register_tool))]
+#![cfg_attr(feature = "extraction", register_tool(charon))]
 
 // TODO(https://github.com/signalapp/libsignal/issues/285): it should be an aspiration to
 // eventually warn and then error for public members without docstrings. Also see

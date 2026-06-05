@@ -106,6 +106,7 @@ trait Parameters {
 }
 
 /// Acts as a bridge between the static [Parameters] trait and the dynamic [KeyType] enum.
+#[cfg_attr(feature = "extraction", charon::exclude)]
 trait DynParameters {
     fn public_key_length(&self) -> usize;
     fn secret_key_length(&self) -> usize;
@@ -125,6 +126,7 @@ trait DynParameters {
     ) -> Result<SharedSecret>;
 }
 
+#[cfg_attr(feature = "extraction", charon::exclude)]
 impl<T: Parameters> DynParameters for T {
     fn public_key_length(&self) -> usize {
         Self::PUBLIC_KEY_LENGTH
@@ -351,15 +353,21 @@ impl Key<Public> {
         &self,
         csprng: &mut R,
     ) -> Result<(SharedSecret, SerializedCiphertext)> {
-        let (ss, ct) = self
-            .key_type
-            .parameters()
-            .encapsulate(&self.key_data, csprng)?;
+        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
+        let (ss, ct) = match self.key_type {
+            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::encapsulate(
+                &self.key_data,
+                csprng,
+            )
+            .map_err(|BadKEMKeyLength| {
+                SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
+            })?,
+        };
         Ok((
             ss,
             Ciphertext {
                 key_type: self.key_type,
-                data: &ct,
+                data: ct,
             }
             .serialize(),
         ))
@@ -378,9 +386,21 @@ impl Key<Secret> {
                 self.key_type.value(),
             ));
         }
-        self.key_type
-            .parameters()
-            .decapsulate(&self.key_data, ct.data)
+        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
+        match self.key_type {
+            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::decapsulate(
+                &self.key_data,
+                &ct.data,
+            )
+            .map_err(|e| match e {
+                DecapsulateError::BadKeyLength => {
+                    SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
+                }
+                DecapsulateError::BadCiphertext => {
+                    SignalProtocolError::BadKEMCiphertextLength(self.key_type, ct.data.len())
+                }
+            }),
+        }
     }
 }
 
@@ -478,20 +498,25 @@ impl KeyPair {
 }
 
 /// Utility type to handle serialization and deserialization of ciphertext data
-struct Ciphertext<'a> {
+struct Ciphertext {
     key_type: KeyType,
-    data: &'a [u8],
+    data: Box<[u8]>,
 }
 
-impl<'a> Ciphertext<'a> {
+impl Ciphertext {
     /// Create a `Ciphertext` instance from a byte string created with the
     /// function `Ciphertext::serialize(&self)`.
-    pub fn deserialize(value: &'a [u8]) -> Result<Self> {
+    pub fn deserialize(value: &[u8]) -> Result<Self> {
         if value.is_empty() {
             return Err(SignalProtocolError::NoKeyTypeIdentifier);
         }
         let key_type = KeyType::try_from(value[0])?;
-        if value.len() != key_type.parameters().ciphertext_length() + 1 {
+        // Direct dispatch on the ciphertext-length constant (replaces vtable
+        // dispatch through `DynParameters`).
+        let expected_len = match key_type {
+            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::CIPHERTEXT_LENGTH + 1,
+        };
+        if value.len() != expected_len {
             return Err(SignalProtocolError::BadKEMCiphertextLength(
                 key_type,
                 value.len(),
@@ -499,7 +524,7 @@ impl<'a> Ciphertext<'a> {
         }
         Ok(Ciphertext {
             key_type,
-            data: &value[1..],
+            data: value[1..].into(),
         })
     }
 
@@ -507,7 +532,7 @@ impl<'a> Ciphertext<'a> {
     pub fn serialize(&self) -> SerializedCiphertext {
         let mut result = Vec::with_capacity(1 + self.data.len());
         result.push(self.key_type.value());
-        result.extend_from_slice(self.data);
+        result.extend_from_slice(&self.data);
         result.into_boxed_slice()
     }
 }

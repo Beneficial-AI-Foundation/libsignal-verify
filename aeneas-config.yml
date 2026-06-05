@@ -1,80 +1,64 @@
-# Aeneas extraction configuration — combined (signal-crypto + libsignal-core)
+# Aeneas extraction configuration — libsignal-protocol
 #
-# Extracts signal-crypto as the target crate, with libsignal-core as a
-# transparent dependency (`--include libsignal_core`).
-#
-# start_from_pub covers all pub items of signal-crypto (the target crate).
-# The start_from list below manually adds pub functions from libsignal-core
-# that aren't pulled in as dependencies of signal-crypto. Charon only
-# discovers foreign-crate items that are referenced from the target crate's
-# code, so core's inherent methods must be listed explicitly. We use the
-# `_::method` pattern to match methods across impl blocks.
 
 aeneas:
-  commit: "1180be60"
+  commit: "ac9f1bc5"
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:
   repo: "https://github.com/signalapp/libsignal"
-  commit: "0a58e80b"
+  commit: "46d867c9"
 
 crate:
   dir: "rust"
-  name: "signal_crypto"
+  name: "libsignal_protocol"
 
 charon:
-  cargo_args: ["-p", "signal-crypto", "--features", "extraction"]
-  start_from_pub: true
+  cargo_args: ["-p", "libsignal-protocol", "--features", "extraction"]
   start_from:
-    # libsignal-core free functions and constants
-    - "libsignal_core::try_scoped"
-    - "libsignal_core::derive_arrays"
-    - "libsignal_core::try_derive_arrays"
-    - "libsignal_core::version::VERSION"
-    # libsignal-core::e164 (E164)
-    - "libsignal_core::e164::_::new"
-    - "libsignal_core::e164::_::to_be_bytes"
-    - "libsignal_core::e164::_::from_be_bytes"
-    # libsignal-core::address (DeviceId, ServiceId, SpecificServiceId, ProtocolAddress)
-    - "libsignal_core::address::_::new"
-    - "libsignal_core::address::_::new_nonzero"
-    - "libsignal_core::address::_::kind"
-    - "libsignal_core::address::_::service_id_binary"
-    - "libsignal_core::address::_::service_id_fixed_width_binary"
-    - "libsignal_core::address::_::parse_from_service_id_binary"
-    - "libsignal_core::address::_::parse_from_service_id_fixed_width_binary"
-    - "libsignal_core::address::_::raw_uuid"
-    - "libsignal_core::address::_::from_uuid_bytes"
-    - "libsignal_core::address::_::from_uuid"
-    - "libsignal_core::address::_::name"
-    - "libsignal_core::address::_::device_id"
-    # libsignal-core::curve (PublicKey, PrivateKey, KeyPair)
-    - "libsignal_core::curve::_::deserialize"
-    - "libsignal_core::curve::_::serialize"
-    - "libsignal_core::curve::_::key_type"
-    - "libsignal_core::curve::_::public_key"
-    - "libsignal_core::curve::_::public_key_bytes"
-    - "libsignal_core::curve::_::from_djb_public_key_bytes"
-    - "libsignal_core::curve::_::verify_signature"
-    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
-    - "libsignal_core::curve::_::is_canonical"
-    - "libsignal_core::curve::_::calculate_signature"
-    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
-    - "libsignal_core::curve::_::calculate_agreement"
-    - "libsignal_core::curve::_::generate"
-    - "libsignal_core::curve::_::from_public_and_private"
+    - "libsignal_protocol::pqxdh"
+    - "libsignal_protocol::consts"
+    - "libsignal_protocol::crypto"
+    - "libsignal_protocol::identity_key"
+    - "libsignal_protocol::timestamp"
+    # DEFERRED: incremental_mac::update returns `impl Iterator<Item=Output<M>> + 'a`
+    # (RPIT with a lifetime) → Aeneas "Unexpected erased region". Can't be opaqued
+    # (signature itself fails) and it's a standalone leaf (only referenced by lib.rs,
+    # no core-path dependents), so we skip it rather than exclude-invisible.
+    # - "libsignal_protocol::incremental_mac"
+    - "libsignal_protocol::ratchet"
+    - "libsignal_protocol::state"
+    - "libsignal_protocol::fingerprint"
+    - "libsignal_protocol::sender_keys"
+    - "libsignal_protocol::protocol"
+    - "libsignal_protocol::double_ratchet"
+    - "libsignal_protocol::triple_ratchet"
+    - "libsignal_protocol::group_cipher"
+    - "libsignal_protocol::session"
+    - "libsignal_protocol::session_management"
+    - "libsignal_protocol::sealed_sender"
+    # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
+    # InMem test impls. Charon can't translate async traits (hax panic → skipped),
+    # so references to them dangle ("Could not find trait_decl_id"). Pure
+    # interface + in-memory test code, no core crypto — defer like incremental_mac.
+    # - "libsignal_protocol::storage"
+    # DEFERRED: session_cipher_legacy triggers a charon-driver (hax) panic on the
+    # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods (legacy code that
+    # reaches a kem vtable path + async store traits). Needs charon-level triage.
+    # - "libsignal_protocol::session_cipher_legacy"
   include:
     - "libsignal_core"
+    - "signal_crypto"
   exclude:
     # Formatting and error trait impls (not needed for verification)
-    - "signal_crypto::{impl core::fmt::Debug for _}"
-    - "signal_crypto::{impl core::fmt::Display for _}"
-    - "signal_crypto::_::{impl core::fmt::Debug for _}"
-    - "signal_crypto::_::{impl core::fmt::Display for _}"
-    - "signal_crypto::_::_::{impl core::fmt::Debug for _}"
-    - "signal_crypto::_::_::{impl core::fmt::Display for _}"
-    - "signal_crypto::{impl core::error::Error for _}"
-    - "signal_crypto::_::{impl core::error::Error for _}"
+    - "libsignal_protocol::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::{impl core::fmt::Display for _}"
+    - "libsignal_protocol::_::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::_::{impl core::fmt::Display for _}"
+    - "libsignal_protocol::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::_::_::{impl core::fmt::Display for _}"
+    - "libsignal_protocol::{impl core::error::Error for _}"
+    - "libsignal_protocol::_::{impl core::error::Error for _}"
     - "libsignal_core::{impl core::fmt::Debug for _}"
     - "libsignal_core::{impl core::fmt::Display for _}"
     - "libsignal_core::_::{impl core::fmt::Debug for _}"
@@ -83,32 +67,197 @@ charon:
     - "libsignal_core::_::_::{impl core::fmt::Display for _}"
     - "libsignal_core::{impl core::error::Error for _}"
     - "libsignal_core::_::{impl core::error::Error for _}"
-    # libsignal-core functions that use unsupported features
-    - "libsignal_core::address::_::service_id_string"       # uses format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
-    - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
+    - "signal_crypto::{impl core::fmt::Debug for _}"
+    - "signal_crypto::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::{impl core::error::Error for _}"
+    - "signal_crypto::_::{impl core::error::Error for _}"
+    # group_cipher high-level `async fn` API — async desugars to `impl Future`
+    # (RPIT) which opaque can't represent; exclude (invisible). Top-level API,
+    # nothing internal references them.
+    - "libsignal_protocol::group_cipher::group_encrypt"
+    - "libsignal_protocol::group_cipher::group_decrypt"
+    - "libsignal_protocol::group_cipher::process_sender_key_distribution_message"
+    - "libsignal_protocol::group_cipher::create_sender_key_distribution_message"
+    # session / session_management high-level `async fn` API (Future state machines)
+    - "libsignal_protocol::session_management::message_encrypt"
+    - "libsignal_protocol::session_management::message_decrypt"
+    - "libsignal_protocol::session_management::message_decrypt_prekey"
+    - "libsignal_protocol::session_management::message_decrypt_signal"
+    - "libsignal_protocol::session::process_prekey"
+    - "libsignal_protocol::session::process_prekey_impl"
+    - "libsignal_protocol::session::process_prekey_bundle"
+    # sealed_sender high-level `async fn` API (Future state machines)
+    - "libsignal_protocol::sealed_sender::sealed_sender_encrypt"
+    - "libsignal_protocol::sealed_sender::sealed_sender_encrypt_from_usmc"
+    - "libsignal_protocol::sealed_sender::sealed_sender_decrypt"
+    - "libsignal_protocol::sealed_sender::sealed_sender_decrypt_to_usmc"
+    - "libsignal_protocol::sealed_sender::sealed_sender_multi_recipient_encrypt"
+    - "libsignal_protocol::sealed_sender::sealed_sender_multi_recipient_encrypt_impl"
+    # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
+    # (invisible) so its `&dyn` signature is never translated and the
+    # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never
+    # pulled. Its only callers (key_length, KeyPair::generate) are opaque, so
+    # nothing references it transparently. (`_::` = inherent-method form.)
+    - "libsignal_protocol::kem::_::parameters"
     # Crate-level excludes
     - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
-    - "signal_crypto::hpke"               # complex external crypto (hpke-rs)
     - "core::str::pattern"                # GATs unsupported by Aeneas
     - "rand::distr::uniform"              # mutually recursive traits
     - "zerocopy"                          # raw pointer ops, GATs
     - "log"
   opaque:
-    # libsignal-core functions using zerocopy internals
-    - "libsignal_core::derive_arrays"
-    - "libsignal_core::try_derive_arrays"
-    # curve functions that call into curve25519_dalek or use log::warn!
+    # libsignal-protocol::pqxdh — bodies Aeneas can't model:
+    # HKDF closures and Option<&T> accessors. (The Handshake trait + its
+    # impl are excluded at source level via #[charon::exclude] —
+    # see rust/protocol/src/{handshake.rs, pqxdh.rs}.)
+    - "libsignal_protocol::pqxdh::_::derive"                 # HKDF closure
+    - "libsignal_protocol::pqxdh::_::derive_with_label"      # HKDF closure
+    - "libsignal_protocol::pqxdh::_::their_one_time_pre_key" # Option<&PublicKey>
+    - "libsignal_protocol::pqxdh::_::our_one_time_pre_key_pair" # Option<&KeyPair>
+    # libsignal-protocol::kem — Plan A scope:
+    # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
+    # TRANSPARENT (their bodies are extracted; the libcrux ML-KEM primitive is
+    # the axiomatic leaf). Everything else in kem.rs that touches the
+    # `DynParameters` vtable becomes opaque — these aren't called from the
+    # PQXDH verification target.
+    - "libsignal_protocol::kem::_::key_length"            # KeyKind::key_length impls (Public, Secret) use parameters()
+    - "libsignal_protocol::kem::_::generate"              # KeyPair::generate uses parameters().generate() (inherent-method `_::` form)
+    # libcrux ML-KEM 1024 primitive — the axiomatic leaf (FIPS 203).
+    - "libsignal_protocol::kem::kyber1024::_::encapsulate"
+    - "libsignal_protocol::kem::kyber1024::_::decapsulate"
+    - "libsignal_protocol::kem::kyber1024::_::generate"
+    # libsignal-protocol::crypto — AES-CTR / HMAC-SHA256 / constant-time-eq
+    # wrappers over external crypto primitives (aes, hmac, subtle crates) plus
+    # the libsignal_debug::trace_block! macro. Axiomatic crypto leaves.
+    - "libsignal_protocol::crypto::aes_256_ctr_encrypt"
+    - "libsignal_protocol::crypto::hmac_sha256"
+    - "libsignal_protocol::crypto::aes256_ctr_hmacsha256_decrypt"
+    # libsignal-protocol::ratchet — HKDF chain/message-key derivation (crypto
+    # leaves), plus from_pb which returns Result<_, &'static str> (Aeneas
+    # "no bottoms" on &str Err payloads — opaque skips the body).
+    - "libsignal_protocol::ratchet::keys::_::create_chain"
+    - "libsignal_protocol::ratchet::keys::_::derive_keys"
+    - "libsignal_protocol::ratchet::keys::_::calculate_base_material"
+    - "libsignal_protocol::ratchet::keys::_::from_pb"
+    # libsignal-protocol::state::session — SessionState methods that either
+    # construct InvalidSessionError(&'static str) (Aeneas "no bottoms" on &str
+    # Err payloads) or use log!/format! (Internal error). Opaqued as reached.
+    - "libsignal_protocol::state::session::_::sender_ratchet_key"
+    - "libsignal_protocol::state::session::_::add_receiver_chain"
+    # state::session SessionState/SessionRecord methods that construct
+    # InvalidSessionError(&'static str) / SignalProtocolError, use format!/log,
+    # or decode protobuf — all hit "no bottoms" / Internal error. Simple
+    # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
+    - "libsignal_protocol::state::session::_::alice_base_key"
+    - "libsignal_protocol::state::session::_::current_pq_state"
+    - "libsignal_protocol::state::session::_::deserialize"
+    - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
+    - "libsignal_protocol::state::session::_::get_receiver_chain"
+    - "libsignal_protocol::state::session::_::get_receiver_chain_key"
+    - "libsignal_protocol::state::session::_::get_receiver_chain_key_bytes"
+    - "libsignal_protocol::state::session::_::get_sender_chain_key"
+    - "libsignal_protocol::state::session::_::get_sender_chain_key_bytes"
+    - "libsignal_protocol::state::session::_::local_identity_key"
+    - "libsignal_protocol::state::session::_::local_identity_key_bytes"
+    - "libsignal_protocol::state::session::_::local_registration_id"
+    - "libsignal_protocol::state::session::_::previous_session_states"
+    - "libsignal_protocol::state::session::_::remote_identity_key"
+    - "libsignal_protocol::state::session::_::remote_identity_key_bytes"
+    - "libsignal_protocol::state::session::_::remote_registration_id"
+    - "libsignal_protocol::state::session::_::sender_ratchet_private_key"
+    - "libsignal_protocol::state::session::_::session_version"
+    - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
+    - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
+    - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
+    - "libsignal_protocol::state::session::_::from"                    # From<InvalidSessionError> (&str) + protobuf conversions
+    - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
+    # state::bundle — PreKeyBundle builder
+    - "libsignal_protocol::state::bundle::_::modify"
+    # double_ratchet — protobuf (de)serialization (&str Err / format), pulled by
+    # state::session take/apply_ratchet_state.
+    - "libsignal_protocol::double_ratchet::_::from_pb"
+    - "libsignal_protocol::double_ratchet::_::apply_to_pb"
+    - "libsignal_protocol::double_ratchet::_::consume_message_key"        # log!/&str
+    - "libsignal_protocol::double_ratchet::_::take_skipped_key"           # log!/closure
+    - "libsignal_protocol::double_ratchet::_::find_receiver_chain_index"  # .position() closure w/ deserialize
+    # triple_ratchet — AES-CBC + SPQR + MAC + format!/log!/&str (crypto-heavy)
+    - "libsignal_protocol::triple_ratchet::_::from_session_state"
+    - "libsignal_protocol::triple_ratchet::_::encrypt"
+    - "libsignal_protocol::triple_ratchet::_::decrypt"
+    # fingerprint — protobuf decode + Error::ParsingError(&str) + ct_eq + Display
+    - "libsignal_protocol::fingerprint::_::deserialize"
+    - "libsignal_protocol::fingerprint::_::compare"
+    - "libsignal_protocol::fingerprint::get_encoded_string"  # free fn (iterated SHA-512)
+    # sender_keys — HMAC chain derivation, curve-key deserialize (&str/CurveError),
+    # state accessors (&str / log).
+    - "libsignal_protocol::sender_keys::_::next"
+    - "libsignal_protocol::sender_keys::_::signing_key_private"
+    - "libsignal_protocol::sender_keys::_::signing_key_public"
+    - "libsignal_protocol::sender_keys::_::remove_state"
+    - "libsignal_protocol::sender_keys::_::remove_states_with_chain_id"
+    - "libsignal_protocol::sender_keys::_::sender_key_state"
+    - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
+    - "libsignal_protocol::sender_keys::_::add_sender_key_state"
+    # protocol — message MAC/signature verify (crypto), kyber_ciphertext accessor
+    # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
+    # free fns.
+    - "libsignal_protocol::protocol::_::verify_mac"
+    - "libsignal_protocol::protocol::_::verify_mac_with_addresses"
+    - "libsignal_protocol::protocol::_::verify_signature"
+    - "libsignal_protocol::protocol::_::kyber_ciphertext"
+    - "libsignal_protocol::protocol::_::try_from"
+    - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
+    - "libsignal_protocol::protocol::should_use_nonpq_session"
+    - "libsignal_protocol::protocol::_::from"   # From impls building protobuf structs (Default::default)
+    # group_cipher — get_sender_key (non-async) opaque; the async API fns are
+    # excluded below (opaque keeps their `impl Future` signature → type error).
+    - "libsignal_protocol::group_cipher::get_sender_key"
+    # session_management sync helpers — crypto + &str + format! (decrypt attempt logic)
+    - "libsignal_protocol::session_management::try_decrypt_from_record"
+    - "libsignal_protocol::session_management::try_decrypt_with_state"
+    - "libsignal_protocol::session_management::format_decryption_failure_log"
+    # sealed_sender — `[u8; ASSOCIATED_CONST]` array-default in deserialize's
+    # local PrefixRepr (Aeneas update_array_default prepass cannot model it).
+    - "libsignal_protocol::sealed_sender::_::deserialize"
+    # sealed_sender SealedSenderV2 parsing (slices/ranges/borrows), signer (static
+    # CERT_MAP), and v1/v2 key-agreement crypto (HKDF / XOR).
+    - "libsignal_protocol::sealed_sender::_::offset_of_shared_bytes"
+    - "libsignal_protocol::sealed_sender::_::offset_within_full_message"
+    - "libsignal_protocol::sealed_sender::_::parse"
+    - "libsignal_protocol::sealed_sender::_::range_for_recipient_key_material"
+    - "libsignal_protocol::sealed_sender::_::received_message_parts_for_recipient"
+    - "libsignal_protocol::sealed_sender::_::signer"
+    - "libsignal_protocol::sealed_sender::sealed_sender_v1::_::calculate"
+    - "libsignal_protocol::sealed_sender::sealed_sender_v2::apply_agreement_xor"
+    - "libsignal_protocol::sealed_sender::_::validate"                  # cert signature verify
+    - "libsignal_protocol::sealed_sender::_::validate_with_trust_roots" # cert signature verify
+    - "libsignal_protocol::sealed_sender::sealed_sender_v2::_::derive_e" # HKDF
+    # storage::inmem — sync helper with closure + &str (async_trait store impls
+    # are skipped by charon as hax panics, so don't reach aeneas).
+    - "libsignal_protocol::storage::inmem::_::load_existing_sessions"
+    - "libsignal_protocol::fingerprint::_::display_string"
+    # libsignal_core::curve — Curve25519 (curve25519_dalek) crypto primitives:
+    # DH, keygen, sign/verify, deserialize (log macro). Axiomatic crypto leaves.
     - "libsignal_core::curve::_::deserialize"
-    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
-    - "libsignal_core::curve::_::is_torsion_free"
+    - "libsignal_core::try_derive_arrays"
+    # libsignal-core functions that use unsupported features
+    - "libsignal_core::address::_::service_id_string"       # uses format! macro
+    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
+    - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
     - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::calculate_agreement"
     - "libsignal_core::curve::_::calculate_signature"
     - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
-    - "libsignal_core::curve::_::calculate_agreement"
-    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::verify_signature"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_torsion_free"
     - "libsignal_core::curve::_::try_from"
-    # crypto functions calling external crypto primitives
+    # signal_crypto — AES-CBC/CTR/GCM + hash wrappers over external crypto crates.
     - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
     - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
     - "signal_crypto::aes_ctr::_::new"
@@ -121,6 +270,13 @@ charon:
     - "signal_crypto::hash::_::new"
     - "signal_crypto::hash::_::update"
     - "signal_crypto::hash::_::finalize"
+    # libsignal_core::address — opaque (NOT exclude): these are *called* by
+    # protocol fns (is_same_account, serialize_addresses), so excluding them
+    # dangles. The str::Pattern GAT / format! is only in the body; signatures
+    # (&str -> Option<Self> / -> String) are clean, so opaque works.
+    - "libsignal_core::address::_::service_id_string"            # format! macro
+    - "libsignal_core::address::_::parse_from_service_id_string" # str::Pattern (GAT)
+    - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
 
 aeneas_args:
   options:
@@ -128,119 +284,10 @@ aeneas_args:
   dest: "."
   subdir: "Libsignal/Code"
 
-# File splitting to break circular dependencies between Types and TypesExternal.
-# https://github.com/AeneasVerif/aeneas/issues/902
-#
-# Aeneas generates Types.lean (defs) and TypesExternal_Template.lean (axioms).
-# Types imports TypesExternal, but some axioms reference defs from Types —
-# creating a circular dependency. We break this by splitting into layers:
-#
-#   TypesPreBase ← TypesExternalPre_Template ← TypesPre ← TypesExternal_Template
-#       ↑             (axioms needed             (defs that        ↑
-#   (defs with         by TypesPre)              need axioms)   (remaining
-#    no axiom deps)                                              axioms)
-#
-# Full import chain:
-#   TypesPreBase ← TypesExternalPre ← TypesPre ← TypesExternal
-#     ← FunsPre ← Types ← FunsExternal ← Funs
-
-# Layer 1: Defs from Types.lean with no axiom dependencies.
-types_pre_base:
-  - "core.num.nonzero.private.Sealed"
-  - "core.num.nonzero.ZeroablePrimitive"
-  - "core.ops.arith.Add"
-  - "core.ops.arith.Sub"
-  - "core.ops.arith.Div"
-  - "core.ops.arith.Rem"
-  - "core.ops.bit.Shl"
-  - "typenum.uint.UTerm"
-  - "typenum.bit.B1"
-  - "typenum.bit.B0"
-  - "typenum.sealed.Sealed"
-  - "typenum.marker_traits.Unsigned"
-  - "typenum.marker_traits.Bit"
-  - "typenum.type_operators.IsLess"
-  - "typenum.marker_traits.NonZero"
-  - "typenum.type_operators.PartialDiv"
-  - "typenum.marker_traits.Ord"
-  - "typenum.Less"
-  - "typenum.Greater"
-  - "typenum.Equal"
-  - "typenum.private.PrivateCmp"
-  - "typenum.private.InternalMarker"
-  - "typenum.type_operators.Cmp"
-  - "typenum.private.IsLessPrivate"
-  - "typenum.private.Trim"
-  - "typenum.private.TrimTrailingZeros"
-  - "typenum.private.Invert"
-  - "typenum.private.PrivateInvert"
-  - "typenum.private.InvertedUTerm"
-  - "typenum.private.InvertedUnsigned"
-  - "typenum.private.PrivateSetBit"
-  - "typenum.private.PrivateDiv"
-  - "typenum.private.PrivateDivIf"
-  - "typenum.type_operators.Len"
-  - "typenum.uint.GetBit"
-  - "typenum.uint.SetBit"
-  - "generic_array.ArrayLength"
-  - "crypto_common.BlockSizeUser"
-  - "block_padding.PadType"
-  - "block_padding.UnpadError"
-  - "cipher.block.BlockCipher"
-  - "cipher.stream_core.Counter"
-  - "rand_core.RngCore"
-  - "rand_core.CryptoRng"
-  - "rand.rng.Rng"
-  - "rand.distr.distribution.Distribution"
-  - "rand.distr.StandardUniform"
-  - "rand.rng.Fill"
-  - "derive_more.convert.try_from.TryFromReprError"
-  - "aes_cbc.EncryptionError"
-  - "aes_cbc.DecryptionError"
-  - "error.Error"
-  - "libsignal_core.address.InvalidDeviceId"
-  - "libsignal_core.curve.KeyType"
-  - "libsignal_core.curve.CurveError"
-  - "libsignal_core.curve.PublicKeyData"
-  - "libsignal_core.curve.PublicKey"
-  - "libsignal_core.curve.PrivateKeyData"
-  - "libsignal_core.curve.PrivateKey"
-  - "libsignal_core.curve.KeyPair"
-
-# Layer 2: Axioms from TypesExternal_Template.lean needed by TypesPre defs.
-types_external_pre:
-  - "generic_array.GenericArray"
-  - "inout.inout.InOut"
-
-# Layer 3: Defs from Types.lean that reference axioms from TypesExternalPre.
-types_pre:
-  - "block_padding.Padding"
-  - "crypto_common.ParBlocksSizeUser"
-  - "cipher.block.BlockBackend"
-  - "cipher.block.BlockClosure"
-  - "cipher.block.BlockEncrypt"
-  - "cipher.block.BlockEncryptMut"
-  - "ctr.flavors.CtrFlavor"
-
-# Declarations to move from Funs.lean into FunsPre.lean (imported by Types.lean).
-# These are trait instances needed by type definitions in Types.lean.
-funs_pre:
-  # Clone function axioms (must come before Clone instances that reference them)
-  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone.clone"
-  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone"
-  # NonZeroU64Inner instances (needed by E164)
-  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone"
-  - "core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
-  - "U64.Insts.CoreNumNonzeroPrivateSealed"
-  - "U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner"
-  # NonZeroU8Inner instances (needed by DeviceId)
-  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone"
-  - "core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
-  - "U8.Insts.CoreNumNonzeroPrivateSealed"
-  - "U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner"
-
 tweaks:
-  files: ["TypesPreBase.lean", "TypesExternalPre_Template.lean", "TypesPre.lean", "TypesExternal_Template.lean", "FunsPre.lean", "Types.lean", "FunsExternal_Template.lean", "Funs.lean"]
+  # Only auto-generated files. TypesExternal.lean / FunsExternal.lean are
+  # hand-maintained (not regenerated), so tweaks must never touch them.
+  files: ["TypesExternal_Template.lean", "Types.lean", "FunsExternal_Template.lean", "Funs.lean"]
   substitutions:
     # Disable linters for auto-generated files
     - find: |
@@ -255,3 +302,30 @@ tweaks:
     # https://github.com/AeneasVerif/aeneas/issues/920
     - find: "then ok (i = 127#u8)"
       replace: "then ok (i == 127#u8)"
+
+    # Duplicate parentClauses name when two supertraits are the same trait:
+    # `core::num::nonzero::ZeroablePrimitive` gets two `markerCopyInst` fields
+    # (Copy Self and Copy Self_NonZeroInner). Rename the 2nd consistently in the
+    # structure decl, its `parentClauses` attr, and the (sole) NonZeroU8Inner
+    # instance. No projections reference it, so the rename is sound.
+    # https://github.com/AeneasVerif/aeneas/issues/1051
+    - find: '["markerCopyInst", "privateSealedInst", "markerCopyInst"]'
+      replace: '["markerCopyInst", "privateSealedInst", "markerCopyInst1"]'
+    - find: "markerCopyInst : core.marker.Copy Self_NonZeroInner"
+      replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
+    - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+
+    # `public` is a reserved keyword in Lean 4.30 but Aeneas does not escape it
+    # (it escapes `private` → «private» but not `public`), so the generated field
+    # of `proto…SenderSigningKey` is `public : …`, a syntax error. Escape it
+    # consistently: the field decl, the `self.public` projection, and the two
+    # `{ public := … }` constructions. (`\b` avoids touching `public_key`.)
+    # Aeneas escapes keywords per https://github.com/AeneasVerif/aeneas/issues/704
+    # but `public` (new reserved word in Lean 4.30) is missing — see todo.md.
+    - find: "  public : alloc.vec.Vec Std.U8"
+      replace: "  «public» : alloc.vec.Vec Std.U8"
+    - regex: "self\\.public\\b"
+      replace: "self.«public»"
+    - regex: "\\bpublic :="
+      replace: "«public» :="
