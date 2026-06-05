@@ -2,7 +2,7 @@
 #
 
 aeneas:
-  commit: "ac9f1bc5"
+  commit: "ac74e1ba"
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:
@@ -15,6 +15,11 @@ crate:
 
 charon:
   cargo_args: ["-p", "libsignal-protocol", "--features", "extraction"]
+  # Detail of charon's per-item translation timings written to .logs/charon.log.
+  #   full → all spans incl. nested trait-proof/type/fn-ptr
+  #   item → per-item durations only (small log; which item is slow, not why).
+  #   off  → no profiling (plain echoed log).
+  profile: full
   start_from:
     - "libsignal_protocol::pqxdh"
     - "libsignal_protocol::consts"

@@ -81,12 +81,19 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
   const start = Date.now();
   let bytes = 0;
   let items = 0;
-  // Top-level per-item translation spans (the per-type `translate_ty` noise is
-  // filtered out by default), used as a rough progress counter.
-  const itemRe = /translate_(fun_decl|global|type_decl|trait_decl|trait_impl)\{/g;
+  let current = ""; // most recent top-level item span (e.g. "fun_decl#188")
+  let currentSince = Date.now();
+  // Top-level per-item translation spans (per-type `translate_ty` noise is
+  // filtered out by default). Captures the kind + numeric id so the spinner can
+  // show which item charon is on — when it stalls, the spinner freezes on that
+  // id with a climbing timer, pinpointing the slow item (map id→name post-run).
+  const itemRe = /translate_(fun_decl|global|type_decl|trait_decl|trait_impl)\{(?:[a-z_]+)=(\d+)/g;
   const fmtStatus = () => {
     const secs = Math.round((Date.now() - start) / 1000);
-    return `${label ?? cmd}: ${items} items · ${(bytes / 1e6).toFixed(1)} MB · ${secs}s`;
+    const onCur = current
+      ? ` · on ${current} (${Math.round((Date.now() - currentSince) / 1000)}s)`
+      : "";
+    return `${label ?? cmd}: ${items} items · ${(bytes / 1e6).toFixed(1)} MB · ${secs}s${onCur}`;
   };
   if (streaming) {
     fs.mkdirSync(path.dirname(opts!.logFile!), { recursive: true });
@@ -101,8 +108,13 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
   const onStreamChunk = (text: string) => {
     stream!.write(text);
     bytes += Buffer.byteLength(text);
-    const m = text.match(itemRe);
-    if (m) items += m.length;
+    const matches = [...text.matchAll(itemRe)];
+    if (matches.length > 0) {
+      items += matches.length;
+      const last = matches[matches.length - 1];
+      const next = `${last[0].slice("translate_".length).replace(/\{.*/, "")}#${last[1]}`;
+      if (next !== current) { current = next; currentSince = Date.now(); }
+    }
   };
 
   if (child.stdout) {

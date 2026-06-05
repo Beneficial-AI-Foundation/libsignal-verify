@@ -85,14 +85,31 @@ async function main(): Promise<void> {
   //                                  `translate_ty` spans silenced (keeps volume sane)
   //   `RUST_LOG=… npm run …`       → override the filter (e.g. charon_driver=trace)
   //   `CHARON_PROFILE=0 npm run …` → disable; revert to a plain echoed log
+  // Map the configured detail level (charon.profile in aeneas-config.yml) to a
+  // RUST_LOG filter for charon's per-item tracing spans:
+  //   full → every info span incl. nested trait-proof / per-type / fn-ptr spans.
+  //          Large log (100s of MB), but shows *why* an item is slow — e.g. it's
+  //          what revealed the Index<RangeFull> trait-proof explosion in
+  //          fingerprint::get_fingerprint (see charon-slowdown-notes.md).
+  //   item → per-item span durations only (small log) — tells you *which* item is
+  //          slow but not the intra-item cause.
+  //   off  → no profiling; plain echoed log.
+  // NOTE: defaulting to `full` while we investigate the slowdown. Once routine
+  // runs no longer need the deep detail, switch the default to `item` (in
+  // aeneas-config.yml or scripts/lib/config.ts) for much smaller logs.
+  const PROFILE_FILTERS: Record<string, string> = {
+    full: "charon_driver=info",
+    item: "charon_driver=info,[translate_ty]=off,[translate_trait_proof]=off,[translate_bound_fn_ptr]=off,[translate_bound_fn_ptr_maybe_enqueue]=off,[translate_unbound_fn_ptr_maybe_enqueue]=off",
+    off: "",
+  };
   const charonEnv: Record<string, string> = {};
   if (process.env.RUST_LOG) {
-    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit override wins
-  } else if (process.env.CHARON_PROFILE !== "0") {
-    // Per-item spans (translate_fun_decl/global/type_decl/...) keep their full
-    // durations; silence per-type `translate_ty` (thousands of nested 0ms spans
-    // per item) so the log stays ~per-item sized rather than GBs.
-    charonEnv.RUST_LOG = "charon_driver=info,charon_driver::translate::translate_types=warn";
+    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit env override wins
+  } else if (process.env.CHARON_PROFILE === "0") {
+    // legacy escape hatch: disable profiling regardless of config
+  } else {
+    const filter = PROFILE_FILTERS[config.charon.profile] ?? PROFILE_FILTERS.full;
+    if (filter) charonEnv.RUST_LOG = filter;
   }
   const profiling = !!charonEnv.RUST_LOG;
   if (profiling) {

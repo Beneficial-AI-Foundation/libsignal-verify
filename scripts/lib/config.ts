@@ -25,6 +25,11 @@ export interface AeneasConfig {
     include: string[];
     exclude: string[];
     opaque: string[];
+    /**
+     * Detail level of charon's per-item translation timings written to
+     * .logs/charon.log (see aeneas-extract.ts). "full" | "item" | "off".
+     */
+    profile: string;
   };
   aeneas_args: {
     options: string[];
@@ -99,6 +104,7 @@ export function loadConfig(root?: string): { config: AeneasConfig; root: string 
   config.charon.include = config.charon.include ?? [];
   config.charon.exclude = config.charon.exclude ?? [];
   config.charon.opaque = config.charon.opaque ?? [];
+  config.charon.profile = config.charon.profile ?? "full";
   config.aeneas_args = config.aeneas_args ?? {} as AeneasConfig["aeneas_args"];
   config.aeneas_args.options = config.aeneas_args.options ?? [];
   config.aeneas_args.dest = config.aeneas_args.dest ?? "output";
