@@ -74,28 +74,40 @@ async function main(): Promise<void> {
 
   fs.mkdirSync(logsDir, { recursive: true });
 
-  // Optional profiling: charon translates one item at a time, each wrapped in a
-  // `#[tracing::instrument]` span, and its logger uses a HierarchicalLayer with an
-  // uptime timer (RUST_LOG-controlled). Setting RUST_LOG therefore makes charon
-  // write timestamped, nested, per-item translation spans to charon.log, so the
-  // slow items show up as large uptime gaps / span durations.
-  //   - `CHARON_PROFILE=1 npm run aeneas-extract`  → sensible default (per-item, info)
-  //   - `RUST_LOG=charon_driver=trace ...`         → explicit override (also honored)
-  // Off by default so normal runs keep a clean log.
+  // Per-item charon timings are captured by DEFAULT (we often want this data
+  // after the fact). charon translates one item at a time, each wrapped in a
+  // `#[tracing::instrument]` span, and its logger is a HierarchicalLayer with an
+  // uptime timer (RUST_LOG-controlled). So setting RUST_LOG makes charon write
+  // timestamped, nested, per-item translation spans to charon.log; slow items
+  // show up as large span durations (`translate_fun_decl{…}: <N>ms`).
+  //
+  //   default                      → per-item info, with the noisy per-type
+  //                                  `translate_ty` spans silenced (keeps volume sane)
+  //   `RUST_LOG=… npm run …`       → override the filter (e.g. charon_driver=trace)
+  //   `CHARON_PROFILE=0 npm run …` → disable; revert to a plain echoed log
   const charonEnv: Record<string, string> = {};
   if (process.env.RUST_LOG) {
-    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit user setting wins
-  } else if (process.env.CHARON_PROFILE) {
-    charonEnv.RUST_LOG = "charon_driver=info";
+    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit override wins
+  } else if (process.env.CHARON_PROFILE !== "0") {
+    // Per-item spans (translate_fun_decl/global/type_decl/...) keep their full
+    // durations; silence per-type `translate_ty` (thousands of nested 0ms spans
+    // per item) so the log stays ~per-item sized rather than GBs.
+    charonEnv.RUST_LOG = "charon_driver=info,charon_driver::translate::translate_types=warn";
   }
-  if (charonEnv.RUST_LOG) {
-    console.log(chalk.yellow(`  Profiling charon with RUST_LOG=${charonEnv.RUST_LOG} (per-item timings in charon.log)`));
+  const profiling = !!charonEnv.RUST_LOG;
+  if (profiling) {
+    console.log(chalk.gray(`  Capturing per-item timings to charon.log (RUST_LOG=${charonEnv.RUST_LOG}; CHARON_PROFILE=0 to disable)`));
+    console.log(chalk.gray(`  Slow items: grep -oE 'translate_[a-z_]+\\{[^}]*\\}|:\\s+[0-9]+ms' .logs/charon.log | paste - - | sort -t: -k2 -n | tail -30`));
   }
 
   await runStreaming(charonBin, charonArgs, {
     cwd: root,
+    label: "charon translating",
     logFile: path.join(logsDir, "charon.log"),
-    env: Object.keys(charonEnv).length > 0 ? charonEnv : undefined,
+    env: profiling ? charonEnv : undefined,
+    // Timing logs can be large; stream to disk instead of buffering in memory
+    // (avoids OOM / terminal flooding). Disk has ample room.
+    streamToFile: profiling,
   });
 
   if (!fs.existsSync(llbcPath)) {

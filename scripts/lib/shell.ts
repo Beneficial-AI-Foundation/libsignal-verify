@@ -9,6 +9,14 @@ export interface RunOptions {
   label?: string;
   logFile?: string;
   silent?: boolean;
+  /**
+   * Stream output straight to `logFile` as it arrives instead of buffering the
+   * whole thing in memory and writing once at the end. Use for commands that
+   * can produce very large output (e.g. charon with RUST_LOG profiling), where
+   * buffering would risk OOM and terminal flooding. Terminal echo is suppressed
+   * in this mode; `tail -f` the log to watch progress.
+   */
+  streamToFile?: boolean;
 }
 
 /**
@@ -60,12 +68,47 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
     stderr: "pipe",
   };
 
+  // Streaming mode: write each chunk straight to the log file (bounded memory),
+  // no full terminal echo, no in-memory accumulation. Guards against OOM/terminal
+  // flooding for very large output (e.g. RUST_LOG profiling). A live spinner
+  // shows progress (items translated · log size · elapsed) so the long charon
+  // step doesn't look frozen; full detail stays in the log.
+  const streaming = !!(opts?.streamToFile && opts?.logFile);
+  let stream: fs.WriteStream | undefined;
+  let spinner: ReturnType<typeof ora> | undefined;
+  let timer: NodeJS.Timeout | undefined;
+  const label = opts?.label;
+  const start = Date.now();
+  let bytes = 0;
+  let items = 0;
+  // Top-level per-item translation spans (the per-type `translate_ty` noise is
+  // filtered out by default), used as a rough progress counter.
+  const itemRe = /translate_(fun_decl|global|type_decl|trait_decl|trait_impl)\{/g;
+  const fmtStatus = () => {
+    const secs = Math.round((Date.now() - start) / 1000);
+    return `${label ?? cmd}: ${items} items · ${(bytes / 1e6).toFixed(1)} MB · ${secs}s`;
+  };
+  if (streaming) {
+    fs.mkdirSync(path.dirname(opts!.logFile!), { recursive: true });
+    stream = fs.createWriteStream(opts!.logFile!, { flags: "w" });
+    spinner = ora({ text: fmtStatus(), stream: process.stdout }).start();
+    timer = setInterval(() => { if (spinner) spinner.text = fmtStatus(); }, 500);
+  }
+
   const child = execa(cmd, args, execaOpts);
   const chunks: string[] = [];
+
+  const onStreamChunk = (text: string) => {
+    stream!.write(text);
+    bytes += Buffer.byteLength(text);
+    const m = text.match(itemRe);
+    if (m) items += m.length;
+  };
 
   if (child.stdout) {
     child.stdout.on("data", (data: Buffer) => {
       const text = data.toString();
+      if (streaming) { onStreamChunk(text); return; }
       chunks.push(text);
       process.stdout.write(text);
     });
@@ -74,6 +117,7 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
   if (child.stderr) {
     child.stderr.on("data", (data: Buffer) => {
       const text = data.toString();
+      if (streaming) { onStreamChunk(text); return; }
       chunks.push(text);
       process.stderr.write(text);
     });
@@ -81,7 +125,14 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
 
   const result = await child;
 
-  if (opts?.logFile) {
+  if (streaming) {
+    if (timer) clearInterval(timer);
+    await new Promise<void>((resolve) => stream!.end(resolve));
+    if (spinner) {
+      if (result.exitCode === 0) spinner.succeed(fmtStatus());
+      else spinner.fail(fmtStatus());
+    }
+  } else if (opts?.logFile) {
     const logDir = path.dirname(opts.logFile);
     fs.mkdirSync(logDir, { recursive: true });
     fs.writeFileSync(opts.logFile, chunks.join(""), "utf-8");
