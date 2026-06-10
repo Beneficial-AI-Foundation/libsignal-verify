@@ -2,7 +2,9 @@
 #
 
 aeneas:
-  commit: "ac74e1ba"
+  # a2e779f0 (2026-06-05, "update-charon2"): bumps charon to 9dd7f23c and fixes the
+  # previously-broken `--start-from-pub` behaviour. Replaces 5c70d9b0 (charon a535e914).
+  commit: "a2e779f0"
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:
@@ -16,10 +18,13 @@ crate:
 charon:
   cargo_args: ["-p", "libsignal-protocol", "--features", "extraction"]
   # Detail of charon's per-item translation timings written to .logs/charon.log.
-  #   full → all spans incl. nested trait-proof/type/fn-ptr
-  #   item → per-item durations only (small log; which item is slow, not why).
+  #   full → all spans incl. nested trait-proof/type/fn-ptr. IMPRACTICAL at scale:
+  #          Debug-formats giant nested-trait-proof ItemRef{…} per span, which is
+  #          pathologically slow on trait-heavy fns. Use only for a 1-item deep-dive.
+  #   item → per-item durations + live current-item, no giant-ItemRef formatting.
   #   off  → no profiling (plain echoed log).
-  profile: full
+  profile: off
+  # start_from_pub: true
   start_from:
     - "libsignal_protocol::pqxdh"
     - "libsignal_protocol::consts"
@@ -27,9 +32,6 @@ charon:
     - "libsignal_protocol::identity_key"
     - "libsignal_protocol::timestamp"
     # DEFERRED: incremental_mac::update returns `impl Iterator<Item=Output<M>> + 'a`
-    # (RPIT with a lifetime) → Aeneas "Unexpected erased region". Can't be opaqued
-    # (signature itself fails) and it's a standalone leaf (only referenced by lib.rs,
-    # no core-path dependents), so we skip it rather than exclude-invisible.
     # - "libsignal_protocol::incremental_mac"
     - "libsignal_protocol::ratchet"
     - "libsignal_protocol::state"
@@ -38,18 +40,15 @@ charon:
     - "libsignal_protocol::protocol"
     - "libsignal_protocol::double_ratchet"
     - "libsignal_protocol::triple_ratchet"
-    - "libsignal_protocol::group_cipher"
-    - "libsignal_protocol::session"
+    # group_cipher + session are SOURCE-GATED out under `feature="extraction"` 
+    # - "libsignal_protocol::group_cipher"
+    # - "libsignal_protocol::session"
     - "libsignal_protocol::session_management"
     - "libsignal_protocol::sealed_sender"
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
-    # InMem test impls. Charon can't translate async traits (hax panic → skipped),
-    # so references to them dangle ("Could not find trait_decl_id"). Pure
-    # interface + in-memory test code, no core crypto — defer like incremental_mac.
     # - "libsignal_protocol::storage"
     # DEFERRED: session_cipher_legacy triggers a charon-driver (hax) panic on the
-    # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods (legacy code that
-    # reaches a kem vtable path + async store traits). Needs charon-level triage.
+    # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods 
     # - "libsignal_protocol::session_cipher_legacy"
   include:
     - "libsignal_core"
@@ -62,6 +61,17 @@ charon:
     - "libsignal_protocol::_::{impl core::fmt::Display for _}"
     - "libsignal_protocol::_::_::{impl core::fmt::Debug for _}"
     - "libsignal_protocol::_::_::{impl core::fmt::Display for _}"
+    # Deeper Debug/Display impls under the prost-generated proto module (nested
+    # messages create modules 3-5 deep, e.g. proto::sealed_sender::
+    # unidentified_sender_message::{impl Debug for Message}). Their custom fmt
+    # bodies contain nested ScalarWrapper/Inner helper impls that name-clash and
+    # emit "no bottoms" in Aeneas. The crate-wide patterns above only reach depth 2.
+    - "libsignal_protocol::proto::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::proto::_::_::{impl core::fmt::Display for _}"
+    - "libsignal_protocol::proto::_::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::proto::_::_::_::{impl core::fmt::Display for _}"
+    - "libsignal_protocol::proto::_::_::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_protocol::proto::_::_::_::_::{impl core::fmt::Display for _}"
     - "libsignal_protocol::{impl core::error::Error for _}"
     - "libsignal_protocol::_::{impl core::error::Error for _}"
     - "libsignal_core::{impl core::fmt::Debug for _}"
@@ -102,6 +112,12 @@ charon:
     - "libsignal_protocol::sealed_sender::sealed_sender_decrypt_to_usmc"
     - "libsignal_protocol::sealed_sender::sealed_sender_multi_recipient_encrypt"
     - "libsignal_protocol::sealed_sender::sealed_sender_multi_recipient_encrypt_impl"
+    # sealed_sender deserialize methods: `[u8; ASSOCIATED_CONST]` array-default in
+    # the local PrefixRepr (UnidentifiedSenderMessage::deserialize) FATALLY crashes
+    # Aeneas's update_array_default prepass. Opaque doesn't help (the prepass runs
+    # over the LLBC before opacity applies), so exclude it entirely. Its callers are
+    # the gated/opaqued decrypt+parse paths, so nothing transparent dangles.
+    - "libsignal_protocol::sealed_sender::_::deserialize"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
     # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never
@@ -114,7 +130,29 @@ charon:
     - "rand::distr::uniform"              # mutually recursive traits
     - "zerocopy"                          # raw pointer ops, GATs
     - "log"
+    # ── Deferred modules ─────────────────────────────────────────────────
+    # With no explicit start_from (open scope), charon reaches the WHOLE crate,
+    # including these three modules we previously kept out simply by not listing
+    # them. They fail Aeneas for known, intrinsic reasons, and no kept code depends
+    # on them transparently (the curated allow-list ran fine without them), so we
+    # exclude them outright now that the scope is open.
+    - "libsignal_protocol::incremental_mac"     # update() returns `impl Iterator + 'a` (RPIT+lifetime) → "Unexpected erased region"
+    - "libsignal_protocol::storage"             # async store traits (SessionStore, …) + InMem test impls — charon can't translate async traits → dangling trait ids
+    - "libsignal_protocol::session_cipher_legacy" # reaches kem DynParameters `&mut dyn CryptoRng` + async store traits
   opaque:
+    # Protobuf message impls (generated from signal.proto.*). Open scope translates
+    # every generated `impl prost::Message` BODY → prost encode/decode → Aeneas
+    # errors (Arrow types in prost). OPAQUE (not exclude) the Message impls: the
+    # impl stays present as an axiom so transparent callers (e.g. sealed_sender's
+    # `.encode_to_vec()`) still resolve, while the prost-heavy body is skipped. The
+    # message structs themselves stay transparent (kept code reads their fields).
+    # NB: matcher uses the trait's DEFINING path `prost::message::Message` (the
+    # `prost::Message` re-export path does NOT match). Patterns cover each nesting
+    # depth prost emits for nested messages.
+    - "libsignal_protocol::proto::_::{impl prost::message::Message for _}"
+    - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
+    - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
+    - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
     # libsignal-protocol::pqxdh — bodies Aeneas can't model:
     # HKDF closures and Option<&T> accessors. (The Handshake trait + its
     # impl are excluded at source level via #[charon::exclude] —
@@ -196,7 +234,11 @@ charon:
     # fingerprint — protobuf decode + Error::ParsingError(&str) + ct_eq + Display
     - "libsignal_protocol::fingerprint::_::deserialize"
     - "libsignal_protocol::fingerprint::_::compare"
-    - "libsignal_protocol::fingerprint::get_encoded_string"  # free fn (iterated SHA-512)
+    - "libsignal_protocol::fingerprint::get_encoded_string"
+    # get_fingerprint: charon a535e914 hangs translating its `&[u8;2][..]`
+    # (Index<RangeFull> on a promoted const) — recursive trait-proof explosion.
+    # It's iterated SHA-512 (crypto leaf), so opaque it. See charon-slowdown-notes.md.
+    - "libsignal_protocol::fingerprint::_::get_fingerprint"  # free fn (iterated SHA-512)
     # sender_keys — HMAC chain derivation, curve-key deserialize (&str/CurveError),
     # state accessors (&str / log).
     - "libsignal_protocol::sender_keys::_::next"
@@ -207,9 +249,14 @@ charon:
     - "libsignal_protocol::sender_keys::_::sender_key_state"
     - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
     - "libsignal_protocol::sender_keys::_::add_sender_key_state"
+    - "libsignal_protocol::sender_keys::_::new"  # slow: Index<RangeFull> trait-proof recursion (charon a535e914)
     # protocol — message MAC/signature verify (crypto), kyber_ciphertext accessor
     # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
     # free fns.
+    # compute_mac: HMAC-SHA256 over a slice built with `&buf[..]` (Index<RangeFull>);
+    # charon's trait-proof recursion on it ran ~50min and crashed the run. Crypto
+    # leaf → opaque. (Same Index<RangeFull> blowup as get_fingerprint.)
+    - "libsignal_protocol::protocol::_::compute_mac"
     - "libsignal_protocol::protocol::_::verify_mac"
     - "libsignal_protocol::protocol::_::verify_mac_with_addresses"
     - "libsignal_protocol::protocol::_::verify_signature"
@@ -225,9 +272,6 @@ charon:
     - "libsignal_protocol::session_management::try_decrypt_from_record"
     - "libsignal_protocol::session_management::try_decrypt_with_state"
     - "libsignal_protocol::session_management::format_decryption_failure_log"
-    # sealed_sender — `[u8; ASSOCIATED_CONST]` array-default in deserialize's
-    # local PrefixRepr (Aeneas update_array_default prepass cannot model it).
-    - "libsignal_protocol::sealed_sender::_::deserialize"
     # sealed_sender SealedSenderV2 parsing (slices/ranges/borrows), signer (static
     # CERT_MAP), and v1/v2 key-agreement crypto (HKDF / XOR).
     - "libsignal_protocol::sealed_sender::_::offset_of_shared_bytes"
