@@ -2,9 +2,7 @@
 #
 
 aeneas:
-  # a2e779f0 (2026-06-05, "update-charon2"): bumps charon to 9dd7f23c and fixes the
-  # previously-broken `--start-from-pub` behaviour. Replaces 5c70d9b0 (charon a535e914).
-  commit: "a2e779f0"
+  commit: "5138c03"
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:
@@ -365,17 +363,3 @@ tweaks:
       replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
     - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
       replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
-
-    # `public` is a reserved keyword in Lean 4.30 but Aeneas does not escape it
-    # (it escapes `private` → «private» but not `public`), so the generated field
-    # of `proto…SenderSigningKey` is `public : …`, a syntax error. Escape it
-    # consistently: the field decl, the `self.public` projection, and the two
-    # `{ public := … }` constructions. (`\b` avoids touching `public_key`.)
-    # Aeneas escapes keywords per https://github.com/AeneasVerif/aeneas/issues/704
-    # but `public` (new reserved word in Lean 4.30) is missing — see todo.md.
-    - find: "  public : alloc.vec.Vec Std.U8"
-      replace: "  «public» : alloc.vec.Vec Std.U8"
-    - regex: "self\\.public\\b"
-      replace: "self.«public»"
-    - regex: "\\bpublic :="
-      replace: "«public» :="
