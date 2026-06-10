@@ -117,6 +117,12 @@ charon:
     # over the LLBC before opacity applies), so exclude it entirely. Its callers are
     # the gated/opaqued decrypt+parse paths, so nothing transparent dangles.
     - "libsignal_protocol::sealed_sender::_::deserialize"
+    # should_use_nonpq_session takes an `f64` ratio → Lean `F64`, a type the Aeneas
+    # Lean backend NAMES (ExtractBase.ml float_name) but never DEFINES, so the axiom
+    # won't typecheck. It's a standalone `pub fn` rooted only by `--start-from
+    # ...::protocol` (module-rooting); its sole callers are tests + the bridge layer
+    # (external), so nothing in scope references it.
+    - "libsignal_protocol::protocol::should_use_nonpq_session"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
     # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never
@@ -262,7 +268,6 @@ charon:
     - "libsignal_protocol::protocol::_::kyber_ciphertext"
     - "libsignal_protocol::protocol::_::try_from"
     - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
-    - "libsignal_protocol::protocol::should_use_nonpq_session"
     - "libsignal_protocol::protocol::_::from"   # From impls building protobuf structs (Default::default)
     # group_cipher — get_sender_key (non-async) opaque; the async API fns are
     # excluded below (opaque keeps their `impl Future` signature → type error).
@@ -363,3 +368,18 @@ tweaks:
       replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
     - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
       replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+
+    # KeyPairSerde has two `KeySerde` parent clauses (one per associated type,
+    # PublicKey and PrivateKey) which Aeneas names identically `KeySerdeInst`
+    # (#1051). Rename the two STRUCTURE FIELDS after the associated type each bound
+    # constrains — PublicKey / PrivateKey — to match the Rust source and make the
+    # public/private distinction explicit. Disambiguated by the `Self_PublicKey` /
+    # `Self_PrivateKey` type arg, so these match ONLY the declaration lines (not the
+    # `:=` construction or `.KeySerdeInst.` projections in Funs.lean).
+    # NOTE: call sites (instance construction + projections) still say KeySerdeInst
+    # and must be updated by hand — the projections need public/private classified,
+    # which a substitution can't do reliably. https://github.com/AeneasVerif/aeneas/issues/1051
+    - find: "KeySerdeInst : state.signed_prekey.KeySerde Self_PublicKey"
+      replace: "PublicKey : state.signed_prekey.KeySerde Self_PublicKey"
+    - find: "KeySerdeInst : state.signed_prekey.KeySerde Self_PrivateKey"
+      replace: "PrivateKey : state.signed_prekey.KeySerde Self_PrivateKey"

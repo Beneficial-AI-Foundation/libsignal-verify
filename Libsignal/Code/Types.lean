@@ -1232,8 +1232,8 @@ structure state.signed_prekey.KeySerde (Self : Type) where
     Visibility: public -/
 structure state.signed_prekey.KeyPairSerde (Self : Type) (Self_PublicKey :
   Type) (Self_PrivateKey : Type) where
-  KeySerdeInst : state.signed_prekey.KeySerde Self_PublicKey
-  KeySerdeInst : state.signed_prekey.KeySerde Self_PrivateKey
+  PublicKey : state.signed_prekey.KeySerde Self_PublicKey
+  PrivateKey : state.signed_prekey.KeySerde Self_PrivateKey
   from_public_and_private : Slice Std.U8 → Slice Std.U8 → Result
     (core.result.Result Self error.SignalProtocolError)
   get_public : Self → Result Self_PublicKey

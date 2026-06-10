@@ -1791,11 +1791,6 @@ axiom protocol.extract_decryption_error_message_from_serialized_content
   Slice Std.U8 → Result (core.result.Result protocol.DecryptionErrorMessage
     error.SignalProtocolError)
 
-/-- [libsignal_protocol::protocol::should_use_nonpq_session]:
-    Source: 'rust/protocol/src/protocol.rs', lines 990:0-1015:1
-    Visibility: public -/
-axiom protocol.should_use_nonpq_session : F64 → Slice Std.U8 → Result Bool
-
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::MessageKeys}::derive_keys]:
     Source: 'rust/protocol/src/ratchet/keys.rs', lines 100:4-118:5 -/
 axiom ratchet.keys.MessageKeys.derive_keys
