@@ -1817,7 +1817,7 @@ axiom ratchet.keys.ChainKey.calculate_base_material
 axiom state.session.SessionState.add_receiver_chain
   :
   state.session.SessionState → libsignal_core.curve.PublicKey →
-    ratchet.keys.ChainKey → Result state.session.SessionState
+    ratchet.keys.ChainKey → Result _root_.libsignal_protocol.state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
     Source: 'rust/protocol/src/state/session.rs', lines 172:4-197:5 -/
@@ -1825,7 +1825,7 @@ axiom state.session.SessionState.new
   :
   Std.U8 → identity_key.IdentityKey → identity_key.IdentityKey →
     ratchet.keys.RootKey → libsignal_core.curve.PublicKey → alloc.vec.Vec
-    Std.U8 → Result state.session.SessionState
+    Std.U8 → Result _root_.libsignal_protocol.state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
     Source: 'rust/protocol/src/state/session.rs', lines 744:4-749:5 -/
@@ -2101,7 +2101,7 @@ axiom state.session.SessionState.get_kyber_ciphertext
     Source: 'rust/protocol/src/state/session.rs', lines 713:4-715:5
     Visibility: public -/
 axiom state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
-  : proto.storage.SessionStructure → Result state.session.SessionState
+  : proto.storage.SessionStructure → Result _root_.libsignal_protocol.state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}::from]:
     Source: 'rust/protocol/src/state/session.rs', lines 719:4-721:5
@@ -2130,7 +2130,7 @@ axiom
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError.call_mut
   :
   state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
-    Std.U8 → Result ((core.result.Result state.session.SessionState
+    Std.U8 → Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
     state.session.InvalidSessionError) ×
     state.session.SessionRecord.previous_session_states.closure)
 
@@ -2140,7 +2140,7 @@ axiom
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError.call_once
   :
   state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
-    Std.U8 → Result (core.result.Result state.session.SessionState
+    Std.U8 → Result (core.result.Result _root_.libsignal_protocol.state.session.SessionState
     state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states]:

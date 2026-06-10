@@ -2292,7 +2292,7 @@ def
     Visibility: public -/
 def identity_key.IdentityKeyPair.Insts.CoreCloneClone.clone
   (self : identity_key.IdentityKeyPair) :
-  Result identity_key.IdentityKeyPair
+  Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
   := do
   ok self
 
@@ -2318,7 +2318,7 @@ def identity_key.IdentityKeyPair.Insts.CoreMarkerCopy : core.marker.Copy
 def identity_key.IdentityKeyPair.new
   (identity_key : identity_key.IdentityKey)
   (private_key : libsignal_core.curve.PrivateKey) :
-  Result identity_key.IdentityKeyPair
+  Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
   := do
   ok { identity_key, private_key }
 
@@ -2438,7 +2438,7 @@ def
 def
   identity_key.IdentityKeyPair.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
   (value : Slice Std.U8) :
-  Result (core.result.Result identity_key.IdentityKeyPair
+  Result (core.result.Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
     error.SignalProtocolError)
   := do
   let r ←
@@ -2499,7 +2499,7 @@ def
 def
   identity_key.IdentityKeyPair.Insts.CoreConvertTryFromPrivateKeySignalProtocolError.try_from
   (private_key : libsignal_core.curve.PrivateKey) :
-  Result (core.result.Result identity_key.IdentityKeyPair
+  Result (core.result.Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
     error.SignalProtocolError)
   := do
   let r ← libsignal_core.curve.PrivateKey.public_key private_key
@@ -2507,7 +2507,7 @@ def
   match cf with
   | core.ops.control_flow.ControlFlow.Continue val =>
     let identity_key ← identity_key.IdentityKey.new val
-    let ikp ← identity_key.IdentityKeyPair.new identity_key private_key
+    let ikp ← _root_.libsignal_protocol.identity_key.IdentityKeyPair.new identity_key private_key
     ok (core.result.Result.Ok ikp)
   | core.ops.control_flow.ControlFlow.Break residual =>
     core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
@@ -2530,7 +2530,7 @@ def
     Visibility: public -/
 def identity_key.IdentityKeyPair.Insts.CoreConvertFromKeyPair.from
   (value : libsignal_core.curve.KeyPair) :
-  Result identity_key.IdentityKeyPair
+  Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
   := do
   let ik ←
     core.convert.IntoFrom.into
@@ -2996,7 +2996,7 @@ def pqxdh.InitiatorParameters.set_their_one_time_pre_key
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.our_identity_key_pair
   (self : pqxdh.InitiatorParameters) :
-  Result identity_key.IdentityKeyPair
+  Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
   := do
   ok self.our_identity_key_pair
 
@@ -3206,7 +3206,7 @@ def pqxdh.RecipientParameters.new
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.our_identity_key_pair
   (self : pqxdh.RecipientParameters) :
-  Result identity_key.IdentityKeyPair
+  Result _root_.libsignal_protocol.identity_key.IdentityKeyPair
   := do
   ok self.our_identity_key_pair
 
@@ -4115,7 +4115,7 @@ def protocol.PreKeySignalMessage.new
       o1 ()
   let s ← libsignal_core.curve.PublicKey.serialize base_key
   let v := alloc.slice.Slice.into_vec s
-  let s1 ← identity_key.IdentityKey.serialize identity_key
+  let s1 ← _root_.libsignal_protocol.identity_key.IdentityKey.serialize identity_key
   let v1 := alloc.slice.Slice.into_vec s1
   let s2 ←
     protocol.SignalMessage.Insts.CoreConvertAsRefSliceU8.as_ref message
@@ -5030,7 +5030,7 @@ def ratchet.spqr_chain_params
     Source: 'rust/protocol/src/state/session.rs', lines 555:4-561:5 -/
 def state.session.SessionState.set_kyber_ciphertext
   (self : state.session.SessionState) (ciphertext : Slice Std.U8) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let v := alloc.slice.Slice.into_vec ciphertext
   ok
@@ -5049,7 +5049,7 @@ def state.session.SessionState.set_kyber_ciphertext
 def state.session.SessionState.set_sender_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.KeyPair)
   (next_chain_key : ratchet.keys.ChainKey) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let i ← ratchet.keys.ChainKey.impl.index next_chain_key
   let a ← ratchet.keys.ChainKey.impl.key next_chain_key
@@ -5084,7 +5084,7 @@ def state.session.SessionState.set_sender_chain
 def state.session.SessionState.with_sender_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.KeyPair)
   (next_chain_key : ratchet.keys.ChainKey) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   state.session.SessionState.set_sender_chain self sender next_chain_key
 
@@ -5093,7 +5093,7 @@ def state.session.SessionState.with_sender_chain
 def state.session.SessionState.with_receiver_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.PublicKey)
   (chain_key : ratchet.keys.ChainKey) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   state.session.SessionState.add_receiver_chain self sender chain_key
 
@@ -5146,7 +5146,7 @@ def ratchet.initialize_initiator_session
   (root_key : ratchet.keys.RootKey) (chain_key : ratchet.keys.ChainKey)
   (pqr_key : Array Std.U8 32#usize) (kyber_ciphertext : Slice Std.U8)
   (csprng : R) :
-  Result ((core.result.Result state.session.SessionState
+  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
     error.SignalProtocolError) × R)
   := do
   let ikp ← pqxdh.InitiatorParameters.impl.our_identity_key_pair parameters1
@@ -5216,7 +5216,7 @@ def ratchet.initialize_alice_session
   {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) (parameters1 : pqxdh.InitiatorParameters)
   (csprng : R) :
-  Result ((core.result.Result state.session.SessionState
+  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
     error.SignalProtocolError) × R)
   := do
   let (r, csprng1) ←
@@ -5279,7 +5279,7 @@ def ratchet.initialize_recipient_session
   (our_ratchet_key_pair : libsignal_core.curve.KeyPair)
   (root_key : ratchet.keys.RootKey) (chain_key : ratchet.keys.ChainKey)
   (pqr_key : Array Std.U8 32#usize) :
-  Result (core.result.Result state.session.SessionState
+  Result (core.result.Result _root_.libsignal_protocol.state.session.SessionState
     error.SignalProtocolError)
   := do
   let ikp ← pqxdh.RecipientParameters.impl.our_identity_key_pair parameters1
@@ -5323,7 +5323,7 @@ def ratchet.initialize_recipient_session
 def ratchet.initialize_bob_session
   (parameters1 : pqxdh.RecipientParameters)
   (our_ratchet_key_pair : libsignal_core.curve.KeyPair) :
-  Result (core.result.Result state.session.SessionState
+  Result (core.result.Result _root_.libsignal_protocol.state.session.SessionState
     error.SignalProtocolError)
   := do
   let r ← pqxdh.pqxdh_accept parameters1
@@ -7039,9 +7039,9 @@ def
   kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret
   : state.signed_prekey.KeyPairSerde kem.KeyPair (kem.Key kem.Public) (kem.Key
   kem.Secret) := {
-  KeySerdeInst :=
+  PublicKey :=
     kem.KeyPublic.Insts.Libsignal_protocolStateSigned_prekeyKeySerde
-  KeySerdeInst :=
+  PrivateKey :=
     kem.KeySecret.Insts.Libsignal_protocolStateSigned_prekeyKeySerde
   from_public_and_private :=
     kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.from_public_and_private
@@ -7084,7 +7084,7 @@ def
       self
   let s := alloc.vec.Vec.deref spkrs.public_key
   let s1 := alloc.vec.Vec.deref spkrs.private_key
-  state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.from_public_and_private
+  kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.from_public_and_private
     s s1
 
 /-- [libsignal_protocol::state::kyber_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_protocol::kem::KeyPair, libsignal_protocol::state::kyber_prekey::KyberPreKeyId, libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>, libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>> for libsignal_protocol::state::kyber_prekey::KyberPreKeyRecord}::public_key]:
@@ -7098,7 +7098,7 @@ def
   let spkrs ←
     state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.get_storage
       self
-  state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.KeySerdeInst.deserialize
+  kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.PublicKey.deserialize
     (Shared0T.Insts.CoreConvertAsRef (alloc.vec.Vec.Insts.CoreConvertAsRefSlice
     Std.U8 Global)) spkrs.public_key
 
@@ -7151,7 +7151,7 @@ def
       self
   let kpki ←
     core.convert.IntoFrom.into
-      state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertFromSelf_IdU32Inst
+      state.kyber_prekey.KyberPreKeyId.Insts.CoreConvertFromU32
       spkrs.id
   ok (core.result.Result.Ok kpki)
 
@@ -7245,22 +7245,22 @@ def
   (key_pair : kem.KeyPair) (signature : Slice Std.U8) :
   Result state.kyber_prekey.KyberPreKeyRecord
   := do
-  let timestamp1 ← timestamp.Timestamp.epoch_millis timestamp
+  let timestamp1 ← _root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp
   let k ←
-    state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.get_public
+    kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.get_public
       key_pair
   let public_key ←
-    state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.KeySerdeInst.serialize
+    kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.PublicKey.serialize
       k
   let k1 ←
-    state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.get_private
+    kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.get_private
       key_pair
   let private_key ←
-    state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst.KeySerdeInst.serialize
+    kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret.PrivateKey.serialize
       k1
   let signature1 ← alloc.slice.Slice.to_vec core.clone.CloneU8 signature
   let i ←
-    state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertIntoSelf_IdU32Inst.into
+    (core.convert.IntoFrom U32.Insts.CoreConvertFromKyberPreKeyId).into
       id
   state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.from_storage
     {
@@ -7363,7 +7363,7 @@ def state.kyber_prekey.KyberPreKeyRecord.generate
       core.result.Result.expect
         core.num.error.TryFromIntError.Insts.CoreFmtDebug r2 (toStr
         "Timestamp too large")
-    let t ← timestamp.Timestamp.from_epoch_millis i
+    let t ← _root_.libsignal_protocol.timestamp.Timestamp.from_epoch_millis i
     let s1 := alloc.vec.Vec.deref signature
     let kpkr ←
       state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.new
@@ -7879,7 +7879,7 @@ def state.session.SessionUsabilityRequirements.contains
     Source: 'rust/protocol/src/state/session.rs', lines 162:9-162:14
     Visibility: public -/
 def state.session.SessionState.Insts.CoreCloneClone.clone
-  (self : state.session.SessionState) : Result state.session.SessionState := do
+  (self : state.session.SessionState) : Result _root_.libsignal_protocol.state.session.SessionState := do
   let ss ←
     proto.storage.SessionStructure.Insts.CoreCloneClone.clone self.session
   ok { session := ss }
@@ -7896,7 +7896,7 @@ def state.session.SessionState.Insts.CoreCloneClone : core.clone.Clone
     Source: 'rust/protocol/src/state/session.rs', lines 168:4-170:5 -/
 def state.session.SessionState.from_session_structure
   (session : proto.storage.SessionStructure) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   ok { session }
 
@@ -8032,7 +8032,7 @@ def state.session.SessionState.all_receiver_chain_logging_info
 def state.session.SessionState.set_sender_chain_key
   (self : state.session.SessionState) (next_chain_key : ratchet.keys.ChainKey)
   :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let i ← ratchet.keys.ChainKey.impl.index next_chain_key
   let a ← ratchet.keys.ChainKey.impl.key next_chain_key
@@ -8078,7 +8078,7 @@ def state.session.SessionState.set_unacknowledged_pre_key_message
   (pre_key_id : Option state.prekey.PreKeyId)
   (signed_ec_pre_key_id : state.signed_prekey.SignedPreKeyId)
   (base_key : libsignal_core.curve.PublicKey) (now : std.time.SystemTime) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let signed_ec_pre_key_id1 ←
     core.convert.IntoFrom.into U32.Insts.CoreConvertFromSignedPreKeyId
@@ -8117,7 +8117,7 @@ def state.session.SessionState.set_unacknowledged_pre_key_message
 def state.session.SessionState.set_unacknowledged_kyber_pre_key_id
   (self : state.session.SessionState)
   (signed_kyber_pre_key_id : state.kyber_prekey.KyberPreKeyId) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let (o, as_mut_back) ←
     core.option.Option.as_mut self.session.pending_kyber_pre_key
@@ -8134,7 +8134,7 @@ def state.session.SessionState.set_unacknowledged_kyber_pre_key_id
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::clear_unacknowledged_pre_key_message]:
     Source: 'rust/protocol/src/state/session.rs', lines 592:4-615:5 -/
 def state.session.SessionState.clear_unacknowledged_pre_key_message
-  (self : state.session.SessionState) : Result state.session.SessionState := do
+  (self : state.session.SessionState) : Result _root_.libsignal_protocol.state.session.SessionState := do
   ok
     {
       session :=
@@ -8149,7 +8149,7 @@ def state.session.SessionState.clear_unacknowledged_pre_key_message
     Source: 'rust/protocol/src/state/session.rs', lines 617:4-619:5 -/
 def state.session.SessionState.set_remote_registration_id
   (self : state.session.SessionState) (registration_id : Std.U32) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   ok
     {
@@ -8161,7 +8161,7 @@ def state.session.SessionState.set_remote_registration_id
     Source: 'rust/protocol/src/state/session.rs', lines 625:4-627:5 -/
 def state.session.SessionState.set_local_registration_id
   (self : state.session.SessionState) (registration_id : Std.U32) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   ok
     { session := { self.session with local_registration_id := registration_id }
@@ -8197,7 +8197,7 @@ def state.session.SessionState.take_ratchet_state
     Source: 'rust/protocol/src/state/session.rs', lines 668:4-670:5 -/
 def state.session.SessionState.apply_ratchet_state
   (self : state.session.SessionState) (ratchet : double_ratchet.RatchetState) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let ss ← double_ratchet.RatchetState.apply_to_pb ratchet self.session
   ok { session := ss }
@@ -8223,7 +8223,7 @@ def state.session.SessionState.take_pq_ratchet_state
     Source: 'rust/protocol/src/state/session.rs', lines 707:4-709:5 -/
 def state.session.SessionState.set_pq_ratchet_state
   (self : state.session.SessionState) (state : alloc.vec.Vec Std.U8) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   ok { session := { self.session with pq_ratchet_state := state } }
 
@@ -8347,7 +8347,7 @@ def
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError
   : core.ops.function.FnOnce
   state.session.SessionRecord.previous_session_states.closure (alloc.vec.Vec
-  Std.U8) (core.result.Result state.session.SessionState
+  Std.U8) (core.result.Result _root_.libsignal_protocol.state.session.SessionState
   state.session.InvalidSessionError) := {
   call_once :=
     state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError.call_once
@@ -8360,7 +8360,7 @@ def
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError
   : core.ops.function.FnMut
   state.session.SessionRecord.previous_session_states.closure (alloc.vec.Vec
-  Std.U8) (core.result.Result state.session.SessionState
+  Std.U8) (core.result.Result _root_.libsignal_protocol.state.session.SessionState
   state.session.InvalidSessionError) := {
   FnOnceInst :=
     state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError
@@ -9110,9 +9110,9 @@ def
   libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey
   : state.signed_prekey.KeyPairSerde libsignal_core.curve.KeyPair
   libsignal_core.curve.PublicKey libsignal_core.curve.PrivateKey := {
-  KeySerdeInst :=
+  PublicKey :=
     libsignal_core.curve.PublicKey.Insts.Libsignal_protocolStateSigned_prekeyKeySerde
-  KeySerdeInst :=
+  PrivateKey :=
     libsignal_core.curve.PrivateKey.Insts.Libsignal_protocolStateSigned_prekeyKeySerde
   from_public_and_private :=
     libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.from_public_and_private
@@ -9146,7 +9146,7 @@ def
       self
   let s := alloc.vec.Vec.deref spkrs.public_key
   let s1 := alloc.vec.Vec.deref spkrs.private_key
-  state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.from_public_and_private
+  libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.from_public_and_private
     s s1
 
 /-- [libsignal_protocol::state::signed_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_core::curve::KeyPair, libsignal_protocol::state::signed_prekey::SignedPreKeyId, libsignal_core::curve::PublicKey, libsignal_core::curve::PrivateKey> for libsignal_protocol::state::signed_prekey::SignedPreKeyRecord}::public_key]:
@@ -9161,7 +9161,7 @@ def
   let spkrs ←
     state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.get_storage
       self
-  state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.KeySerdeInst.deserialize
+  libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.PublicKey.deserialize
     (Shared0T.Insts.CoreConvertAsRef (alloc.vec.Vec.Insts.CoreConvertAsRefSlice
     Std.U8 Global)) spkrs.public_key
 
@@ -9207,7 +9207,7 @@ def
       self
   let spki ←
     core.convert.IntoFrom.into
-      state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertFromSelf_IdU32Inst
+      state.signed_prekey.SignedPreKeyId.Insts.CoreConvertFromU32
       spkrs.id
   ok (core.result.Result.Ok spki)
 
@@ -9266,22 +9266,22 @@ def
   (key_pair : libsignal_core.curve.KeyPair) (signature : Slice Std.U8) :
   Result state.signed_prekey.SignedPreKeyRecord
   := do
-  let timestamp1 ← timestamp.Timestamp.epoch_millis timestamp
+  let timestamp1 ← _root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp
   let pk ←
-    state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.get_public
+    libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.get_public
       key_pair
   let public_key ←
-    state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.KeySerdeInst.serialize
+    libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.PublicKey.serialize
       pk
   let pk1 ←
-    state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.get_private
+    libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.get_private
       key_pair
   let private_key ←
-    state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst.KeySerdeInst.serialize
+    libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey.PrivateKey.serialize
       pk1
   let signature1 ← alloc.slice.Slice.to_vec core.clone.CloneU8 signature
   let i ←
-    state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertIntoSelf_IdU32Inst.into
+    (core.convert.IntoFrom U32.Insts.CoreConvertFromSignedPreKeyId).into
       id
   state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.from_storage
     {
@@ -9342,13 +9342,13 @@ def state.signed_prekey.GenericSignedPreKey.new.default
   (signature : Slice Std.U8) :
   Result Self
   := do
-  let timestamp1 ← timestamp.Timestamp.epoch_millis timestamp
+  let timestamp1 ← _root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp
   let t ← GenericSignedPreKeyInst.KeyPairSerdeInst.get_public key_pair
   let public_key ←
-    GenericSignedPreKeyInst.KeyPairSerdeInst.KeySerdeInst.serialize t
+    GenericSignedPreKeyInst.KeyPairSerdeInst.PublicKey.serialize t
   let t1 ← GenericSignedPreKeyInst.KeyPairSerdeInst.get_private key_pair
   let private_key ←
-    GenericSignedPreKeyInst.KeyPairSerdeInst.KeySerdeInst.serialize t1
+    GenericSignedPreKeyInst.KeyPairSerdeInst.PrivateKey.serialize t1
   let signature1 ← alloc.slice.Slice.to_vec core.clone.CloneU8 signature
   let i ← GenericSignedPreKeyInst.coreconvertIntoSelf_IdU32Inst.into id
   GenericSignedPreKeyInst.from_storage
@@ -9465,7 +9465,7 @@ def state.signed_prekey.GenericSignedPreKey.public_key.default
     error.SignalProtocolError)
   := do
   let spkrs ← GenericSignedPreKeyInst.get_storage self
-  GenericSignedPreKeyInst.KeyPairSerdeInst.KeySerdeInst.deserialize
+  GenericSignedPreKeyInst.KeyPairSerdeInst.PublicKey.deserialize
     (Shared0T.Insts.CoreConvertAsRef (alloc.vec.Vec.Insts.CoreConvertAsRefSlice
     Std.U8 Global)) spkrs.public_key
 
@@ -9643,11 +9643,11 @@ def std.time.SystemTime.Insts.CoreConvertFromTimestamp : core.convert.From
 def triple_ratchet.OutgoingTripleRatchet.apply_to_session_state
   (self : triple_ratchet.OutgoingTripleRatchet)
   (state : state.session.SessionState) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let state1 ←
-    state.session.SessionState.set_sender_chain_key state self.sender_chain_key
-  state.session.SessionState.set_pq_ratchet_state state1 self.pqr_state
+    _root_.libsignal_protocol.state.session.SessionState.set_sender_chain_key state self.sender_chain_key
+  _root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1 self.pqr_state
 
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::session_version]:
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 137:4-139:5 -/
@@ -9667,10 +9667,10 @@ def triple_ratchet.OutgoingTripleRatchet.impl.local_identity_key
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 199:4-202:5 -/
 def triple_ratchet.TripleRatchet.apply_to_session_state
   (self : triple_ratchet.TripleRatchet) (state : state.session.SessionState) :
-  Result state.session.SessionState
+  Result _root_.libsignal_protocol.state.session.SessionState
   := do
   let state1 ←
-    state.session.SessionState.apply_ratchet_state state self.ratchet
-  state.session.SessionState.set_pq_ratchet_state state1 self.pqr_state
+    _root_.libsignal_protocol.state.session.SessionState.apply_ratchet_state state self.ratchet
+  _root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1 self.pqr_state
 
 end libsignal_protocol

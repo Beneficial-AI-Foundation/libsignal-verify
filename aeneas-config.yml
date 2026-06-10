@@ -376,10 +376,80 @@ tweaks:
     # public/private distinction explicit. Disambiguated by the `Self_PublicKey` /
     # `Self_PrivateKey` type arg, so these match ONLY the declaration lines (not the
     # `:=` construction or `.KeySerdeInst.` projections in Funs.lean).
-    # NOTE: call sites (instance construction + projections) still say KeySerdeInst
-    # and must be updated by hand — the projections need public/private classified,
-    # which a substitution can't do reliably. https://github.com/AeneasVerif/aeneas/issues/1051
+    # https://github.com/AeneasVerif/aeneas/issues/1051
+    # (a) structure decl fields (disambiguated by the Self_PublicKey/Self_PrivateKey arg):
     - find: "KeySerdeInst : state.signed_prekey.KeySerde Self_PublicKey"
       replace: "PublicKey : state.signed_prekey.KeySerde Self_PublicKey"
     - find: "KeySerdeInst : state.signed_prekey.KeySerde Self_PrivateKey"
       replace: "PrivateKey : state.signed_prekey.KeySerde Self_PrivateKey"
+    # (b) instance CONSTRUCTION (`KeySerdeInst := <value>`): classify by the value —
+    # KeyPublic/curve.PublicKey → PublicKey; KeySecret/curve.PrivateKey → PrivateKey.
+    - regex: 'KeySerdeInst :=(\s+)kem\.KeyPublic\.Insts'
+      replace: 'PublicKey :=$1kem.KeyPublic.Insts'
+    - regex: 'KeySerdeInst :=(\s+)kem\.KeySecret\.Insts'
+      replace: 'PrivateKey :=$1kem.KeySecret.Insts'
+    - regex: 'KeySerdeInst :=(\s+)libsignal_core\.curve\.PublicKey\.Insts'
+      replace: 'PublicKey :=$1libsignal_core.curve.PublicKey.Insts'
+    - regex: 'KeySerdeInst :=(\s+)libsignal_core\.curve\.PrivateKey\.Insts'
+      replace: 'PrivateKey :=$1libsignal_core.curve.PrivateKey.Insts'
+    # (c) PROJECTIONS. deserialize always reads `spkrs.public_key` → PublicKey.
+    - find: ".KeySerdeInst.deserialize"
+      replace: ".PublicKey.deserialize"
+    # serialize: arg from get_public (k/pk/t) → PublicKey; from get_private (k1/pk1/t1) → PrivateKey.
+    - regex: 'KeySerdeInst\.serialize(\s+)(k|pk|t)\b'
+      replace: 'PublicKey.serialize$1$2'
+    - regex: 'KeySerdeInst\.serialize(\s+)(k1|pk1|t1)\b'
+      replace: 'PrivateKey.serialize$1$2'
+
+    # Forward-reference (a SECOND, distinct Aeneas bug): the combining `@[reducible]`
+    # GenericSignedPreKey trait instance is emitted AFTER the method defs that
+    # reference it, so projections of its parent-clause / convert fields
+    # (`<Instance>.KeyPairSerdeInst`, `.coreconvert{From,Into}Self_IdU32Inst`) are
+    # "Unknown constant". Fix: replace each forward projection with the field's
+    # DIRECT value (which is defined earlier in the file). NOTE: the bare instance
+    # passed to deserialize's map_err closure can't be substituted this way (it needs
+    # the whole instance, i.e. a reorder) — that one is handled separately.
+    # (No upstream issue found for the instance-after-methods ordering; describe here.)
+    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst"
+      replace: "kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret"
+    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst"
+      replace: "libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey"
+    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertFromSelf_IdU32Inst"
+      replace: "state.kyber_prekey.KyberPreKeyId.Insts.CoreConvertFromU32"
+    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertFromSelf_IdU32Inst"
+      replace: "state.signed_prekey.SignedPreKeyId.Insts.CoreConvertFromU32"
+    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertIntoSelf_IdU32Inst"
+      replace: "(core.convert.IntoFrom U32.Insts.CoreConvertFromKyberPreKeyId)"
+    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertIntoSelf_IdU32Inst"
+      replace: "(core.convert.IntoFrom U32.Insts.CoreConvertFromSignedPreKeyId)"
+
+    # Namespace/parameter shadowing: a fn parameter named like a module
+    # (`identity_key`, `timestamp`, `state`) shadows that module, so Aeneas's
+    # fully-qualified `module.Type.method` references parse as field-projection on
+    # the parameter and fail ("Invalid field …"). Fix: force root resolution by
+    # qualifying the affected type-paths with `_root_.libsignal_protocol.…` (harmless
+    # where there is no shadowing param — resolves to the same name). Targeted at the
+    # broken USES only — return types (the `Result ` prefix) and method calls (a
+    # trailing arg) — so they never match `def`/`structure` declaration names.
+    # https://github.com/AeneasVerif/aeneas/issues/1098
+    # -- identity_key (param shadows module in IdentityKeyPair::new, PreKeySignalMessage::new)
+    - find: "Result identity_key.IdentityKeyPair"
+      replace: "Result _root_.libsignal_protocol.identity_key.IdentityKeyPair"
+    - find: "identity_key.IdentityKeyPair.new identity_key"
+      replace: "_root_.libsignal_protocol.identity_key.IdentityKeyPair.new identity_key"
+    - find: "identity_key.IdentityKey.serialize identity_key"
+      replace: "_root_.libsignal_protocol.identity_key.IdentityKey.serialize identity_key"
+    # -- timestamp (param/local shadows module in Timestamp/KyberPreKeyRecord/SignedPreKeyRecord fns)
+    - find: "timestamp.Timestamp.epoch_millis timestamp"
+      replace: "_root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp"
+    - find: "timestamp.Timestamp.from_epoch_millis i"
+      replace: "_root_.libsignal_protocol.timestamp.Timestamp.from_epoch_millis i"
+    # -- state (param shadows module in SessionState setters + apply_to_session_state)
+    - find: "Result state.session.SessionState"
+      replace: "Result _root_.libsignal_protocol.state.session.SessionState"
+    - find: "state.session.SessionState.set_sender_chain_key state"
+      replace: "_root_.libsignal_protocol.state.session.SessionState.set_sender_chain_key state"
+    - find: "state.session.SessionState.set_pq_ratchet_state state1"
+      replace: "_root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1"
+    - find: "state.session.SessionState.apply_ratchet_state state"
+      replace: "_root_.libsignal_protocol.state.session.SessionState.apply_ratchet_state state"
