@@ -167,15 +167,51 @@ async function setupRepo(repo: string, repoDir: string, commit: string): Promise
 
 // ── Build ─────────────────────────────────────────────────────────────
 
+/**
+ * Return `env` with Nix directories removed from PATH, so charon's
+ * `check-charon-install.sh` takes its rustup build branch instead of
+ * `nix develop`.
+ *
+ * Why: that script does `if which nix; then nix develop … make test; elif which
+ * rustup; then make test`. Whenever `nix` is on PATH (it's inherited from the
+ * systemd/VS Code session even when a plain shell doesn't show it), it builds
+ * charon with a Nix toolchain, producing a `charon-driver` whose RUNPATH points
+ * into the Nix store but omits zlib → runtime `libz.so.1: cannot open shared
+ * object file`. Building via rustup yields a system-linked binary that just works.
+ *
+ * Guard: only strip Nix when `rustup` is actually available, so a Nix-only
+ * machine (no rustup) still falls through to the working `nix develop` branch.
+ */
+async function denixEnvIfRustup(env: Record<string, string>): Promise<Record<string, string>> {
+  let hasRustup = false;
+  try {
+    await run("which", ["rustup"], { silent: true });
+    hasRustup = true;
+  } catch {
+    // no rustup → leave PATH (and Nix) alone
+  }
+  if (!hasRustup) return env;
+
+  const basePath = env.PATH ?? process.env.PATH ?? "";
+  const cleaned = basePath
+    .split(":")
+    .filter((p) => p && !p.includes("/nix/") && !p.includes("/.nix-profile"))
+    .join(":");
+  if (cleaned !== basePath) {
+    console.log(chalk.gray("  (building charon via rustup; Nix removed from PATH to avoid the libz.so.1 RUNPATH issue)"));
+  }
+  return { ...env, PATH: cleaned };
+}
+
 async function buildCharon(repoDir: string, env: Record<string, string>): Promise<void> {
   const spinner = ora("Building Charon...").start();
-  await runStreaming("make", ["setup-charon"], { cwd: repoDir, env });
+  await runStreaming("make", ["setup-charon"], { cwd: repoDir, env: await denixEnvIfRustup(env) });
   spinner.succeed("Charon built");
 }
 
 async function buildAeneas(repoDir: string, env: Record<string, string>): Promise<void> {
   const spinner = ora("Building Aeneas...").start();
-  await runStreaming("make", [], { cwd: repoDir, env });
+  await runStreaming("make", [], { cwd: repoDir, env: await denixEnvIfRustup(env) });
   spinner.succeed("Aeneas built");
 }
 

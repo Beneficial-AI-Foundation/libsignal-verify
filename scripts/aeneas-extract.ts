@@ -97,9 +97,19 @@ async function main(): Promise<void> {
   // NOTE: defaulting to `full` while we investigate the slowdown. Once routine
   // runs no longer need the deep detail, switch the default to `item` (in
   // aeneas-config.yml or scripts/lib/config.ts) for much smaller logs.
+  //
+  // `item` ENABLES ONLY the per-item + name spans — crucially with NO
+  // `charon_driver=info` catch-all. A catch-all turns every span on and `[span]=off`
+  // directives do NOT override it, so the giant `translate_bound_fn_ptr` /
+  // `translate_trait_proof` spans (multi-100KB ItemRef Debug dumps) keep firing —
+  // that bloats the log to 100MB+ and adds a crippling format penalty (one item,
+  // compute_mac, took ~50min and crashed the run). Listing only the spans we read
+  // leaves everything else at the default (off): the item openings
+  // (translate_*_decl) drive the spinner + slow-item logger, and get_mir carries the
+  // readable name. Result: small log, no penalty, full per-item wall-clock timing.
   const PROFILE_FILTERS: Record<string, string> = {
     full: "charon_driver=info",
-    item: "charon_driver=info,[translate_ty]=off,[translate_trait_proof]=off,[translate_bound_fn_ptr]=off,[translate_bound_fn_ptr_maybe_enqueue]=off,[translate_unbound_fn_ptr_maybe_enqueue]=off",
+    item: "[translate_fun_decl]=trace,[translate_global]=trace,[translate_type_decl]=trace,[translate_trait_decl]=trace,[translate_trait_impl]=trace,[get_mir_for_def_id_and_level]=trace",
     off: "",
   };
   const charonEnv: Record<string, string> = {};

@@ -27,32 +27,33 @@ charon:
   # start_from_pub: true
   start_from:
     - "libsignal_protocol::pqxdh"
-    - "libsignal_protocol::consts"
-    - "libsignal_protocol::crypto"
-    - "libsignal_protocol::identity_key"
-    - "libsignal_protocol::timestamp"
+    - "libsignal_protocol::consts" #16
+    - "libsignal_protocol::crypto" #15
+    - "libsignal_protocol::identity_key" #14
+    - "libsignal_protocol::timestamp" #13
     # DEFERRED: incremental_mac::update returns `impl Iterator<Item=Output<M>> + 'a`
     # - "libsignal_protocol::incremental_mac"
-    - "libsignal_protocol::ratchet"
-    - "libsignal_protocol::state"
-    - "libsignal_protocol::fingerprint"
-    - "libsignal_protocol::sender_keys"
-    - "libsignal_protocol::protocol"
-    - "libsignal_protocol::double_ratchet"
-    - "libsignal_protocol::triple_ratchet"
+    - "libsignal_protocol::ratchet" #12
+    - "libsignal_protocol::state" #11
+    - "libsignal_protocol::fingerprint" #10
+    - "libsignal_protocol::sender_keys" #9
+    - "libsignal_protocol::protocol" #8
+    - "libsignal_protocol::double_ratchet" #7
+    - "libsignal_protocol::triple_ratchet" #6
     # group_cipher + session are SOURCE-GATED out under `feature="extraction"` 
     # - "libsignal_protocol::group_cipher"
     # - "libsignal_protocol::session"
-    - "libsignal_protocol::session_management"
-    - "libsignal_protocol::sealed_sender"
+    - "libsignal_protocol::session_management" #5
+    # DEFERRED: `sealed_sender` causes Charon to be very slow
+    # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
     # - "libsignal_protocol::storage"
     # DEFERRED: session_cipher_legacy triggers a charon-driver (hax) panic on the
     # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods 
     # - "libsignal_protocol::session_cipher_legacy"
   include:
-    - "libsignal_core"
-    - "signal_crypto"
+    - "libsignal_core" #1
+    - "signal_crypto" #2
   exclude:
     # Formatting and error trait impls (not needed for verification)
     - "libsignal_protocol::{impl core::fmt::Debug for _}"

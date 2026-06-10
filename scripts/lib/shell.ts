@@ -82,22 +82,43 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
   let bytes = 0;
   let items = 0;
   let current = ""; // most recent top-level item span (e.g. "fun_decl#188")
+  let currentName = ""; // readable def path of `current`, from its get_mir span
   let currentSince = Date.now();
-  // Top-level per-item translation spans (per-type `translate_ty` noise is
-  // filtered out by default). Captures the kind + numeric id so the spinner can
-  // show which item charon is on — when it stalls, the spinner freezes on that
-  // id with a climbing timer, pinpointing the slow item (map id→name post-run).
+  // Top-level per-item translation span openings (kind + numeric id).
   const itemRe = /translate_(fun_decl|global|type_decl|trait_decl|trait_impl)\{(?:[a-z_]+)=(\d+)/g;
+  // The get_mir span that follows an item opening carries its readable def path.
+  // Capture lazily up to ", level=" — the def path itself contains `}` (e.g.
+  // `protocol::{impl#1}::compute_mac`), so a `[^,}]+` class would truncate at the
+  // first `}` (yielding `protocol::{impl#1`); the `, level=` field separator is the
+  // reliable terminator.
+  const mirRe = /get_mir_for_def_id_and_level\{def_id=(.+?), level=/;
+  // Slow-item log: charon's own span durations are unreliable here (they report
+  // 0ms while the real cost is in trait-proof recursion / giant-ItemRef work
+  // between spans), so we measure wall-clock per top-level item ourselves and
+  // record any that exceed the threshold to a sidecar — this is how we find the
+  // functions to opaque (e.g. the Index<RangeFull> trait-proof blowups).
+  const SLOW_MS = 10_000;
+  const slowPath = opts?.logFile ? opts.logFile.replace(/\.log$/, "") + "-slow-items.log" : undefined;
+  let slowStream: fs.WriteStream | undefined;
+  const finalizeCurrent = () => {
+    if (!current || !slowStream) return;
+    const ms = Date.now() - currentSince;
+    if (ms >= SLOW_MS) slowStream.write(`${(ms / 1000).toFixed(1)}s\t${currentName || current}\n`);
+  };
   const fmtStatus = () => {
     const secs = Math.round((Date.now() - start) / 1000);
     const onCur = current
-      ? ` · on ${current} (${Math.round((Date.now() - currentSince) / 1000)}s)`
+      ? ` · on ${currentName || current} (${Math.round((Date.now() - currentSince) / 1000)}s)`
       : "";
     return `${label ?? cmd}: ${items} items · ${(bytes / 1e6).toFixed(1)} MB · ${secs}s${onCur}`;
   };
   if (streaming) {
     fs.mkdirSync(path.dirname(opts!.logFile!), { recursive: true });
     stream = fs.createWriteStream(opts!.logFile!, { flags: "w" });
+    if (slowPath) {
+      slowStream = fs.createWriteStream(slowPath, { flags: "w" });
+      slowStream.write(`# items charon spent >${SLOW_MS / 1000}s on (wall-clock); candidates to opaque\n`);
+    }
     spinner = ora({ text: fmtStatus(), stream: process.stdout }).start();
     timer = setInterval(() => { if (spinner) spinner.text = fmtStatus(); }, 500);
   }
@@ -108,12 +129,24 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
   const onStreamChunk = (text: string) => {
     stream!.write(text);
     bytes += Buffer.byteLength(text);
+    // Item openings first: on a change, record the previous item if it was slow,
+    // then reset name (the new item's get_mir, below, fills it in).
     const matches = [...text.matchAll(itemRe)];
     if (matches.length > 0) {
       items += matches.length;
       const last = matches[matches.length - 1];
       const next = `${last[0].slice("translate_".length).replace(/\{.*/, "")}#${last[1]}`;
-      if (next !== current) { current = next; currentSince = Date.now(); }
+      if (next !== current) {
+        finalizeCurrent();
+        current = next;
+        currentName = "";
+        currentSince = Date.now();
+      }
+    }
+    // Readable name: first get_mir after an item opening wins.
+    if (!currentName) {
+      const m = mirRe.exec(text);
+      if (m) currentName = m[1];
     }
   };
 
@@ -139,7 +172,9 @@ export async function runStreaming(cmd: string, args: string[], opts?: RunOption
 
   if (streaming) {
     if (timer) clearInterval(timer);
+    finalizeCurrent(); // record the final item if it too was slow
     await new Promise<void>((resolve) => stream!.end(resolve));
+    if (slowStream) await new Promise<void>((resolve) => slowStream!.end(resolve));
     if (spinner) {
       if (result.exitCode === 0) spinner.succeed(fmtStatus());
       else spinner.fail(fmtStatus());

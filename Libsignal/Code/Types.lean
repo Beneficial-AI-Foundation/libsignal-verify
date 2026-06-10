@@ -59,83 +59,6 @@ structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
 @[reducible, rust_type "core::ops::range::RangeFull"]
 def core.ops.range.RangeFull := Unit
 
-/-- Trait declaration: [typenum::sealed::Sealed]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 154:4-154:20
-    Name pattern: [typenum::sealed::Sealed]
-    Visibility: public -/
-@[rust_trait "typenum::sealed::Sealed"]
-structure typenum.sealed.Sealed (Self : Type) where
-
-/-- Trait declaration: [typenum::marker_traits::Unsigned]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/marker_traits.rs', lines 59:0-59:53
-    Name pattern: [typenum::marker_traits::Unsigned]
-    Visibility: public -/
-@[rust_trait "typenum::marker_traits::Unsigned"
-  (parentClauses := ["sealedSealedInst", "coremarkerCopyInst", "coredefaultDefaultInst"])
-  (consts := ["U8", "U16", "U32", "U64", "USIZE", "I8", "I16", "I32", "I64", "ISIZE"])]
-structure typenum.marker_traits.Unsigned (Self : Type) where
-  U8 : Result Std.U8
-  U16 : Result Std.U16
-  U32 : Result Std.U32
-  U64 : Result Std.U64
-  USIZE : Result Std.Usize
-  I8 : Result Std.I8
-  I16 : Result Std.I16
-  I32 : Result Std.I32
-  I64 : Result Std.I64
-  ISIZE : Result Std.Isize
-  sealedSealedInst : typenum.sealed.Sealed Self
-  coremarkerCopyInst : core.marker.Copy Self
-  coredefaultDefaultInst : core.default.Default Self
-  to_u8 : Result Std.U8
-  to_u16 : Result Std.U16
-  to_u32 : Result Std.U32
-  to_u64 : Result Std.U64
-  to_usize : Result Std.Usize
-  to_i8 : Result Std.I8
-  to_i16 : Result Std.I16
-  to_i32 : Result Std.I32
-  to_i64 : Result Std.I64
-  to_isize : Result Std.Isize
-
-/-- Trait declaration: [generic_array::ArrayLength]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 112:0-112:41
-    Name pattern: [generic_array::ArrayLength]
-    Visibility: public -/
-@[rust_trait "generic_array::ArrayLength"
-  (parentClauses := ["typenummarker_traitsUnsignedInst"])]
-structure generic_array.ArrayLength (Self : Type) (T : Type) (Self_ArrayType :
-  Type) where
-  typenummarker_traitsUnsignedInst : typenum.marker_traits.Unsigned Self
-
-/-- Trait declaration: [block_buffer::sealed::Sealed]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/sealed.rs', lines 5:0-5:16
-    Name pattern: [block_buffer::sealed::Sealed]
-    Visibility: public -/
-@[rust_trait "block_buffer::sealed::Sealed"]
-structure block_buffer.sealed.Sealed (Self : Type) where
-  invariant : Std.Usize → Std.Usize → Result Bool
-  split_blocks : forall {N : Type} {Clause0_ArrayType : Type}
-    (generic_arrayArrayLengthPU8PInst : generic_array.ArrayLength N Std.U8
-    Clause0_ArrayType), Slice Std.U8 → Result ((Slice
-    (generic_array.GenericArray Std.U8 N Clause0_ArrayType)) × (Slice Std.U8))
-
-/-- Trait declaration: [block_buffer::BufferKind]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/lib.rs', lines 23:0-23:36
-    Name pattern: [block_buffer::BufferKind]
-    Visibility: public -/
-@[rust_trait "block_buffer::BufferKind"
-  (parentClauses := ["sealedSealedInst"])]
-structure block_buffer.BufferKind (Self : Type) where
-  sealedSealedInst : block_buffer.sealed.Sealed Self
-
-/-- [block_buffer::Eager]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/lib.rs', lines 28:0-28:16
-    Name pattern: [block_buffer::Eager]
-    Visibility: public -/
-@[reducible, rust_type "block_buffer::Eager"]
-def block_buffer.Eager := Unit
-
 /-- Trait declaration: [bytes::buf::buf_impl::Buf]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 117:0-117:13
     Name pattern: [bytes::buf::buf_impl::Buf]
@@ -157,65 +80,6 @@ structure bytes.buf.buf_mut.BufMut (Self : Type) where
   chunk_mut : Self → Result (bytes.buf.uninit_slice.UninitSlice ×
     (bytes.buf.uninit_slice.UninitSlice → Self))
 
-/-- [const_str::__ctfe::hex::Hex]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/const-str-1.0.0/src/__ctfe/hex.rs', lines 1:0-1:17
-    Name pattern: [const_str::__ctfe::hex::Hex]
-    Visibility: public -/
-@[reducible, rust_type "const_str::__ctfe::hex::Hex"]
-def const_str.__ctfe.hex.Hex (T : Type) := T
-
-/-- Trait declaration: [crypto_common::BlockSizeUser]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 42:0-42:23
-    Name pattern: [crypto_common::BlockSizeUser]
-    Visibility: public -/
-@[rust_trait "crypto_common::BlockSizeUser"
-  (parentClauses := ["generic_arrayArrayLengthSelf_BlockSizeU8Self_Clause0_ArrayTypeInst"])]
-structure crypto_common.BlockSizeUser (Self : Type) (Self_BlockSize : Type)
-  (Self_Clause0_ArrayType : Type) where
-  generic_arrayArrayLengthSelf_BlockSizeU8Self_Clause0_ArrayTypeInst :
-    generic_array.ArrayLength Self_BlockSize Std.U8 Self_Clause0_ArrayType
-
-/-- Trait declaration: [crypto_common::OutputSizeUser]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 67:0-67:24
-    Name pattern: [crypto_common::OutputSizeUser]
-    Visibility: public -/
-@[rust_trait "crypto_common::OutputSizeUser"
-  (parentClauses := ["generic_arrayArrayLengthSelf_OutputSizeU8Self_Clause0_ArrayTypeInst"])]
-structure crypto_common.OutputSizeUser (Self : Type) (Self_OutputSize : Type)
-  (Self_Clause0_ArrayType : Type) where
-  generic_arrayArrayLengthSelf_OutputSizeU8Self_Clause0_ArrayTypeInst :
-    generic_array.ArrayLength Self_OutputSize Std.U8 Self_Clause0_ArrayType
-
-/-- Trait declaration: [crypto_common::KeySizeUser]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 80:0-80:21
-    Name pattern: [crypto_common::KeySizeUser]
-    Visibility: public -/
-@[rust_trait "crypto_common::KeySizeUser"
-  (parentClauses := ["generic_arrayArrayLengthSelf_KeySizeU8Self_Clause0_ArrayTypeInst"])]
-structure crypto_common.KeySizeUser (Self : Type) (Self_KeySize : Type)
-  (Self_Clause0_ArrayType : Type) where
-  generic_arrayArrayLengthSelf_KeySizeU8Self_Clause0_ArrayTypeInst :
-    generic_array.ArrayLength Self_KeySize Std.U8 Self_Clause0_ArrayType
-
-/-- Trait declaration: [crypto_common::KeyInit]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 124:0-124:38
-    Name pattern: [crypto_common::KeyInit]
-    Visibility: public -/
-@[rust_trait "crypto_common::KeyInit" (parentClauses := ["KeySizeUserInst"])]
-structure crypto_common.KeyInit (Self : Type) (Self_Clause0_KeySize : Type)
-  (Self_Clause0_Clause0_ArrayType : Type) where
-  KeySizeUserInst : crypto_common.KeySizeUser Self Self_Clause0_KeySize
-    Self_Clause0_Clause0_ArrayType
-  new : generic_array.GenericArray Std.U8 Self_Clause0_KeySize
-    Self_Clause0_Clause0_ArrayType → Result Self
-
-/-- [crypto_common::InvalidLength]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 302:0-302:24
-    Name pattern: [crypto_common::InvalidLength]
-    Visibility: public -/
-@[reducible, rust_type "crypto_common::InvalidLength"]
-def crypto_common.InvalidLength := Unit
-
 /-- [derive_more::convert::try_from::TryFromReprError]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 17:4-17:34
     Name pattern: [derive_more::convert::try_from::TryFromReprError]
@@ -223,307 +87,6 @@ def crypto_common.InvalidLength := Unit
 @[rust_type "derive_more::convert::try_from::TryFromReprError"]
 structure derive_more.convert.try_from.TryFromReprError (T : Type) where
   input : T
-
-/-- [typenum::uint::UTerm]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 50:0-50:16
-    Name pattern: [typenum::uint::UTerm]
-    Visibility: public -/
-@[reducible, rust_type "typenum::uint::UTerm"]
-def typenum.uint.UTerm := Unit
-
-/-- Trait declaration: [typenum::marker_traits::Bit]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/marker_traits.rs', lines 35:0-35:48
-    Name pattern: [typenum::marker_traits::Bit]
-    Visibility: public -/
-@[rust_trait "typenum::marker_traits::Bit"
-  (parentClauses := ["sealedSealedInst", "coremarkerCopyInst", "coredefaultDefaultInst"])
-  (consts := ["U8", "BOOL"])]
-structure typenum.marker_traits.Bit (Self : Type) where
-  U8 : Result Std.U8
-  BOOL : Result Bool
-  sealedSealedInst : typenum.sealed.Sealed Self
-  coremarkerCopyInst : core.marker.Copy Self
-  coredefaultDefaultInst : core.default.Default Self
-  new : Result Self
-  to_u8 : Result Std.U8
-  to_bool : Result Bool
-
-/-- Trait declaration: [typenum::type_operators::IsLessOrEqual]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/type_operators.rs', lines 443:0-443:35
-    Name pattern: [typenum::type_operators::IsLessOrEqual]
-    Visibility: public -/
-@[rust_trait "typenum::type_operators::IsLessOrEqual"
-  (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.type_operators.IsLessOrEqual (Self : Type) (Rhs : Type)
-  (Self_Output : Type) where
-  marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
-  is_less_or_equal : Self → Rhs → Result Self_Output
-
-/-- Trait declaration: [typenum::type_operators::IsLess]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/type_operators.rs', lines 374:0-374:28
-    Name pattern: [typenum::type_operators::IsLess]
-    Visibility: public -/
-@[rust_trait "typenum::type_operators::IsLess"
-  (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.type_operators.IsLess (Self : Type) (Rhs : Type) (Self_Output
-  : Type) where
-  marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
-  is_less : Self → Rhs → Result Self_Output
-
-/-- Trait declaration: [typenum::marker_traits::NonZero]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/marker_traits.rs', lines 22:0-22:25
-    Name pattern: [typenum::marker_traits::NonZero]
-    Visibility: public -/
-@[rust_trait "typenum::marker_traits::NonZero"
-  (parentClauses := ["sealedSealedInst"])]
-structure typenum.marker_traits.NonZero (Self : Type) where
-  sealedSealedInst : typenum.sealed.Sealed Self
-
-/-- [typenum::bit::B1]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 33:0-33:13
-    Name pattern: [typenum::bit::B1]
-    Visibility: public -/
-@[reducible, rust_type "typenum::bit::B1"]
-def typenum.bit.B1 := Unit
-
-/-- [typenum::bit::B0]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 20:0-20:13
-    Name pattern: [typenum::bit::B0]
-    Visibility: public -/
-@[reducible, rust_type "typenum::bit::B0"]
-def typenum.bit.B0 := Unit
-
-/-- [digest::InvalidOutputSize]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/lib.rs', lines 278:0-278:28
-    Name pattern: [digest::InvalidOutputSize]
-    Visibility: public -/
-@[reducible, rust_type "digest::InvalidOutputSize"]
-def digest.InvalidOutputSize := Unit
-
-/-- [digest::core_api::TruncSide]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api.rs', lines 114:0-114:18
-    Name pattern: [digest::core_api::TruncSide]
-    Visibility: public -/
-@[discriminant isize, rust_type "digest::core_api::TruncSide"]
-inductive digest.core_api.TruncSide where
-| Left : digest.core_api.TruncSide
-| Right : digest.core_api.TruncSide
-
-/-- Trait declaration: [digest::core_api::BufferKindUser]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api.rs', lines 37:0-37:39
-    Name pattern: [digest::core_api::BufferKindUser]
-    Visibility: public -/
-@[rust_trait "digest::core_api::BufferKindUser"
-  (parentClauses := ["crypto_commonBlockSizeUserInst", "block_bufferBufferKindInst"])]
-structure digest.core_api.BufferKindUser (Self : Type) (Self_BufferKind : Type)
-  (Self_Clause0_BlockSize : Type) (Self_Clause0_Clause0_ArrayType : Type) where
-  crypto_commonBlockSizeUserInst : crypto_common.BlockSizeUser Self
-    Self_Clause0_BlockSize Self_Clause0_Clause0_ArrayType
-  block_bufferBufferKindInst : block_buffer.BufferKind Self_BufferKind
-
-/-- Trait declaration: [digest::core_api::UpdateCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api.rs', lines 31:0-31:35
-    Name pattern: [digest::core_api::UpdateCore]
-    Visibility: public -/
-@[rust_trait "digest::core_api::UpdateCore"
-  (parentClauses := ["crypto_commonBlockSizeUserInst"])]
-structure digest.core_api.UpdateCore (Self : Type) (Self_Clause0_BlockSize :
-  Type) (Self_Clause0_Clause0_ArrayType : Type) where
-  crypto_commonBlockSizeUserInst : crypto_common.BlockSizeUser Self
-    Self_Clause0_BlockSize Self_Clause0_Clause0_ArrayType
-  update_blocks : Self → Slice (generic_array.GenericArray Std.U8
-    Self_Clause0_BlockSize Self_Clause0_Clause0_ArrayType) → Result Self
-
-/-- Trait declaration: [digest::core_api::VariableOutputCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api.rs', lines 84:0-84:82
-    Name pattern: [digest::core_api::VariableOutputCore]
-    Visibility: public -/
-@[rust_trait "digest::core_api::VariableOutputCore"
-  (parentClauses := ["UpdateCoreInst", "crypto_commonOutputSizeUserInst", "BufferKindUserInst", "typenumtype_operatorsIsLessSelf_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Self_Clause3_OutputInst", "typenummarker_traitsNonZeroInst"])
-  (consts := ["TRUNC_SIDE"])]
-structure digest.core_api.VariableOutputCore (Self : Type)
-  (Self_Clause0_Clause0_BlockSize : Type)
-  (Self_Clause0_Clause0_Clause0_ArrayType : Type) (Self_Clause1_OutputSize :
-  Type) (Self_Clause1_Clause0_ArrayType : Type) (Self_Clause2_BufferKind :
-  Type) (Self_Clause2_Clause0_BlockSize : Type)
-  (Self_Clause2_Clause0_Clause0_ArrayType : Type) (Self_Clause3_Output : Type)
-  where
-  TRUNC_SIDE : Result digest.core_api.TruncSide
-  UpdateCoreInst : digest.core_api.UpdateCore Self
-    Self_Clause0_Clause0_BlockSize Self_Clause0_Clause0_Clause0_ArrayType
-  crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser Self
-    Self_Clause1_OutputSize Self_Clause1_Clause0_ArrayType
-  BufferKindUserInst : digest.core_api.BufferKindUser Self
-    Self_Clause2_BufferKind Self_Clause2_Clause0_BlockSize
-    Self_Clause2_Clause0_Clause0_ArrayType
-  typenumtype_operatorsIsLessSelf_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Self_Clause3_OutputInst
-    : typenum.type_operators.IsLess Self_Clause0_Clause0_BlockSize
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Self_Clause3_Output
-  typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-    Self_Clause3_Output
-  new : Std.Usize → Result (core.result.Result Self digest.InvalidOutputSize)
-  finalize_variable_core : Self → block_buffer.BlockBuffer
-    Self_Clause0_Clause0_BlockSize Self_Clause2_BufferKind
-    Self_Clause0_Clause0_Clause0_ArrayType Self_Clause3_Output →
-    generic_array.GenericArray Std.U8 Self_Clause1_OutputSize
-    Self_Clause1_Clause0_ArrayType → Result (Self ×
-    (block_buffer.BlockBuffer Self_Clause0_Clause0_BlockSize
-    Self_Clause2_BufferKind Self_Clause0_Clause0_Clause0_ArrayType
-    Self_Clause3_Output) × (generic_array.GenericArray Std.U8
-    Self_Clause1_OutputSize Self_Clause1_Clause0_ArrayType))
-
-/-- Trait declaration: [digest::digest::HashMarker]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/digest.rs', lines 8:0-8:20
-    Name pattern: [digest::digest::HashMarker]
-    Visibility: public -/
-@[rust_trait "digest::digest::HashMarker"]
-structure digest.digest.HashMarker (Self : Type) where
-
-/-- Trait declaration: [digest::core_api::FixedOutputCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api.rs', lines 43:0-43:71
-    Name pattern: [digest::core_api::FixedOutputCore]
-    Visibility: public -/
-@[rust_trait "digest::core_api::FixedOutputCore"
-  (parentClauses := ["UpdateCoreInst", "BufferKindUserInst", "crypto_commonOutputSizeUserInst", "typenumtype_operatorsIsLessSelf_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Self_Clause3_OutputInst", "typenummarker_traitsNonZeroInst"])]
-structure digest.core_api.FixedOutputCore (Self : Type)
-  (Self_Clause0_Clause0_BlockSize : Type)
-  (Self_Clause0_Clause0_Clause0_ArrayType : Type) (Self_Clause1_BufferKind :
-  Type) (Self_Clause1_Clause0_BlockSize : Type)
-  (Self_Clause1_Clause0_Clause0_ArrayType : Type) (Self_Clause2_OutputSize :
-  Type) (Self_Clause2_Clause0_ArrayType : Type) (Self_Clause3_Output : Type)
-  where
-  UpdateCoreInst : digest.core_api.UpdateCore Self
-    Self_Clause0_Clause0_BlockSize Self_Clause0_Clause0_Clause0_ArrayType
-  BufferKindUserInst : digest.core_api.BufferKindUser Self
-    Self_Clause1_BufferKind Self_Clause1_Clause0_BlockSize
-    Self_Clause1_Clause0_Clause0_ArrayType
-  crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser Self
-    Self_Clause2_OutputSize Self_Clause2_Clause0_ArrayType
-  typenumtype_operatorsIsLessSelf_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Self_Clause3_OutputInst
-    : typenum.type_operators.IsLess Self_Clause0_Clause0_BlockSize
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Self_Clause3_Output
-  typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-    Self_Clause3_Output
-  finalize_fixed_core : Self → block_buffer.BlockBuffer
-    Self_Clause0_Clause0_BlockSize Self_Clause1_BufferKind
-    Self_Clause0_Clause0_Clause0_ArrayType Self_Clause3_Output →
-    generic_array.GenericArray Std.U8 Self_Clause2_OutputSize
-    Self_Clause2_Clause0_ArrayType → Result (Self ×
-    (block_buffer.BlockBuffer Self_Clause0_Clause0_BlockSize
-    Self_Clause1_BufferKind Self_Clause0_Clause0_Clause0_ArrayType
-    Self_Clause3_Output) × (generic_array.GenericArray Std.U8
-    Self_Clause2_OutputSize Self_Clause2_Clause0_ArrayType))
-
-/-- [sha2::OidSha256]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 197:8-197:25
-    Name pattern: [sha2::OidSha256]
-    Visibility: public -/
-@[reducible, rust_type "sha2::OidSha256"]
-def sha2.OidSha256 := Unit
-
-/-- [sha2::OidSha512]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 197:8-197:25
-    Name pattern: [sha2::OidSha512]
-    Visibility: public -/
-@[reducible, rust_type "sha2::OidSha512"]
-def sha2.OidSha512 := Unit
-
-/-- Trait declaration: [digest::mac::MacMarker]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 12:0-12:19
-    Name pattern: [digest::mac::MacMarker]
-    Visibility: public -/
-@[rust_trait "digest::mac::MacMarker"]
-structure digest.mac.MacMarker (Self : Type) where
-
-/-- Trait declaration: [digest::Update]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/lib.rs', lines 77:0-77:16
-    Name pattern: [digest::Update]
-    Visibility: public -/
-@[rust_trait "digest::Update"]
-structure digest.Update (Self : Type) where
-  update : Self → Slice Std.U8 → Result Self
-
-/-- Trait declaration: [digest::FixedOutput]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/lib.rs', lines 93:0-93:54
-    Name pattern: [digest::FixedOutput]
-    Visibility: public -/
-@[rust_trait "digest::FixedOutput"
-  (parentClauses := ["UpdateInst", "crypto_commonOutputSizeUserInst"])]
-structure digest.FixedOutput (Self : Type) (Self_Clause1_OutputSize : Type)
-  (Self_Clause1_Clause0_ArrayType : Type) where
-  UpdateInst : digest.Update Self
-  crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser Self
-    Self_Clause1_OutputSize Self_Clause1_Clause0_ArrayType
-  finalize_into : Self → generic_array.GenericArray Std.U8
-    Self_Clause1_OutputSize Self_Clause1_Clause0_ArrayType → Result
-    (generic_array.GenericArray Std.U8 Self_Clause1_OutputSize
-    Self_Clause1_Clause0_ArrayType)
-
-/-- Trait declaration: [digest::core_api::wrapper::sealed::Sealed]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 272:4-272:20
-    Name pattern: [digest::core_api::wrapper::sealed::Sealed]
-    Visibility: public -/
-@[rust_trait "digest::core_api::wrapper::sealed::Sealed"]
-structure digest.core_api.wrapper.sealed.Sealed (Self : Type) where
-
-/-- Trait declaration: [digest::core_api::wrapper::CoreProxy]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 266:0-266:35
-    Name pattern: [digest::core_api::wrapper::CoreProxy]
-    Visibility: public -/
-@[rust_trait "digest::core_api::wrapper::CoreProxy"
-  (parentClauses := ["sealedSealedInst"])]
-structure digest.core_api.wrapper.CoreProxy (Self : Type) (Self_Core : Type)
-  where
-  sealedSealedInst : digest.core_api.wrapper.sealed.Sealed Self
-
-/-- [hkdf::errors::InvalidLength]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/errors.rs', lines 19:0-19:24
-    Name pattern: [hkdf::errors::InvalidLength]
-    Visibility: public -/
-@[reducible, rust_type "hkdf::errors::InvalidLength"]
-def hkdf.errors.InvalidLength := Unit
-
-/-- Trait declaration: [hkdf::sealed::Sealed]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 12:0-12:35
-    Name pattern: [hkdf::sealed::Sealed]
-    Visibility: public -/
-@[rust_trait "hkdf::sealed::Sealed"
-  (parentClauses := ["crypto_commonOutputSizeUserInst", "corecloneCloneInst"])]
-structure hkdf.sealed.Sealed (Self : Type) (H : Type) (Self_Core : Type)
-  (Self_Clause0_OutputSize : Type) (Self_Clause0_Clause0_ArrayType : Type)
-  where
-  crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser H
-    Self_Clause0_OutputSize Self_Clause0_Clause0_ArrayType
-  corecloneCloneInst : core.clone.Clone Self_Core
-  new_from_slice : Slice Std.U8 → Result Self
-  new_core : Slice Std.U8 → Result Self_Core
-  from_core : Self_Core → Result Self
-  update : Self → Slice Std.U8 → Result Self
-  finalize : Self → Result (generic_array.GenericArray Std.U8
-    Self_Clause0_OutputSize Self_Clause0_Clause0_ArrayType)
-
-/-- Trait declaration: [hkdf::HmacImpl]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/lib.rs', lines 288:0-288:56
-    Name pattern: [hkdf::HmacImpl]
-    Visibility: public -/
-@[rust_trait "hkdf::HmacImpl"
-  (parentClauses := ["sealedSealedInst", "crypto_commonOutputSizeUserInst"])]
-structure hkdf.HmacImpl (Self : Type) (H : Type) (Self_Clause0_Core : Type)
-  (Self_Clause0_Clause0_OutputSize : Type)
-  (Self_Clause0_Clause0_Clause0_ArrayType : Type) (Self_Clause1_OutputSize :
-  Type) (Self_Clause1_Clause0_ArrayType : Type) where
-  sealedSealedInst : hkdf.sealed.Sealed Self H Self_Clause0_Core
-    Self_Clause0_Clause0_OutputSize Self_Clause0_Clause0_Clause0_ArrayType
-  crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser H
-    Self_Clause1_OutputSize Self_Clause1_Clause0_ArrayType
 
 /-- [libsignal_core::address::ServiceIdKind]
     Source: 'rust/core/src/address.rs', lines 19:0-19:22
@@ -632,31 +195,31 @@ inductive libsignal_core.curve.PrivateKeyData where
 structure libsignal_core.curve.PrivateKey where
   key : libsignal_core.curve.PrivateKeyData
 
-/-- Trait declaration: [rand_core::RngCore]
+/-- Trait declaration: [rand_core#1::RngCore]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 130:0-130:17
-    Name pattern: [rand_core::RngCore]
+    Name pattern: [rand_core#1::RngCore]
     Visibility: public -/
-@[rust_trait "rand_core::RngCore"]
-structure rand_core.RngCore (Self : Type) where
+@[rust_trait "rand_core#1::RngCore"]
+structure rand_core_1.RngCore (Self : Type) where
   next_u32 : Self → Result (Std.U32 × Self)
   next_u64 : Self → Result (Std.U64 × Self)
   fill_bytes : Self → Slice Std.U8 → Result (Self × (Slice Std.U8))
 
-/-- Trait declaration: [rand_core::CryptoRng]
+/-- Trait declaration: [rand_core#1::CryptoRng]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 204:0-204:28
-    Name pattern: [rand_core::CryptoRng]
+    Name pattern: [rand_core#1::CryptoRng]
     Visibility: public -/
-@[rust_trait "rand_core::CryptoRng" (parentClauses := ["RngCoreInst"])]
-structure rand_core.CryptoRng (Self : Type) where
-  RngCoreInst : rand_core.RngCore Self
+@[rust_trait "rand_core#1::CryptoRng" (parentClauses := ["RngCoreInst"])]
+structure rand_core_1.CryptoRng (Self : Type) where
+  RngCoreInst : rand_core_1.RngCore Self
 
 /-- Trait declaration: [rand::rng::Rng]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
     Name pattern: [rand::rng::Rng]
     Visibility: public -/
-@[rust_trait "rand::rng::Rng" (parentClauses := ["rand_coreRngCoreInst"])]
+@[rust_trait "rand::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
 structure rand.rng.Rng (Self : Type) where
-  rand_coreRngCoreInst : rand_core.RngCore Self
+  rand_core_1RngCoreInst : rand_core_1.RngCore Self
 
 /-- [libsignal_core::curve::KeyPair]
     Source: 'rust/core/src/curve.rs', lines 321:0-321:18
@@ -667,50 +230,20 @@ structure libsignal_core.curve.KeyPair where
   public_key : libsignal_core.curve.PublicKey
   private_key : libsignal_core.curve.PrivateKey
 
-/-- Trait declaration: [prost::encoding::sealed::BytesAdapter]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 638:4-638:53
-    Name pattern: [prost::encoding::sealed::BytesAdapter]
-    Visibility: public -/
-@[rust_trait "prost::encoding::sealed::BytesAdapter"
-  (parentClauses := ["coredefaultDefaultInst"])]
-structure prost.encoding.sealed.BytesAdapter (Self : Type) where
-  coredefaultDefaultInst : core.default.Default Self
-  len : Self → Result Std.Usize
-  replace_with : forall {T1 : Type} (bytesbufbuf_implBufInst :
-    bytes.buf.buf_impl.Buf T1), Self → T1 → Result Self
-  append_to : forall {T1 : Type} (bytesbufbuf_mutBufMutInst :
-    bytes.buf.buf_mut.BufMut T1), Self → T1 → Result T1
-
-/-- Trait declaration: [prost::encoding::BytesAdapter]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 633:0-633:44
-    Name pattern: [prost::encoding::BytesAdapter]
-    Visibility: public -/
-@[rust_trait "prost::encoding::BytesAdapter"
-  (parentClauses := ["sealedBytesAdapterInst"])]
-structure prost.encoding.BytesAdapter (Self : Type) where
-  sealedBytesAdapterInst : prost.encoding.sealed.BytesAdapter Self
-
-/-- [prost::error::UnknownEnumValue]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 141:0-141:27
-    Name pattern: [prost::error::UnknownEnumValue]
-    Visibility: public -/
-@[reducible, rust_type "prost::error::UnknownEnumValue"]
-def prost.error.UnknownEnumValue := Std.I32
-
-/-- [rand_core::UnwrapErr]
+/-- [rand_core#1::UnwrapErr]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 298:0-298:35
-    Name pattern: [rand_core::UnwrapErr]
+    Name pattern: [rand_core#1::UnwrapErr]
     Visibility: public -/
-@[reducible, rust_type "rand_core::UnwrapErr"]
-def rand_core.UnwrapErr (R : Type) (Clause0_Error : Type) := R
+@[reducible, rust_type "rand_core#1::UnwrapErr"]
+def rand_core_1.UnwrapErr (R : Type) (Clause0_Error : Type) := R
 
-/-- Trait declaration: [rand_core::TryRngCore]
+/-- Trait declaration: [rand_core#1::TryRngCore]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 220:0-220:20
-    Name pattern: [rand_core::TryRngCore]
+    Name pattern: [rand_core#1::TryRngCore]
     Visibility: public -/
-@[rust_trait "rand_core::TryRngCore"
+@[rust_trait "rand_core#1::TryRngCore"
   (parentClauses := ["corefmtDebugInst", "corefmtDisplayInst"])]
-structure rand_core.TryRngCore (Self : Type) (Self_Error : Type) where
+structure rand_core_1.TryRngCore (Self : Type) (Self_Error : Type) where
   corefmtDebugInst : core.fmt.Debug Self_Error
   corefmtDisplayInst : core.fmt.Display Self_Error
   try_next_u32 : Self → Result ((core.result.Result Std.U32 Self_Error) ×
@@ -719,91 +252,23 @@ structure rand_core.TryRngCore (Self : Type) (Self_Error : Type) where
     Self)
   try_fill_bytes : Self → Slice Std.U8 → Result ((core.result.Result Unit
     Self_Error) × Self × (Slice Std.U8))
-  unwrap_err : Self → Result (rand_core.UnwrapErr Self Self_Error)
+  unwrap_err : Self → Result (rand_core_1.UnwrapErr Self Self_Error)
 
-/-- Trait declaration: [rand_core::TryCryptoRng]
+/-- Trait declaration: [rand_core#1::TryCryptoRng]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 291:0-291:34
-    Name pattern: [rand_core::TryCryptoRng]
+    Name pattern: [rand_core#1::TryCryptoRng]
     Visibility: public -/
-@[rust_trait "rand_core::TryCryptoRng" (parentClauses := ["TryRngCoreInst"])]
-structure rand_core.TryCryptoRng (Self : Type) (Self_Clause0_Error : Type)
+@[rust_trait "rand_core#1::TryCryptoRng" (parentClauses := ["TryRngCoreInst"])]
+structure rand_core_1.TryCryptoRng (Self : Type) (Self_Clause0_Error : Type)
   where
-  TryRngCoreInst : rand_core.TryRngCore Self Self_Clause0_Error
+  TryRngCoreInst : rand_core_1.TryRngCore Self Self_Clause0_Error
 
-/-- [rand_core::os::OsRng]
+/-- [rand_core#1::os::OsRng]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 47:0-47:16
-    Name pattern: [rand_core::os::OsRng]
+    Name pattern: [rand_core#1::os::OsRng]
     Visibility: public -/
-@[reducible, rust_type "rand_core::os::OsRng"]
-def rand_core.os.OsRng := Unit
-
-/-- Trait declaration: [typenum::marker_traits::Ord]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/marker_traits.rs', lines 29:0-29:21
-    Name pattern: [typenum::marker_traits::Ord]
-    Visibility: public -/
-@[rust_trait "typenum::marker_traits::Ord"
-  (parentClauses := ["sealedSealedInst"])]
-structure typenum.marker_traits.Ord (Self : Type) where
-  sealedSealedInst : typenum.sealed.Sealed Self
-  to_ordering : Result Ordering
-
-/-- [typenum::Less]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 98:0-98:15
-    Name pattern: [typenum::Less]
-    Visibility: public -/
-@[reducible, rust_type "typenum::Less"]
-def typenum.Less := Unit
-
-/-- Trait declaration: [typenum::private::PrivateCmp]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 320:0-320:32
-    Name pattern: [typenum::private::PrivateCmp]
-    Visibility: public -/
-@[rust_trait "typenum::private::PrivateCmp"]
-structure typenum.private.PrivateCmp (Self : Type) (Rhs : Type) (SoFar : Type)
-  (Self_Output : Type) where
-  private_cmp : Self → Rhs → SoFar → Result Self_Output
-
-/-- [typenum::Greater]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 92:0-92:18
-    Name pattern: [typenum::Greater]
-    Visibility: public -/
-@[reducible, rust_type "typenum::Greater"]
-def typenum.Greater := Unit
-
-/-- Trait declaration: [typenum::private::InternalMarker]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 31:0-31:24
-    Name pattern: [typenum::private::InternalMarker]
-    Visibility: public -/
-@[rust_trait "typenum::private::InternalMarker"]
-structure typenum.private.InternalMarker (Self : Type) where
-
-/-- [typenum::Equal]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 104:0-104:16
-    Name pattern: [typenum::Equal]
-    Visibility: public -/
-@[reducible, rust_type "typenum::Equal"]
-def typenum.Equal := Unit
-
-/-- Trait declaration: [typenum::type_operators::Cmp]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/type_operators.rs', lines 310:0-310:25
-    Name pattern: [typenum::type_operators::Cmp]
-    Visibility: public -/
-@[rust_trait "typenum::type_operators::Cmp"]
-structure typenum.type_operators.Cmp (Self : Type) (Rhs : Type) (Self_Output :
-  Type) where
-  compare : forall {IM : Type} (privateInternalMarkerInst :
-    typenum.private.InternalMarker IM), Self → Rhs → Result Self_Output
-
-/-- Trait declaration: [typenum::private::IsLessPrivate]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 394:0-394:33
-    Name pattern: [typenum::private::IsLessPrivate]
-    Visibility: public -/
-@[rust_trait "typenum::private::IsLessPrivate"
-  (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.private.IsLessPrivate (Self : Type) (Rhs : Type) (Cmp : Type)
-  (Self_Output : Type) where
-  marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
-  is_less_private : Self → Rhs → Cmp → Result Self_Output
+@[reducible, rust_type "rand_core#1::os::OsRng"]
+def rand_core_1.os.OsRng := Unit
 
 /-- [spqr::chain::ChainParams]
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/chain.rs', lines 17:0-17:22
@@ -898,17 +363,6 @@ inductive spqr.Error where
 | InvalidParams : Str → spqr.Error
 | ChainNotAvailable : spqr.Error
 
-/-- Trait declaration: [typenum::private::IsLessOrEqualPrivate]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 490:0-490:40
-    Name pattern: [typenum::private::IsLessOrEqualPrivate]
-    Visibility: public -/
-@[rust_trait "typenum::private::IsLessOrEqualPrivate"
-  (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.private.IsLessOrEqualPrivate (Self : Type) (Rhs : Type) (Cmp
-  : Type) (Self_Output : Type) where
-  marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
-  is_less_or_equal_private : Self → Rhs → Cmp → Result Self_Output
-
 /-- [libsignal_protocol::proto::fingerprint::LogicalFingerprint]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.fingerprint.rs', lines 3:0-7:1
     Visibility: public -/
@@ -922,94 +376,6 @@ structure proto.fingerprint.CombinedFingerprints where
   version : Option Std.U32
   local_fingerprint : Option proto.fingerprint.LogicalFingerprint
   remote_fingerprint : Option proto.fingerprint.LogicalFingerprint
-
-/-- [libsignal_protocol::proto::sealed_sender::ServerCertificate]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 3:0-8:1
-    Visibility: public -/
-structure proto.sealed_sender.ServerCertificate where
-  certificate : Option (alloc.vec.Vec Std.U8)
-  signature : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::server_certificate::Certificate]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 12:4-17:5
-    Visibility: public -/
-structure proto.sealed_sender.server_certificate.Certificate where
-  id : Option Std.U32
-  key : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::SenderCertificate]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 20:0-25:1
-    Visibility: public -/
-structure proto.sealed_sender.SenderCertificate where
-  certificate : Option (alloc.vec.Vec Std.U8)
-  signature : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::sender_certificate::certificate::Signer]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 53:8-58:9
-    Visibility: public -/
-@[discriminant isize]
-inductive proto.sealed_sender.sender_certificate.certificate.Signer where
-| Certificate :
-  alloc.vec.Vec Std.U8 →
-  proto.sealed_sender.sender_certificate.certificate.Signer
-| Id : Std.U32 → proto.sealed_sender.sender_certificate.certificate.Signer
-
-/-- [libsignal_protocol::proto::sealed_sender::sender_certificate::certificate::SenderUuid]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 46:8-51:9
-    Visibility: public -/
-@[discriminant isize]
-inductive proto.sealed_sender.sender_certificate.certificate.SenderUuid where
-| UuidString :
-  String →
-  proto.sealed_sender.sender_certificate.certificate.SenderUuid
-| UuidBytes :
-  alloc.vec.Vec Std.U8 →
-  proto.sealed_sender.sender_certificate.certificate.SenderUuid
-
-/-- [libsignal_protocol::proto::sealed_sender::sender_certificate::Certificate]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 29:4-42:5
-    Visibility: public -/
-structure proto.sealed_sender.sender_certificate.Certificate where
-  sender_e164 : Option String
-  sender_device : Option Std.U32
-  expires : Option Std.U64
-  identity_key : Option (alloc.vec.Vec Std.U8)
-  sender_uuid : Option
-    proto.sealed_sender.sender_certificate.certificate.SenderUuid
-  signer : Option proto.sealed_sender.sender_certificate.certificate.Signer
-
-/-- [libsignal_protocol::proto::sealed_sender::unidentified_sender_message::Message]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 73:4-84:5
-    Visibility: public -/
-structure proto.sealed_sender.unidentified_sender_message.Message where
-  type : Option Std.I32
-  sender_certificate : Option (alloc.vec.Vec Std.U8)
-  content : Option (alloc.vec.Vec Std.U8)
-  content_hint : Option Std.I32
-  group_id : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::unidentified_sender_message::message::Type]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 99:8-104:9
-    Visibility: public -/
-@[discriminant i32 [1,2,7,8]]
-inductive proto.sealed_sender.unidentified_sender_message.message.Type where
-| PrekeyMessage : proto.sealed_sender.unidentified_sender_message.message.Type
-| Message : proto.sealed_sender.unidentified_sender_message.message.Type
-| SenderkeyMessage :
-  proto.sealed_sender.unidentified_sender_message.message.Type
-| PlaintextContent :
-  proto.sealed_sender.unidentified_sender_message.message.Type
-
-/-- [libsignal_protocol::proto::sealed_sender::unidentified_sender_message::message::ContentHint]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 141:8-146:9
-    Visibility: public -/
-@[discriminant i32 [1,2]]
-inductive proto.sealed_sender.unidentified_sender_message.message.ContentHint
-  where
-| Resendable :
-  proto.sealed_sender.unidentified_sender_message.message.ContentHint
-| Implicit :
-  proto.sealed_sender.unidentified_sender_message.message.ContentHint
 
 /-- [libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 85:4-90:5
@@ -1144,36 +510,6 @@ structure proto.storage.SenderKeyStateStructure where
 structure proto.storage.SenderKeyRecordStructure where
   sender_key_states : alloc.vec.Vec proto.storage.SenderKeyStateStructure
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure#1]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure_1 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure#2]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure_2 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure#3]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure_3 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure#4]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure_4 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len::closure#5]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53 -/
-@[reducible]
-def proto.wire.MessageSignalMessage.encoded_len.closure_5 := Unit
-
 /-- [libsignal_protocol::proto::wire::SignalMessage]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 3:0-16:1
     Visibility: public -/
@@ -1184,46 +520,6 @@ structure proto.wire.SignalMessage where
   ciphertext : Option (alloc.vec.Vec Std.U8)
   pq_ratchet : Option (alloc.vec.Vec Std.U8)
   addresses : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#1]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_1 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#2]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_2 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#3]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_3 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#4]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_4 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#5]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_5 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#6]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_6 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len::closure#7]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53 -/
-@[reducible]
-def proto.wire.MessagePreKeySignalMessage.encoded_len.closure_7 := Unit
 
 /-- [libsignal_protocol::proto::wire::PreKeySignalMessage]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 18:0-36:1
@@ -1238,26 +534,6 @@ structure proto.wire.PreKeySignalMessage where
   identity_key : Option (alloc.vec.Vec Std.U8)
   message : Option (alloc.vec.Vec Std.U8)
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len::closure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyMessage.encoded_len.closure := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len::closure#1]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyMessage.encoded_len.closure_1 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len::closure#2]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyMessage.encoded_len.closure_2 := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len::closure#3]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyMessage.encoded_len.closure_3 := Unit
-
 /-- [libsignal_protocol::proto::wire::SenderKeyMessage]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 38:0-47:1
     Visibility: public -/
@@ -1266,35 +542,6 @@ structure proto.wire.SenderKeyMessage where
   chain_id : Option Std.U32
   iteration : Option Std.U32
   ciphertext : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len::closure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyDistributionMessage.encoded_len.closure := Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len::closure#1]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyDistributionMessage.encoded_len.closure_1 :=
-Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len::closure#2]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyDistributionMessage.encoded_len.closure_2 :=
-Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len::closure#3]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyDistributionMessage.encoded_len.closure_3 :=
-Unit
-
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len::closure#4]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53 -/
-@[reducible]
-def proto.wire.MessageSenderKeyDistributionMessage.encoded_len.closure_4 :=
-Unit
 
 /-- [libsignal_protocol::proto::wire::SenderKeyDistributionMessage]
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 49:0-60:1
@@ -1374,14 +621,14 @@ inductive protocol.CiphertextMessageType where
 | Plaintext : protocol.CiphertextMessageType
 
 /-- [libsignal_protocol::kem::KeyType]
-    Source: 'rust/protocol/src/kem.rs', lines 207:0-216:1
+    Source: 'rust/protocol/src/kem.rs', lines 203:0-212:1
     Visibility: public -/
 @[discriminant isize]
 inductive kem.KeyType where
 | Kyber1024 : kem.KeyType
 
 /-- [libsignal_protocol::error::SignalProtocolError]
-    Source: 'rust/protocol/src/error.rs', lines 18:0-112:1
+    Source: 'rust/protocol/src/error.rs', lines 18:0-107:1
     Visibility: public -/
 @[discriminant isize]
 inductive error.SignalProtocolError where
@@ -1502,19 +749,6 @@ structure fingerprint.Fingerprint where
 structure identity_key.IdentityKey where
   public_key : libsignal_core.curve.PublicKey
 
-/-- [libsignal_protocol::sender_keys::SenderKeyState]
-    Source: 'rust/protocol/src/sender_keys.rs', lines 132:0-134:1 -/
-structure sender_keys.SenderKeyState where
-  state : proto.storage.SenderKeyStateStructure
-
-/-- [libsignal_protocol::sender_keys::SenderMessageKey]
-    Source: 'rust/protocol/src/sender_keys.rs', lines 26:0-31:1 -/
-structure sender_keys.SenderMessageKey where
-  iteration : Std.U32
-  iv : alloc.vec.Vec Std.U8
-  cipher_key : alloc.vec.Vec Std.U8
-  seed : alloc.vec.Vec Std.U8
-
 /-- [libsignal_protocol::identity_key::IdentityKeyPair]
     Source: 'rust/protocol/src/identity_key.rs', lines 111:0-114:1
     Visibility: public -/
@@ -1530,63 +764,63 @@ def identity_key.TryFromIdentityKeyPairShared0SliceU8SignalProtocolError.try_fro
 Unit
 
 /-- [libsignal_protocol::kem::KeyMaterial]
-    Source: 'rust/protocol/src/kem.rs', lines 280:0-284:1 -/
+    Source: 'rust/protocol/src/kem.rs', lines 276:0-280:1 -/
 structure kem.KeyMaterial (T : Type) where
   data : Slice Std.U8
   kind : core.marker.PhantomData T
 
 /-- [libsignal_protocol::kem::Public]
-    Source: 'rust/protocol/src/kem.rs', lines 262:0-262:18
+    Source: 'rust/protocol/src/kem.rs', lines 258:0-258:18
     Visibility: public -/
 inductive kem.Public where
 
 /-- [libsignal_protocol::kem::BadKEMKeyLength]
-    Source: 'rust/protocol/src/kem.rs', lines 197:0-197:23 -/
+    Source: 'rust/protocol/src/kem.rs', lines 193:0-193:23 -/
 @[reducible]
 def kem.BadKEMKeyLength := Unit
 
 /-- [libsignal_protocol::kem::Secret]
-    Source: 'rust/protocol/src/kem.rs', lines 270:0-270:18
+    Source: 'rust/protocol/src/kem.rs', lines 266:0-266:18
     Visibility: public -/
 inductive kem.Secret where
 
 /-- [libsignal_protocol::kem::DecapsulateError]
-    Source: 'rust/protocol/src/kem.rs', lines 200:0-203:1 -/
+    Source: 'rust/protocol/src/kem.rs', lines 196:0-199:1 -/
 @[discriminant isize]
 inductive kem.DecapsulateError where
 | BadKeyLength : kem.DecapsulateError
 | BadCiphertext : kem.DecapsulateError
 
 /-- Trait declaration: [libsignal_protocol::kem::KeyKind]
-    Source: 'rust/protocol/src/kem.rs', lines 258:0-260:1
+    Source: 'rust/protocol/src/kem.rs', lines 254:0-256:1
     Visibility: public -/
 structure kem.KeyKind (Self : Type) where
   key_length : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::Key]
-    Source: 'rust/protocol/src/kem.rs', lines 308:0-311:1
+    Source: 'rust/protocol/src/kem.rs', lines 304:0-307:1
     Visibility: public -/
 structure kem.Key (T : Type) where
   key_type : kem.KeyType
   key_data : kem.KeyMaterial T
 
 /-- [libsignal_protocol::kem::Ciphertext]
-    Source: 'rust/protocol/src/kem.rs', lines 509:0-512:1 -/
+    Source: 'rust/protocol/src/kem.rs', lines 501:0-504:1 -/
 structure kem.Ciphertext where
   key_type : kem.KeyType
   data : Slice Std.U8
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::closure]
-    Source: 'rust/protocol/src/kem.rs', lines 368:21-370:13 -/
+    Source: 'rust/protocol/src/kem.rs', lines 362:21-364:13 -/
 @[reducible]
 def kem.KeyPublic.encapsulate.closure (R : Type) := kem.Key kem.Public
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>}::decapsulate::closure]
-    Source: 'rust/protocol/src/kem.rs', lines 403:21-410:13 -/
+    Source: 'rust/protocol/src/kem.rs', lines 395:21-402:13 -/
 def kem.KeySecret.decapsulate.closure := kem.Key kem.Secret × Slice Std.U8
 
 /-- [libsignal_protocol::kem::KeyPair]
-    Source: 'rust/protocol/src/kem.rs', lines 460:0-463:1
+    Source: 'rust/protocol/src/kem.rs', lines 452:0-455:1
     Visibility: public -/
 structure kem.KeyPair where
   public_key : kem.Key kem.Public
@@ -1598,20 +832,20 @@ structure kem.KeyPair where
 def pqxdh.Pqxdh := Unit
 
 /-- [libsignal_protocol::pqxdh::HandshakeKeys]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 69:0-73:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 65:0-69:1 -/
 structure pqxdh.HandshakeKeys where
   root_key : ratchet.keys.RootKey
   chain_key : ratchet.keys.ChainKey
   pqr_key : Array Std.U8 32#usize
 
 /-- [libsignal_protocol::pqxdh::InitiatorAgreement]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 105:0-110:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 101:0-106:1 -/
 structure pqxdh.InitiatorAgreement where
   keys : pqxdh.HandshakeKeys
   kyber_ciphertext : Slice Std.U8
 
 /-- [libsignal_protocol::pqxdh::InitiatorParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 117:0-128:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 113:0-124:1
     Visibility: public -/
 structure pqxdh.InitiatorParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair
@@ -1624,7 +858,7 @@ structure pqxdh.InitiatorParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::pqxdh::RecipientParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 252:0-263:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 248:0-259:1
     Visibility: public -/
 structure pqxdh.RecipientParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair
@@ -1780,12 +1014,12 @@ structure state.session.SessionState where
   session : proto.storage.SessionStructure
 
 /-- [libsignal_protocol::ratchet::initialize_initiator_session::closure]
-    Source: 'rust/protocol/src/ratchet.rs', lines 94:13-100:5 -/
+    Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
 @[reducible]
 def ratchet.initialize_initiator_session.closure (R : Type) := Unit
 
 /-- [libsignal_protocol::ratchet::initialize_recipient_session::closure]
-    Source: 'rust/protocol/src/ratchet.rs', lines 157:13-163:5 -/
+    Source: 'rust/protocol/src/ratchet.rs', lines 155:13-161:5 -/
 @[reducible]
 def ratchet.initialize_recipient_session.closure := Unit
 
@@ -1796,534 +1030,29 @@ structure state.session.SessionRecord where
   current_session : Option state.session.SessionState
   previous_sessions : alloc.vec.Vec (alloc.vec.Vec Std.U8)
 
-/-- [libsignal_protocol::sealed_sender::ServerCertificate]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 30:0-36:1
-    Visibility: public -/
-structure sealed_sender.ServerCertificate where
-  serialized : alloc.vec.Vec Std.U8
-  key_id : Std.U32
-  key : libsignal_core.curve.PublicKey
-  certificate : alloc.vec.Vec Std.U8
-  signature : alloc.vec.Vec Std.U8
-
-/-- [libsignal_protocol::sealed_sender::SenderCertificateSigner]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 191:0-194:1 -/
-@[discriminant isize]
-inductive sealed_sender.SenderCertificateSigner where
-| Embedded :
-  sealed_sender.ServerCertificate →
-  sealed_sender.SenderCertificateSigner
-| Reference : Std.U32 → sealed_sender.SenderCertificateSigner
-
-/-- [libsignal_protocol::sealed_sender::SenderCertificate]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 197:0-207:1
-    Visibility: public -/
-structure sealed_sender.SenderCertificate where
-  signer : sealed_sender.SenderCertificateSigner
-  key : libsignal_core.curve.PublicKey
-  sender_device_id : libsignal_core.address.DeviceId
-  sender_uuid : String
-  sender_e164 : Option String
-  expiration : timestamp.Timestamp
-  serialized : alloc.vec.Vec Std.U8
-  certificate : alloc.vec.Vec Std.U8
-  signature : alloc.vec.Vec Std.U8
-
-/-- [libsignal_protocol::sealed_sender::ContentHint]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 458:0-463:1
-    Visibility: public -/
-@[discriminant isize]
-inductive sealed_sender.ContentHint where
-| Default : sealed_sender.ContentHint
-| Resendable : sealed_sender.ContentHint
-| Implicit : sealed_sender.ContentHint
-| Unknown : Std.U32 → sealed_sender.ContentHint
-
-/-- [libsignal_protocol::sealed_sender::UnidentifiedSenderMessageContent]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 504:0-511:1
-    Visibility: public -/
-structure sealed_sender.UnidentifiedSenderMessageContent where
-  serialized : alloc.vec.Vec Std.U8
-  contents : alloc.vec.Vec Std.U8
-  sender : sealed_sender.SenderCertificate
-  msg_type : protocol.CiphertextMessageType
-  content_hint : sealed_sender.ContentHint
-  group_id : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::UnidentifiedSenderMessageContent}::new::closure]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 569:49-575:13 -/
-@[reducible]
-def sealed_sender.UnidentifiedSenderMessageContent.new.closure := Unit
-
-/-- [libsignal_protocol::sealed_sender::UnidentifiedSenderMessage]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 615:0-627:1 -/
-@[discriminant isize]
-inductive sealed_sender.UnidentifiedSenderMessage where
-| V1 :
-  libsignal_core.curve.PublicKey →
-  alloc.vec.Vec Std.U8 →
-  alloc.vec.Vec Std.U8 →
-  sealed_sender.UnidentifiedSenderMessage
-| V2 :
-  libsignal_core.curve.PublicKey →
-  Array Std.U8 32#usize →
-  Array Std.U8 16#usize →
-  Slice Std.U8 →
-  sealed_sender.UnidentifiedSenderMessage
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v1::EphemeralKeys]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 710:4-714:5 -/
-structure sealed_sender.sealed_sender_v1.EphemeralKeys where
-  chain_key : Array Std.U8 32#usize
-  cipher_key : Array Std.U8 32#usize
-  mac_key : Array Std.U8 32#usize
-
-/-- [libsignal_protocol::storage::traits::Direction]
-    Source: 'rust/protocol/src/storage/traits.rs', lines 25:0-30:1
-    Visibility: public -/
-@[discriminant isize]
-inductive storage.traits.Direction where
-| Sending : storage.traits.Direction
-| Receiving : storage.traits.Direction
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v1::StaticKeys]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 773:4-776:5 -/
-structure sealed_sender.sealed_sender_v1.StaticKeys where
-  cipher_key : Array Std.U8 32#usize
-  mac_key : Array Std.U8 32#usize
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v2::DerivedKeys]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1041:4-1043:5 -/
-structure sealed_sender.sealed_sender_v2.DerivedKeys where
-  kdf : hkdf.Hkdf (digest.core_api.wrapper.CoreWrapper
-    (digest.core_api.ct_variable.CtVariableCoreWrapper
-    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) (digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore
-    (digest.core_api.wrapper.CoreWrapper
-    (digest.core_api.ct_variable.CtVariableCoreWrapper
-    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) (digest.core_api.ct_variable.CtVariableCoreWrapper
-    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 typenum.bit.B1) (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    (hmac.optim.HmacCore (digest.core_api.wrapper.CoreWrapper
-    (digest.core_api.ct_variable.CtVariableCoreWrapper
-    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) (digest.core_api.ct_variable.CtVariableCoreWrapper
-    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 typenum.bit.B1) (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    typenum.bit.B1 (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
-
-/-- [libsignal_protocol::sealed_sender::SealedSenderV2SentMessageRecipient]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1610:0-1616:1
-    Visibility: public -/
-structure sealed_sender.SealedSenderV2SentMessageRecipient where
-  devices : alloc.vec.Vec (libsignal_core.address.DeviceId × Std.U16)
-  c_and_at : Slice Std.U8
-
-/-- [libsignal_protocol::sealed_sender::SealedSenderV2SentMessage]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1621:0-1634:1
-    Visibility: public -/
-structure sealed_sender.SealedSenderV2SentMessage where
-  full_message : Slice Std.U8
-  version : Std.U8
-  recipients : indexmap.map.IndexMap libsignal_core.address.ServiceId
-    sealed_sender.SealedSenderV2SentMessageRecipient
-    std.hash.random.RandomState
-  shared_bytes : Slice Std.U8
-
-/-- [libsignal_protocol::sealed_sender::SealedSenderDecryptionResult]
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1971:0-1976:1
-    Visibility: public -/
-structure sealed_sender.SealedSenderDecryptionResult where
-  sender_uuid : String
-  sender_e164 : Option String
-  device_id : libsignal_core.address.DeviceId
-  message : alloc.vec.Vec Std.U8
-
 /-- [libsignal_protocol::sender_keys::InvalidSessionError]
     Source: 'rust/protocol/src/sender_keys.rs', lines 17:0-17:52 -/
 @[reducible]
 def sender_keys.InvalidSessionError := Str
+
+/-- [libsignal_protocol::sender_keys::SenderMessageKey]
+    Source: 'rust/protocol/src/sender_keys.rs', lines 26:0-31:1 -/
+structure sender_keys.SenderMessageKey where
+  iteration : Std.U32
+  iv : alloc.vec.Vec Std.U8
+  cipher_key : alloc.vec.Vec Std.U8
+  seed : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::sender_keys::SenderChainKey]
     Source: 'rust/protocol/src/sender_keys.rs', lines 76:0-79:1 -/
 structure sender_keys.SenderChainKey where
   iteration : Std.U32
   chain_key : alloc.vec.Vec Std.U8
+
+/-- [libsignal_protocol::sender_keys::SenderKeyState]
+    Source: 'rust/protocol/src/sender_keys.rs', lines 132:0-134:1 -/
+structure sender_keys.SenderKeyState where
+  state : proto.storage.SenderKeyStateStructure
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::closure]
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
@@ -2347,35 +1076,20 @@ def sender_keys.SenderKeyRecord.deserialize.closure := Unit
 @[reducible]
 def sender_keys.SenderKeyRecord.chain_ids_for_logging.closure := Unit
 
-/-- [libsignal_protocol::session::PreKeysUsed]
-    Source: 'rust/protocol/src/session.rs', lines 20:0-24:1
-    Visibility: public -/
-structure session.PreKeysUsed where
-  one_time_ec_pre_key_id : Option state.prekey.PreKeyId
-  signed_ec_pre_key_id : state.signed_prekey.SignedPreKeyId
-  kyber_pre_key_id : Option state.kyber_prekey.KyberPreKeyId
-
-/-- [libsignal_protocol::session::IdentityToSave]
-    Source: 'rust/protocol/src/session.rs', lines 32:0-35:1
-    Visibility: public -/
-structure session.IdentityToSave where
-  remote_address : libsignal_core.address.ProtocolAddress
-  their_identity_key : identity_key.IdentityKey
-
 /-- [libsignal_protocol::session_management::CurrentOrPrevious]
-    Source: 'rust/protocol/src/session_management.rs', lines 691:0-696:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 702:0-707:1 -/
 @[discriminant isize]
 inductive session_management.CurrentOrPrevious where
 | Current : session_management.CurrentOrPrevious
 | Previous : session_management.CurrentOrPrevious
 
 /-- Trait declaration: [libsignal_protocol::session_management::_::DisplayToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 690:22-690:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
 structure session_management._.DisplayToDisplayDoc (Self : Type) where
   __displaydoc_display : Self → Result Self
 
 /-- Trait declaration: [libsignal_protocol::session_management::_::PathToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 690:22-690:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
 structure session_management._.PathToDisplayDoc (Self : Type) where
   __displaydoc_display : Self → Result std.path.Display
 

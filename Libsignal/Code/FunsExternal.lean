@@ -178,32 +178,6 @@ axiom core.iter.adapters.map.Map.Insts.CoreIterTraitsIteratorIterator.map
   core.iter.adapters.map.Map I F → F1 → Result (core.iter.adapters.map.Map
     (core.iter.adapters.map.Map I F) F1)
 
-/-- [core::iter::range::{impl core::iter::range::Step for u32}::backward_checked]:
-    Source: '/rustc/library/core/src/iter/range.rs', lines 290:16-290:74
-    Name pattern: [core::iter::range::{core::iter::range::Step<u32>}::backward_checked]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::range::{core::iter::range::Step<u32>}::backward_checked"]
-axiom U32.Insts.CoreIterRangeStep.backward_checked
-  : Std.U32 → Std.Usize → Result (Option Std.U32)
-
-/-- [core::iter::range::{impl core::iter::range::Step for u32}::forward_checked]:
-    Source: '/rustc/library/core/src/iter/range.rs', lines 282:16-282:73
-    Name pattern: [core::iter::range::{core::iter::range::Step<u32>}::forward_checked]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::range::{core::iter::range::Step<u32>}::forward_checked"]
-axiom U32.Insts.CoreIterRangeStep.forward_checked
-  : Std.U32 → Std.Usize → Result (Option Std.U32)
-
-/-- [core::iter::range::{impl core::iter::range::Step for u32}::steps_between]:
-    Source: '/rustc/library/core/src/iter/range.rs', lines 271:16-271:84
-    Name pattern: [core::iter::range::{core::iter::range::Step<u32>}::steps_between]
-    Visibility: public -/
-@[rust_fun "core::iter::range::{core::iter::range::Step<u32>}::steps_between"]
-axiom U32.Insts.CoreIterRangeStep.steps_between
-  : Std.U32 → Std.U32 → Result (Std.Usize × (Option Std.Usize))
-
 /-- [core::iter::traits::iterator::Iterator::map]:
     Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 831:4-834:34
     Name pattern: [core::iter::traits::iterator::Iterator::map]
@@ -330,16 +304,6 @@ axiom core.option.Option.map
   {T : Type} {U : Type} {F : Type} (opsfunctionFnOnceFTupleTUInst :
   core.ops.function.FnOnce F T U) :
   Option T → F → Result (Option U)
-
-/-- [core::option::{core::option::Option<T>}::map_or]:
-    Source: '/rustc/library/core/src/option.rs', lines 1221:4-1224:28
-    Name pattern: [core::option::{core::option::Option<@T>}::map_or]
-    Visibility: public -/
-@[rust_fun "core::option::{core::option::Option<@T>}::map_or"]
-axiom core.option.Option.map_or
-  {T : Type} {U : Type} {F : Type} (opsfunctionFnOnceFTupleTUInst :
-  core.ops.function.FnOnce F T U) :
-  Option T → U → F → Result U
 
 /-- [core::option::{core::option::Option<T>}::ok_or]:
     Source: '/rustc/library/core/src/option.rs', lines 1334:4-1334:73
@@ -543,14 +507,6 @@ axiom core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.map
   core.slice.iter.Iter T → F → Result (core.iter.adapters.map.Map
     (core.slice.iter.Iter T) F)
 
-/-- [core::slice::{[T]}::first_chunk]:
-    Source: '/rustc/library/core/src/slice/mod.rs', lines 327:4-327:70
-    Name pattern: [core::slice::{[@T]}::first_chunk]
-    Visibility: public -/
-@[rust_fun "core::slice::{[@T]}::first_chunk"]
-axiom core.slice.Slice.first_chunk
-  {T : Type} (N : Std.Usize) : Slice T → Result (Option (Array T N))
-
 /-- [core::time::{impl core::default::Default for core::time::Duration}::default]:
     Source: '/rustc/library/core/src/time.rs', lines 79:60-79:67
     Name pattern: [core::time::{core::default::Default<core::time::Duration>}::default]
@@ -728,7 +684,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
     (alloc.collections.vec_deque.VecDeque T A)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, alloc::alloc::Global>}::with_capacity]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 845:4-845:56
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 843:4-843:56
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, alloc::alloc::Global>}::with_capacity]
     Visibility: public -/
 @[rust_fun
@@ -738,7 +694,7 @@ axiom alloc.collections.vec_deque.VecDequeTGlobal.with_capacity
   Std.Usize → Result (alloc.collections.vec_deque.VecDeque T Global)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::iter]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1571:4-1571:37
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1569:4-1569:37
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::iter]
     Visibility: public -/
 @[rust_fun
@@ -749,7 +705,7 @@ axiom alloc.collections.vec_deque.VecDeque.iter
     (alloc.collections.vec_deque.iter.Iter T)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::len]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1705:4-1705:30
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1703:4-1703:30
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::len]
     Visibility: public -/
 @[rust_fun
@@ -759,7 +715,7 @@ axiom alloc.collections.vec_deque.VecDeque.len
   alloc.collections.vec_deque.VecDeque T A → Result Std.Usize
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::push_back]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 2277:4-2277:41
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 2275:4-2275:41
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::push_back]
     Visibility: public -/
 @[rust_fun
@@ -770,7 +726,7 @@ axiom alloc.collections.vec_deque.VecDeque.push_back
     (alloc.collections.vec_deque.VecDeque T A)
 
 /-- [alloc::collections::vec_deque::{impl core::ops::index::Index<usize, T> for alloc::collections::vec_deque::VecDeque<T, A>}::index]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3812:4-3812:39
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3810:4-3810:39
     Name pattern: [alloc::collections::vec_deque::{core::ops::index::Index<alloc::collections::vec_deque::VecDeque<@T, @A>, usize, @T>}::index]
     Visibility: public -/
 @[rust_fun
@@ -780,7 +736,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreOpsIndexIndexUsizeT.index
   alloc.collections.vec_deque.VecDeque T A → Std.Usize → Result T
 
 /-- [alloc::collections::vec_deque::{impl core::ops::index::IndexMut<usize, T> for alloc::collections::vec_deque::VecDeque<T, A>}::index_mut]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3820:4-3820:51
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3818:4-3818:51
     Name pattern: [alloc::collections::vec_deque::{core::ops::index::IndexMut<alloc::collections::vec_deque::VecDeque<@T, @A>, usize, @T>}::index_mut]
     Visibility: public -/
 @[rust_fun
@@ -792,7 +748,7 @@ axiom
     → alloc.collections.vec_deque.VecDeque T A))
 
 /-- [alloc::collections::vec_deque::{impl core::iter::traits::collect::IntoIterator<&'a T, alloc::collections::vec_deque::iter::Iter<'a, T>> for &'a alloc::collections::vec_deque::VecDeque<T, A>}::into_iter]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3849:4-3849:37
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3847:4-3847:37
     Name pattern: [alloc::collections::vec_deque::{core::iter::traits::collect::IntoIterator<&'a alloc::collections::vec_deque::VecDeque<@T, @A>, &'a @T, alloc::collections::vec_deque::iter::Iter<'a, @T>>}::into_iter]
     Visibility: public -/
 @[rust_fun
@@ -834,15 +790,6 @@ axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref
 axiom alloc.string.ToString.Blanket.to_string
   {T : Type} (corefmtDisplayInst : core.fmt.Display T) : T → Result String
 
-/-- [alloc::string::{impl core::convert::AsRef<str> for alloc::string::String}::as_ref]:
-    Source: '/rustc/library/alloc/src/string.rs', lines 3098:4-3098:28
-    Name pattern: [alloc::string::{core::convert::AsRef<alloc::string::String, str>}::as_ref]
-    Visibility: public -/
-@[rust_fun
-  "alloc::string::{core::convert::AsRef<alloc::string::String, str>}::as_ref"]
-axiom alloc.string.String.Insts.CoreConvertAsRefStr.as_ref
-  : String → Result Str
-
 /-- [alloc::vec::{alloc::vec::Vec<T>}::into_boxed_slice]:
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 1733:4-1733:52
     Name pattern: [alloc::vec::{alloc::vec::Vec<@T>}::into_boxed_slice]
@@ -868,14 +815,6 @@ axiom alloc.vec.Vec.remove
 axiom alloc.vec.Vec.pop
   {T : Type} (A : Type) :
   alloc.vec.Vec T → Result ((Option T) × (alloc.vec.Vec T))
-
-/-- [alloc::vec::{alloc::vec::Vec<T>}::is_empty]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 3085:4-3085:40
-    Name pattern: [alloc::vec::{alloc::vec::Vec<@T>}::is_empty]
-    Visibility: public -/
-@[rust_fun "alloc::vec::{alloc::vec::Vec<@T>}::is_empty"]
-axiom alloc.vec.Vec.is_empty
-  {T : Type} (A : Type) : alloc.vec.Vec T → Result Bool
 
 /-- [alloc::vec::{impl core::default::Default for alloc::vec::Vec<T>}::default]:
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4304:4-4304:26
@@ -913,37 +852,6 @@ axiom alloc.vec.Vec.Insts.CoreConvertFromShared0Slice.from
   "alloc::vec::{core::convert::From<alloc::vec::Vec<@T>, Box<[@T]>>}::from"]
 axiom alloc.vec.Vec.Insts.CoreConvertFromBoxSlice.from
   {T : Type} (A : Type) : Slice T → Result (alloc.vec.Vec T)
-
-/-- [block_buffer::{impl core::default::Default for block_buffer::Eager}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/lib.rs', lines 27:29-27:36
-    Name pattern: [block_buffer::{core::default::Default<block_buffer::Eager>}::default]
-    Visibility: public -/
-@[rust_fun
-  "block_buffer::{core::default::Default<block_buffer::Eager>}::default"]
-axiom block_buffer.Eager.Insts.CoreDefaultDefault.default
-  : Result block_buffer.Eager
-
-/-- [block_buffer::sealed::{impl block_buffer::sealed::Sealed for block_buffer::Eager}::split_blocks]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/sealed.rs', lines 21:4-21:76
-    Name pattern: [block_buffer::sealed::{block_buffer::sealed::Sealed<block_buffer::Eager>}::split_blocks]
-    Visibility: public -/
-@[rust_fun
-  "block_buffer::sealed::{block_buffer::sealed::Sealed<block_buffer::Eager>}::split_blocks"]
-axiom block_buffer.Eager.Insts.Block_bufferSealedSealed.split_blocks
-  {N : Type} {Clause0_ArrayType : Type}
-  (generic_arrayArrayLengthNU8Clause0_ArrayTypeInst : generic_array.ArrayLength
-  N Std.U8 Clause0_ArrayType) :
-  Slice Std.U8 → Result ((Slice (generic_array.GenericArray Std.U8 N
-    Clause0_ArrayType)) × (Slice Std.U8))
-
-/-- [block_buffer::sealed::{impl block_buffer::sealed::Sealed for block_buffer::Eager}::invariant]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/sealed.rs', lines 16:4-16:55
-    Name pattern: [block_buffer::sealed::{block_buffer::sealed::Sealed<block_buffer::Eager>}::invariant]
-    Visibility: public -/
-@[rust_fun
-  "block_buffer::sealed::{block_buffer::sealed::Sealed<block_buffer::Eager>}::invariant"]
-axiom block_buffer.Eager.Insts.Block_bufferSealedSealed.invariant
-  : Std.Usize → Std.Usize → Result Bool
 
 /-- [bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::advance]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 2901:4-2901:37
@@ -1001,1020 +909,6 @@ axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.advance_mut
 axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.remaining_mut
   : alloc.vec.Vec Std.U8 → Result Std.Usize
 
-/-- [const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'_0 str>}::output_len]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/const-str-1.0.0/src/__ctfe/hex.rs', lines 95:4-95:43
-    Name pattern: [const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'0 str>}::output_len]
-    Visibility: public -/
-@[rust_fun
-  "const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'0 str>}::output_len"]
-axiom const_str.__ctfe.hex.HexShared0Str.output_len
-  : const_str.__ctfe.hex.Hex Str → Result Std.Usize
-
-/-- [const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'_0 str>}::const_eval]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/const-str-1.0.0/src/__ctfe/hex.rs', lines 99:4-99:61
-    Name pattern: [const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'0 str>}::const_eval]
-    Visibility: public -/
-@[rust_fun
-  "const_str::__ctfe::hex::{const_str::__ctfe::hex::Hex<&'0 str>}::const_eval"]
-axiom const_str.__ctfe.hex.HexShared0Str.const_eval
-  (N : Std.Usize) : const_str.__ctfe.hex.Hex Str → Result (Array Std.U8 N)
-
-/-- [crypto_common::{impl core::fmt::Debug for crypto_common::InvalidLength}::fmt]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 301:37-301:42
-    Name pattern: [crypto_common::{core::fmt::Debug<crypto_common::InvalidLength>}::fmt]
-    Visibility: public -/
-@[rust_fun
-  "crypto_common::{core::fmt::Debug<crypto_common::InvalidLength>}::fmt"]
-axiom crypto_common.InvalidLength.Insts.CoreFmtDebug.fmt
-  :
-  crypto_common.InvalidLength → core.fmt.Formatter → Result
-    ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
-
-/-- [digest::core_api::ct_variable::{impl core::clone::Clone for digest::core_api::ct_variable::CtVariableCoreWrapper<T, OutSize, O, Clause3_Clause0_Clause0_BlockSize, Clause3_Clause0_Clause0_Clause0_ArrayType, Clause3_Clause1_OutputSize, Clause3_Clause1_Clause0_ArrayType, Clause3_Clause2_BufferKind, Clause3_Clause2_Clause0_BlockSize, Clause3_Clause2_Clause0_Clause0_ArrayType, Clause3_Clause3_Output, Clause4_ArrayType, Clause5_Output, Clause7_Output>}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 24:9-24:14
-    Name pattern: [digest::core_api::ct_variable::{core::clone::Clone<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_OutputSize, @Clause3_Clause1_Clause0_ArrayType, @Clause3_Clause2_BufferKind, @Clause3_Clause2_Clause0_BlockSize, @Clause3_Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_ArrayType, @Clause5_Output, @Clause7_Output>>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::ct_variable::{core::clone::Clone<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_OutputSize, @Clause3_Clause1_Clause0_ArrayType, @Clause3_Clause2_BufferKind, @Clause3_Clause2_Clause0_BlockSize, @Clause3_Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_ArrayType, @Clause5_Output, @Clause7_Output>>}::clone"]
-axiom
-  digest.core_api.ct_variable.CtVariableCoreWrapper.Insts.CoreCloneClone.clone
-  {T : Type} {OutSize : Type} {O : Type} {Clause3_Clause0_Clause0_BlockSize :
-  Type} {Clause3_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause1_OutputSize : Type} {Clause3_Clause1_Clause0_ArrayType :
-  Type} {Clause3_Clause2_BufferKind : Type} {Clause3_Clause2_Clause0_BlockSize
-  : Type} {Clause3_Clause2_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause3_Output : Type} {Clause4_ArrayType : Type} {Clause5_Output :
-  Type} {Clause7_Output : Type} (corecloneCloneInst : core.clone.Clone T)
-  (corecloneCloneInst1 : core.clone.Clone OutSize) (corecloneCloneInst2 :
-  core.clone.Clone O) (VariableOutputCoreInst :
-  digest.core_api.VariableOutputCore T Clause3_Clause0_Clause0_BlockSize
-  Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_OutputSize
-  Clause3_Clause1_Clause0_ArrayType Clause3_Clause2_BufferKind
-  Clause3_Clause2_Clause0_BlockSize Clause3_Clause2_Clause0_Clause0_ArrayType
-  Clause3_Clause3_Output)
-  (generic_arrayArrayLengthOutSizeU8Clause4_ArrayTypeInst :
-  generic_array.ArrayLength OutSize Std.U8 Clause4_ArrayType)
-  (typenumtype_operatorsIsLessOrEqualInst :
-  typenum.type_operators.IsLessOrEqual OutSize Clause3_Clause1_OutputSize
-  Clause5_Output) (typenummarker_traitsNonZeroInst :
-  typenum.marker_traits.NonZero Clause5_Output)
-  (typenumtype_operatorsIsLessClause3_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause7_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_Clause0_BlockSize
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Clause7_Output)
-  (typenummarker_traitsNonZeroInst1 : typenum.marker_traits.NonZero
-  Clause7_Output) :
-  digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause3_Clause0_Clause0_BlockSize Clause3_Clause0_Clause0_Clause0_ArrayType
-    Clause3_Clause1_OutputSize Clause3_Clause1_Clause0_ArrayType
-    Clause3_Clause2_BufferKind Clause3_Clause2_Clause0_BlockSize
-    Clause3_Clause2_Clause0_Clause0_ArrayType Clause3_Clause3_Output
-    Clause4_ArrayType Clause5_Output Clause7_Output → Result
-    (digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause3_Clause0_Clause0_BlockSize Clause3_Clause0_Clause0_Clause0_ArrayType
-    Clause3_Clause1_OutputSize Clause3_Clause1_Clause0_ArrayType
-    Clause3_Clause2_BufferKind Clause3_Clause2_Clause0_BlockSize
-    Clause3_Clause2_Clause0_Clause0_ArrayType Clause3_Clause3_Output
-    Clause4_ArrayType Clause5_Output Clause7_Output)
-
-/-- [digest::core_api::ct_variable::{impl digest::core_api::UpdateCore<Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType> for digest::core_api::ct_variable::CtVariableCoreWrapper<T, OutSize, O, Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType, Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType, Clause0_Clause2_BufferKind, Clause0_Clause2_Clause0_BlockSize, Clause0_Clause2_Clause0_Clause0_ArrayType, Clause0_Clause3_Output, Clause1_ArrayType, Clause2_Output, Clause4_Output>}::update_blocks]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 78:4-78:55
-    Name pattern: [digest::core_api::ct_variable::{digest::core_api::UpdateCore<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType>}::update_blocks]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::ct_variable::{digest::core_api::UpdateCore<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType>}::update_blocks"]
-axiom
-  digest.core_api.ct_variable.CtVariableCoreWrapper.Insts.DigestCore_apiUpdateCore.update_blocks
-  {T : Type} {OutSize : Type} {O : Type} {Clause0_Clause0_Clause0_BlockSize :
-  Type} {Clause0_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause1_OutputSize : Type} {Clause0_Clause1_Clause0_ArrayType :
-  Type} {Clause0_Clause2_BufferKind : Type} {Clause0_Clause2_Clause0_BlockSize
-  : Type} {Clause0_Clause2_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause3_Output : Type} {Clause1_ArrayType : Type} {Clause2_Output :
-  Type} {Clause4_Output : Type} (VariableOutputCoreInst :
-  digest.core_api.VariableOutputCore T Clause0_Clause0_Clause0_BlockSize
-  Clause0_Clause0_Clause0_Clause0_ArrayType Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType Clause0_Clause2_BufferKind
-  Clause0_Clause2_Clause0_BlockSize Clause0_Clause2_Clause0_Clause0_ArrayType
-  Clause0_Clause3_Output)
-  (generic_arrayArrayLengthOutSizeU8Clause1_ArrayTypeInst :
-  generic_array.ArrayLength OutSize Std.U8 Clause1_ArrayType)
-  (typenumtype_operatorsIsLessOrEqualInst :
-  typenum.type_operators.IsLessOrEqual OutSize Clause0_Clause1_OutputSize
-  Clause2_Output) (typenummarker_traitsNonZeroInst :
-  typenum.marker_traits.NonZero Clause2_Output)
-  (typenumtype_operatorsIsLessClause0_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause4_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_Clause0_BlockSize
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Clause4_Output)
-  (typenummarker_traitsNonZeroInst1 : typenum.marker_traits.NonZero
-  Clause4_Output) :
-  digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause0_Clause1_OutputSize Clause0_Clause1_Clause0_ArrayType
-    Clause0_Clause2_BufferKind Clause0_Clause2_Clause0_BlockSize
-    Clause0_Clause2_Clause0_Clause0_ArrayType Clause0_Clause3_Output
-    Clause1_ArrayType Clause2_Output Clause4_Output → Slice
-    (generic_array.GenericArray Std.U8 Clause0_Clause0_Clause0_BlockSize
-    Clause0_Clause0_Clause0_Clause0_ArrayType) → Result
-    (digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause0_Clause1_OutputSize Clause0_Clause1_Clause0_ArrayType
-    Clause0_Clause2_BufferKind Clause0_Clause2_Clause0_BlockSize
-    Clause0_Clause2_Clause0_Clause0_ArrayType Clause0_Clause3_Output
-    Clause1_ArrayType Clause2_Output Clause4_Output)
-
-/-- [digest::core_api::ct_variable::{impl digest::core_api::FixedOutputCore<Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType, Clause0_Clause2_BufferKind, Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType, OutSize, Clause1_ArrayType, Clause4_Output> for digest::core_api::ct_variable::CtVariableCoreWrapper<T, OutSize, O, Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType, Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType, Clause0_Clause2_BufferKind, Clause0_Clause2_Clause0_BlockSize, Clause0_Clause2_Clause0_Clause0_ArrayType, Clause0_Clause3_Output, Clause1_ArrayType, Clause2_Output, Clause4_Output>}::finalize_fixed_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 114:4-118:5
-    Name pattern: [digest::core_api::ct_variable::{digest::core_api::FixedOutputCore<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @OutSize, @Clause1_ArrayType, @Clause4_Output>}::finalize_fixed_core]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::ct_variable::{digest::core_api::FixedOutputCore<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @OutSize, @Clause1_ArrayType, @Clause4_Output>}::finalize_fixed_core"]
-axiom
-  digest.core_api.ct_variable.CtVariableCoreWrapper.Insts.DigestCore_apiFixedOutputCore.finalize_fixed_core
-  {T : Type} {OutSize : Type} {O : Type} {Clause0_Clause0_Clause0_BlockSize :
-  Type} {Clause0_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause1_OutputSize : Type} {Clause0_Clause1_Clause0_ArrayType :
-  Type} {Clause0_Clause2_BufferKind : Type} {Clause0_Clause2_Clause0_BlockSize
-  : Type} {Clause0_Clause2_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause3_Output : Type} {Clause1_ArrayType : Type} {Clause2_Output :
-  Type} {Clause4_Output : Type} (VariableOutputCoreInst :
-  digest.core_api.VariableOutputCore T Clause0_Clause0_Clause0_BlockSize
-  Clause0_Clause0_Clause0_Clause0_ArrayType Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType Clause0_Clause2_BufferKind
-  Clause0_Clause2_Clause0_BlockSize Clause0_Clause2_Clause0_Clause0_ArrayType
-  Clause0_Clause3_Output)
-  (generic_arrayArrayLengthOutSizeU8Clause1_ArrayTypeInst :
-  generic_array.ArrayLength OutSize Std.U8 Clause1_ArrayType)
-  (typenumtype_operatorsIsLessOrEqualInst :
-  typenum.type_operators.IsLessOrEqual OutSize Clause0_Clause1_OutputSize
-  Clause2_Output) (typenummarker_traitsNonZeroInst :
-  typenum.marker_traits.NonZero Clause2_Output)
-  (typenumtype_operatorsIsLessClause0_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause4_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_Clause0_BlockSize
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Clause4_Output)
-  (typenummarker_traitsNonZeroInst1 : typenum.marker_traits.NonZero
-  Clause4_Output) :
-  digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause0_Clause1_OutputSize Clause0_Clause1_Clause0_ArrayType
-    Clause0_Clause2_BufferKind Clause0_Clause2_Clause0_BlockSize
-    Clause0_Clause2_Clause0_Clause0_ArrayType Clause0_Clause3_Output
-    Clause1_ArrayType Clause2_Output Clause4_Output →
-    block_buffer.BlockBuffer Clause0_Clause0_Clause0_BlockSize
-    Clause0_Clause2_BufferKind Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Output → generic_array.GenericArray Std.U8 OutSize
-    Clause1_ArrayType → Result
-    ((digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause0_Clause1_OutputSize Clause0_Clause1_Clause0_ArrayType
-    Clause0_Clause2_BufferKind Clause0_Clause2_Clause0_BlockSize
-    Clause0_Clause2_Clause0_Clause0_ArrayType Clause0_Clause3_Output
-    Clause1_ArrayType Clause2_Output Clause4_Output) ×
-    (block_buffer.BlockBuffer Clause0_Clause0_Clause0_BlockSize
-    Clause0_Clause2_BufferKind Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Output) × (generic_array.GenericArray Std.U8 OutSize
-    Clause1_ArrayType))
-
-/-- [digest::core_api::ct_variable::{impl core::default::Default for digest::core_api::ct_variable::CtVariableCoreWrapper<T, OutSize, O, Clause0_Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_Clause0_ArrayType, Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType, Clause0_Clause2_BufferKind, Clause0_Clause2_Clause0_BlockSize, Clause0_Clause2_Clause0_Clause0_ArrayType, Clause0_Clause3_Output, Clause1_ArrayType, Clause2_Output, Clause4_Output>}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 139:4-139:24
-    Name pattern: [digest::core_api::ct_variable::{core::default::Default<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>>}::default]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::ct_variable::{core::default::Default<digest::core_api::ct_variable::CtVariableCoreWrapper<@T, @OutSize, @O, @Clause0_Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_Clause0_ArrayType, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType, @Clause0_Clause2_BufferKind, @Clause0_Clause2_Clause0_BlockSize, @Clause0_Clause2_Clause0_Clause0_ArrayType, @Clause0_Clause3_Output, @Clause1_ArrayType, @Clause2_Output, @Clause4_Output>>}::default"]
-axiom
-  digest.core_api.ct_variable.CtVariableCoreWrapper.Insts.CoreDefaultDefault.default
-  {T : Type} {OutSize : Type} (O : Type) {Clause0_Clause0_Clause0_BlockSize :
-  Type} {Clause0_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause1_OutputSize : Type} {Clause0_Clause1_Clause0_ArrayType :
-  Type} {Clause0_Clause2_BufferKind : Type} {Clause0_Clause2_Clause0_BlockSize
-  : Type} {Clause0_Clause2_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause3_Output : Type} {Clause1_ArrayType : Type} {Clause2_Output :
-  Type} {Clause4_Output : Type} (VariableOutputCoreInst :
-  digest.core_api.VariableOutputCore T Clause0_Clause0_Clause0_BlockSize
-  Clause0_Clause0_Clause0_Clause0_ArrayType Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType Clause0_Clause2_BufferKind
-  Clause0_Clause2_Clause0_BlockSize Clause0_Clause2_Clause0_Clause0_ArrayType
-  Clause0_Clause3_Output)
-  (generic_arrayArrayLengthOutSizeU8Clause1_ArrayTypeInst :
-  generic_array.ArrayLength OutSize Std.U8 Clause1_ArrayType)
-  (typenumtype_operatorsIsLessOrEqualInst :
-  typenum.type_operators.IsLessOrEqual OutSize Clause0_Clause1_OutputSize
-  Clause2_Output) (typenummarker_traitsNonZeroInst :
-  typenum.marker_traits.NonZero Clause2_Output)
-  (typenumtype_operatorsIsLessClause0_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause4_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_Clause0_BlockSize
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Clause4_Output)
-  (typenummarker_traitsNonZeroInst1 : typenum.marker_traits.NonZero
-  Clause4_Output) :
-  Result (digest.core_api.ct_variable.CtVariableCoreWrapper T OutSize O
-    Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-    Clause0_Clause1_OutputSize Clause0_Clause1_Clause0_ArrayType
-    Clause0_Clause2_BufferKind Clause0_Clause2_Clause0_BlockSize
-    Clause0_Clause2_Clause0_Clause0_ArrayType Clause0_Clause3_Output
-    Clause1_ArrayType Clause2_Output Clause4_Output)
-
-/-- [sha2::{impl core::clone::Clone for sha2::OidSha256}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 196:23-196:28
-    Name pattern: [sha2::{core::clone::Clone<sha2::OidSha256>}::clone]
-    Visibility: public -/
-@[rust_fun "sha2::{core::clone::Clone<sha2::OidSha256>}::clone"]
-axiom sha2.OidSha256.Insts.CoreCloneClone.clone
-  : sha2.OidSha256 → Result sha2.OidSha256
-
-/-- [digest::core_api::wrapper::{impl core::default::Default for digest::core_api::wrapper::CoreWrapper<T, Clause1_BufferKind, Clause1_Clause0_BlockSize, Clause1_Clause0_Clause0_ArrayType, Clause2_Output>}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 23:16-23:23
-    Name pattern: [digest::core_api::wrapper::{core::default::Default<digest::core_api::wrapper::CoreWrapper<@T, @Clause1_BufferKind, @Clause1_Clause0_BlockSize, @Clause1_Clause0_Clause0_ArrayType, @Clause2_Output>>}::default]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::wrapper::{core::default::Default<digest::core_api::wrapper::CoreWrapper<@T, @Clause1_BufferKind, @Clause1_Clause0_BlockSize, @Clause1_Clause0_Clause0_ArrayType, @Clause2_Output>>}::default"]
-axiom digest.core_api.wrapper.CoreWrapper.Insts.CoreDefaultDefault.default
-  {T : Type} {Clause1_BufferKind : Type} {Clause1_Clause0_BlockSize : Type}
-  {Clause1_Clause0_Clause0_ArrayType : Type} {Clause2_Output : Type}
-  (coredefaultDefaultInst : core.default.Default T) (BufferKindUserInst :
-  digest.core_api.BufferKindUser T Clause1_BufferKind Clause1_Clause0_BlockSize
-  Clause1_Clause0_Clause0_ArrayType)
-  (typenumtype_operatorsIsLessClause1_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause2_OutputInst
-  : typenum.type_operators.IsLess Clause1_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause2_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause2_Output) (coredefaultDefaultInst1 : core.default.Default
-  Clause1_Clause0_BlockSize) (coredefaultDefaultInst2 : core.default.Default
-  Clause1_BufferKind) :
-  Result (digest.core_api.wrapper.CoreWrapper T Clause1_BufferKind
-    Clause1_Clause0_BlockSize Clause1_Clause0_Clause0_ArrayType Clause2_Output)
-
-/-- [digest::core_api::wrapper::{impl crypto_common::KeyInit<Clause1_Clause0_KeySize, Clause1_Clause0_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<T, Clause0_BufferKind, Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_ArrayType, Clause2_Output>}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 99:4-99:35
-    Name pattern: [digest::core_api::wrapper::{crypto_common::KeyInit<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_BufferKind, @Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_ArrayType, @Clause2_Output>, @Clause1_Clause0_KeySize, @Clause1_Clause0_Clause0_ArrayType>}::new]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::wrapper::{crypto_common::KeyInit<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_BufferKind, @Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_ArrayType, @Clause2_Output>, @Clause1_Clause0_KeySize, @Clause1_Clause0_Clause0_ArrayType>}::new"]
-axiom digest.core_api.wrapper.CoreWrapper.Insts.Crypto_commonKeyInit.new
-  {T : Type} {Clause0_BufferKind : Type} {Clause0_Clause0_BlockSize : Type}
-  {Clause0_Clause0_Clause0_ArrayType : Type} {Clause1_Clause0_KeySize : Type}
-  {Clause1_Clause0_Clause0_ArrayType : Type} {Clause2_Output : Type}
-  (BufferKindUserInst : digest.core_api.BufferKindUser T Clause0_BufferKind
-  Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_ArrayType)
-  (crypto_commonKeyInitInst : crypto_common.KeyInit T Clause1_Clause0_KeySize
-  Clause1_Clause0_Clause0_ArrayType)
-  (typenumtype_operatorsIsLessClause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause2_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause2_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause2_Output) :
-  generic_array.GenericArray Std.U8 Clause1_Clause0_KeySize
-    Clause1_Clause0_Clause0_ArrayType → Result
-    (digest.core_api.wrapper.CoreWrapper T Clause0_BufferKind
-    Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_ArrayType Clause2_Output)
-
-/-- [digest::core_api::wrapper::{impl digest::Update for digest::core_api::wrapper::CoreWrapper<T, Clause0_BufferKind, Clause0_Clause0_BlockSize, Clause0_Clause0_Clause0_ArrayType, Clause2_Output>}::update]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 148:4-148:38
-    Name pattern: [digest::core_api::wrapper::{digest::Update<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_BufferKind, @Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_ArrayType, @Clause2_Output>>}::update]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::wrapper::{digest::Update<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_BufferKind, @Clause0_Clause0_BlockSize, @Clause0_Clause0_Clause0_ArrayType, @Clause2_Output>>}::update"]
-axiom digest.core_api.wrapper.CoreWrapper.Insts.DigestUpdate.update
-  {T : Type} {Clause0_BufferKind : Type} {Clause0_Clause0_BlockSize : Type}
-  {Clause0_Clause0_Clause0_ArrayType : Type} {Clause1_Clause0_BlockSize : Type}
-  {Clause1_Clause0_Clause0_ArrayType : Type} {Clause2_Output : Type}
-  (BufferKindUserInst : digest.core_api.BufferKindUser T Clause0_BufferKind
-  Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_ArrayType) (UpdateCoreInst
-  : digest.core_api.UpdateCore T Clause1_Clause0_BlockSize
-  Clause1_Clause0_Clause0_ArrayType)
-  (typenumtype_operatorsIsLessClause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause2_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause2_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause2_Output) :
-  digest.core_api.wrapper.CoreWrapper T Clause0_BufferKind
-    Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_ArrayType Clause2_Output
-    → Slice Std.U8 → Result (digest.core_api.wrapper.CoreWrapper T
-    Clause0_BufferKind Clause0_Clause0_BlockSize
-    Clause0_Clause0_Clause0_ArrayType Clause2_Output)
-
-/-- [digest::core_api::wrapper::{impl digest::FixedOutput<Clause0_Clause2_OutputSize, Clause0_Clause2_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<T, Clause0_Clause1_BufferKind, Clause0_Clause1_Clause0_BlockSize, Clause0_Clause1_Clause0_Clause0_ArrayType, Clause1_Output>}::finalize_into]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 170:4-170:54
-    Name pattern: [digest::core_api::wrapper::{digest::FixedOutput<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_Clause1_BufferKind, @Clause0_Clause1_Clause0_BlockSize, @Clause0_Clause1_Clause0_Clause0_ArrayType, @Clause1_Output>, @Clause0_Clause2_OutputSize, @Clause0_Clause2_Clause0_ArrayType>}::finalize_into]
-    Visibility: public -/
-@[rust_fun
-  "digest::core_api::wrapper::{digest::FixedOutput<digest::core_api::wrapper::CoreWrapper<@T, @Clause0_Clause1_BufferKind, @Clause0_Clause1_Clause0_BlockSize, @Clause0_Clause1_Clause0_Clause0_ArrayType, @Clause1_Output>, @Clause0_Clause2_OutputSize, @Clause0_Clause2_Clause0_ArrayType>}::finalize_into"]
-axiom digest.core_api.wrapper.CoreWrapper.Insts.DigestFixedOutput.finalize_into
-  {T : Type} {Clause0_Clause0_Clause0_BlockSize : Type}
-  {Clause0_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause1_BufferKind : Type} {Clause0_Clause1_Clause0_BlockSize :
-  Type} {Clause0_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause0_Clause2_OutputSize : Type} {Clause0_Clause2_Clause0_ArrayType :
-  Type} {Clause0_Clause3_Output : Type} {Clause1_Output : Type}
-  (FixedOutputCoreInst : digest.core_api.FixedOutputCore T
-  Clause0_Clause0_Clause0_BlockSize Clause0_Clause0_Clause0_Clause0_ArrayType
-  Clause0_Clause1_BufferKind Clause0_Clause1_Clause0_BlockSize
-  Clause0_Clause1_Clause0_Clause0_ArrayType Clause0_Clause2_OutputSize
-  Clause0_Clause2_Clause0_ArrayType Clause0_Clause3_Output)
-  (typenumtype_operatorsIsLessClause0_Clause0_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause1_OutputInst
-  : typenum.type_operators.IsLess Clause0_Clause0_Clause0_BlockSize
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) Clause1_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause1_Output) :
-  digest.core_api.wrapper.CoreWrapper T Clause0_Clause1_BufferKind
-    Clause0_Clause1_Clause0_BlockSize Clause0_Clause1_Clause0_Clause0_ArrayType
-    Clause1_Output → generic_array.GenericArray Std.U8
-    Clause0_Clause2_OutputSize Clause0_Clause2_Clause0_ArrayType → Result
-    (generic_array.GenericArray Std.U8 Clause0_Clause2_OutputSize
-    Clause0_Clause2_Clause0_ArrayType)
-
-/-- [digest::digest::{impl digest::digest::Digest<Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType> for D}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/digest.rs', lines 59:4-59:20
-    Name pattern: [digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::new]
-    Visibility: public -/
-@[rust_fun
-  "digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::new"]
-axiom digest.digest.Digest.Blanket.new
-  {D : Type} {Clause0_Clause1_OutputSize : Type}
-  {Clause0_Clause1_Clause0_ArrayType : Type} (FixedOutputInst :
-  digest.FixedOutput D Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType) (coredefaultDefaultInst :
-  core.default.Default D) (UpdateInst : digest.Update D) (HashMarkerInst :
-  digest.digest.HashMarker D) :
-  Result D
-
-/-- [digest::digest::{impl digest::digest::Digest<Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType> for D}::update]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/digest.rs', lines 74:4-74:48
-    Name pattern: [digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::update]
-    Visibility: public -/
-@[rust_fun
-  "digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::update"]
-axiom digest.digest.Digest.Blanket.update
-  {D : Type} {T1 : Type} {Clause0_Clause1_OutputSize : Type}
-  {Clause0_Clause1_Clause0_ArrayType : Type} (FixedOutputInst :
-  digest.FixedOutput D Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType) (coredefaultDefaultInst :
-  core.default.Default D) (UpdateInst : digest.Update D) (HashMarkerInst :
-  digest.digest.HashMarker D) (coreconvertAsRefT1SliceU8Inst :
-  core.convert.AsRef T1 (Slice Std.U8)) :
-  D → T1 → Result D
-
-/-- [digest::digest::{impl digest::digest::Digest<Clause0_Clause1_OutputSize, Clause0_Clause1_Clause0_ArrayType> for D}::finalize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/digest.rs', lines 85:4-85:37
-    Name pattern: [digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::finalize]
-    Visibility: public -/
-@[rust_fun
-  "digest::digest::{digest::digest::Digest<@D, @Clause0_Clause1_OutputSize, @Clause0_Clause1_Clause0_ArrayType>}::finalize"]
-axiom digest.digest.Digest.Blanket.finalize
-  {D : Type} {Clause0_Clause1_OutputSize : Type}
-  {Clause0_Clause1_Clause0_ArrayType : Type} (FixedOutputInst :
-  digest.FixedOutput D Clause0_Clause1_OutputSize
-  Clause0_Clause1_Clause0_ArrayType) (coredefaultDefaultInst :
-  core.default.Default D) (UpdateInst : digest.Update D) (HashMarkerInst :
-  digest.digest.HashMarker D) :
-  D → Result (generic_array.GenericArray Std.U8 Clause0_Clause1_OutputSize
-    Clause0_Clause1_Clause0_ArrayType)
-
-/-- [digest::mac::{impl digest::mac::Mac<Clause1_Clause1_OutputSize, Clause1_Clause1_Clause0_ArrayType> for T}::new_from_slice]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 107:4-109:22
-    Name pattern: [digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::new_from_slice]
-    Visibility: public -/
-@[rust_fun
-  "digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::new_from_slice"]
-axiom digest.mac.Mac.Blanket.new_from_slice
-  {T : Type} {Clause1_Clause1_OutputSize : Type}
-  {Clause1_Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_KeySize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} (UpdateInst : digest.Update T)
-  (FixedOutputInst : digest.FixedOutput T Clause1_Clause1_OutputSize
-  Clause1_Clause1_Clause0_ArrayType) (MacMarkerInst : digest.mac.MacMarker T)
-  (crypto_commonKeyInitInst : crypto_common.KeyInit T Clause3_Clause0_KeySize
-  Clause3_Clause0_Clause0_ArrayType) :
-  Slice Std.U8 → Result (core.result.Result T crypto_common.InvalidLength)
-
-/-- [digest::mac::{impl digest::mac::Mac<Clause1_Clause1_OutputSize, Clause1_Clause1_Clause0_ArrayType> for T}::update]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 115:4-115:37
-    Name pattern: [digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::update]
-    Visibility: public -/
-@[rust_fun
-  "digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::update"]
-axiom digest.mac.Mac.Blanket.update
-  {T : Type} {Clause1_Clause1_OutputSize : Type}
-  {Clause1_Clause1_Clause0_ArrayType : Type} (UpdateInst : digest.Update T)
-  (FixedOutputInst : digest.FixedOutput T Clause1_Clause1_OutputSize
-  Clause1_Clause1_Clause0_ArrayType) (MacMarkerInst : digest.mac.MacMarker T) :
-  T → Slice Std.U8 → Result T
-
-/-- [digest::mac::{impl digest::mac::Mac<Clause1_Clause1_OutputSize, Clause1_Clause1_Clause0_ArrayType> for T}::finalize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 126:4-126:39
-    Name pattern: [digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::finalize]
-    Visibility: public -/
-@[rust_fun
-  "digest::mac::{digest::mac::Mac<@T, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::finalize"]
-axiom digest.mac.Mac.Blanket.finalize
-  {T : Type} {Clause1_Clause1_OutputSize : Type}
-  {Clause1_Clause1_Clause0_ArrayType : Type} (UpdateInst : digest.Update T)
-  (FixedOutputInst : digest.FixedOutput T Clause1_Clause1_OutputSize
-  Clause1_Clause1_Clause0_ArrayType) (MacMarkerInst : digest.mac.MacMarker T) :
-  T → Result (digest.mac.CtOutput T Clause1_Clause1_OutputSize
-    Clause1_Clause1_Clause0_ArrayType)
-
-/-- [digest::mac::{digest::mac::CtOutput<T, Clause0_OutputSize, Clause0_Clause0_ArrayType>}::into_bytes]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 257:4-257:40
-    Name pattern: [digest::mac::{digest::mac::CtOutput<@T, @Clause0_OutputSize, @Clause0_Clause0_ArrayType>}::into_bytes]
-    Visibility: public -/
-@[rust_fun
-  "digest::mac::{digest::mac::CtOutput<@T, @Clause0_OutputSize, @Clause0_Clause0_ArrayType>}::into_bytes"]
-axiom digest.mac.CtOutput.into_bytes
-  {T : Type} {Clause0_OutputSize : Type} {Clause0_Clause0_ArrayType : Type}
-  (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser T
-  Clause0_OutputSize Clause0_Clause0_ArrayType) :
-  digest.mac.CtOutput T Clause0_OutputSize Clause0_Clause0_ArrayType → Result
-    (generic_array.GenericArray Std.U8 Clause0_OutputSize
-    Clause0_Clause0_ArrayType)
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_isize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 125:4-125:26
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_isize]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_isize"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_isize
-  : Result Std.Isize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_i64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 116:4-116:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i64]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i64"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i64
-  : Result Std.I64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_i32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 112:4-112:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i32]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i32"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i32
-  : Result Std.I32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_i16]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 108:4-108:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i16]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i16"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i16
-  : Result Std.I16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_i8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 104:4-104:20
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_i8"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i8
-  : Result Std.I8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_usize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 99:4-99:26
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_usize]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_usize"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_usize
-  : Result Std.Usize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_u64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 90:4-90:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u64]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u64"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u64
-  : Result Std.U64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_u32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 86:4-86:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u32]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u32"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u32
-  : Result Std.U32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_u16]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 82:4-82:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u16]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u16"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u16
-  : Result Std.U16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::to_u8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 78:4-78:20
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::to_u8"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u8
-  : Result Std.U8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::ISIZE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 75:4-75:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::ISIZE]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::ISIZE"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.ISIZE
-  : Result Std.Isize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::I64]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 72:4-72:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I64]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I64"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I64
-  : Result Std.I64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::I32]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 71:4-71:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I32]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I32"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I32
-  : Result Std.I32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::I16]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 70:4-70:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I16]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I16"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I16
-  : Result Std.I16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::I8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 69:4-69:16
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I8]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::I8"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I8 : Result Std.I8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::USIZE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 67:4-67:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::USIZE]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::USIZE"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.USIZE
-  : Result Std.Usize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::U64]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 64:4-64:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U64]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U64"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U64
-  : Result Std.U64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::U32]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 63:4-63:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U32]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U32"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U32
-  : Result Std.U32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::U16]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 62:4-62:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U16]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U16"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U16
-  : Result Std.U16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}::U8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 61:4-61:16
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U8]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UTerm>}::U8"]
-axiom typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U8 : Result Std.U8
-
-/-- [typenum::uint::{impl core::default::Default for typenum::uint::UTerm}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 48:67-48:74
-    Name pattern: [typenum::uint::{core::default::Default<typenum::uint::UTerm>}::default]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{core::default::Default<typenum::uint::UTerm>}::default"]
-axiom typenum.uint.UTerm.Insts.CoreDefaultDefault.default
-  : Result typenum.uint.UTerm
-
-/-- [typenum::uint::{impl core::clone::Clone for typenum::uint::UTerm}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 48:41-48:46
-    Name pattern: [typenum::uint::{core::clone::Clone<typenum::uint::UTerm>}::clone]
-    Visibility: public -/
-@[rust_fun "typenum::uint::{core::clone::Clone<typenum::uint::UTerm>}::clone"]
-axiom typenum.uint.UTerm.Insts.CoreCloneClone.clone
-  : typenum.uint.UTerm → Result typenum.uint.UTerm
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_isize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 228:4-228:26
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_isize]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_isize"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_isize
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.Isize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_i64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 219:4-219:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i64]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i64"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_i64
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.I64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_i32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 215:4-215:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i32]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i32"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_i32
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.I32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_i16]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 211:4-211:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i16]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i16"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_i16
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.I16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_i8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 207:4-207:20
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_i8"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_i8
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.I8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_usize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 202:4-202:26
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_usize]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_usize"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_usize
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.Usize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_u64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 193:4-193:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u64]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u64"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_u64
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.U64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_u32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 189:4-189:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u32]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u32"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_u32
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.U32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_u16]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 185:4-185:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u16]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u16"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_u16
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.U16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::to_u8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 181:4-181:20
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::to_u8"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.to_u8
-  {U : Type} {B : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) :
-  Result Std.U8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::ISIZE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 178:4-178:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::ISIZE]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::ISIZE"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.ISIZE {U : Type} {B
-  : Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.Isize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::I64]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 175:4-175:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I64]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I64"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.I64 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.I64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::I32]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 174:4-174:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I32]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I32"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.I32 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.I32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::I16]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 173:4-173:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I16]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I16"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.I16 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.I16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::I8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 172:4-172:16
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I8]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::I8"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.I8 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.I8
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::USIZE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 170:4-170:22
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::USIZE]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::USIZE"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.USIZE {U : Type} {B
-  : Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.Usize
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::U64]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 167:4-167:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U64]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U64"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.U64 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.U64
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::U32]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 166:4-166:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U32]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U32"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.U32 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.U32
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::U16]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 165:4-165:18
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U16]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U16"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.U16 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.U16
-
-/-- [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}::U8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 164:4-164:16
-    Name pattern: [typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U8]
-    Visibility: public -/
-@[rust_const
-  "typenum::uint::{typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>}::U8"]
-axiom typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.U8 {U : Type} {B :
-  Type} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : Result Std.U8
-
-/-- [typenum::uint::{impl core::default::Default for typenum::uint::UInt<U, B>}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 146:67-146:74
-    Name pattern: [typenum::uint::{core::default::Default<typenum::uint::UInt<@U, @B>>}::default]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{core::default::Default<typenum::uint::UInt<@U, @B>>}::default"]
-axiom typenum.uint.UInt.Insts.CoreDefaultDefault.default
-  {U : Type} {B : Type} (coredefaultDefaultInst : core.default.Default U)
-  (coredefaultDefaultInst1 : core.default.Default B) :
-  Result (typenum.uint.UInt U B)
-
-/-- [typenum::uint::{impl core::clone::Clone for typenum::uint::UInt<U, B>}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 146:41-146:46
-    Name pattern: [typenum::uint::{core::clone::Clone<typenum::uint::UInt<@U, @B>>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{core::clone::Clone<typenum::uint::UInt<@U, @B>>}::clone"]
-axiom typenum.uint.UInt.Insts.CoreCloneClone.clone
-  {U : Type} {B : Type} (corecloneCloneInst : core.clone.Clone U)
-  (corecloneCloneInst1 : core.clone.Clone B) :
-  typenum.uint.UInt U B → Result (typenum.uint.UInt U B)
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}::to_bool]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 56:4-56:24
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::to_bool]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::to_bool"]
-axiom typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_bool : Result Bool
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}::to_u8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 52:4-52:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::to_u8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::to_u8"]
-axiom typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_u8 : Result Std.U8
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 48:4-48:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::new]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::new"]
-axiom typenum.bit.B0.Insts.TypenumMarker_traitsBit.new : Result typenum.bit.B0
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}::BOOL]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 45:4-45:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::BOOL]
-    Visibility: public -/
-@[rust_const
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::BOOL"]
-axiom typenum.bit.B0.Insts.TypenumMarker_traitsBit.BOOL : Result Bool
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}::U8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 44:4-44:16
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::U8]
-    Visibility: public -/
-@[rust_const
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B0>}::U8"]
-axiom typenum.bit.B0.Insts.TypenumMarker_traitsBit.U8 : Result Std.U8
-
-/-- [typenum::bit::{impl core::default::Default for typenum::bit::B0}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 18:67-18:74
-    Name pattern: [typenum::bit::{core::default::Default<typenum::bit::B0>}::default]
-    Visibility: public -/
-@[rust_fun "typenum::bit::{core::default::Default<typenum::bit::B0>}::default"]
-axiom typenum.bit.B0.Insts.CoreDefaultDefault.default : Result typenum.bit.B0
-
-/-- [typenum::bit::{impl core::clone::Clone for typenum::bit::B0}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 18:41-18:46
-    Name pattern: [typenum::bit::{core::clone::Clone<typenum::bit::B0>}::clone]
-    Visibility: public -/
-@[rust_fun "typenum::bit::{core::clone::Clone<typenum::bit::B0>}::clone"]
-axiom typenum.bit.B0.Insts.CoreCloneClone.clone
-  : typenum.bit.B0 → Result typenum.bit.B0
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}::to_bool]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 74:4-74:24
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::to_bool]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::to_bool"]
-axiom typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_bool : Result Bool
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}::to_u8]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 70:4-70:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::to_u8]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::to_u8"]
-axiom typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_u8 : Result Std.U8
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 66:4-66:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::new]
-    Visibility: public -/
-@[rust_fun
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::new"]
-axiom typenum.bit.B1.Insts.TypenumMarker_traitsBit.new : Result typenum.bit.B1
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}::BOOL]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 63:4-63:20
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::BOOL]
-    Visibility: public -/
-@[rust_const
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::BOOL"]
-axiom typenum.bit.B1.Insts.TypenumMarker_traitsBit.BOOL : Result Bool
-
-/-- [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}::U8]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 62:4-62:16
-    Name pattern: [typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::U8]
-    Visibility: public -/
-@[rust_const
-  "typenum::bit::{typenum::marker_traits::Bit<typenum::bit::B1>}::U8"]
-axiom typenum.bit.B1.Insts.TypenumMarker_traitsBit.U8 : Result Std.U8
-
-/-- [typenum::bit::{impl core::default::Default for typenum::bit::B1}::default]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 31:67-31:74
-    Name pattern: [typenum::bit::{core::default::Default<typenum::bit::B1>}::default]
-    Visibility: public -/
-@[rust_fun "typenum::bit::{core::default::Default<typenum::bit::B1>}::default"]
-axiom typenum.bit.B1.Insts.CoreDefaultDefault.default : Result typenum.bit.B1
-
-/-- [typenum::bit::{impl core::clone::Clone for typenum::bit::B1}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 31:41-31:46
-    Name pattern: [typenum::bit::{core::clone::Clone<typenum::bit::B1>}::clone]
-    Visibility: public -/
-@[rust_fun "typenum::bit::{core::clone::Clone<typenum::bit::B1>}::clone"]
-axiom typenum.bit.B1.Insts.CoreCloneClone.clone
-  : typenum.bit.B1 → Result typenum.bit.B1
-
-/-- [generic_array::{impl core::ops::deref::Deref<[T]> for generic_array::GenericArray<T, N, Clause0_ArrayType>}::deref]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 193:4-193:27
-    Name pattern: [generic_array::{core::ops::deref::Deref<generic_array::GenericArray<@T, @N, @Clause0_ArrayType>, [@T]>}::deref]
-    Visibility: public -/
-@[rust_fun
-  "generic_array::{core::ops::deref::Deref<generic_array::GenericArray<@T, @N, @Clause0_ArrayType>, [@T]>}::deref"]
-axiom generic_array.GenericArray.Insts.CoreOpsDerefDerefSlice.deref
-  {T : Type} {N : Type} {Clause0_ArrayType : Type} (ArrayLengthInst :
-  generic_array.ArrayLength N T Clause0_ArrayType) :
-  generic_array.GenericArray T N Clause0_ArrayType → Result (Slice T)
-
 /-- [hex::encode]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hex-0.4.3/src/lib.rs', lines 259:0-259:48
     Name pattern: [hex::encode]
@@ -2024,557 +918,6 @@ axiom hex.encode
   {T : Type} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
   Std.U8)) :
   T → Result String
-
-/-- [hkdf::errors::{impl core::fmt::Debug for hkdf::errors::InvalidLength}::fmt]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/errors.rs', lines 18:22-18:27
-    Name pattern: [hkdf::errors::{core::fmt::Debug<hkdf::errors::InvalidLength>}::fmt]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::errors::{core::fmt::Debug<hkdf::errors::InvalidLength>}::fmt"]
-axiom hkdf.errors.InvalidLength.Insts.CoreFmtDebug.fmt
-  :
-  hkdf.errors.InvalidLength → core.fmt.Formatter → Result
-    ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
-
-/-- [hkdf::{hkdf::Hkdf<H, I, Clause0_OutputSize, Clause0_Clause0_ArrayType, Clause1_Clause0_Core, Clause1_Clause0_Clause0_OutputSize, Clause1_Clause0_Clause0_Clause0_ArrayType, Clause1_Clause1_OutputSize, Clause1_Clause1_Clause0_ArrayType>}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/lib.rs', lines 199:4-199:55
-    Name pattern: [hkdf::{hkdf::Hkdf<@H, @I, @Clause0_OutputSize, @Clause0_Clause0_ArrayType, @Clause1_Clause0_Core, @Clause1_Clause0_Clause0_OutputSize, @Clause1_Clause0_Clause0_Clause0_ArrayType, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::new]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::{hkdf::Hkdf<@H, @I, @Clause0_OutputSize, @Clause0_Clause0_ArrayType, @Clause1_Clause0_Core, @Clause1_Clause0_Clause0_OutputSize, @Clause1_Clause0_Clause0_Clause0_ArrayType, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::new"]
-axiom hkdf.Hkdf.new
-  {H : Type} {I : Type} {Clause0_OutputSize : Type} {Clause0_Clause0_ArrayType
-  : Type} {Clause1_Clause0_Core : Type} {Clause1_Clause0_Clause0_OutputSize :
-  Type} {Clause1_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause1_Clause1_OutputSize : Type} {Clause1_Clause1_Clause0_ArrayType :
-  Type} (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser H
-  Clause0_OutputSize Clause0_Clause0_ArrayType) (HmacImplInst : hkdf.HmacImpl I
-  H Clause1_Clause0_Core Clause1_Clause0_Clause0_OutputSize
-  Clause1_Clause0_Clause0_Clause0_ArrayType Clause1_Clause1_OutputSize
-  Clause1_Clause1_Clause0_ArrayType) :
-  Option (Slice Std.U8) → Slice Std.U8 → Result (hkdf.Hkdf H I
-    Clause0_OutputSize Clause0_Clause0_ArrayType Clause1_Clause0_Core
-    Clause1_Clause0_Clause0_OutputSize
-    Clause1_Clause0_Clause0_Clause0_ArrayType Clause1_Clause1_OutputSize
-    Clause1_Clause1_Clause0_ArrayType)
-
-/-- [hkdf::{hkdf::Hkdf<H, I, Clause0_OutputSize, Clause0_Clause0_ArrayType, Clause1_Clause0_Core, Clause1_Clause0_Clause0_OutputSize, Clause1_Clause0_Clause0_Clause0_ArrayType, Clause1_Clause1_OutputSize, Clause1_Clause1_Clause0_ArrayType>}::expand]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/lib.rs', lines 269:4-269:82
-    Name pattern: [hkdf::{hkdf::Hkdf<@H, @I, @Clause0_OutputSize, @Clause0_Clause0_ArrayType, @Clause1_Clause0_Core, @Clause1_Clause0_Clause0_OutputSize, @Clause1_Clause0_Clause0_Clause0_ArrayType, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::expand]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::{hkdf::Hkdf<@H, @I, @Clause0_OutputSize, @Clause0_Clause0_ArrayType, @Clause1_Clause0_Core, @Clause1_Clause0_Clause0_OutputSize, @Clause1_Clause0_Clause0_Clause0_ArrayType, @Clause1_Clause1_OutputSize, @Clause1_Clause1_Clause0_ArrayType>}::expand"]
-axiom hkdf.Hkdf.expand
-  {H : Type} {I : Type} {Clause0_OutputSize : Type} {Clause0_Clause0_ArrayType
-  : Type} {Clause1_Clause0_Core : Type} {Clause1_Clause0_Clause0_OutputSize :
-  Type} {Clause1_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause1_Clause1_OutputSize : Type} {Clause1_Clause1_Clause0_ArrayType :
-  Type} (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser H
-  Clause0_OutputSize Clause0_Clause0_ArrayType) (HmacImplInst : hkdf.HmacImpl I
-  H Clause1_Clause0_Core Clause1_Clause0_Clause0_OutputSize
-  Clause1_Clause0_Clause0_Clause0_ArrayType Clause1_Clause1_OutputSize
-  Clause1_Clause1_Clause0_ArrayType) :
-  hkdf.Hkdf H I Clause0_OutputSize Clause0_Clause0_ArrayType
-    Clause1_Clause0_Core Clause1_Clause0_Clause0_OutputSize
-    Clause1_Clause0_Clause0_Clause0_ArrayType Clause1_Clause1_OutputSize
-    Clause1_Clause1_Clause0_ArrayType → Slice Std.U8 → Slice Std.U8 →
-    Result ((core.result.Result Unit hkdf.errors.InvalidLength) × (Slice
-    Std.U8))
-
-/-- [hmac::optim::{impl core::clone::Clone for hmac::optim::HmacCore<D, Clause0_Core, Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, Clause3_Clause0_Clause0_BlockSize, Clause3_Clause0_Clause0_Clause0_ArrayType, Clause3_Clause1_BufferKind, Clause3_Clause1_Clause0_BlockSize, Clause3_Clause1_Clause0_Clause0_ArrayType, Clause3_Clause2_OutputSize, Clause3_Clause2_Clause0_ArrayType, Clause3_Clause3_Output, Clause4_Clause0_BlockSize, Clause4_Clause0_Clause0_ArrayType, Clause7_Output>}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 50:4-50:27
-    Name pattern: [hmac::optim::{core::clone::Clone<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "hmac::optim::{core::clone::Clone<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>>}::clone"]
-axiom hmac.optim.HmacCore.Insts.CoreCloneClone.clone
-  {D : Type} {Clause0_Core : Type} {Clause2_Clause0_BlockSize : Type}
-  {Clause2_Clause0_Clause0_ArrayType : Type} {Clause3_Clause0_Clause0_BlockSize
-  : Type} {Clause3_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause1_BufferKind : Type} {Clause3_Clause1_Clause0_BlockSize :
-  Type} {Clause3_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause2_OutputSize : Type} {Clause3_Clause2_Clause0_ArrayType :
-  Type} {Clause3_Clause3_Output : Type} {Clause4_Clause0_BlockSize : Type}
-  {Clause4_Clause0_Clause0_ArrayType : Type} {Clause7_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy D
-  Clause0_Core) (digestdigestHashMarkerInst : digest.digest.HashMarker
-  Clause0_Core) (digestcore_apiUpdateCoreInst : digest.core_api.UpdateCore
-  Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType)
-  (digestcore_apiFixedOutputCoreInst : digest.core_api.FixedOutputCore
-  Clause0_Core Clause3_Clause0_Clause0_BlockSize
-  Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-  Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-  Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-  Clause3_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause4_Clause0_BlockSizeClause4_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause2_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause7_OutputInst
-  : typenum.type_operators.IsLess Clause2_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause7_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause7_Output) :
-  hmac.optim.HmacCore D Clause0_Core Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType Clause3_Clause0_Clause0_BlockSize
-    Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-    Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-    Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-    Clause3_Clause3_Output Clause4_Clause0_BlockSize
-    Clause4_Clause0_Clause0_ArrayType Clause7_Output → Result
-    (hmac.optim.HmacCore D Clause0_Core Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType Clause3_Clause0_Clause0_BlockSize
-    Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-    Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-    Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-    Clause3_Clause3_Output Clause4_Clause0_BlockSize
-    Clause4_Clause0_Clause0_ArrayType Clause7_Output)
-
-/-- [hkdf::sealed::{impl hkdf::sealed::Sealed<H, hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, Clause1_OutputSize, Clause1_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, block_buffer::Eager, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause8_Output>}::finalize]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 61:4-61:34
-    Name pattern: [hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::finalize]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::finalize"]
-axiom
-  digest.core_api.wrapper.CoreWrapperHmacCoreEagerClause3_Clause0_BlockSizeClause3_Clause0_Clause0_ArrayTypeClause8_Output.Insts.HkdfSealedSealedHHmacCoreClause1_OutputSizeClause1_Clause0_ArrayType.finalize
-  {H : Type} {Clause0_Core : Type} {Clause1_OutputSize : Type}
-  {Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_BlockSize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} {Clause4_Clause0_Clause0_BlockSize
-  : Type} {Clause4_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause1_BufferKind : Type} {Clause4_Clause1_Clause0_BlockSize :
-  Type} {Clause4_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause2_OutputSize : Type} {Clause4_Clause2_Clause0_ArrayType :
-  Type} {Clause4_Clause3_Output : Type} {Clause5_Clause0_BlockSize : Type}
-  {Clause5_Clause0_Clause0_ArrayType : Type} {Clause8_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy H
-  Clause0_Core) (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser
-  H Clause1_OutputSize Clause1_Clause0_ArrayType) (digestdigestHashMarkerInst :
-  digest.digest.HashMarker Clause0_Core) (digestcore_apiUpdateCoreInst :
-  digest.core_api.UpdateCore Clause0_Core Clause3_Clause0_BlockSize
-  Clause3_Clause0_Clause0_ArrayType) (digestcore_apiFixedOutputCoreInst :
-  digest.core_api.FixedOutputCore Clause0_Core
-  Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-  Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-  Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-  Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause5_Clause0_BlockSizeClause5_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause3_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause8_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause8_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause8_Output) :
-  digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore H Clause0_Core
-    Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType
-    Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-    Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-    Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output
-    Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType Clause8_Output)
-    block_buffer.Eager Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause8_Output → Result
-    (generic_array.GenericArray Std.U8 Clause1_OutputSize
-    Clause1_Clause0_ArrayType)
-
-/-- [hkdf::sealed::{impl hkdf::sealed::Sealed<H, hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, Clause1_OutputSize, Clause1_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, block_buffer::Eager, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause8_Output>}::update]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 56:4-56:37
-    Name pattern: [hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::update]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::update"]
-axiom
-  digest.core_api.wrapper.CoreWrapperHmacCoreEagerClause3_Clause0_BlockSizeClause3_Clause0_Clause0_ArrayTypeClause8_Output.Insts.HkdfSealedSealedHHmacCoreClause1_OutputSizeClause1_Clause0_ArrayType.update
-  {H : Type} {Clause0_Core : Type} {Clause1_OutputSize : Type}
-  {Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_BlockSize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} {Clause4_Clause0_Clause0_BlockSize
-  : Type} {Clause4_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause1_BufferKind : Type} {Clause4_Clause1_Clause0_BlockSize :
-  Type} {Clause4_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause2_OutputSize : Type} {Clause4_Clause2_Clause0_ArrayType :
-  Type} {Clause4_Clause3_Output : Type} {Clause5_Clause0_BlockSize : Type}
-  {Clause5_Clause0_Clause0_ArrayType : Type} {Clause8_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy H
-  Clause0_Core) (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser
-  H Clause1_OutputSize Clause1_Clause0_ArrayType) (digestdigestHashMarkerInst :
-  digest.digest.HashMarker Clause0_Core) (digestcore_apiUpdateCoreInst :
-  digest.core_api.UpdateCore Clause0_Core Clause3_Clause0_BlockSize
-  Clause3_Clause0_Clause0_ArrayType) (digestcore_apiFixedOutputCoreInst :
-  digest.core_api.FixedOutputCore Clause0_Core
-  Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-  Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-  Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-  Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause5_Clause0_BlockSizeClause5_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause3_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause8_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause8_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause8_Output) :
-  digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore H Clause0_Core
-    Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType
-    Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-    Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-    Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output
-    Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType Clause8_Output)
-    block_buffer.Eager Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause8_Output → Slice Std.U8 →
-    Result (digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore H
-    Clause0_Core Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType
-    Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-    Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-    Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output
-    Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType Clause8_Output)
-    block_buffer.Eager Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause8_Output)
-
-/-- [hkdf::sealed::{impl hkdf::sealed::Sealed<H, hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, Clause1_OutputSize, Clause1_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, block_buffer::Eager, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause8_Output>}::from_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 51:4-51:43
-    Name pattern: [hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::from_core]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::from_core"]
-axiom
-  digest.core_api.wrapper.CoreWrapperHmacCoreEagerClause3_Clause0_BlockSizeClause3_Clause0_Clause0_ArrayTypeClause8_Output.Insts.HkdfSealedSealedHHmacCoreClause1_OutputSizeClause1_Clause0_ArrayType.from_core
-  {H : Type} {Clause0_Core : Type} {Clause1_OutputSize : Type}
-  {Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_BlockSize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} {Clause4_Clause0_Clause0_BlockSize
-  : Type} {Clause4_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause1_BufferKind : Type} {Clause4_Clause1_Clause0_BlockSize :
-  Type} {Clause4_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause2_OutputSize : Type} {Clause4_Clause2_Clause0_ArrayType :
-  Type} {Clause4_Clause3_Output : Type} {Clause5_Clause0_BlockSize : Type}
-  {Clause5_Clause0_Clause0_ArrayType : Type} {Clause8_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy H
-  Clause0_Core) (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser
-  H Clause1_OutputSize Clause1_Clause0_ArrayType) (digestdigestHashMarkerInst :
-  digest.digest.HashMarker Clause0_Core) (digestcore_apiUpdateCoreInst :
-  digest.core_api.UpdateCore Clause0_Core Clause3_Clause0_BlockSize
-  Clause3_Clause0_Clause0_ArrayType) (digestcore_apiFixedOutputCoreInst :
-  digest.core_api.FixedOutputCore Clause0_Core
-  Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-  Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-  Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-  Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause5_Clause0_BlockSizeClause5_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause3_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause8_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause8_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause8_Output) :
-  hmac.optim.HmacCore H Clause0_Core Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause4_Clause0_Clause0_BlockSize
-    Clause4_Clause0_Clause0_Clause0_ArrayType Clause4_Clause1_BufferKind
-    Clause4_Clause1_Clause0_BlockSize Clause4_Clause1_Clause0_Clause0_ArrayType
-    Clause4_Clause2_OutputSize Clause4_Clause2_Clause0_ArrayType
-    Clause4_Clause3_Output Clause5_Clause0_BlockSize
-    Clause5_Clause0_Clause0_ArrayType Clause8_Output → Result
-    (digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore H Clause0_Core
-    Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType
-    Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-    Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-    Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output
-    Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType Clause8_Output)
-    block_buffer.Eager Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause8_Output)
-
-/-- [hkdf::sealed::{impl hkdf::sealed::Sealed<H, hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, Clause1_OutputSize, Clause1_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, block_buffer::Eager, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause8_Output>}::new_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 46:4-46:41
-    Name pattern: [hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::new_core]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::new_core"]
-axiom
-  digest.core_api.wrapper.CoreWrapperHmacCoreEagerClause3_Clause0_BlockSizeClause3_Clause0_Clause0_ArrayTypeClause8_Output.Insts.HkdfSealedSealedHHmacCoreClause1_OutputSizeClause1_Clause0_ArrayType.new_core
-  {H : Type} {Clause0_Core : Type} {Clause1_OutputSize : Type}
-  {Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_BlockSize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} {Clause4_Clause0_Clause0_BlockSize
-  : Type} {Clause4_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause1_BufferKind : Type} {Clause4_Clause1_Clause0_BlockSize :
-  Type} {Clause4_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause2_OutputSize : Type} {Clause4_Clause2_Clause0_ArrayType :
-  Type} {Clause4_Clause3_Output : Type} {Clause5_Clause0_BlockSize : Type}
-  {Clause5_Clause0_Clause0_ArrayType : Type} {Clause8_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy H
-  Clause0_Core) (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser
-  H Clause1_OutputSize Clause1_Clause0_ArrayType) (digestdigestHashMarkerInst :
-  digest.digest.HashMarker Clause0_Core) (digestcore_apiUpdateCoreInst :
-  digest.core_api.UpdateCore Clause0_Core Clause3_Clause0_BlockSize
-  Clause3_Clause0_Clause0_ArrayType) (digestcore_apiFixedOutputCoreInst :
-  digest.core_api.FixedOutputCore Clause0_Core
-  Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-  Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-  Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-  Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause5_Clause0_BlockSizeClause5_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause3_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause8_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause8_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause8_Output) :
-  Slice Std.U8 → Result (hmac.optim.HmacCore H Clause0_Core
-    Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType
-    Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-    Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-    Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-    Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output
-    Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType Clause8_Output)
-
-/-- [hkdf::sealed::{impl hkdf::sealed::Sealed<H, hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, Clause1_OutputSize, Clause1_Clause0_ArrayType> for digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<H, Clause0_Core, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause4_Clause0_Clause0_BlockSize, Clause4_Clause0_Clause0_Clause0_ArrayType, Clause4_Clause1_BufferKind, Clause4_Clause1_Clause0_BlockSize, Clause4_Clause1_Clause0_Clause0_ArrayType, Clause4_Clause2_OutputSize, Clause4_Clause2_Clause0_ArrayType, Clause4_Clause3_Output, Clause5_Clause0_BlockSize, Clause5_Clause0_Clause0_ArrayType, Clause8_Output>, block_buffer::Eager, Clause3_Clause0_BlockSize, Clause3_Clause0_Clause0_ArrayType, Clause8_Output>}::new_from_slice]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/sealed.rs', lines 41:4-41:41
-    Name pattern: [hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::new_from_slice]
-    Visibility: public -/
-@[rust_fun
-  "hkdf::sealed::{hkdf::sealed::Sealed<digest::core_api::wrapper::CoreWrapper<hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, block_buffer::Eager, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause8_Output>, @H, hmac::optim::HmacCore<@H, @Clause0_Core, @Clause3_Clause0_BlockSize, @Clause3_Clause0_Clause0_ArrayType, @Clause4_Clause0_Clause0_BlockSize, @Clause4_Clause0_Clause0_Clause0_ArrayType, @Clause4_Clause1_BufferKind, @Clause4_Clause1_Clause0_BlockSize, @Clause4_Clause1_Clause0_Clause0_ArrayType, @Clause4_Clause2_OutputSize, @Clause4_Clause2_Clause0_ArrayType, @Clause4_Clause3_Output, @Clause5_Clause0_BlockSize, @Clause5_Clause0_Clause0_ArrayType, @Clause8_Output>, @Clause1_OutputSize, @Clause1_Clause0_ArrayType>}::new_from_slice"]
-axiom
-  digest.core_api.wrapper.CoreWrapperHmacCoreEagerClause3_Clause0_BlockSizeClause3_Clause0_Clause0_ArrayTypeClause8_Output.Insts.HkdfSealedSealedHHmacCoreClause1_OutputSizeClause1_Clause0_ArrayType.new_from_slice
-  {H : Type} {Clause0_Core : Type} {Clause1_OutputSize : Type}
-  {Clause1_Clause0_ArrayType : Type} {Clause3_Clause0_BlockSize : Type}
-  {Clause3_Clause0_Clause0_ArrayType : Type} {Clause4_Clause0_Clause0_BlockSize
-  : Type} {Clause4_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause1_BufferKind : Type} {Clause4_Clause1_Clause0_BlockSize :
-  Type} {Clause4_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause4_Clause2_OutputSize : Type} {Clause4_Clause2_Clause0_ArrayType :
-  Type} {Clause4_Clause3_Output : Type} {Clause5_Clause0_BlockSize : Type}
-  {Clause5_Clause0_Clause0_ArrayType : Type} {Clause8_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy H
-  Clause0_Core) (crypto_commonOutputSizeUserInst : crypto_common.OutputSizeUser
-  H Clause1_OutputSize Clause1_Clause0_ArrayType) (digestdigestHashMarkerInst :
-  digest.digest.HashMarker Clause0_Core) (digestcore_apiUpdateCoreInst :
-  digest.core_api.UpdateCore Clause0_Core Clause3_Clause0_BlockSize
-  Clause3_Clause0_Clause0_ArrayType) (digestcore_apiFixedOutputCoreInst :
-  digest.core_api.FixedOutputCore Clause0_Core
-  Clause4_Clause0_Clause0_BlockSize Clause4_Clause0_Clause0_Clause0_ArrayType
-  Clause4_Clause1_BufferKind Clause4_Clause1_Clause0_BlockSize
-  Clause4_Clause1_Clause0_Clause0_ArrayType Clause4_Clause2_OutputSize
-  Clause4_Clause2_Clause0_ArrayType Clause4_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause5_Clause0_BlockSizeClause5_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause5_Clause0_BlockSize Clause5_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause3_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause8_OutputInst
-  : typenum.type_operators.IsLess Clause3_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause8_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause8_Output) :
-  Slice Std.U8 → Result (digest.core_api.wrapper.CoreWrapper
-    (hmac.optim.HmacCore H Clause0_Core Clause3_Clause0_BlockSize
-    Clause3_Clause0_Clause0_ArrayType Clause4_Clause0_Clause0_BlockSize
-    Clause4_Clause0_Clause0_Clause0_ArrayType Clause4_Clause1_BufferKind
-    Clause4_Clause1_Clause0_BlockSize Clause4_Clause1_Clause0_Clause0_ArrayType
-    Clause4_Clause2_OutputSize Clause4_Clause2_Clause0_ArrayType
-    Clause4_Clause3_Output Clause5_Clause0_BlockSize
-    Clause5_Clause0_Clause0_ArrayType Clause8_Output) block_buffer.Eager
-    Clause3_Clause0_BlockSize Clause3_Clause0_Clause0_ArrayType Clause8_Output)
-
-/-- [hmac::optim::{impl crypto_common::KeyInit<Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType> for hmac::optim::HmacCore<D, Clause0_Core, Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, Clause3_Clause0_Clause0_BlockSize, Clause3_Clause0_Clause0_Clause0_ArrayType, Clause3_Clause1_BufferKind, Clause3_Clause1_Clause0_BlockSize, Clause3_Clause1_Clause0_Clause0_ArrayType, Clause3_Clause2_OutputSize, Clause3_Clause2_Clause0_ArrayType, Clause3_Clause3_Output, Clause4_Clause0_BlockSize, Clause4_Clause0_Clause0_ArrayType, Clause7_Output>}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 147:4-147:35
-    Name pattern: [hmac::optim::{crypto_common::KeyInit<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType>}::new]
-    Visibility: public -/
-@[rust_fun
-  "hmac::optim::{crypto_common::KeyInit<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType>}::new"]
-axiom hmac.optim.HmacCore.Insts.Crypto_commonKeyInit.new
-  {D : Type} {Clause0_Core : Type} {Clause2_Clause0_BlockSize : Type}
-  {Clause2_Clause0_Clause0_ArrayType : Type} {Clause3_Clause0_Clause0_BlockSize
-  : Type} {Clause3_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause1_BufferKind : Type} {Clause3_Clause1_Clause0_BlockSize :
-  Type} {Clause3_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause2_OutputSize : Type} {Clause3_Clause2_Clause0_ArrayType :
-  Type} {Clause3_Clause3_Output : Type} {Clause4_Clause0_BlockSize : Type}
-  {Clause4_Clause0_Clause0_ArrayType : Type} {Clause7_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy D
-  Clause0_Core) (digestdigestHashMarkerInst : digest.digest.HashMarker
-  Clause0_Core) (digestcore_apiUpdateCoreInst : digest.core_api.UpdateCore
-  Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType)
-  (digestcore_apiFixedOutputCoreInst : digest.core_api.FixedOutputCore
-  Clause0_Core Clause3_Clause0_Clause0_BlockSize
-  Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-  Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-  Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-  Clause3_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause4_Clause0_BlockSizeClause4_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause2_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause7_OutputInst
-  : typenum.type_operators.IsLess Clause2_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause7_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause7_Output) :
-  generic_array.GenericArray Std.U8 Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType → Result (hmac.optim.HmacCore D
-    Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType
-    Clause3_Clause0_Clause0_BlockSize Clause3_Clause0_Clause0_Clause0_ArrayType
-    Clause3_Clause1_BufferKind Clause3_Clause1_Clause0_BlockSize
-    Clause3_Clause1_Clause0_Clause0_ArrayType Clause3_Clause2_OutputSize
-    Clause3_Clause2_Clause0_ArrayType Clause3_Clause3_Output
-    Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType Clause7_Output)
-
-/-- [hmac::optim::{impl digest::core_api::UpdateCore<Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType> for hmac::optim::HmacCore<D, Clause0_Core, Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, Clause3_Clause0_Clause0_BlockSize, Clause3_Clause0_Clause0_Clause0_ArrayType, Clause3_Clause1_BufferKind, Clause3_Clause1_Clause0_BlockSize, Clause3_Clause1_Clause0_Clause0_ArrayType, Clause3_Clause2_OutputSize, Clause3_Clause2_Clause0_ArrayType, Clause3_Clause3_Output, Clause4_Clause0_BlockSize, Clause4_Clause0_Clause0_ArrayType, Clause7_Output>}::update_blocks]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 189:4-189:55
-    Name pattern: [hmac::optim::{digest::core_api::UpdateCore<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType>}::update_blocks]
-    Visibility: public -/
-@[rust_fun
-  "hmac::optim::{digest::core_api::UpdateCore<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType>}::update_blocks"]
-axiom hmac.optim.HmacCore.Insts.DigestCore_apiUpdateCore.update_blocks
-  {D : Type} {Clause0_Core : Type} {Clause2_Clause0_BlockSize : Type}
-  {Clause2_Clause0_Clause0_ArrayType : Type} {Clause3_Clause0_Clause0_BlockSize
-  : Type} {Clause3_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause1_BufferKind : Type} {Clause3_Clause1_Clause0_BlockSize :
-  Type} {Clause3_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause2_OutputSize : Type} {Clause3_Clause2_Clause0_ArrayType :
-  Type} {Clause3_Clause3_Output : Type} {Clause4_Clause0_BlockSize : Type}
-  {Clause4_Clause0_Clause0_ArrayType : Type} {Clause7_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy D
-  Clause0_Core) (digestdigestHashMarkerInst : digest.digest.HashMarker
-  Clause0_Core) (digestcore_apiUpdateCoreInst : digest.core_api.UpdateCore
-  Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType)
-  (digestcore_apiFixedOutputCoreInst : digest.core_api.FixedOutputCore
-  Clause0_Core Clause3_Clause0_Clause0_BlockSize
-  Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-  Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-  Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-  Clause3_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause4_Clause0_BlockSizeClause4_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause2_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause7_OutputInst
-  : typenum.type_operators.IsLess Clause2_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause7_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause7_Output) :
-  hmac.optim.HmacCore D Clause0_Core Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType Clause3_Clause0_Clause0_BlockSize
-    Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-    Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-    Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-    Clause3_Clause3_Output Clause4_Clause0_BlockSize
-    Clause4_Clause0_Clause0_ArrayType Clause7_Output → Slice
-    (generic_array.GenericArray Std.U8 Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType) → Result (hmac.optim.HmacCore D
-    Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType
-    Clause3_Clause0_Clause0_BlockSize Clause3_Clause0_Clause0_Clause0_ArrayType
-    Clause3_Clause1_BufferKind Clause3_Clause1_Clause0_BlockSize
-    Clause3_Clause1_Clause0_Clause0_ArrayType Clause3_Clause2_OutputSize
-    Clause3_Clause2_Clause0_ArrayType Clause3_Clause3_Output
-    Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType Clause7_Output)
-
-/-- [hmac::optim::{impl digest::core_api::FixedOutputCore<Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, block_buffer::Eager, Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, Clause3_Clause2_OutputSize, Clause3_Clause2_Clause0_ArrayType, Clause7_Output> for hmac::optim::HmacCore<D, Clause0_Core, Clause2_Clause0_BlockSize, Clause2_Clause0_Clause0_ArrayType, Clause3_Clause0_Clause0_BlockSize, Clause3_Clause0_Clause0_Clause0_ArrayType, Clause3_Clause1_BufferKind, Clause3_Clause1_Clause0_BlockSize, Clause3_Clause1_Clause0_Clause0_ArrayType, Clause3_Clause2_OutputSize, Clause3_Clause2_Clause0_ArrayType, Clause3_Clause3_Output, Clause4_Clause0_BlockSize, Clause4_Clause0_Clause0_ArrayType, Clause7_Output>}::finalize_fixed_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 207:4-207:88
-    Name pattern: [hmac::optim::{digest::core_api::FixedOutputCore<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, block_buffer::Eager, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause7_Output>}::finalize_fixed_core]
-    Visibility: public -/
-@[rust_fun
-  "hmac::optim::{digest::core_api::FixedOutputCore<hmac::optim::HmacCore<@D, @Clause0_Core, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause0_Clause0_BlockSize, @Clause3_Clause0_Clause0_Clause0_ArrayType, @Clause3_Clause1_BufferKind, @Clause3_Clause1_Clause0_BlockSize, @Clause3_Clause1_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause3_Clause3_Output, @Clause4_Clause0_BlockSize, @Clause4_Clause0_Clause0_ArrayType, @Clause7_Output>, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, block_buffer::Eager, @Clause2_Clause0_BlockSize, @Clause2_Clause0_Clause0_ArrayType, @Clause3_Clause2_OutputSize, @Clause3_Clause2_Clause0_ArrayType, @Clause7_Output>}::finalize_fixed_core"]
-axiom
-  hmac.optim.HmacCore.Insts.DigestCore_apiFixedOutputCoreClause2_Clause0_BlockSizeClause2_Clause0_Clause0_ArrayTypeEagerClause2_Clause0_BlockSizeClause2_Clause0_Clause0_ArrayTypeClause3_Clause2_OutputSizeClause3_Clause2_Clause0_ArrayTypeClause7_Output.finalize_fixed_core
-  {D : Type} {Clause0_Core : Type} {Clause2_Clause0_BlockSize : Type}
-  {Clause2_Clause0_Clause0_ArrayType : Type} {Clause3_Clause0_Clause0_BlockSize
-  : Type} {Clause3_Clause0_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause1_BufferKind : Type} {Clause3_Clause1_Clause0_BlockSize :
-  Type} {Clause3_Clause1_Clause0_Clause0_ArrayType : Type}
-  {Clause3_Clause2_OutputSize : Type} {Clause3_Clause2_Clause0_ArrayType :
-  Type} {Clause3_Clause3_Output : Type} {Clause4_Clause0_BlockSize : Type}
-  {Clause4_Clause0_Clause0_ArrayType : Type} {Clause7_Output : Type}
-  (digestcore_apiwrapperCoreProxyInst : digest.core_api.wrapper.CoreProxy D
-  Clause0_Core) (digestdigestHashMarkerInst : digest.digest.HashMarker
-  Clause0_Core) (digestcore_apiUpdateCoreInst : digest.core_api.UpdateCore
-  Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType)
-  (digestcore_apiFixedOutputCoreInst : digest.core_api.FixedOutputCore
-  Clause0_Core Clause3_Clause0_Clause0_BlockSize
-  Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-  Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-  Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-  Clause3_Clause3_Output)
-  (digestcore_apiBufferKindUserClause0_CoreEagerClause4_Clause0_BlockSizeClause4_Clause0_Clause0_ArrayTypeInst
-  : digest.core_api.BufferKindUser Clause0_Core block_buffer.Eager
-  Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType)
-  (coredefaultDefaultInst : core.default.Default Clause0_Core)
-  (corecloneCloneInst : core.clone.Clone Clause0_Core)
-  (typenumtype_operatorsIsLessClause2_Clause0_BlockSizeUIntUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0B0Clause7_OutputInst
-  : typenum.type_operators.IsLess Clause2_Clause0_BlockSize (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-  typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-  typenum.bit.B0) typenum.bit.B0) Clause7_Output)
-  (typenummarker_traitsNonZeroInst : typenum.marker_traits.NonZero
-  Clause7_Output) :
-  hmac.optim.HmacCore D Clause0_Core Clause2_Clause0_BlockSize
-    Clause2_Clause0_Clause0_ArrayType Clause3_Clause0_Clause0_BlockSize
-    Clause3_Clause0_Clause0_Clause0_ArrayType Clause3_Clause1_BufferKind
-    Clause3_Clause1_Clause0_BlockSize Clause3_Clause1_Clause0_Clause0_ArrayType
-    Clause3_Clause2_OutputSize Clause3_Clause2_Clause0_ArrayType
-    Clause3_Clause3_Output Clause4_Clause0_BlockSize
-    Clause4_Clause0_Clause0_ArrayType Clause7_Output →
-    block_buffer.BlockBuffer Clause2_Clause0_BlockSize block_buffer.Eager
-    Clause2_Clause0_Clause0_ArrayType Clause7_Output →
-    generic_array.GenericArray Std.U8 Clause3_Clause2_OutputSize
-    Clause3_Clause2_Clause0_ArrayType → Result ((hmac.optim.HmacCore D
-    Clause0_Core Clause2_Clause0_BlockSize Clause2_Clause0_Clause0_ArrayType
-    Clause3_Clause0_Clause0_BlockSize Clause3_Clause0_Clause0_Clause0_ArrayType
-    Clause3_Clause1_BufferKind Clause3_Clause1_Clause0_BlockSize
-    Clause3_Clause1_Clause0_Clause0_ArrayType Clause3_Clause2_OutputSize
-    Clause3_Clause2_Clause0_ArrayType Clause3_Clause3_Output
-    Clause4_Clause0_BlockSize Clause4_Clause0_Clause0_ArrayType Clause7_Output)
-    × (block_buffer.BlockBuffer Clause2_Clause0_BlockSize block_buffer.Eager
-    Clause2_Clause0_Clause0_ArrayType Clause7_Output) ×
-    (generic_array.GenericArray Std.U8 Clause3_Clause2_OutputSize
-    Clause3_Clause2_Clause0_ArrayType))
 
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}::ne]:
     Source: 'rust/core/src/address.rs', lines 62:22-62:31
@@ -2736,8 +1079,8 @@ axiom libsignal_core.curve.PrivateKey.public_key
 @[rust_fun
   "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature"]
 axiom libsignal_core.curve.PrivateKey.calculate_signature
-  {R : Type} (rand_coreCryptoRngInst : rand_core.CryptoRng R) (randrngRngInst :
-  rand.rng.Rng R) :
+  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  (randrngRngInst : rand.rng.Rng R) :
   libsignal_core.curve.PrivateKey → Slice Std.U8 → R → Result
     ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
 
@@ -2748,8 +1091,8 @@ axiom libsignal_core.curve.PrivateKey.calculate_signature
 @[rust_fun
   "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature_for_multipart_message"]
 axiom libsignal_core.curve.PrivateKey.calculate_signature_for_multipart_message
-  {R : Type} (rand_coreCryptoRngInst : rand_core.CryptoRng R) (randrngRngInst :
-  rand.rng.Rng R) :
+  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  (randrngRngInst : rand.rng.Rng R) :
   libsignal_core.curve.PrivateKey → Slice (Slice Std.U8) → R → Result
     ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
 
@@ -2782,55 +1125,9 @@ axiom
     Visibility: public -/
 @[rust_fun "libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate"]
 axiom libsignal_core.curve.KeyPair.generate
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   R → Result (libsignal_core.curve.KeyPair × R)
-
-/-- [prost::encoding::uint32::encoded_len]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 294:12-294:73
-    Name pattern: [prost::encoding::uint32::encoded_len]
-    Visibility: public -/
-@[rust_fun "prost::encoding::uint32::encoded_len"]
-axiom prost.encoding.uint32.encoded_len
-  : Std.U32 → Std.U32 → Result Std.Usize
-
-/-- [prost::encoding::bytes::encoded_len]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 541:8-541:58
-    Name pattern: [prost::encoding::bytes::encoded_len]
-    Visibility: public -/
-@[rust_fun "prost::encoding::bytes::encoded_len"]
-axiom prost.encoding.bytes.encoded_len
-  {T0 : Type} (BytesAdapterInst : prost.encoding.BytesAdapter T0) :
-  Std.U32 → T0 → Result Std.Usize
-
-/-- [prost::encoding::{impl prost::encoding::sealed::BytesAdapter for alloc::vec::Vec<u8>}::append_to]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 682:4-682:46
-    Name pattern: [prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::append_to]
-    Visibility: public -/
-@[rust_fun
-  "prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::append_to"]
-axiom alloc.vec.VecU8.Insts.ProstEncodingSealedBytesAdapter.append_to
-  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
-  alloc.vec.Vec Std.U8 → T0 → Result T0
-
-/-- [prost::encoding::{impl prost::encoding::sealed::BytesAdapter for alloc::vec::Vec<u8>}::replace_with]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 676:4-676:45
-    Name pattern: [prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::replace_with]
-    Visibility: public -/
-@[rust_fun
-  "prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::replace_with"]
-axiom alloc.vec.VecU8.Insts.ProstEncodingSealedBytesAdapter.replace_with
-  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
-  alloc.vec.Vec Std.U8 → T0 → Result (alloc.vec.Vec Std.U8)
-
-/-- [prost::encoding::{impl prost::encoding::sealed::BytesAdapter for alloc::vec::Vec<u8>}::len]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/encoding.rs', lines 672:4-672:26
-    Name pattern: [prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::len]
-    Visibility: public -/
-@[rust_fun
-  "prost::encoding::{prost::encoding::sealed::BytesAdapter<alloc::vec::Vec<u8>>}::len"]
-axiom alloc.vec.VecU8.Insts.ProstEncodingSealedBytesAdapter.len
-  : alloc.vec.Vec Std.U8 → Result Std.Usize
 
 /-- [prost::error::{impl core::fmt::Debug for prost::error::EncodeError}::fmt]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 89:22-89:27
@@ -2842,465 +1139,150 @@ axiom prost.error.EncodeError.Insts.CoreFmtDebug.fmt
   prost.error.EncodeError → core.fmt.Formatter → Result
     ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
 
-/-- [rand_core::{impl rand_core::RngCore for T}::fill_bytes]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for T}::fill_bytes]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 173:4-173:44
-    Name pattern: [rand_core::{rand_core::RngCore<@T>}::fill_bytes]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::fill_bytes]
     Visibility: public -/
-@[rust_fun "rand_core::{rand_core::RngCore<@T>}::fill_bytes"]
-axiom rand_core.RngCore.Blanket.fill_bytes
+@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::fill_bytes"]
+axiom rand_core_1.RngCore.Blanket.fill_bytes
   {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
   core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core.RngCore Clause0_Clause0_Target) :
+  rand_core_1.RngCore Clause0_Clause0_Target) :
   T → Slice Std.U8 → Result (T × (Slice Std.U8))
 
-/-- [rand_core::{impl rand_core::RngCore for T}::next_u64]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for T}::next_u64]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 168:4-168:33
-    Name pattern: [rand_core::{rand_core::RngCore<@T>}::next_u64]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::next_u64]
     Visibility: public -/
-@[rust_fun "rand_core::{rand_core::RngCore<@T>}::next_u64"]
-axiom rand_core.RngCore.Blanket.next_u64
+@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::next_u64"]
+axiom rand_core_1.RngCore.Blanket.next_u64
   {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
   core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core.RngCore Clause0_Clause0_Target) :
+  rand_core_1.RngCore Clause0_Clause0_Target) :
   T → Result (Std.U64 × T)
 
-/-- [rand_core::{impl rand_core::RngCore for T}::next_u32]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for T}::next_u32]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 163:4-163:33
-    Name pattern: [rand_core::{rand_core::RngCore<@T>}::next_u32]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::next_u32]
     Visibility: public -/
-@[rust_fun "rand_core::{rand_core::RngCore<@T>}::next_u32"]
-axiom rand_core.RngCore.Blanket.next_u32
+@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::next_u32"]
+axiom rand_core_1.RngCore.Blanket.next_u32
   {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
   core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core.RngCore Clause0_Clause0_Target) :
+  rand_core_1.RngCore Clause0_Clause0_Target) :
   T → Result (Std.U32 × T)
 
-/-- [rand_core::TryRngCore::unwrap_err]:
+/-- [rand_core#1::TryRngCore::unwrap_err]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 232:4-234:20
-    Name pattern: [rand_core::TryRngCore::unwrap_err]
+    Name pattern: [rand_core#1::TryRngCore::unwrap_err]
     Visibility: public -/
-@[rust_fun "rand_core::TryRngCore::unwrap_err"]
-axiom rand_core.TryRngCore.unwrap_err.default
-  {Self : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core.TryRngCore
+@[rust_fun "rand_core#1::TryRngCore::unwrap_err"]
+axiom rand_core_1.TryRngCore.unwrap_err.default
+  {Self : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core_1.TryRngCore
   Self Clause0_Error) :
-  Self → Result (rand_core.UnwrapErr Self Clause0_Error)
+  Self → Result (rand_core_1.UnwrapErr Self Clause0_Error)
 
-/-- [rand_core::{impl rand_core::RngCore for rand_core::UnwrapErr<R, Clause0_Error>}::fill_bytes]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::fill_bytes]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 312:4-312:44
-    Name pattern: [rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::fill_bytes]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::fill_bytes]
     Visibility: public -/
 @[rust_fun
-  "rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::fill_bytes"]
-axiom rand_core.UnwrapErr.Insts.Rand_coreRngCore.fill_bytes
-  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core.TryRngCore R
+  "rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::fill_bytes"]
+axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.fill_bytes
+  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core_1.TryRngCore R
   Clause0_Error) :
-  rand_core.UnwrapErr R Clause0_Error → Slice Std.U8 → Result
-    ((rand_core.UnwrapErr R Clause0_Error) × (Slice Std.U8))
+  rand_core_1.UnwrapErr R Clause0_Error → Slice Std.U8 → Result
+    ((rand_core_1.UnwrapErr R Clause0_Error) × (Slice Std.U8))
 
-/-- [rand_core::{impl rand_core::RngCore for rand_core::UnwrapErr<R, Clause0_Error>}::next_u64]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::next_u64]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 307:4-307:33
-    Name pattern: [rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::next_u64]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u64]
     Visibility: public -/
 @[rust_fun
-  "rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::next_u64"]
-axiom rand_core.UnwrapErr.Insts.Rand_coreRngCore.next_u64
-  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core.TryRngCore R
+  "rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u64"]
+axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.next_u64
+  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core_1.TryRngCore R
   Clause0_Error) :
-  rand_core.UnwrapErr R Clause0_Error → Result (Std.U64 ×
-    (rand_core.UnwrapErr R Clause0_Error))
+  rand_core_1.UnwrapErr R Clause0_Error → Result (Std.U64 ×
+    (rand_core_1.UnwrapErr R Clause0_Error))
 
-/-- [rand_core::{impl rand_core::RngCore for rand_core::UnwrapErr<R, Clause0_Error>}::next_u32]:
+/-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::next_u32]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 302:4-302:33
-    Name pattern: [rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::next_u32]
+    Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u32]
     Visibility: public -/
 @[rust_fun
-  "rand_core::{rand_core::RngCore<rand_core::UnwrapErr<@R, @Clause0_Error>>}::next_u32"]
-axiom rand_core.UnwrapErr.Insts.Rand_coreRngCore.next_u32
-  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core.TryRngCore R
+  "rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u32"]
+axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.next_u32
+  {R : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core_1.TryRngCore R
   Clause0_Error) :
-  rand_core.UnwrapErr R Clause0_Error → Result (Std.U32 ×
-    (rand_core.UnwrapErr R Clause0_Error))
+  rand_core_1.UnwrapErr R Clause0_Error → Result (Std.U32 ×
+    (rand_core_1.UnwrapErr R Clause0_Error))
 
-/-- [rand_core::os::{impl core::fmt::Debug for rand_core::os::OsError}::fmt]:
+/-- [rand_core#1::os::{impl core::fmt::Debug for rand_core#1::os::OsError}::fmt]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 50:22-50:27
-    Name pattern: [rand_core::os::{core::fmt::Debug<rand_core::os::OsError>}::fmt]
+    Name pattern: [rand_core#1::os::{core::fmt::Debug<rand_core#1::os::OsError>}::fmt]
     Visibility: public -/
-@[rust_fun "rand_core::os::{core::fmt::Debug<rand_core::os::OsError>}::fmt"]
-axiom rand_core.os.OsError.Insts.CoreFmtDebug.fmt
+@[rust_fun
+  "rand_core#1::os::{core::fmt::Debug<rand_core#1::os::OsError>}::fmt"]
+axiom rand_core_1.os.OsError.Insts.CoreFmtDebug.fmt
   :
-  rand_core.os.OsError → core.fmt.Formatter → Result ((core.result.Result
+  rand_core_1.os.OsError → core.fmt.Formatter → Result ((core.result.Result
     Unit core.fmt.Error) × core.fmt.Formatter)
 
-/-- [rand_core::os::{impl core::fmt::Display for rand_core::os::OsError}::fmt]:
+/-- [rand_core#1::os::{impl core::fmt::Display for rand_core#1::os::OsError}::fmt]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 55:4-55:72
-    Name pattern: [rand_core::os::{core::fmt::Display<rand_core::os::OsError>}::fmt]
+    Name pattern: [rand_core#1::os::{core::fmt::Display<rand_core#1::os::OsError>}::fmt]
     Visibility: public -/
-@[rust_fun "rand_core::os::{core::fmt::Display<rand_core::os::OsError>}::fmt"]
-axiom rand_core.os.OsError.Insts.CoreFmtDisplay.fmt
+@[rust_fun
+  "rand_core#1::os::{core::fmt::Display<rand_core#1::os::OsError>}::fmt"]
+axiom rand_core_1.os.OsError.Insts.CoreFmtDisplay.fmt
   :
-  rand_core.os.OsError → core.fmt.Formatter → Result ((core.result.Result
+  rand_core_1.os.OsError → core.fmt.Formatter → Result ((core.result.Result
     Unit core.fmt.Error) × core.fmt.Formatter)
 
-/-- [rand_core::os::{impl rand_core::TryRngCore<rand_core::os::OsError> for rand_core::os::OsRng}::try_fill_bytes]:
+/-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_fill_bytes]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 97:4-97:76
-    Name pattern: [rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_fill_bytes]
+    Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_fill_bytes]
     Visibility: public -/
 @[rust_fun
-  "rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_fill_bytes"]
-axiom rand_core.os.OsRng.Insts.Rand_coreTryRngCoreOsError.try_fill_bytes
+  "rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_fill_bytes"]
+axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_fill_bytes
   :
-  rand_core.os.OsRng → Slice Std.U8 → Result ((core.result.Result Unit
-    rand_core.os.OsError) × rand_core.os.OsRng × (Slice Std.U8))
+  rand_core_1.os.OsRng → Slice Std.U8 → Result ((core.result.Result Unit
+    rand_core_1.os.OsError) × rand_core_1.os.OsRng × (Slice Std.U8))
 
-/-- [rand_core::os::{impl rand_core::TryRngCore<rand_core::os::OsError> for rand_core::os::OsRng}::try_next_u64]:
+/-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_next_u64]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 92:4-92:58
-    Name pattern: [rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_next_u64]
+    Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u64]
     Visibility: public -/
 @[rust_fun
-  "rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_next_u64"]
-axiom rand_core.os.OsRng.Insts.Rand_coreTryRngCoreOsError.try_next_u64
+  "rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u64"]
+axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_next_u64
   :
-  rand_core.os.OsRng → Result ((core.result.Result Std.U64
-    rand_core.os.OsError) × rand_core.os.OsRng)
+  rand_core_1.os.OsRng → Result ((core.result.Result Std.U64
+    rand_core_1.os.OsError) × rand_core_1.os.OsRng)
 
-/-- [rand_core::os::{impl rand_core::TryRngCore<rand_core::os::OsError> for rand_core::os::OsRng}::try_next_u32]:
+/-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_next_u32]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 87:4-87:58
-    Name pattern: [rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_next_u32]
+    Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u32]
     Visibility: public -/
 @[rust_fun
-  "rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::try_next_u32"]
-axiom rand_core.os.OsRng.Insts.Rand_coreTryRngCoreOsError.try_next_u32
+  "rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u32"]
+axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_next_u32
   :
-  rand_core.os.OsRng → Result ((core.result.Result Std.U32
-    rand_core.os.OsError) × rand_core.os.OsRng)
+  rand_core_1.os.OsRng → Result ((core.result.Result Std.U32
+    rand_core_1.os.OsError) × rand_core_1.os.OsRng)
 
-/-- [rand_core::os::{impl rand_core::TryRngCore<rand_core::os::OsError> for rand_core::os::OsRng}::unwrap_err]:
+/-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::unwrap_err]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 83:0-83:25
-    Name pattern: [rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::unwrap_err]
+    Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::unwrap_err]
     Visibility: public -/
 @[rust_fun
-  "rand_core::os::{rand_core::TryRngCore<rand_core::os::OsRng, rand_core::os::OsError>}::unwrap_err"]
-axiom rand_core.os.OsRng.Insts.Rand_coreTryRngCoreOsError.unwrap_err
+  "rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::unwrap_err"]
+axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.unwrap_err
   :
-  rand_core.os.OsRng → Result (rand_core.UnwrapErr rand_core.os.OsRng
-    rand_core.os.OsError)
-
-/-- [sha2::core_api::{impl core::clone::Clone for sha2::core_api::Sha256VarCore}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 17:9-17:14
-    Name pattern: [sha2::core_api::{core::clone::Clone<sha2::core_api::Sha256VarCore>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{core::clone::Clone<sha2::core_api::Sha256VarCore>}::clone"]
-axiom sha2.core_api.Sha256VarCore.Insts.CoreCloneClone.clone
-  : sha2.core_api.Sha256VarCore → Result sha2.core_api.Sha256VarCore
-
-/-- [sha2::core_api::{impl digest::core_api::UpdateCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>> for sha2::core_api::Sha256VarCore}::update_blocks]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 35:4-35:55
-    Name pattern: [sha2::core_api::{digest::core_api::UpdateCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>}::update_blocks]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::UpdateCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>}::update_blocks"]
-axiom
-  sha2.core_api.Sha256VarCore.Insts.DigestCore_apiUpdateCoreUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80.update_blocks
-  :
-  sha2.core_api.Sha256VarCore → Slice (generic_array.GenericArray Std.U8
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
-    → Result sha2.core_api.Sha256VarCore
-
-/-- [typenum::uint::{impl typenum::private::PrivateCmp<typenum::uint::UInt<U, B>, SoFar, typenum::Less> for typenum::uint::UTerm}::private_cmp]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1335:4-1335:67
-    Name pattern: [typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UTerm, typenum::uint::UInt<@U, @B>, @SoFar, typenum::Less>}::private_cmp]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UTerm, typenum::uint::UInt<@U, @B>, @SoFar, typenum::Less>}::private_cmp"]
-axiom
-  typenum.uint.UTerm.Insts.TypenumPrivatePrivateCmpUIntSoFarLess.private_cmp
-  {U : Type} {B : Type} {SoFar : Type} (marker_traitsUnsignedInst :
-  typenum.marker_traits.Unsigned U) (marker_traitsBitInst :
-  typenum.marker_traits.Bit B) (marker_traitsOrdInst :
-  typenum.marker_traits.Ord SoFar) :
-  typenum.uint.UTerm → typenum.uint.UInt U B → SoFar → Result
-    typenum.Less
-
-/-- [typenum::uint::{impl typenum::private::PrivateCmp<typenum::uint::UInt<Ur, typenum::bit::B0>, SoFar, Clause3_Output> for typenum::uint::UInt<Ul, typenum::bit::B1>}::private_cmp]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1325:4-1325:71
-    Name pattern: [typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B1>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @SoFar, @Clause3_Output>}::private_cmp]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B1>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @SoFar, @Clause3_Output>}::private_cmp"]
-axiom
-  typenum.uint.UIntUlB1.Insts.TypenumPrivatePrivateCmpUIntUrB0SoFarClause3_Output.private_cmp
-  {Ul : Type} {Ur : Type} {SoFar : Type} {Clause3_Output : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned Ul)
-  (marker_traitsUnsignedInst1 : typenum.marker_traits.Unsigned Ur)
-  (marker_traitsOrdInst : typenum.marker_traits.Ord SoFar)
-  (privatePrivateCmpUlUrGreaterClause3_OutputInst : typenum.private.PrivateCmp
-  Ul Ur typenum.Greater Clause3_Output) :
-  typenum.uint.UInt Ul typenum.bit.B1 → typenum.uint.UInt Ur typenum.bit.B0
-    → SoFar → Result Clause3_Output
-
-/-- [typenum::uint::{impl typenum::private::PrivateCmp<typenum::uint::UInt<Ur, typenum::bit::B0>, SoFar, Clause3_Output> for typenum::uint::UInt<Ul, typenum::bit::B0>}::private_cmp]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1274:4-1274:76
-    Name pattern: [typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B0>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @SoFar, @Clause3_Output>}::private_cmp]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B0>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @SoFar, @Clause3_Output>}::private_cmp"]
-axiom
-  typenum.uint.UIntUlB0.Insts.TypenumPrivatePrivateCmpUIntUrB0SoFarClause3_Output.private_cmp
-  {Ul : Type} {Ur : Type} {SoFar : Type} {Clause3_Output : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned Ul)
-  (marker_traitsUnsignedInst1 : typenum.marker_traits.Unsigned Ur)
-  (marker_traitsOrdInst : typenum.marker_traits.Ord SoFar)
-  (privatePrivateCmpInst : typenum.private.PrivateCmp Ul Ur SoFar
-  Clause3_Output) :
-  typenum.uint.UInt Ul typenum.bit.B0 → typenum.uint.UInt Ur typenum.bit.B0
-    → SoFar → Result Clause3_Output
-
-/-- [typenum::uint::{impl typenum::type_operators::Cmp<typenum::uint::UInt<Ur, typenum::bit::B0>, Clause2_Output> for typenum::uint::UInt<Ul, typenum::bit::B0>}::compare]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1218:4-1218:77
-    Name pattern: [typenum::uint::{typenum::type_operators::Cmp<typenum::uint::UInt<@Ul, typenum::bit::B0>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @Clause2_Output>}::compare]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::type_operators::Cmp<typenum::uint::UInt<@Ul, typenum::bit::B0>, typenum::uint::UInt<@Ur, typenum::bit::B0>, @Clause2_Output>}::compare"]
-axiom
-  typenum.uint.UIntUlB0.Insts.TypenumType_operatorsCmpUIntUrB0Clause2_Output.compare
-  {Ul : Type} {Ur : Type} {IM : Type} {Clause2_Output : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned Ul)
-  (marker_traitsUnsignedInst1 : typenum.marker_traits.Unsigned Ur)
-  (privatePrivateCmpUlUrEqualClause2_OutputInst : typenum.private.PrivateCmp Ul
-  Ur typenum.Equal Clause2_Output) (privateInternalMarkerInst :
-  typenum.private.InternalMarker IM) :
-  typenum.uint.UInt Ul typenum.bit.B0 → typenum.uint.UInt Ur typenum.bit.B0
-    → Result Clause2_Output
-
-/-- [typenum::type_operators::{impl typenum::type_operators::IsLess<B, Clause1_Output> for A}::is_less]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/type_operators.rs', lines 390:4-390:44
-    Name pattern: [typenum::type_operators::{typenum::type_operators::IsLess<@A, @B, @Clause1_Output>}::is_less]
-    Visibility: public -/
-@[rust_fun
-  "typenum::type_operators::{typenum::type_operators::IsLess<@A, @B, @Clause1_Output>}::is_less"]
-axiom typenum.type_operators.IsLess.Blanket.is_less
-  {A : Type} {B : Type} {Clause0_Output : Type} {Clause1_Output : Type}
-  (CmpInst : typenum.type_operators.Cmp A B Clause0_Output)
-  (privateIsLessPrivateInst : typenum.private.IsLessPrivate A B Clause0_Output
-  Clause1_Output) :
-  A → B → Result Clause1_Output
-
-/-- [typenum::private::{impl typenum::private::IsLessPrivate<B, typenum::Less, typenum::bit::B1> for A}::is_less_private]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 405:4-405:59
-    Name pattern: [typenum::private::{typenum::private::IsLessPrivate<@A, @B, typenum::Less, typenum::bit::B1>}::is_less_private]
-    Visibility: public -/
-@[rust_fun
-  "typenum::private::{typenum::private::IsLessPrivate<@A, @B, typenum::Less, typenum::bit::B1>}::is_less_private"]
-axiom typenum.private.IsLessPrivateABLessB1.Blanket.is_less_private
-  {A : Type} {B : Type} : A → B → typenum.Less → Result typenum.bit.B1
-
-/-- [typenum::{impl typenum::marker_traits::Ord for typenum::Equal}::to_ordering]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 125:4-125:32
-    Name pattern: [typenum::{typenum::marker_traits::Ord<typenum::Equal>}::to_ordering]
-    Visibility: public -/
-@[rust_fun
-  "typenum::{typenum::marker_traits::Ord<typenum::Equal>}::to_ordering"]
-axiom typenum.Equal.Insts.TypenumMarker_traitsOrd.to_ordering : Result Ordering
-
-/-- [typenum::{impl typenum::marker_traits::Ord for typenum::Greater}::to_ordering]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 109:4-109:32
-    Name pattern: [typenum::{typenum::marker_traits::Ord<typenum::Greater>}::to_ordering]
-    Visibility: public -/
-@[rust_fun
-  "typenum::{typenum::marker_traits::Ord<typenum::Greater>}::to_ordering"]
-axiom typenum.Greater.Insts.TypenumMarker_traitsOrd.to_ordering
-  : Result Ordering
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha256VarCore}::finalize_variable_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 60:4-60:91
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::finalize_variable_core]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::finalize_variable_core"]
-axiom
-  sha2.core_api.Sha256VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.finalize_variable_core
-  :
-  sha2.core_api.Sha256VarCore → block_buffer.BlockBuffer (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) block_buffer.Eager
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1 → generic_array.GenericArray Std.U8 (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))) →
-    Result (sha2.core_api.Sha256VarCore × (block_buffer.BlockBuffer
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) block_buffer.Eager
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
-    typenum.bit.B1) × (generic_array.GenericArray Std.U8 (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha256VarCore}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 49:4-49:65
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::new]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::new"]
-axiom
-  sha2.core_api.Sha256VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.new
-  :
-  Std.Usize → Result (core.result.Result sha2.core_api.Sha256VarCore
-    digest.InvalidOutputSize)
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha256VarCore}::TRUNC_SIDE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 46:4-46:31
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::TRUNC_SIDE]
-    Visibility: public -/
-@[rust_const
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha256VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, typenum::bit::B1>}::TRUNC_SIDE"]
-axiom
-  sha2.core_api.Sha256VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.TRUNC_SIDE
-  : Result digest.core_api.TruncSide
-
-/-- [sha2::core_api::{impl digest::core_api::UpdateCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>> for sha2::core_api::Sha512VarCore}::update_blocks]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 107:4-107:55
-    Name pattern: [sha2::core_api::{digest::core_api::UpdateCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>>}::update_blocks]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::UpdateCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>>}::update_blocks"]
-axiom
-  sha2.core_api.Sha512VarCore.Insts.DigestCore_apiUpdateCoreUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80.update_blocks
-  :
-  sha2.core_api.Sha512VarCore → Slice (generic_array.GenericArray Std.U8
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))))
-    → Result sha2.core_api.Sha512VarCore
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha512VarCore}::finalize_variable_core]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 134:4-134:91
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::finalize_variable_core]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::finalize_variable_core"]
-axiom
-  sha2.core_api.Sha512VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.finalize_variable_core
-  :
-  sha2.core_api.Sha512VarCore → block_buffer.BlockBuffer (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
-    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    block_buffer.Eager (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
-    typenum.bit.B1 → generic_array.GenericArray Std.U8 (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))) →
-    Result (sha2.core_api.Sha512VarCore × (block_buffer.BlockBuffer
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) block_buffer.Eager (generic_array.GenericArrayImplEven
-    Std.U8 (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
-    typenum.bit.B1) × (generic_array.GenericArray Std.U8 (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
-    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
-    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
-    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplEven Std.U8
-    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))))
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha512VarCore}::new]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 121:4-121:65
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::new]
-    Visibility: public -/
-@[rust_fun
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::new"]
-axiom
-  sha2.core_api.Sha512VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.new
-  :
-  Std.Usize → Result (core.result.Result sha2.core_api.Sha512VarCore
-    digest.InvalidOutputSize)
-
-/-- [sha2::core_api::{impl digest::core_api::VariableOutputCore<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0usize]>>>>>>>>, typenum::bit::B1> for sha2::core_api::Sha512VarCore}::TRUNC_SIDE]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 118:4-118:31
-    Name pattern: [sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::TRUNC_SIDE]
-    Visibility: public -/
-@[rust_const
-  "sha2::core_api::{digest::core_api::VariableOutputCore<sha2::core_api::Sha512VarCore, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>, block_buffer::Eager, typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UInt<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplEven<u8, generic_array::GenericArrayImplOdd<u8, [u8; 0]>>>>>>>>, typenum::bit::B1>}::TRUNC_SIDE"]
-axiom
-  sha2.core_api.Sha512VarCore.Insts.DigestCore_apiVariableOutputCoreUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80UIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80EagerUIntUIntUIntUIntUIntUIntUIntUIntUTermB1B0B0B0B0B0B0B0GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplEvenU8GenericArrayImplOddU8ArrayU80B1.TRUNC_SIDE
-  : Result digest.core_api.TruncSide
+  rand_core_1.os.OsRng → Result (rand_core_1.UnwrapErr rand_core_1.os.OsRng
+    rand_core_1.os.OsError)
 
 /-- [spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default]:
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/chain.rs', lines 29:4-29:24
@@ -3330,57 +1312,6 @@ axiom spqr.initial_state
   :
   spqr.Params → Result (core.result.Result (alloc.vec.Vec Std.U8) spqr.Error)
 
-/-- [typenum::private::{impl typenum::private::IsLessOrEqualPrivate<B, typenum::Equal, typenum::bit::B1> for A}::is_less_or_equal_private]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/private.rs', lines 509:4-509:69
-    Name pattern: [typenum::private::{typenum::private::IsLessOrEqualPrivate<@A, @B, typenum::Equal, typenum::bit::B1>}::is_less_or_equal_private]
-    Visibility: public -/
-@[rust_fun
-  "typenum::private::{typenum::private::IsLessOrEqualPrivate<@A, @B, typenum::Equal, typenum::bit::B1>}::is_less_or_equal_private"]
-axiom
-  typenum.private.IsLessOrEqualPrivateABEqualB1.Blanket.is_less_or_equal_private
-  {A : Type} {B : Type} : A → B → typenum.Equal → Result typenum.bit.B1
-
-/-- [typenum::type_operators::{impl typenum::type_operators::IsLessOrEqual<B, Clause1_Output> for A}::is_less_or_equal]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/type_operators.rs', lines 459:4-459:53
-    Name pattern: [typenum::type_operators::{typenum::type_operators::IsLessOrEqual<@A, @B, @Clause1_Output>}::is_less_or_equal]
-    Visibility: public -/
-@[rust_fun
-  "typenum::type_operators::{typenum::type_operators::IsLessOrEqual<@A, @B, @Clause1_Output>}::is_less_or_equal"]
-axiom typenum.type_operators.IsLessOrEqual.Blanket.is_less_or_equal
-  {A : Type} {B : Type} {Clause0_Output : Type} {Clause1_Output : Type}
-  (CmpInst : typenum.type_operators.Cmp A B Clause0_Output)
-  (privateIsLessOrEqualPrivateInst : typenum.private.IsLessOrEqualPrivate A B
-  Clause0_Output Clause1_Output) :
-  A → B → Result Clause1_Output
-
-/-- [typenum::uint::{impl typenum::private::PrivateCmp<typenum::uint::UInt<Ur, typenum::bit::B1>, SoFar, Clause3_Output> for typenum::uint::UInt<Ul, typenum::bit::B1>}::private_cmp]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1291:4-1291:76
-    Name pattern: [typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B1>, typenum::uint::UInt<@Ur, typenum::bit::B1>, @SoFar, @Clause3_Output>}::private_cmp]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UInt<@Ul, typenum::bit::B1>, typenum::uint::UInt<@Ur, typenum::bit::B1>, @SoFar, @Clause3_Output>}::private_cmp"]
-axiom
-  typenum.uint.UIntUlB1.Insts.TypenumPrivatePrivateCmpUIntUrB1SoFarClause3_Output.private_cmp
-  {Ul : Type} {Ur : Type} {SoFar : Type} {Clause3_Output : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned Ul)
-  (marker_traitsUnsignedInst1 : typenum.marker_traits.Unsigned Ur)
-  (marker_traitsOrdInst : typenum.marker_traits.Ord SoFar)
-  (privatePrivateCmpInst : typenum.private.PrivateCmp Ul Ur SoFar
-  Clause3_Output) :
-  typenum.uint.UInt Ul typenum.bit.B1 → typenum.uint.UInt Ur typenum.bit.B1
-    → SoFar → Result Clause3_Output
-
-/-- [typenum::uint::{impl typenum::private::PrivateCmp<typenum::uint::UTerm, SoFar, SoFar> for typenum::uint::UTerm}::private_cmp]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 1355:4-1355:67
-    Name pattern: [typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UTerm, typenum::uint::UTerm, @SoFar, @SoFar>}::private_cmp]
-    Visibility: public -/
-@[rust_fun
-  "typenum::uint::{typenum::private::PrivateCmp<typenum::uint::UTerm, typenum::uint::UTerm, @SoFar, @SoFar>}::private_cmp"]
-axiom
-  typenum.uint.UTerm.Insts.TypenumPrivatePrivateCmpUTermSoFarSoFar.private_cmp
-  {SoFar : Type} (marker_traitsOrdInst : typenum.marker_traits.Ord SoFar) :
-  typenum.uint.UTerm → typenum.uint.UTerm → SoFar → Result SoFar
-
 /-- [uuid::{impl core::clone::Clone for uuid::Uuid}::clone]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 436:9-436:14
     Name pattern: [uuid::{core::clone::Clone<uuid::Uuid>}::clone]
@@ -3394,47 +1325,6 @@ axiom uuid.Uuid.Insts.CoreCloneClone.clone : uuid.Uuid → Result uuid.Uuid
 axiom
   proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.encode_to_vec
   : proto.fingerprint.CombinedFingerprints → Result (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::{impl prost::message::Message for libsignal_protocol::proto::sealed_sender::ServerCertificate}::encode_to_vec]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 2:37-2:53
-    Visibility: public -/
-axiom
-  proto.sealed_sender.ServerCertificate.Insts.ProstMessageMessage.encode_to_vec
-  : proto.sealed_sender.ServerCertificate → Result (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::server_certificate::{impl prost::message::Message for libsignal_protocol::proto::sealed_sender::server_certificate::Certificate}::encode_to_vec]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 11:41-11:57
-    Visibility: public -/
-axiom
-  proto.sealed_sender.server_certificate.Certificate.Insts.ProstMessageMessage.encode_to_vec
-  :
-  proto.sealed_sender.server_certificate.Certificate → Result (alloc.vec.Vec
-    Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::{impl prost::message::Message for libsignal_protocol::proto::sealed_sender::SenderCertificate}::encode_to_vec]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 19:37-19:53
-    Visibility: public -/
-axiom
-  proto.sealed_sender.SenderCertificate.Insts.ProstMessageMessage.encode_to_vec
-  : proto.sealed_sender.SenderCertificate → Result (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::sender_certificate::{impl prost::message::Message for libsignal_protocol::proto::sealed_sender::sender_certificate::Certificate}::encode_to_vec]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 28:41-28:57
-    Visibility: public -/
-axiom
-  proto.sealed_sender.sender_certificate.Certificate.Insts.ProstMessageMessage.encode_to_vec
-  :
-  proto.sealed_sender.sender_certificate.Certificate → Result (alloc.vec.Vec
-    Std.U8)
-
-/-- [libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl prost::message::Message for libsignal_protocol::proto::sealed_sender::unidentified_sender_message::Message}::encode_to_vec]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
-    Visibility: public -/
-axiom
-  proto.sealed_sender.unidentified_sender_message.Message.Insts.ProstMessageMessage.encode_to_vec
-  :
-  proto.sealed_sender.unidentified_sender_message.Message → Result
-    (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::encode_to_vec]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 2:27-2:43
@@ -3517,6 +1407,12 @@ axiom proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.decode
   T1 → Result (core.result.Result proto.storage.SenderKeyRecordStructure
     prost.error.DecodeError)
 
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len]:
+    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53
+    Visibility: public -/
+axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.encoded_len
+  : proto.wire.SignalMessage → Result Std.Usize
+
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encode]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 2:37-2:53
     Visibility: public -/
@@ -3524,6 +1420,12 @@ axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.encode
   {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
   proto.wire.SignalMessage → T1 → Result ((core.result.Result Unit
     prost.error.EncodeError) × T1)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len]:
+    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53
+    Visibility: public -/
+axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.encoded_len
+  : proto.wire.PreKeySignalMessage → Result Std.Usize
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encode]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 17:37-17:53
@@ -3533,6 +1435,12 @@ axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.encode
   proto.wire.PreKeySignalMessage → T1 → Result ((core.result.Result Unit
     prost.error.EncodeError) × T1)
 
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len]:
+    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53
+    Visibility: public -/
+axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.encoded_len
+  : proto.wire.SenderKeyMessage → Result Std.Usize
+
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encode]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 37:37-37:53
     Visibility: public -/
@@ -3540,6 +1448,13 @@ axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.encode
   {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
   proto.wire.SenderKeyMessage → T1 → Result ((core.result.Result Unit
     prost.error.EncodeError) × T1)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len]:
+    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53
+    Visibility: public -/
+axiom
+  proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.encoded_len
+  : proto.wire.SenderKeyDistributionMessage → Result Std.Usize
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encode]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 48:37-48:53
@@ -3664,6 +1579,13 @@ axiom fingerprint.ScannableFingerprint.compare
   fingerprint.ScannableFingerprint → Slice Std.U8 → Result
     (core.result.Result Bool fingerprint.Error)
 
+/-- [libsignal_protocol::fingerprint::{libsignal_protocol::fingerprint::Fingerprint}::get_fingerprint]:
+    Source: 'rust/protocol/src/fingerprint.rs', lines 161:4-192:5 -/
+axiom fingerprint.Fingerprint.get_fingerprint
+  :
+  Std.U32 → Slice Std.U8 → identity_key.IdentityKey → Result
+    (core.result.Result (alloc.vec.Vec Std.U8) fingerprint.Error)
+
 /-- [libsignal_protocol::fingerprint::{libsignal_protocol::fingerprint::Fingerprint}::display_string]:
     Source: 'rust/protocol/src/fingerprint.rs', lines 211:4-213:5
     Visibility: public -/
@@ -3671,14 +1593,6 @@ axiom fingerprint.Fingerprint.display_string
   :
   fingerprint.Fingerprint → Result (core.result.Result String
     fingerprint.Error)
-
-/-- [libsignal_protocol::group_cipher::get_sender_key]:
-    Source: 'rust/protocol/src/group_cipher.rs', lines 75:0-122:1 -/
-axiom group_cipher.get_sender_key
-  :
-  sender_keys.SenderKeyState → Std.U32 → uuid.Uuid → Result
-    ((core.result.Result sender_keys.SenderMessageKey
-    error.SignalProtocolError) × sender_keys.SenderKeyState)
 
 /-- [libsignal_protocol::identity_key::{impl core::cmp::PartialEq<libsignal_protocol::identity_key::IdentityKey> for libsignal_protocol::identity_key::IdentityKey}::ne]:
     Source: 'rust/protocol/src/identity_key.rs', lines 23:16-23:25
@@ -3690,7 +1604,7 @@ axiom identity_key.IdentityKey.Insts.CoreCmpPartialEqIdentityKey.ne
     Source: 'rust/protocol/src/kem/kyber1024.rs', lines 31:4-40:5 -/
 axiom
   kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
-  {R : Type} (rand_coreCryptoRngInst : rand_core.CryptoRng R) :
+  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R) :
   kem.KeyMaterial kem.Public → R → Result ((core.result.Result ((Slice
     Std.U8) × (Slice Std.U8)) kem.BadKEMKeyLength) × R)
 
@@ -3703,49 +1617,49 @@ axiom
     (Slice Std.U8) kem.DecapsulateError)
 
 /-- [libsignal_protocol::kem::{impl core::cmp::PartialEq<libsignal_protocol::kem::KeyType> for libsignal_protocol::kem::KeyType}::ne]:
-    Source: 'rust/protocol/src/kem.rs', lines 206:38-206:47
+    Source: 'rust/protocol/src/kem.rs', lines 202:38-202:47
     Visibility: public -/
 axiom kem.KeyType.Insts.CoreCmpPartialEqKeyType.ne
   : kem.KeyType → kem.KeyType → Result Bool
 
 /-- [libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}::key_length]:
-    Source: 'rust/protocol/src/kem.rs', lines 265:4-267:5
+    Source: 'rust/protocol/src/kem.rs', lines 261:4-263:5
     Visibility: public -/
 axiom kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length
   : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Secret}::key_length]:
-    Source: 'rust/protocol/src/kem.rs', lines 273:4-275:5
+    Source: 'rust/protocol/src/kem.rs', lines 269:4-271:5
     Visibility: public -/
 axiom kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length
   : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::KeyPair}::generate]:
-    Source: 'rust/protocol/src/kem.rs', lines 467:4-479:5
+    Source: 'rust/protocol/src/kem.rs', lines 459:4-471:5
     Visibility: public -/
 axiom kem.KeyPair.generate
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   kem.KeyType → R → Result (kem.KeyPair × R)
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 77:4-82:5 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 73:4-78:5 -/
 axiom pqxdh.HandshakeKeys.derive : Slice Std.U8 → Result pqxdh.HandshakeKeys
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive_with_label]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 84:4-96:5 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 80:4-92:5 -/
 axiom pqxdh.HandshakeKeys.derive_with_label
   : Slice Std.U8 → Slice Std.U8 → Result pqxdh.HandshakeKeys
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_one_time_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 177:4-179:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 173:4-175:5
     Visibility: public -/
 axiom pqxdh.InitiatorParameters.impl.their_one_time_pre_key
   :
   pqxdh.InitiatorParameters → Result (Option libsignal_core.curve.PublicKey)
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_one_time_pre_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 299:4-301:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 295:4-297:5
     Visibility: public -/
 axiom pqxdh.RecipientParameters.impl.our_one_time_pre_key_pair
   : pqxdh.RecipientParameters → Result (Option libsignal_core.curve.KeyPair)
@@ -3767,6 +1681,14 @@ axiom
   :
   Std.U8 → Result (core.result.Result protocol.CiphertextMessageType
     (derive_more.convert.try_from.TryFromReprError Std.U8))
+
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::compute_mac]:
+    Source: 'rust/protocol/src/protocol.rs', lines 225:4-246:5 -/
+axiom protocol.SignalMessage.compute_mac
+  :
+  identity_key.IdentityKey → identity_key.IdentityKey → Slice Std.U8 →
+    Slice Std.U8 → Result (core.result.Result (Array Std.U8 8#usize)
+    error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::verify_mac]:
     Source: 'rust/protocol/src/protocol.rs', lines 160:4-184:5 -/
@@ -3915,147 +1837,15 @@ axiom state.session.SessionState.new
 axiom state.session.SessionRecord.new
   : state.session.SessionState → Result state.session.SessionRecord
 
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::ServerCertificate}::deserialize]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 93:4-126:5
-    Visibility: public -/
-axiom sealed_sender.ServerCertificate.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result sealed_sender.ServerCertificate
-    error.SignalProtocolError)
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderMessageKey}::new]:
+    Source: 'rust/protocol/src/sender_keys.rs', lines 34:4-45:5 -/
+axiom sender_keys.SenderMessageKey.new
+  : Std.U32 → alloc.vec.Vec Std.U8 → Result sender_keys.SenderMessageKey
 
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::ServerCertificate}::validate]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 158:4-167:5
-    Visibility: public -/
-axiom sealed_sender.ServerCertificate.validate
-  :
-  sealed_sender.ServerCertificate → libsignal_core.curve.PublicKey → Result
-    (core.result.Result Bool error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SenderCertificate}::deserialize]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 210:4-275:5
-    Visibility: public -/
-axiom sealed_sender.SenderCertificate.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result sealed_sender.SenderCertificate
-    error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SenderCertificate}::validate]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 327:4-329:5
-    Visibility: public -/
-axiom sealed_sender.SenderCertificate.validate
-  :
-  sealed_sender.SenderCertificate → libsignal_core.curve.PublicKey →
-    timestamp.Timestamp → Result (core.result.Result Bool
-    error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SenderCertificate}::validate_with_trust_roots]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 331:4-369:5
-    Visibility: public -/
-axiom sealed_sender.SenderCertificate.validate_with_trust_roots
-  {T0 : Type} (coreconvertAsRefT0PublicKeyInst : core.convert.AsRef T0
-  libsignal_core.curve.PublicKey) :
-  sealed_sender.SenderCertificate → Slice T0 → timestamp.Timestamp →
-    Result (core.result.Result Bool error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SenderCertificate}::signer]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 371:4-394:5
-    Visibility: public -/
-axiom sealed_sender.SenderCertificate.impl.signer
-  :
-  sealed_sender.SenderCertificate → Result (core.result.Result
-    sealed_sender.ServerCertificate error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{impl core::cmp::PartialEq<libsignal_protocol::sealed_sender::ContentHint> for libsignal_protocol::sealed_sender::ContentHint}::ne]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 457:22-457:31
-    Visibility: public -/
-axiom sealed_sender.ContentHint.Insts.CoreCmpPartialEqContentHint.ne
-  : sealed_sender.ContentHint → sealed_sender.ContentHint → Result Bool
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::UnidentifiedSenderMessageContent}::deserialize]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 514:4-554:5
-    Visibility: public -/
-axiom sealed_sender.UnidentifiedSenderMessageContent.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result
-    sealed_sender.UnidentifiedSenderMessageContent error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::UnidentifiedSenderMessage<'a>}::deserialize]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 636:4-697:5 -/
-axiom sealed_sender.UnidentifiedSenderMessage.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result
-    sealed_sender.UnidentifiedSenderMessage error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v1::{libsignal_protocol::sealed_sender::sealed_sender_v1::EphemeralKeys}::calculate]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 721:8-746:9 -/
-axiom sealed_sender.sealed_sender_v1.EphemeralKeys.calculate
-  :
-  libsignal_core.curve.KeyPair → libsignal_core.curve.PublicKey →
-    storage.traits.Direction → Result (core.result.Result
-    sealed_sender.sealed_sender_v1.EphemeralKeys error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v1::{libsignal_protocol::sealed_sender::sealed_sender_v1::StaticKeys}::calculate]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 781:8-803:9 -/
-axiom sealed_sender.sealed_sender_v1.StaticKeys.calculate
-  :
-  identity_key.IdentityKeyPair → libsignal_core.curve.PublicKey → Array
-    Std.U8 32#usize → Slice Std.U8 → Result (core.result.Result
-    sealed_sender.sealed_sender_v1.StaticKeys error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v2::{libsignal_protocol::sealed_sender::sealed_sender_v2::DerivedKeys}::derive_e]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1054:8-1061:9 -/
-axiom sealed_sender.sealed_sender_v2.DerivedKeys.derive_e
-  :
-  sealed_sender.sealed_sender_v2.DerivedKeys → Result
-    libsignal_core.curve.KeyPair
-
-/-- [libsignal_protocol::sealed_sender::sealed_sender_v2::apply_agreement_xor]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1079:4-1109:5 -/
-axiom sealed_sender.sealed_sender_v2.apply_agreement_xor
-  :
-  libsignal_core.curve.KeyPair → libsignal_core.curve.PublicKey →
-    storage.traits.Direction → Array Std.U8 32#usize → Result
-    (core.result.Result (Array Std.U8 32#usize) error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SealedSenderV2SentMessage<'a>}::parse]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1638:4-1754:5
-    Visibility: public -/
-axiom sealed_sender.SealedSenderV2SentMessage.parse
-  :
-  Slice Std.U8 → Result (core.result.Result
-    sealed_sender.SealedSenderV2SentMessage error.SignalProtocolError)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SealedSenderV2SentMessage<'a>}::received_message_parts_for_recipient]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1762:4-1775:5
-    Visibility: public -/
-axiom
-  sealed_sender.SealedSenderV2SentMessage.received_message_parts_for_recipient
-  :
-  sealed_sender.SealedSenderV2SentMessage →
-    sealed_sender.SealedSenderV2SentMessageRecipient → Result (Array (Slice
-    Std.U8) 3#usize)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SealedSenderV2SentMessage<'a>}::offset_within_full_message]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1784:4-1799:5 -/
-axiom sealed_sender.SealedSenderV2SentMessage.offset_within_full_message
-  :
-  sealed_sender.SealedSenderV2SentMessage → ConstRawPtr Std.U8 → Result
-    (Option Std.Usize)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SealedSenderV2SentMessage<'a>}::range_for_recipient_key_material]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1807:4-1823:5
-    Visibility: public -/
-axiom sealed_sender.SealedSenderV2SentMessage.range_for_recipient_key_material
-  :
-  sealed_sender.SealedSenderV2SentMessage →
-    sealed_sender.SealedSenderV2SentMessageRecipient → Result
-    (core.ops.range.Range Std.Usize)
-
-/-- [libsignal_protocol::sealed_sender::{libsignal_protocol::sealed_sender::SealedSenderV2SentMessage<'a>}::offset_of_shared_bytes]:
-    Source: 'rust/protocol/src/sealed_sender.rs', lines 1829:4-1837:5
-    Visibility: public -/
-axiom sealed_sender.SealedSenderV2SentMessage.offset_of_shared_bytes
-  : sealed_sender.SealedSenderV2SentMessage → Result Std.Usize
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderChainKey}::new]:
+    Source: 'rust/protocol/src/sender_keys.rs', lines 85:4-90:5 -/
+axiom sender_keys.SenderChainKey.new
+  : Std.U32 → alloc.vec.Vec Std.U8 → Result sender_keys.SenderChainKey
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderChainKey}::next]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 100:4-112:5 -/
@@ -4063,6 +1853,14 @@ axiom sender_keys.SenderChainKey.next
   :
   sender_keys.SenderChainKey → Result (core.result.Result
     sender_keys.SenderChainKey error.SignalProtocolError)
+
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::new]:
+    Source: 'rust/protocol/src/sender_keys.rs', lines 137:4-164:5 -/
+axiom sender_keys.SenderKeyState.new
+  :
+  Std.U8 → Std.U32 → Std.U32 → Slice Std.U8 →
+    libsignal_core.curve.PublicKey → Option libsignal_core.curve.PrivateKey
+    → Result sender_keys.SenderKeyState
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::signing_key_public]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 193:4-200:5 -/
@@ -4118,10 +1916,10 @@ axiom sender_keys.SenderKeyRecord.remove_states_with_chain_id
     sender_keys.SenderKeyRecord)
 
 /-- [libsignal_protocol::session_management::try_decrypt_from_record]:
-    Source: 'rust/protocol/src/session_management.rs', lines 358:0-546:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 369:0-557:1 -/
 axiom session_management.try_decrypt_from_record
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   state.session.SessionRecord → libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
     protocol.CiphertextMessageType → R → Result ((core.result.Result
@@ -4129,10 +1927,10 @@ axiom session_management.try_decrypt_from_record
     state.session.SessionRecord × R)
 
 /-- [libsignal_protocol::session_management::try_decrypt_with_state]:
-    Source: 'rust/protocol/src/session_management.rs', lines 556:0-596:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 567:0-607:1 -/
 axiom session_management.try_decrypt_with_state
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   state.session.SessionState → libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
     protocol.CiphertextMessageType → session_management.CurrentOrPrevious →
@@ -4140,7 +1938,7 @@ axiom session_management.try_decrypt_with_state
     error.SignalProtocolError) × state.session.SessionState × R)
 
 /-- [libsignal_protocol::session_management::format_decryption_failure_log]:
-    Source: 'rust/protocol/src/session_management.rs', lines 600:0-688:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 611:0-699:1 -/
 axiom session_management.format_decryption_failure_log
   :
   libsignal_core.address.ProtocolAddress → Slice error.SignalProtocolError
@@ -4479,8 +2277,8 @@ axiom triple_ratchet.OutgoingTripleRatchet.from_session_state
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt]:
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 86:4-135:5 -/
 axiom triple_ratchet.OutgoingTripleRatchet.encrypt
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   triple_ratchet.OutgoingTripleRatchet → Slice Std.U8 → Option
     libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → R → Result
@@ -4498,8 +2296,8 @@ axiom triple_ratchet.TripleRatchet.from_session_state
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::decrypt]:
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 215:4-302:5 -/
 axiom triple_ratchet.TripleRatchet.decrypt
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_coreCryptoRngInst :
-  rand_core.CryptoRng R) :
+  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
   triple_ratchet.TripleRatchet → libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
     protocol.CiphertextMessageType → session_management.CurrentOrPrevious →

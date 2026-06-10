@@ -44,13 +44,6 @@ axiom core.num.nonzero.NonZero (T : Type) (Clause0_NonZeroInner : Type) : Type
 @[rust_type "core::time::Duration"]
 axiom core.time.Duration : Type
 
-/-- [std::hash::random::RandomState]
-    Source: '/rustc/library/std/src/hash/random.rs', lines 35:0-35:22
-    Name pattern: [std::hash::random::RandomState]
-    Visibility: public -/
-@[rust_type "std::hash::random::RandomState"]
-axiom std.hash.random.RandomState : Type
-
 /-- [std::path::PathBuf]
     Source: '/rustc/library/std/src/path.rs', lines 1214:0-1214:18
     Name pattern: [std::path::PathBuf]
@@ -100,114 +93,12 @@ axiom alloc.collections.vec_deque.iter.Iter (T : Type) : Type
 @[rust_type "alloc::collections::vec_deque::VecDeque"]
 axiom alloc.collections.vec_deque.VecDeque (T : Type) (A : Type) : Type
 
-/-- [generic_array::GenericArray]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 179:0-179:45
-    Name pattern: [generic_array::GenericArray]
-    Visibility: public -/
-@[rust_type "generic_array::GenericArray"]
-axiom generic_array.GenericArray (T : Type) (U : Type) (Clause0_ArrayType :
-  Type) : Type
-
-/-- [block_buffer::BlockBuffer]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/lib.rs', lines 55:0-55:39
-    Name pattern: [block_buffer::BlockBuffer]
-    Visibility: public -/
-@[rust_type "block_buffer::BlockBuffer"]
-axiom block_buffer.BlockBuffer (BlockSize : Type) (Kind : Type)
-  (Clause0_ArrayType : Type) (Clause1_Output : Type) : Type
-
 /-- [bytes::buf::uninit_slice::UninitSlice]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/uninit_slice.rs', lines 22:0-22:22
     Name pattern: [bytes::buf::uninit_slice::UninitSlice]
     Visibility: public -/
 @[rust_type "bytes::buf::uninit_slice::UninitSlice"]
 axiom bytes.buf.uninit_slice.UninitSlice : Type
-
-/-- [typenum::uint::UInt]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 148:0-148:21
-    Name pattern: [typenum::uint::UInt]
-    Visibility: public -/
-@[rust_type "typenum::uint::UInt"]
-axiom typenum.uint.UInt (U : Type) (B : Type) : Type
-
-/-- [digest::core_api::ct_variable::CtVariableCoreWrapper]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 25:0-25:55
-    Name pattern: [digest::core_api::ct_variable::CtVariableCoreWrapper]
-    Visibility: public -/
-@[rust_type "digest::core_api::ct_variable::CtVariableCoreWrapper"]
-axiom digest.core_api.ct_variable.CtVariableCoreWrapper (T : Type) (OutSize :
-  Type) (O : Type) (Clause0_Clause0_Clause0_BlockSize : Type)
-  (Clause0_Clause0_Clause0_Clause0_ArrayType : Type)
-  (Clause0_Clause1_OutputSize : Type) (Clause0_Clause1_Clause0_ArrayType :
-  Type) (Clause0_Clause2_BufferKind : Type) (Clause0_Clause2_Clause0_BlockSize
-  : Type) (Clause0_Clause2_Clause0_Clause0_ArrayType : Type)
-  (Clause0_Clause3_Output : Type) (Clause1_ArrayType : Type) (Clause2_Output :
-  Type) (Clause4_Output : Type) : Type
-
-/-- [digest::core_api::wrapper::CoreWrapper]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 24:0-24:25
-    Name pattern: [digest::core_api::wrapper::CoreWrapper]
-    Visibility: public -/
-@[rust_type "digest::core_api::wrapper::CoreWrapper"]
-axiom digest.core_api.wrapper.CoreWrapper (T : Type) (Clause0_BufferKind :
-  Type) (Clause0_Clause0_BlockSize : Type) (Clause0_Clause0_Clause0_ArrayType :
-  Type) (Clause1_Output : Type) : Type
-
-/-- [digest::mac::CtOutput]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/mac.rs', lines 244:0-244:38
-    Name pattern: [digest::mac::CtOutput]
-    Visibility: public -/
-@[rust_type "digest::mac::CtOutput"]
-axiom digest.mac.CtOutput (T : Type) (Clause0_OutputSize : Type)
-  (Clause0_Clause0_ArrayType : Type) : Type
-
-/-- [generic_array::GenericArrayImplEven]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 126:0-126:37
-    Name pattern: [generic_array::GenericArrayImplEven]
-    Visibility: public -/
-@[rust_type "generic_array::GenericArrayImplEven"]
-axiom generic_array.GenericArrayImplEven (T : Type) (U : Type) : Type
-
-/-- [generic_array::GenericArrayImplOdd]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 148:0-148:36
-    Name pattern: [generic_array::GenericArrayImplOdd]
-    Visibility: public -/
-@[rust_type "generic_array::GenericArrayImplOdd"]
-axiom generic_array.GenericArrayImplOdd (T : Type) (U : Type) : Type
-
-/-- [hkdf::Hkdf]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.12.4/src/lib.rs', lines 190:0-190:60
-    Name pattern: [hkdf::Hkdf]
-    Visibility: public -/
-@[rust_type "hkdf::Hkdf"]
-axiom hkdf.Hkdf (H : Type) (I : Type) (Clause0_OutputSize : Type)
-  (Clause0_Clause0_ArrayType : Type) (Clause1_Clause0_Core : Type)
-  (Clause1_Clause0_Clause0_OutputSize : Type)
-  (Clause1_Clause0_Clause0_Clause0_ArrayType : Type)
-  (Clause1_Clause1_OutputSize : Type) (Clause1_Clause1_Clause0_ArrayType :
-  Type) : Type
-
-/-- [hmac::optim::HmacCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 20:0-20:22
-    Name pattern: [hmac::optim::HmacCore]
-    Visibility: public -/
-@[rust_type "hmac::optim::HmacCore"]
-axiom hmac.optim.HmacCore (D : Type) (Clause0_Core : Type)
-  (Clause2_Clause0_BlockSize : Type) (Clause2_Clause0_Clause0_ArrayType : Type)
-  (Clause3_Clause0_Clause0_BlockSize : Type)
-  (Clause3_Clause0_Clause0_Clause0_ArrayType : Type)
-  (Clause3_Clause1_BufferKind : Type) (Clause3_Clause1_Clause0_BlockSize :
-  Type) (Clause3_Clause1_Clause0_Clause0_ArrayType : Type)
-  (Clause3_Clause2_OutputSize : Type) (Clause3_Clause2_Clause0_ArrayType :
-  Type) (Clause3_Clause3_Output : Type) (Clause4_Clause0_BlockSize : Type)
-  (Clause4_Clause0_Clause0_ArrayType : Type) (Clause7_Output : Type) : Type
-
-/-- [indexmap::map::IndexMap]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-2.13.0/src/map.rs', lines 92:0-92:42
-    Name pattern: [indexmap::map::IndexMap]
-    Visibility: public -/
-@[rust_type "indexmap::map::IndexMap"]
-axiom indexmap.map.IndexMap (K : Type) (V : Type) (S : Type) : Type
 
 /-- [uuid::Uuid]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 457:0-457:15
@@ -237,26 +128,12 @@ axiom prost.error.DecodeError : Type
 @[rust_type "prost::error::EncodeError"]
 axiom prost.error.EncodeError : Type
 
-/-- [rand_core::os::OsError]
+/-- [rand_core#1::os::OsError]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 51:0-51:18
-    Name pattern: [rand_core::os::OsError]
+    Name pattern: [rand_core#1::os::OsError]
     Visibility: public -/
-@[rust_type "rand_core::os::OsError"]
-axiom rand_core.os.OsError : Type
-
-/-- [sha2::core_api::Sha256VarCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 18:0-18:24
-    Name pattern: [sha2::core_api::Sha256VarCore]
-    Visibility: public -/
-@[rust_type "sha2::core_api::Sha256VarCore"]
-axiom sha2.core_api.Sha256VarCore : Type
-
-/-- [sha2::core_api::Sha512VarCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 90:0-90:24
-    Name pattern: [sha2::core_api::Sha512VarCore]
-    Visibility: public -/
-@[rust_type "sha2::core_api::Sha512VarCore"]
-axiom sha2.core_api.Sha512VarCore : Type
+@[rust_type "rand_core#1::os::OsError"]
+axiom rand_core_1.os.OsError : Type
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure]
     Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
