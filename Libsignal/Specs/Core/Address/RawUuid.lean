@@ -70,6 +70,6 @@ theorem raw_uuid_spec (self : libsignal_core.address.ServiceId) :
       (∀ aci, self = .Aci aci → result = aci.uuid) ∧
       (∀ pni, self = .Pni pni → result = pni.uuid) ⦄ := by
   unfold raw_uuid
-  step* <;> (unfold uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from; step*; simp_all)
+  step* <;> simp [uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from]
 
 end signal_crypto.libsignal_core.address.ServiceId

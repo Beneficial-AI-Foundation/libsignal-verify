@@ -61,6 +61,6 @@ theorem from_spec (value : libsignal_core.address.ServiceIdKind) :
       (value = .Pni → result = 1#u8) ⦄ := by
   unfold «from»
   step*
-  cases value <;> simp_all <;> native_decide
+  cases value <;> simp only [reduceCtorEq] <;> decide
 
 end signal_crypto.U8.Insts.CoreConvertFromServiceIdKind
