@@ -34,7 +34,7 @@ The function always succeeds monadically — `value as u8` on a
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.U8.Insts.CoreConvertFromServiceIdKind
+namespace libsignal_protocol.U8.Insts.CoreConvertFromServiceIdKind
 
 /-
 natural language description:
@@ -53,7 +53,6 @@ natural language specs:
 • When `value = Aci`, the result is `0#u8`.
 • When `value = Pni`, the result is `1#u8`.
 -/
-
 @[step]
 theorem from_spec (value : libsignal_core.address.ServiceIdKind) :
     «from» value ⦃ result =>
@@ -61,6 +60,6 @@ theorem from_spec (value : libsignal_core.address.ServiceIdKind) :
       (value = .Pni → result = 1#u8) ⦄ := by
   unfold «from»
   step*
-  cases value <;> simp_all <;> native_decide
+  cases value <;> simp_all only [reduceCtorEq] <;> decide
 
-end signal_crypto.U8.Insts.CoreConvertFromServiceIdKind
+end libsignal_protocol.U8.Insts.CoreConvertFromServiceIdKind

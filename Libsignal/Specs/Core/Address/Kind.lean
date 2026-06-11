@@ -57,8 +57,6 @@ natural language specs:
 • When `self = Aci aci`, the result is `ServiceIdKind.Aci`.
 • When `self = Pni pni`, the result is `ServiceIdKind.Pni`.
 -/
-
--- libsignal_protocol.libsignal_core.address.ServiceId.kind
 @[step]
 theorem kind_spec (self : libsignal_core.address.ServiceId) :
     kind self ⦃ (result : ServiceIdKind) =>
