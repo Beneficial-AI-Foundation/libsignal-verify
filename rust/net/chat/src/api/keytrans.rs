@@ -19,12 +19,12 @@ use libsignal_keytrans::{
     AccountData, ChatDistinguishedResponse, ChatMonitorResponse, ChatSearchResponse,
     CondensedTreeSearchResponse, FullSearchResponse, FullTreeHead, KeyTransparency, LastTreeHead,
     LocalStateUpdate, MonitorContext, MonitorKey, MonitorProof, MonitorRequest, MonitorResponse,
-    SearchContext, SearchStateUpdate, SlimSearchRequest,
+    SearchContext, SearchStateUpdate, SlimSearchRequest, StoredAccountData,
 };
 use libsignal_net::env::KeyTransConfig;
 use libsignal_protocol::PublicKey;
 pub use maybe_partial::{AccountDataField, MaybePartial};
-pub use monitor_and_search::check;
+pub use monitor_and_search::{TreeHeadWithTimestamp, check};
 use verify_ext::KeyTransparencyVerifyExt as _;
 
 use super::RequestError;
@@ -310,6 +310,7 @@ impl UnauthenticatedChatApi for KeyTransparencyClient<'_> {
             .inner
             .verify_chat_search_response(
                 aci,
+                aci_identity_key,
                 e164.map(|(e164, _)| e164),
                 username_hash,
                 stored_account_data,
@@ -537,6 +538,20 @@ impl UnauthenticatedChatApi for KeyTransparencyClient<'_> {
     }
 }
 
+pub trait AccountDataFieldReset {
+    fn reset(self, field: AccountDataField) -> Self;
+}
+
+impl AccountDataFieldReset for StoredAccountData {
+    fn reset(mut self, field: AccountDataField) -> Self {
+        match field {
+            AccountDataField::E164 => self.e164 = None,
+            AccountDataField::UsernameHash => self.username_hash = None,
+        }
+        self
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod test_support {
     use std::cell::Cell;
@@ -621,27 +636,26 @@ pub(crate) mod test_support {
     pub const CHAT_SEARCH_RESPONSE_VALID_AT: Duration =
         include!("../../../tests/data/chat_response_valid_at.in");
 
-    const DISTINGUISHED_TREE_48419053_HEAD: &[u8] = &hex!(
-        "08eda18b1710efcdb4cec4331a640a20bd1e26a0fbdbfa923486ccc9296f4227db490b4add29f5507775171ea0fb7a4e12409e2954d37dad743d4eb2209309ee5ba85ed72a2fb7c39b34158270bc9954ead0e61cb418c548373955e99592c82506e9188ab6c960f8b2d8b6b864197165ca0d1a640a201123b13ee32479ae6af5739e5d687b51559abf7684120511f68cde7a21a0e7551240fa9f4b8c4fe55a16c559d6da4d974cdf7e6957cb31a1a55dbaf9e4f715cbefc40d273a1bfde5b77b2eb2731a298b454a44bba41557f2b9f87c6eec4f3623ca041a640a20093ee42d95502b3e81f4e604179c82c149fffb96167642b9eb81b03d6e2dd6361240e9cee1ed1a8d5d1026cac0ac7101a608b131fa592f6d26505cde31c111c450afad61ca7d685924438ebc8e12bf1c3632b6161334e10c9e3ad72b7931cb6f0504"
+    const DISTINGUISHED_TREE_677_HEAD: &[u8] = &hex!(
+        "08a50510f981afc4d7331a640a20bd1e26a0fbdbfa923486ccc9296f4227db490b4add29f5507775171ea0fb7a4e1240404fcd202d174fa3c1db70dd7a2af28aa7289230f16bbbabfbb0cf8ac0351ce8ddcc770a4e5ab2a2b32b4af7fba5e056f2d6f70be1039c152aeda2e7c6117a0d1a640a201123b13ee32479ae6af5739e5d687b51559abf7684120511f68cde7a21a0e7551240521e691c9356343feee2e80c5355d1f257550d870542ac0b6e25d349b6223966eb0859dd0df942cd5e541b37e9028682c9c986a5c9f33ce4739e205f58cbd2061a640a20093ee42d95502b3e81f4e604179c82c149fffb96167642b9eb81b03d6e2dd636124081185aaf680e96e329dee42cdb2f1ce7bef6da769b51dabfda8db0163977d500a47d00fe60a6fe3e2562f08e5ff8c4ec4dfcf054e31a85b28d0665ff92c0f901"
     );
-    const DISTINGUISHED_TREE_48419053_ROOT: &[u8] =
-        &hex!("9bc6752695ec310be8eca0257becbfa5ca8daeceac318989e764e8b7c7fb1608");
+    const DISTINGUISHED_TREE_677_ROOT: &[u8] =
+        &hex!("8bf5f1bdfb17a7772210f05192e4581f4b4364c9ca2efdd79244d5fc01adcde5");
 
-    const STORED_ACCOUNT_DATA_48419073: &[u8] = &hex!(
-        "0a400a203901c94081c4e6321e92b3e434dcaf788f5326913e7bdcab47b4fd2ae7a6848a10301a0508ffffff0f20012a116190c979fdeab44a08b6da69dedeab9b29123d0a2086052cc2a2689558e852d053c5ab411d8c3baef20171ec298e551574806ca95d1096011a0508ffffff0f20012a0d6e2b31383030353535303130301a510a206f55ac745ebeaf39fd5b21177c7fa692876c42678ffa1f3d58ed8fbc5ef023b910cc011a0508ffffff0f20012a2175dc711808c2cf66d5e6a33ce41f27d69d942d2e1ff4db22d39b42d2eff8d0974622ea020abe020881a28b171096edb4cec4331a640a20bd1e26a0fbdbfa923486ccc9296f4227db490b4add29f5507775171ea0fb7a4e12407c1136788cda4543f6cdf9154b40a5fdaab6eb44ff3c350ed8595c975f48db40f86b78f2f7684dcb4f3c36e2f1491ae1c08aa3665bdcaa0c8492b913c37b0d0e1a640a201123b13ee32479ae6af5739e5d687b51559abf7684120511f68cde7a21a0e7551240ec504259cfba1b31665abe005f8ded7096090d505ae39a4cad456b57f58307be8cb2cd5d74eb3eeb77a9387f22601595286f4bfe6fb6e49cc70d4834d84f21041a640a20093ee42d95502b3e81f4e604179c82c149fffb96167642b9eb81b03d6e2dd636124013c9a37acb164f9b2bc022e69ff621bcc0012dfab38ef56638f4bd9eafd855cda6eb5dcc17ffde2ba306589284861177e035dce98fe781ae59d58c59a39643091220967878356efab797d8945d7e523da0ac943237e7a6a246bb03a1c174486f0bea18f5fab4cec433"
+    const STORED_ACCOUNT_DATA_681: &[u8] = &hex!(
+        "0a3e0a203901c94081c4e6321e92b3e434dcaf788f5326913e7bdcab47b4fd2ae7a6848a10131a0308ff0320012a116190c979fdeab44a08b6da69dedeab9b29123a0a2086052cc2a2689558e852d053c5ab411d8c3baef20171ec298e551574806ca95d104c1a0308ff0320012a0d6e2b31383030353535303130301a4f0a206f55ac745ebeaf39fd5b21177c7fa692876c42678ffa1f3d58ed8fbc5ef023b910a6011a0308ff0320012a2175dc711808c2cf66d5e6a33ce41f27d69d942d2e1ff4db22d39b42d2eff8d0974622e8020abc0208a90510bec5b0c4d7331a640a20bd1e26a0fbdbfa923486ccc9296f4227db490b4add29f5507775171ea0fb7a4e124000eec714425c086bcde66e5a2af2c87031eea6c485965b549ac81bc3793cf5bdd5222073f59dd4959f6e9fdb6f6d405a477a7aaeb4bc8fd89b876b59cf89bf031a640a201123b13ee32479ae6af5739e5d687b51559abf7684120511f68cde7a21a0e755124034a1a53ac786258ad28d79b3b9cd9a59219b1449b10e769f3934d8981bf58d47c594439a93a3bb1adc318b5b227a60257406052f4501540d06c3d01b07a35a051a640a20093ee42d95502b3e81f4e604179c82c149fffb96167642b9eb81b03d6e2dd63612402cec2570d4fc3e3063aa9c358e2fcb55ae65f25f8c82072fc8d4016ce4fe2be182adeee08d786745109a8978189791feb52d2ebe7e98d1a22ab0478ea5190e0b1220032487becda242fa353ee8654ba3a5fb7d9e9aa1d48eb42f2ea6866070a494a118c4d6b0c4d733"
     );
-
     pub fn test_distinguished_tree() -> LastTreeHead {
         LastTreeHead(
-            TreeHead::decode(DISTINGUISHED_TREE_48419053_HEAD).expect("valid TreeHead"),
-            DISTINGUISHED_TREE_48419053_ROOT
+            TreeHead::decode(DISTINGUISHED_TREE_677_HEAD).expect("valid TreeHead"),
+            DISTINGUISHED_TREE_677_ROOT
                 .try_into()
                 .expect("valid root size"),
         )
     }
 
     pub fn test_stored_account_data() -> StoredAccountData {
-        StoredAccountData::decode(STORED_ACCOUNT_DATA_48419073).expect("valid stored acc data")
+        StoredAccountData::decode(STORED_ACCOUNT_DATA_681).expect("valid stored acc data")
     }
 
     pub fn test_account_data() -> AccountData {
@@ -655,24 +669,11 @@ pub(crate) mod test_support {
         pub username_hash_bytes: Option<Vec<u8>>,
     }
 
-    #[derive(Default)]
-    pub struct SearchStub {
-        pub result: Option<Result<MaybePartial<AccountData>, RequestError<Error>>>,
-        pub invocations: Vec<OwnedParameters>,
-    }
-
-    impl SearchStub {
-        fn new(res: Option<Result<MaybePartial<AccountData>, RequestError<Error>>>) -> Self {
-            Self {
-                result: res,
-                invocations: vec![],
-            }
-        }
-    }
-
     pub struct TestKt {
         pub monitor: Cell<Option<Result<AccountData, RequestError<Error>>>>,
-        pub search: Cell<SearchStub>,
+        pub search: Cell<Option<Result<MaybePartial<AccountData>, RequestError<Error>>>>,
+        pub distinguished: Cell<Option<Result<LastTreeHead, RequestError<Error>>>>,
+        search_invocation: Cell<Option<OwnedParameters>>,
     }
 
     impl TestKt {
@@ -684,13 +685,21 @@ pub(crate) mod test_support {
             Self::new(None, Some(search))
         }
 
+        #[must_use]
+        pub fn with_distinguished(self, result: Result<LastTreeHead, RequestError<Error>>) -> Self {
+            self.distinguished.set(Some(result));
+            self
+        }
+
         pub fn new(
             monitor: Option<Result<AccountData, RequestError<Error>>>,
             search: Option<Result<MaybePartial<AccountData>, RequestError<Error>>>,
         ) -> Self {
             Self {
                 monitor: Cell::new(monitor),
-                search: Cell::new(SearchStub::new(search)),
+                search: Cell::new(search),
+                distinguished: Cell::new(Some(Ok(test_distinguished_tree()))),
+                search_invocation: Cell::new(None),
             }
         }
 
@@ -704,8 +713,8 @@ pub(crate) mod test_support {
             assert_matches!(result, Err(RequestError::Unexpected { log_safe }) if log_safe == "test error")
         }
 
-        pub fn take_searches(&self) -> Vec<OwnedParameters> {
-            self.search.take().invocations
+        pub fn search_invocation(self) -> Option<OwnedParameters> {
+            self.search_invocation.into_inner()
         }
     }
 
@@ -720,31 +729,30 @@ pub(crate) mod test_support {
             _distinguished_tree_head: &LastTreeHead,
         ) -> impl Future<Output = Result<MaybePartial<AccountData>, RequestError<Error>>> + Send
         {
-            let mut search_stub = self.search.take();
-
-            search_stub.invocations.push(OwnedParameters {
+            self.search_invocation.set(Some(OwnedParameters {
                 aci: *aci,
                 e164,
                 username_hash_bytes: username_hash.map(|x| x.as_ref().to_vec()),
-            });
+            }));
 
-            let result = search_stub
-                .result
-                .as_ref()
-                .expect("unexpected call to search")
-                .clone();
-            self.search.set(search_stub);
-            std::future::ready(result.clone())
+            let result = self.search.take().expect("unexpected call to search");
+            std::future::ready(result)
         }
 
         fn distinguished(
             &self,
             _: Option<LastTreeHead>,
         ) -> impl Future<Output = Result<SearchStateUpdate, RequestError<Error>>> {
-            // not used in the tests
-            unreachable!();
-            #[allow(unreachable_code)] // without this, `impl Future` gets confused
-            std::future::pending()
+            let tree_head = self
+                .distinguished
+                .take()
+                .expect("unexpected call to distinguished");
+            let state_update = tree_head.map(|tree_head| SearchStateUpdate {
+                tree_head: tree_head.0,
+                tree_root: tree_head.1,
+                monitoring_data: None,
+            });
+            std::future::ready(state_update)
         }
 
         fn monitor(
@@ -764,8 +772,9 @@ pub(crate) mod test_support {
 #[cfg(test)]
 mod test {
     use assert_matches::assert_matches;
+    use libsignal_keytrans::StoredMonitoringData;
     use prost::Message as _;
-    use test_case::test_case;
+    use test_case::{test_case, test_matrix};
 
     use super::test_support::{
         CHAT_SEARCH_RESPONSE, CHAT_SEARCH_RESPONSE_VALID_AT, KEYTRANS_CONFIG_STAGING, test_account,
@@ -810,6 +819,7 @@ mod test {
 
         let result = kt.verify_chat_search_response(
             &aci,
+            &test_account::aci_identity_key(),
             e164,
             username_hash,
             Some(account_data),
@@ -851,6 +861,7 @@ mod test {
 
         let result = kt.verify_chat_search_response(
             &aci,
+            &test_account::aci_identity_key(),
             Some(e164),
             Some(username_hash),
             Some(account_data),
@@ -862,5 +873,38 @@ mod test {
         assert_matches!(result, Ok(MaybePartial {missing_fields, ..}) =>
             assert_eq!(skip.to_vec(), missing_fields.into_iter().collect::<Vec<_>>())
         );
+    }
+
+    #[test_matrix([AccountDataField::E164, AccountDataField::UsernameHash])]
+    fn reset_account_data_field(field: AccountDataField) {
+        let field_data = StoredMonitoringData::default();
+        let data = StoredAccountData {
+            aci: None,
+            e164: Some(StoredMonitoringData {
+                pos: 1,
+                ..field_data.clone()
+            }),
+            username_hash: Some(StoredMonitoringData {
+                pos: 2,
+                ..field_data
+            }),
+            last_tree_head: None,
+        };
+
+        let updated = data.clone().reset(field);
+
+        match field {
+            AccountDataField::E164 => {
+                assert!(updated.e164.is_none());
+                assert_matches!(
+                    updated.username_hash,
+                    Some(StoredMonitoringData { pos: 2, .. })
+                );
+            }
+            AccountDataField::UsernameHash => {
+                assert_matches!(updated.e164, Some(StoredMonitoringData { pos: 1, .. }));
+                assert!(updated.username_hash.is_none());
+            }
+        }
     }
 }

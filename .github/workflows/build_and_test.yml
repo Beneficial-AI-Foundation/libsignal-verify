@@ -363,7 +363,7 @@ jobs:
       run: rustup toolchain install "${{ steps.rust-fmt-toolchain.outputs.pinned-nightly-toolchain }}" --profile minimal --component rustfmt
 
     - name: Cache locally-built tools
-      uses: runs-on/cache@3a15256b3556fbc5ae15f7f04598e4c7680e9c25 # v4
+      uses: runs-on/cache@575425708ccb521bfce731e8d8a67f7f337b8954 # main as of 2026-04-10
       with:
         path: local-tools
         key: local-tools-${{ runner.os }}-infra-${{ hashFiles('acknowledgments/cargo-about-version', '.taplo-cli-version') }}
@@ -390,7 +390,7 @@ jobs:
       working-directory: rust/protocol/cross-version-testing
 
     - name: Check acknowledgments
-      run: PATH="$PATH:$PWD/local-tools/bin" ./bin/regenerate_acknowledgments.sh && git diff --exit-code acknowledgments
+      run: PATH="$PATH:$PWD/local-tools/bin" ./bin/regenerate_acknowledgments.sh --check
 
   java_android:
     name: Java Android
@@ -588,12 +588,12 @@ jobs:
       with:
         node-version-file: '.nvmrc'
 
-    - name: Verify that the Node bindings are up to date
-      run: rust/bridge/node/bin/gen_ts_decl.py --verify
-      if: startsWith(matrix.os, 'ubuntu-')
-
     - run: npm ci
       working-directory: node
+
+    - name: Verify that the Node bindings are up to date
+      run: cargo run -p libsignal-node-native_ts -- --verify
+      if: startsWith(matrix.os, 'ubuntu-')
 
     - run: npm run build
       working-directory: node
@@ -706,6 +706,8 @@ jobs:
 
     env:
       LIBSIGNAL_TESTING_ONLY_ACTIVE_ARCH: 1
+      # For Swift 6.2. Can be removed when advancing to the macos-26 runner.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -744,6 +746,8 @@ jobs:
 
       - name: Run pod lint
         run: pod lib lint --verbose --platforms=ios --skip-tests
+        env:
+          LIBSIGNAL_TESTING_DISABLE_EXPLICIT_MODULES: 1
 
       - name: Save cargo cache
         if: ${{ env.SHOULD_USE_CARGO_CACHE == 'true' }}
