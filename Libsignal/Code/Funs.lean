@@ -66,6 +66,16 @@ def core.num.error.TryFromIntError.Insts.CoreFmtDebug : core.fmt.Debug
   fmt := core.num.error.TryFromIntError.Insts.CoreFmtDebug.fmt
 }
 
+/-- Trait implementation: [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU64Inner}]
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
+    Name pattern: [core::clone::Clone<core::num::niche_types::NonZeroU64Inner>] -/
+@[reducible, rust_trait_impl
+  "core::clone::Clone<core::num::niche_types::NonZeroU64Inner>"]
+def core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone :
+  core.clone.Clone core.num.niche_types.NonZeroU64Inner := {
+  clone := core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone.clone
+}
+
 /-- Trait implementation: [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU8Inner}]
     Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
     Name pattern: [core::clone::Clone<core::num::niche_types::NonZeroU8Inner>] -/
@@ -74,6 +84,16 @@ def core.num.error.TryFromIntError.Insts.CoreFmtDebug : core.fmt.Debug
 def core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone : core.clone.Clone
   core.num.niche_types.NonZeroU8Inner := {
   clone := core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [core::num::niche_types::{impl core::marker::Copy for core::num::niche_types::NonZeroU64Inner}]
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:24-17:28
+    Name pattern: [core::marker::Copy<core::num::niche_types::NonZeroU64Inner>] -/
+@[reducible, rust_trait_impl
+  "core::marker::Copy<core::num::niche_types::NonZeroU64Inner>"]
+def core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy :
+  core.marker.Copy core.num.niche_types.NonZeroU64Inner := {
+  cloneInst := core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone
 }
 
 /-- Trait implementation: [core::num::niche_types::{impl core::marker::Copy for core::num::niche_types::NonZeroU8Inner}]
@@ -86,12 +106,33 @@ def core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy : core.marker.Copy
   cloneInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone
 }
 
+/-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::private::Sealed for u64}]
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 56:12-56:47
+    Name pattern: [core::num::nonzero::private::Sealed<u64>] -/
+@[reducible, rust_trait_impl "core::num::nonzero::private::Sealed<u64>"]
+def U64.Insts.CoreNumNonzeroPrivateSealed : core.num.nonzero.private.Sealed
+  Std.U64 := {
+}
+
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::private::Sealed for u8}]
     Source: '/rustc/library/core/src/num/nonzero.rs', lines 56:12-56:47
     Name pattern: [core::num::nonzero::private::Sealed<u8>] -/
 @[reducible, rust_trait_impl "core::num::nonzero::private::Sealed<u8>"]
 def U8.Insts.CoreNumNonzeroPrivateSealed : core.num.nonzero.private.Sealed
   Std.U8 := {
+}
+
+/-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU64Inner> for u64}]
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 63:12-63:56
+    Name pattern: [core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>] -/
+@[reducible, rust_trait_impl
+  "core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>"]
+def U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner :
+  core.num.nonzero.ZeroablePrimitive Std.U64
+  core.num.niche_types.NonZeroU64Inner := {
+  markerCopyInst := core.marker.CopyU64
+  privateSealedInst := U64.Insts.CoreNumNonzeroPrivateSealed
+  markerCopyInst1 := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy
 }
 
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU8Inner> for u8}]
@@ -246,6 +287,42 @@ def alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut : bytes.buf.buf_mut.BufMut
   chunk_mut := alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.chunk_mut
 }
 
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceIdKind> for libsignal_core::address::ServiceIdKind}::eq]:
+    Source: 'rust/core/src/address.rs', lines 16:28-16:37
+    Name pattern: [libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceIdKind, libsignal_core::address::ServiceIdKind>}::eq]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceIdKind, libsignal_core::address::ServiceIdKind>}::eq"]
+def libsignal_core.address.ServiceIdKind.Insts.CoreCmpPartialEqServiceIdKind.eq
+  (self : libsignal_core.address.ServiceIdKind)
+  (other : libsignal_core.address.ServiceIdKind) :
+  Result Bool
+  := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  ok (self1 = other1)
+
+/-- [libsignal_core::address::{impl core::convert::TryFrom<u8, derive_more::convert::try_from::TryFromReprError<u8>> for libsignal_core::address::ServiceIdKind}::try_from]:
+    Source: 'rust/core/src/address.rs', lines 16:43-16:63
+    Name pattern: [libsignal_core::address::{core::convert::TryFrom<libsignal_core::address::ServiceIdKind, u8, derive_more::convert::try_from::TryFromReprError<u8>>}::try_from]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{core::convert::TryFrom<libsignal_core::address::ServiceIdKind, u8, derive_more::convert::try_from::TryFromReprError<u8>>}::try_from"]
+def
+  libsignal_core.address.ServiceIdKind.Insts.CoreConvertTryFromU8TryFromReprErrorU8.try_from
+  (val : Std.U8) :
+  Result (core.result.Result libsignal_core.address.ServiceIdKind
+    (derive_more.convert.try_from.TryFromReprError Std.U8))
+  := do
+  match val with
+  | 0#uscalar =>
+    ok (core.result.Result.Ok libsignal_core.address.ServiceIdKind.Aci)
+  | 1#uscalar =>
+    ok (core.result.Result.Ok libsignal_core.address.ServiceIdKind.Pni)
+  | _ =>
+    let tfre ← derive_more.convert.try_from.TryFromReprError.new val
+    ok (core.result.Result.Err tfre)
+
 /-- [libsignal_core::address::{impl core::convert::From<libsignal_core::address::ServiceIdKind> for u8}::from]:
     Source: 'rust/core/src/address.rs', lines 27:4-27:41
     Name pattern: [libsignal_core::address::{core::convert::From<u8, libsignal_core::address::ServiceIdKind>}::from]
@@ -298,6 +375,17 @@ def
     libsignal_core.address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.ne
 }
 
+/-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::from_uuid]:
+    Source: 'rust/core/src/address.rs', lines 77:4-77:42
+    Name pattern: [libsignal_core::address::{libsignal_core::address::SpecificServiceId<@KIND>}::from_uuid] -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::SpecificServiceId<@KIND>}::from_uuid"]
+def libsignal_core.address.SpecificServiceId.from_uuid
+  (KIND : Std.U8) (uuid : uuid.Uuid) :
+  Result (libsignal_core.address.SpecificServiceId KIND)
+  := do
+  ok { uuid }
+
 /-- [libsignal_core::address::{impl core::convert::From<libsignal_core::address::SpecificServiceId<KIND>> for uuid::Uuid}::from]:
     Source: 'rust/core/src/address.rs', lines 151:4-151:51
     Name pattern: [libsignal_core::address::{core::convert::From<uuid::Uuid, libsignal_core::address::SpecificServiceId<@KIND>>}::from]
@@ -320,6 +408,205 @@ def uuid.Uuid.Insts.CoreConvertFromSpecificServiceId (KIND : Std.U8) :
   := {
   from_ := uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from
 }
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]:
+    Source: 'rust/core/src/address.rs', lines 288:4-288:33
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid"]
+def libsignal_core.address.ServiceId.raw_uuid
+  (self : libsignal_core.address.ServiceId) : Result uuid.Uuid := do
+  match self with
+  | libsignal_core.address.ServiceId.Aci aci =>
+    core.convert.IntoFrom.into
+      (uuid.Uuid.Insts.CoreConvertFromSpecificServiceId 0#u8) aci
+  | libsignal_core.address.ServiceId.Pni pni =>
+    core.convert.IntoFrom.into
+      (uuid.Uuid.Insts.CoreConvertFromSpecificServiceId 1#u8) pni
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::kind]:
+    Source: 'rust/core/src/address.rs', lines 195:4-195:39
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::kind]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::kind"]
+def libsignal_core.address.ServiceId.kind
+  (self : libsignal_core.address.ServiceId) :
+  Result libsignal_core.address.ServiceIdKind
+  := do
+  match self with
+  | libsignal_core.address.ServiceId.Aci _ =>
+    ok libsignal_core.address.ServiceIdKind.Aci
+  | libsignal_core.address.ServiceId.Pni _ =>
+    ok libsignal_core.address.ServiceIdKind.Pni
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary]:
+    Source: 'rust/core/src/address.rs', lines 216:4-216:81
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary"]
+def libsignal_core.address.ServiceId.service_id_fixed_width_binary
+  (self : libsignal_core.address.ServiceId) :
+  Result (Array Std.U8 17#usize)
+  := do
+  let result := Array.repeat 17#usize 0#u8
+  let sik ← libsignal_core.address.ServiceId.kind self
+  let i ←
+    core.convert.IntoFrom.into U8.Insts.CoreConvertFromServiceIdKind sik
+  let result1 ← Array.update result 0#usize i
+  let (s, index_mut_back) ←
+    core.array.Array.index_mut (core.ops.index.IndexMutSlice
+      (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) result1
+      { start := 1#usize }
+  let u ← libsignal_core.address.ServiceId.raw_uuid self
+  let a ← uuid.Uuid.as_bytes u
+  let s1 ← lift (Array.to_slice a)
+  let s2 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s s1
+  ok (index_mut_back s2)
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_binary]:
+    Source: 'rust/core/src/address.rs', lines 206:4-206:46
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_binary]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_binary"]
+def libsignal_core.address.ServiceId.service_id_binary
+  (self : libsignal_core.address.ServiceId) :
+  Result (alloc.vec.Vec Std.U8)
+  := do
+  match self with
+  | libsignal_core.address.ServiceId.Aci aci =>
+    let a ← uuid.Uuid.as_bytes aci.uuid
+    let s ← lift (Array.to_slice a)
+    alloc.slice.Slice.to_vec core.clone.CloneU8 s
+  | libsignal_core.address.ServiceId.Pni _ =>
+    let a ←
+      libsignal_core.address.ServiceId.service_id_fixed_width_binary self
+    let s ← lift (Array.to_slice a)
+    alloc.slice.Slice.to_vec core.clone.CloneU8 s
+
+/-- [libsignal_core::address::{impl core::convert::From<uuid::Uuid> for libsignal_core::address::SpecificServiceId<KIND>}::from]:
+    Source: 'rust/core/src/address.rs', lines 144:4-144:32
+    Name pattern: [libsignal_core::address::{core::convert::From<libsignal_core::address::SpecificServiceId<@KIND>, uuid::Uuid>}::from]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{core::convert::From<libsignal_core::address::SpecificServiceId<@KIND>, uuid::Uuid>}::from"]
+def libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid.from
+  (KIND : Std.U8) (value : uuid.Uuid) :
+  Result (libsignal_core.address.SpecificServiceId KIND)
+  := do
+  libsignal_core.address.SpecificServiceId.from_uuid KIND value
+
+/-- Trait implementation: [libsignal_core::address::{impl core::convert::From<uuid::Uuid> for libsignal_core::address::SpecificServiceId<KIND>}]
+    Source: 'rust/core/src/address.rs', lines 142:0-142:59
+    Name pattern: [core::convert::From<libsignal_core::address::SpecificServiceId<@KIND>, uuid::Uuid>] -/
+@[reducible, rust_trait_impl
+  "core::convert::From<libsignal_core::address::SpecificServiceId<@KIND>, uuid::Uuid>"]
+def libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid (KIND :
+  Std.U8) : core.convert.From (libsignal_core.address.SpecificServiceId KIND)
+  uuid.Uuid := {
+  from_ :=
+    libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid.from
+    KIND
+}
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_fixed_width_binary]:
+    Source: 'rust/core/src/address.rs', lines 254:4-256:21
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_fixed_width_binary]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_fixed_width_binary"]
+def libsignal_core.address.ServiceId.parse_from_service_id_fixed_width_binary
+  (bytes : Array Std.U8 17#usize) :
+  Result (Option libsignal_core.address.ServiceId)
+  := do
+  let s ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) bytes
+      { start := 1#usize }
+  let r ← uuid.builder.Uuid.from_slice s
+  let o ← core.result.Result.ok r
+  let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let i ← Array.index_usize bytes 0#usize
+    let r1 ←
+      libsignal_core.address.ServiceIdKind.Insts.CoreConvertTryFromU8TryFromReprErrorU8.try_from
+        i
+    let o1 ← core.result.Result.ok r1
+    let cf1 ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o1
+    match cf1 with
+    | core.ops.control_flow.ControlFlow.Continue val1 =>
+      match val1 with
+      | libsignal_core.address.ServiceIdKind.Aci =>
+        let ssi ←
+          core.convert.IntoFrom.into
+            (libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid
+            0#u8) val
+        ok (some (libsignal_core.address.ServiceId.Aci ssi))
+      | libsignal_core.address.ServiceIdKind.Pni =>
+        let ssi ←
+          core.convert.IntoFrom.into
+            (libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid
+            1#u8) val
+        ok (some (libsignal_core.address.ServiceId.Pni ssi))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+        libsignal_core.address.ServiceId residual
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+      libsignal_core.address.ServiceId residual
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_binary]:
+    Source: 'rust/core/src/address.rs', lines 234:4-234:69
+    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_binary]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_binary"]
+def libsignal_core.address.ServiceId.parse_from_service_id_binary
+  (bytes : Slice Std.U8) :
+  Result (Option libsignal_core.address.ServiceId)
+  := do
+  let i := Slice.len bytes
+  match i.val with
+  | 16 =>
+    let r ← uuid.builder.Uuid.from_slice bytes
+    let o ← core.result.Result.ok r
+    let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let ssi ←
+        core.convert.IntoFrom.into
+          (libsignal_core.address.SpecificServiceId.Insts.CoreConvertFromUuid
+          0#u8) val
+      ok (some (libsignal_core.address.ServiceId.Aci ssi))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+        libsignal_core.address.ServiceId residual
+  | 17 =>
+    let r ← core.array.TryFromSharedArraySlice.try_from 17#usize bytes
+    let a ←
+      core.result.Result.expect core.fmt.DebugTryFromSliceError r (toStr
+        "already measured")
+    let o ←
+      libsignal_core.address.ServiceId.parse_from_service_id_fixed_width_binary
+        a
+    let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let sik ← libsignal_core.address.ServiceId.kind val
+      let b ←
+        libsignal_core.address.ServiceIdKind.Insts.CoreCmpPartialEqServiceIdKind.eq
+          sik libsignal_core.address.ServiceIdKind.Aci
+      if b
+      then ok none
+      else ok (some val)
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+        libsignal_core.address.ServiceId residual
+  | _ => ok none
 
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
     Source: 'rust/core/src/address.rs', lines 184:28-184:37
@@ -351,63 +638,6 @@ def libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
           __self_0 __arg1_0
   else ok false
 
-/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::kind]:
-    Source: 'rust/core/src/address.rs', lines 195:4-195:39
-    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::kind]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{libsignal_core::address::ServiceId}::kind"]
-def libsignal_core.address.ServiceId.kind
-  (self : libsignal_core.address.ServiceId) :
-  Result libsignal_core.address.ServiceIdKind
-  := do
-  match self with
-  | libsignal_core.address.ServiceId.Aci _ =>
-    ok libsignal_core.address.ServiceIdKind.Aci
-  | libsignal_core.address.ServiceId.Pni _ =>
-    ok libsignal_core.address.ServiceIdKind.Pni
-
-/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]:
-    Source: 'rust/core/src/address.rs', lines 288:4-288:33
-    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid"]
-def libsignal_core.address.ServiceId.raw_uuid
-  (self : libsignal_core.address.ServiceId) : Result uuid.Uuid := do
-  match self with
-  | libsignal_core.address.ServiceId.Aci aci =>
-    core.convert.IntoFrom.into
-      (uuid.Uuid.Insts.CoreConvertFromSpecificServiceId 0#u8) aci
-  | libsignal_core.address.ServiceId.Pni pni =>
-    core.convert.IntoFrom.into
-      (uuid.Uuid.Insts.CoreConvertFromSpecificServiceId 1#u8) pni
-
-/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary]:
-    Source: 'rust/core/src/address.rs', lines 216:4-216:81
-    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{libsignal_core::address::ServiceId}::service_id_fixed_width_binary"]
-def libsignal_core.address.ServiceId.service_id_fixed_width_binary
-  (self : libsignal_core.address.ServiceId) :
-  Result (Array Std.U8 17#usize)
-  := do
-  let result := Array.repeat 17#usize 0#u8
-  let sik ← libsignal_core.address.ServiceId.kind self
-  let i ←
-    core.convert.IntoFrom.into U8.Insts.CoreConvertFromServiceIdKind sik
-  let result1 ← Array.update result 0#usize i
-  let (s, index_mut_back) ←
-    core.array.Array.index_mut (core.ops.index.IndexMutSlice
-      (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) result1
-      { start := 1#usize }
-  let u ← libsignal_core.address.ServiceId.raw_uuid self
-  let a ← uuid.Uuid.as_bytes u
-  let s1 ← lift (Array.to_slice a)
-  let s2 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s s1
-  ok (index_mut_back s2)
-
 /-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
     Source: 'rust/core/src/address.rs', lines 683:15-683:20
     Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::DeviceId>}::clone]
@@ -419,6 +649,31 @@ def libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
   Result libsignal_core.address.DeviceId
   := do
   ok self
+
+/-- [libsignal_core::address::MAX_VALID_DEVICE_ID]
+    Source: 'rust/core/src/address.rs', lines 719:0-719:29
+    Name pattern: [libsignal_core::address::MAX_VALID_DEVICE_ID] -/
+@[global_simps, irreducible, rust_const
+  "libsignal_core::address::MAX_VALID_DEVICE_ID"]
+def libsignal_core.address.MAX_VALID_DEVICE_ID : Std.U8 := 127#u8
+
+/-- [libsignal_core::address::{libsignal_core::address::DeviceId}::new_nonzero]:
+    Source: 'rust/core/src/address.rs', lines 710:4-710:76
+    Name pattern: [libsignal_core::address::{libsignal_core::address::DeviceId}::new_nonzero]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{libsignal_core::address::DeviceId}::new_nonzero"]
+def libsignal_core.address.DeviceId.new_nonzero
+  (id : core.num.nonzero.NonZero Std.U8 core.num.niche_types.NonZeroU8Inner) :
+  Result (core.result.Result libsignal_core.address.DeviceId
+    libsignal_core.address.InvalidDeviceId)
+  := do
+  let i ←
+    core.num.nonzero.NonZero.get
+      U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner id
+  if i <= libsignal_core.address.MAX_VALID_DEVICE_ID
+  then ok (core.result.Result.Ok { id })
+  else ok (core.result.Result.Err ())
 
 /-- [libsignal_core::address::{impl core::convert::From<libsignal_core::address::DeviceId> for u8}::from]:
     Source: 'rust/core/src/address.rs', lines 728:4-728:36
@@ -719,6 +974,41 @@ def libsignal_core.curve.KeyPair.from_public_and_private
       libsignal_core.curve.KeyPair (core.convert.FromSame
       libsignal_core.curve.CurveError) residual
 
+/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure}::call_once]:
+    Source: 'rust/core/src/e164.rs', lines 27:55-27:62
+    Name pattern: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{core::ops::function::FnOnce<libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure, (core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>), libsignal_core::e164::E164>}::call_once] -/
+@[rust_fun
+  "libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{core::ops::function::FnOnce<libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure, (core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>), libsignal_core::e164::E164>}::call_once"]
+def
+  libsignal_core.e164.E164.from_be_bytes.closure.Insts.CoreOpsFunctionFnOnceTupleNonZeroU64NonZeroU64InnerE164.call_once
+  (c : libsignal_core.e164.E164.from_be_bytes.closure)
+  (tupled_args : core.num.nonzero.NonZero Std.U64
+  core.num.niche_types.NonZeroU64Inner) :
+  Result libsignal_core.e164.E164
+  := do
+  ok { inner := tupled_args }
+
+/-- Trait implementation: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure}]
+    Source: 'rust/core/src/e164.rs', lines 27:55-27:62
+    Name pattern: [core::ops::function::FnOnce<libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure, (core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>), libsignal_core::e164::E164>] -/
+@[reducible, rust_trait_impl
+  "core::ops::function::FnOnce<libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure, (core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>), libsignal_core::e164::E164>"]
+def
+  libsignal_core.e164.E164.from_be_bytes.closure.Insts.CoreOpsFunctionFnOnceTupleNonZeroU64NonZeroU64InnerE164
+  : core.ops.function.FnOnce libsignal_core.e164.E164.from_be_bytes.closure
+  (core.num.nonzero.NonZero Std.U64 core.num.niche_types.NonZeroU64Inner)
+  libsignal_core.e164.E164 := {
+  call_once :=
+    libsignal_core.e164.E164.from_be_bytes.closure.Insts.CoreOpsFunctionFnOnceTupleNonZeroU64NonZeroU64InnerE164.call_once
+}
+
+/-- [libsignal_core::version::VERSION]
+    Source: 'rust/core/src/version.rs', lines 8:0-8:23
+    Name pattern: [libsignal_core::version::VERSION]
+    Visibility: public -/
+@[global_simps, irreducible, rust_const "libsignal_core::version::VERSION"]
+def libsignal_core.version.VERSION : Str := toStr "0.94.4"
+
 /-- Trait implementation: [prost::error::{impl core::fmt::Debug for prost::error::EncodeError}]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 89:22-89:27
     Name pattern: [core::fmt::Debug<prost::error::EncodeError>] -/
@@ -840,6 +1130,32 @@ def rand_core_1.os.OsRng.Insts.Rand_core_1TryCryptoRngOsError :
   rand_core_1.TryCryptoRng rand_core_1.os.OsRng rand_core_1.os.OsError := {
   TryRngCoreInst := rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError
 }
+
+/-- [signal_crypto::aes_cbc::_]
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 12:16-12:35
+    Name pattern: [signal_crypto::aes_cbc::_] -/
+@[global_simps, irreducible, rust_const "signal_crypto::aes_cbc::_"]
+def signal_crypto.aes_cbc._ : Unit := ()
+
+/-- [signal_crypto::aes_cbc::_#1]
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 18:16-18:35
+    Name pattern: [signal_crypto::aes_cbc::_#1] -/
+@[global_simps, irreducible, rust_const "signal_crypto::aes_cbc::_#1"]
+def signal_crypto.aes_cbc.__1 : Unit := ()
+
+/-- [signal_crypto::aes_gcm::TAG_SIZE]
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 15:0-15:25
+    Name pattern: [signal_crypto::aes_gcm::TAG_SIZE]
+    Visibility: public -/
+@[global_simps, irreducible, rust_const "signal_crypto::aes_gcm::TAG_SIZE"]
+def signal_crypto.aes_gcm.TAG_SIZE : Std.Usize := 16#usize
+
+/-- [signal_crypto::aes_gcm::NONCE_SIZE]
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 16:0-16:27
+    Name pattern: [signal_crypto::aes_gcm::NONCE_SIZE]
+    Visibility: public -/
+@[global_simps, irreducible, rust_const "signal_crypto::aes_gcm::NONCE_SIZE"]
+def signal_crypto.aes_gcm.NONCE_SIZE : Std.Usize := 12#usize
 
 /-- Trait implementation: [spqr::{impl core::fmt::Display for spqr::Error}]
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/lib.rs', lines 95:16-95:32

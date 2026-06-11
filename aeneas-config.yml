@@ -42,6 +42,58 @@ charon:
     # - "libsignal_protocol::group_cipher"
     # - "libsignal_protocol::session"
     - "libsignal_protocol::session_management" #5
+    # ── Parity with `main` (which targeted signal_crypto + start_from_pub and an
+    # explicit libsignal_core list). The protocol root doesn't reach all of these as
+    # deps, so root them explicitly to keep the extraction a strict SUPERSET of main
+    # (never extract fewer functions than before). signal_crypto: main rooted all its
+    # pub items via start_from_pub; replicate by rooting its modules.
+    - "libsignal_core::try_scoped"
+    # derive_arrays: `#[inline]` wrapper over (opaqued) try_derive_arrays; main rooted
+    # it but never emitted it (not in main's Funs/FunsExternal). Rooting it here hits an
+    # Aeneas "Internal error" on its closure + irrefutable `let Ok(_) =` (Infallible).
+    # Not needed for parity, so don't root it.
+    # - "libsignal_core::derive_arrays"
+    - "libsignal_core::try_derive_arrays"
+    - "libsignal_core::version::VERSION"
+    - "libsignal_core::e164::_::new"
+    - "libsignal_core::e164::_::to_be_bytes"
+    - "libsignal_core::e164::_::from_be_bytes"
+    - "libsignal_core::address::_::new"
+    - "libsignal_core::address::_::new_nonzero"
+    - "libsignal_core::address::_::kind"
+    - "libsignal_core::address::_::service_id_binary"
+    - "libsignal_core::address::_::service_id_fixed_width_binary"
+    - "libsignal_core::address::_::parse_from_service_id_binary"
+    - "libsignal_core::address::_::parse_from_service_id_fixed_width_binary"
+    - "libsignal_core::address::_::raw_uuid"
+    - "libsignal_core::address::_::from_uuid_bytes"
+    - "libsignal_core::address::_::from_uuid"
+    - "libsignal_core::address::_::name"
+    - "libsignal_core::address::_::device_id"
+    - "libsignal_core::curve::_::deserialize"
+    - "libsignal_core::curve::_::serialize"
+    - "libsignal_core::curve::_::key_type"
+    - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::public_key_bytes"
+    - "libsignal_core::curve::_::from_djb_public_key_bytes"
+    - "libsignal_core::curve::_::verify_signature"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_canonical"
+    - "libsignal_core::curve::_::calculate_signature"
+    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
+    - "libsignal_core::curve::_::calculate_agreement"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::from_public_and_private"
+    - "signal_crypto::aes_cbc"
+    - "signal_crypto::aes_ctr"
+    - "signal_crypto::aes_gcm"
+    - "signal_crypto::hash"
+    # NOTE: the signal_crypto AEAD *struct impl methods* (Aes256Gcm{Enc,Dec}ryption::
+    # {encrypt,decrypt,compute_tag,verify_tag}, CryptographicMac::update_and_get) that
+    # `main` had via start_from_pub are NOT rooted here: extracting them transparently
+    # drags in AES-GCM's deep generic type-machinery (generic_array, typenum, inout,
+    # cipher, ghash, digest…), each needing hand-added external axioms — crypto-internals
+    # that protocol verification axiomatizes rather than models. See open decision.
     # DEFERRED: `sealed_sender` causes Charon to be very slow
     # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
@@ -395,6 +447,11 @@ tweaks:
       replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
     - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
       replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+    # Same #1051 dup for NonZero<u64> (pulled in by the signal_crypto roots). The
+    # generic ZeroablePrimitive structure decl + parentClauses are shared (fixed above);
+    # only the per-instance construction needs the U64 variant.
+    - find: "markerCopyInst := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
+      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
 
     # KeyPairSerde has two `KeySerde` parent clauses (one per associated type,
     # PublicKey and PrivateKey) which Aeneas names identically `KeySerdeInst`

@@ -59,6 +59,13 @@ structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
 @[reducible, rust_type "core::ops::range::RangeFull"]
 def core.ops.range.RangeFull := Unit
 
+/-- [block_buffer::Eager]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4/src/lib.rs', lines 28:0-28:16
+    Name pattern: [block_buffer::Eager]
+    Visibility: public -/
+@[reducible, rust_type "block_buffer::Eager"]
+def block_buffer.Eager := Unit
+
 /-- Trait declaration: [bytes::buf::buf_impl::Buf]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 117:0-117:13
     Name pattern: [bytes::buf::buf_impl::Buf]
@@ -80,6 +87,13 @@ structure bytes.buf.buf_mut.BufMut (Self : Type) where
   chunk_mut : Self → Result (bytes.buf.uninit_slice.UninitSlice ×
     (bytes.buf.uninit_slice.UninitSlice → Self))
 
+/-- [ctr::flavors::ctr32::Ctr32BE]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ctr-0.9.2/src/flavors/ctr32.rs', lines 33:0-33:16
+    Name pattern: [ctr::flavors::ctr32::Ctr32BE]
+    Visibility: public -/
+@[rust_type "ctr::flavors::ctr32::Ctr32BE"]
+inductive ctr.flavors.ctr32.Ctr32BE where
+
 /-- [derive_more::convert::try_from::TryFromReprError]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 17:4-17:34
     Name pattern: [derive_more::convert::try_from::TryFromReprError]
@@ -87,6 +101,20 @@ structure bytes.buf.buf_mut.BufMut (Self : Type) where
 @[rust_type "derive_more::convert::try_from::TryFromReprError"]
 structure derive_more.convert.try_from.TryFromReprError (T : Type) where
   input : T
+
+/-- [sha2::OidSha256]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 197:8-197:25
+    Name pattern: [sha2::OidSha256]
+    Visibility: public -/
+@[reducible, rust_type "sha2::OidSha256"]
+def sha2.OidSha256 := Unit
+
+/-- [sha2::OidSha512]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 197:8-197:25
+    Name pattern: [sha2::OidSha512]
+    Visibility: public -/
+@[reducible, rust_type "sha2::OidSha512"]
+def sha2.OidSha512 := Unit
 
 /-- [libsignal_core::address::ServiceIdKind]
     Source: 'rust/core/src/address.rs', lines 19:0-19:22
@@ -125,6 +153,13 @@ inductive libsignal_core.address.ServiceId where
 @[rust_type "libsignal_core::address::DeviceId"]
 structure libsignal_core.address.DeviceId where
   id : core.num.nonzero.NonZero Std.U8 core.num.niche_types.NonZeroU8Inner
+
+/-- [libsignal_core::address::InvalidDeviceId]
+    Source: 'rust/core/src/address.rs', lines 691:0-691:26
+    Name pattern: [libsignal_core::address::InvalidDeviceId]
+    Visibility: public -/
+@[reducible, rust_type "libsignal_core::address::InvalidDeviceId"]
+def libsignal_core.address.InvalidDeviceId := Unit
 
 /-- [libsignal_core::address::ProtocolAddress]
     Source: 'rust/core/src/address.rs', lines 777:0-777:26
@@ -230,6 +265,21 @@ structure libsignal_core.curve.KeyPair where
   public_key : libsignal_core.curve.PublicKey
   private_key : libsignal_core.curve.PrivateKey
 
+/-- [libsignal_core::e164::E164]
+    Source: 'rust/core/src/e164.rs', lines 13:0-13:15
+    Name pattern: [libsignal_core::e164::E164]
+    Visibility: public -/
+@[rust_type "libsignal_core::e164::E164"]
+structure libsignal_core.e164.E164 where
+  inner : core.num.nonzero.NonZero Std.U64 core.num.niche_types.NonZeroU64Inner
+
+/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure]
+    Source: 'rust/core/src/e164.rs', lines 27:55-27:62
+    Name pattern: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure] -/
+@[reducible, rust_type
+  "libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure"]
+def libsignal_core.e164.E164.from_be_bytes.closure := Unit
+
 /-- [rand_core#1::UnwrapErr]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 298:0-298:35
     Name pattern: [rand_core#1::UnwrapErr]
@@ -269,6 +319,527 @@ structure rand_core_1.TryCryptoRng (Self : Type) (Self_Clause0_Error : Type)
     Visibility: public -/
 @[reducible, rust_type "rand_core#1::os::OsRng"]
 def rand_core_1.os.OsRng := Unit
+
+/-- [signal_crypto::aes_cbc::EncryptionError]
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 13:0-13:24
+    Name pattern: [signal_crypto::aes_cbc::EncryptionError]
+    Visibility: public -/
+@[discriminant isize, rust_type "signal_crypto::aes_cbc::EncryptionError"]
+inductive signal_crypto.aes_cbc.EncryptionError where
+| BadKeyOrIv : signal_crypto.aes_cbc.EncryptionError
+
+/-- [signal_crypto::aes_cbc::DecryptionError]
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 19:0-19:24
+    Name pattern: [signal_crypto::aes_cbc::DecryptionError]
+    Visibility: public -/
+@[discriminant isize, rust_type "signal_crypto::aes_cbc::DecryptionError"]
+inductive signal_crypto.aes_cbc.DecryptionError where
+| BadKeyOrIv : signal_crypto.aes_cbc.DecryptionError
+| BadCiphertext : Str → signal_crypto.aes_cbc.DecryptionError
+
+/-- [typenum::uint::UTerm]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 50:0-50:16
+    Name pattern: [typenum::uint::UTerm]
+    Visibility: public -/
+@[reducible, rust_type "typenum::uint::UTerm"]
+def typenum.uint.UTerm := Unit
+
+/-- [typenum::bit::B1]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 33:0-33:13
+    Name pattern: [typenum::bit::B1]
+    Visibility: public -/
+@[reducible, rust_type "typenum::bit::B1"]
+def typenum.bit.B1 := Unit
+
+/-- [typenum::bit::B0]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 20:0-20:13
+    Name pattern: [typenum::bit::B0]
+    Visibility: public -/
+@[reducible, rust_type "typenum::bit::B0"]
+def typenum.bit.B0 := Unit
+
+/-- [signal_crypto::aes_ctr::Aes256Ctr32]
+    Source: 'rust/crypto/src/aes_ctr.rs', lines 16:0-16:22
+    Name pattern: [signal_crypto::aes_ctr::Aes256Ctr32]
+    Visibility: public -/
+@[rust_type "signal_crypto::aes_ctr::Aes256Ctr32"]
+structure signal_crypto.aes_ctr.Aes256Ctr32 where
+  inner : cipher.stream_wrapper.StreamCipherCoreWrapper (ctr.ctr_core.CtrCore
+    aes.autodetect.Aes256 ctr.flavors.ctr32.Ctr32BE (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))
+    (ctr.flavors.ctr32.CtrNonce32 (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U32
+    (generic_array.GenericArrayImplEven Std.U32
+    (generic_array.GenericArrayImplOdd Std.U32 (Array Std.U32 0#usize)))))
+    Std.U32 (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))
+    core.num.error.TryFromIntError core.convert.Infallible
+    core.num.error.TryFromIntError core.num.error.TryFromIntError
+    core.num.error.TryFromIntError core.num.error.TryFromIntError
+    core.convert.Infallible core.convert.Infallible core.convert.Infallible
+    core.num.error.TryFromIntError) (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))
+    typenum.bit.B1
+
+/-- [signal_crypto::aes_gcm::GcmGhash]
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 19:0-19:15
+    Name pattern: [signal_crypto::aes_gcm::GcmGhash] -/
+@[rust_type "signal_crypto::aes_gcm::GcmGhash"]
+structure signal_crypto.aes_gcm.GcmGhash where
+  ghash : ghash.GHash
+  ghash_pad : Array Std.U8 16#usize
+  msg_buf : Array Std.U8 16#usize
+  msg_buf_offset : Std.Usize
+  ad_len : Std.Usize
+  msg_len : Std.Usize
+
+/-- [signal_crypto::error::Error]
+    Source: 'rust/crypto/src/error.rs', lines 7:0-7:14
+    Name pattern: [signal_crypto::error::Error]
+    Visibility: public -/
+@[discriminant isize, rust_type "signal_crypto::error::Error"]
+inductive signal_crypto.error.Error where
+| UnknownAlgorithm : Str → String → signal_crypto.error.Error
+| InvalidKeySize : signal_crypto.error.Error
+| InvalidNonceSize : signal_crypto.error.Error
+| InvalidInputSize : signal_crypto.error.Error
+| InvalidTag : signal_crypto.error.Error
+
+/-- [signal_crypto::aes_gcm::Aes256GcmEncryption]
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 133:0-133:30
+    Name pattern: [signal_crypto::aes_gcm::Aes256GcmEncryption]
+    Visibility: public -/
+@[rust_type "signal_crypto::aes_gcm::Aes256GcmEncryption"]
+structure signal_crypto.aes_gcm.Aes256GcmEncryption where
+  ctr : signal_crypto.aes_ctr.Aes256Ctr32
+  ghash : signal_crypto.aes_gcm.GcmGhash
+
+/-- [signal_crypto::aes_gcm::Aes256GcmDecryption]
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 157:0-157:30
+    Name pattern: [signal_crypto::aes_gcm::Aes256GcmDecryption]
+    Visibility: public -/
+@[rust_type "signal_crypto::aes_gcm::Aes256GcmDecryption"]
+structure signal_crypto.aes_gcm.Aes256GcmDecryption where
+  ctr : signal_crypto.aes_ctr.Aes256Ctr32
+  ghash : signal_crypto.aes_gcm.GcmGhash
+
+/-- [signal_crypto::hash::CryptographicMac]
+    Source: 'rust/crypto/src/hash.rs', lines 14:0-14:25
+    Name pattern: [signal_crypto::hash::CryptographicMac]
+    Visibility: public -/
+@[discriminant isize, rust_type "signal_crypto::hash::CryptographicMac"]
+inductive signal_crypto.hash.CryptographicMac where
+| HmacSha256 :
+  digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore
+    (digest.core_api.wrapper.CoreWrapper
+    (digest.core_api.ct_variable.CtVariableCoreWrapper
+    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1) (digest.core_api.ct_variable.CtVariableCoreWrapper
+    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    typenum.bit.B1 typenum.bit.B1) (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    typenum.bit.B1 (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 →
+  signal_crypto.hash.CryptographicMac
+| HmacSha1 :
+  digest.core_api.wrapper.CoreWrapper (hmac.optim.HmacCore
+    (digest.core_api.wrapper.CoreWrapper sha1.Sha1Core block_buffer.Eager
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1) sha1.Sha1Core (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))
+    typenum.bit.B1 (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 →
+  signal_crypto.hash.CryptographicMac
+
+/-- [signal_crypto::hash::CryptographicHash]
+    Source: 'rust/crypto/src/hash.rs', lines 54:0-54:26
+    Name pattern: [signal_crypto::hash::CryptographicHash]
+    Visibility: public -/
+@[discriminant isize, rust_type "signal_crypto::hash::CryptographicHash"]
+inductive signal_crypto.hash.CryptographicHash where
+| Sha1 :
+  digest.core_api.wrapper.CoreWrapper sha1.Sha1Core block_buffer.Eager
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 →
+  signal_crypto.hash.CryptographicHash
+| Sha256 :
+  digest.core_api.wrapper.CoreWrapper
+    (digest.core_api.ct_variable.CtVariableCoreWrapper
+    sha2.core_api.Sha256VarCore (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) sha2.OidSha256
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))
+    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 →
+  signal_crypto.hash.CryptographicHash
+| Sha512 :
+  digest.core_api.wrapper.CoreWrapper
+    (digest.core_api.ct_variable.CtVariableCoreWrapper
+    sha2.core_api.Sha512VarCore (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) sha2.OidSha512 (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    block_buffer.Eager (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt typenum.uint.UTerm typenum.bit.B1) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
+    typenum.bit.B1 (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize))))))))
+    typenum.bit.B1 typenum.bit.B1) block_buffer.Eager (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt
+    (typenum.uint.UInt (typenum.uint.UInt (typenum.uint.UInt typenum.uint.UTerm
+    typenum.bit.B1) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    typenum.bit.B0) typenum.bit.B0) typenum.bit.B0) typenum.bit.B0)
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplEven Std.U8
+    (generic_array.GenericArrayImplOdd Std.U8 (Array Std.U8 0#usize)))))))))
+    typenum.bit.B1 →
+  signal_crypto.hash.CryptographicHash
 
 /-- [spqr::chain::ChainParams]
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/chain.rs', lines 17:0-17:22

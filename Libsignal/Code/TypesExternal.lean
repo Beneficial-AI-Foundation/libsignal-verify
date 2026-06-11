@@ -23,6 +23,13 @@ set_option maxRecDepth 2048
 @[rust_type "core::num::error::TryFromIntError"]
 axiom core.num.error.TryFromIntError : Type
 
+/-- [core::num::niche_types::NonZeroU64Inner]
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 20:8-20:55
+    Name pattern: [core::num::niche_types::NonZeroU64Inner]
+    Visibility: public -/
+@[rust_type "core::num::niche_types::NonZeroU64Inner"]
+axiom core.num.niche_types.NonZeroU64Inner : Type
+
 /-- [core::num::niche_types::NonZeroU8Inner]
     Source: '/rustc/library/core/src/num/niche_types.rs', lines 20:8-20:55
     Name pattern: [core::num::niche_types::NonZeroU8Inner]
@@ -79,6 +86,13 @@ axiom std.time.SystemTime : Type
 @[rust_type "std::time::SystemTimeError"]
 axiom std.time.SystemTimeError : Type
 
+/-- [aes::autodetect::Aes256]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aes-0.8.4/src/autodetect.rs', lines 52:8-55:9
+    Name pattern: [aes::autodetect::Aes256]
+    Visibility: public -/
+@[rust_type "aes::autodetect::Aes256"]
+axiom aes.autodetect.Aes256 : Type
+
 /-- [alloc::collections::vec_deque::iter::Iter]
     Source: '/rustc/library/alloc/src/collections/vec_deque/iter.rs', lines 13:0-13:26
     Name pattern: [alloc::collections::vec_deque::iter::Iter]
@@ -100,6 +114,97 @@ axiom alloc.collections.vec_deque.VecDeque (T : Type) (A : Type) : Type
 @[rust_type "bytes::buf::uninit_slice::UninitSlice"]
 axiom bytes.buf.uninit_slice.UninitSlice : Type
 
+/-- [cipher::stream_wrapper::StreamCipherCoreWrapper]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cipher-0.4.4/src/stream_wrapper.rs', lines 17:0-17:52
+    Name pattern: [cipher::stream_wrapper::StreamCipherCoreWrapper]
+    Visibility: public -/
+@[rust_type "cipher::stream_wrapper::StreamCipherCoreWrapper"]
+axiom cipher.stream_wrapper.StreamCipherCoreWrapper (T : Type)
+  (Clause0_BlockSize : Type) (Clause0_Clause0_ArrayType : Type) (Clause1_Output
+  : Type) : Type
+
+/-- [ctr::ctr_core::CtrCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ctr-0.9.2/src/ctr_core.rs', lines 13:0-13:24
+    Name pattern: [ctr::ctr_core::CtrCore]
+    Visibility: public -/
+@[rust_type "ctr::ctr_core::CtrCore"]
+axiom ctr.ctr_core.CtrCore (C : Type) (F : Type) (Clause0_Clause0_BlockSize :
+  Type) (Clause0_Clause0_Clause0_ArrayType : Type) (Clause1_Clause0_BlockSize :
+  Type) (Clause1_Clause0_Clause0_ArrayType : Type) (Clause2_CtrNonce : Type)
+  (Clause2_Backend : Type) (Clause2_Clause0_ArrayType : Type)
+  (Clause2_Clause2_Clause0_Error : Type) (Clause2_Clause2_Clause1_Error : Type)
+  (Clause2_Clause2_Clause2_Error : Type) (Clause2_Clause2_Clause3_Error : Type)
+  (Clause2_Clause2_Clause4_Error : Type) (Clause2_Clause2_Clause5_Error : Type)
+  (Clause2_Clause2_Clause6_Error : Type) (Clause2_Clause2_Clause7_Error : Type)
+  (Clause2_Clause2_Clause8_Error : Type) (Clause2_Clause2_Clause9_Error : Type)
+  : Type
+
+/-- [ctr::flavors::ctr32::CtrNonce32]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ctr-0.9.2/src/flavors/ctr32.rs', lines 16:0-16:42
+    Name pattern: [ctr::flavors::ctr32::CtrNonce32]
+    Visibility: public -/
+@[rust_type "ctr::flavors::ctr32::CtrNonce32"]
+axiom ctr.flavors.ctr32.CtrNonce32 (N : Type) (Clause0_ArrayType : Type) : Type
+
+/-- [digest::core_api::ct_variable::CtVariableCoreWrapper]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/ct_variable.rs', lines 25:0-25:55
+    Name pattern: [digest::core_api::ct_variable::CtVariableCoreWrapper]
+    Visibility: public -/
+@[rust_type "digest::core_api::ct_variable::CtVariableCoreWrapper"]
+axiom digest.core_api.ct_variable.CtVariableCoreWrapper (T : Type) (OutSize :
+  Type) (O : Type) (Clause0_Clause0_Clause0_BlockSize : Type)
+  (Clause0_Clause0_Clause0_Clause0_ArrayType : Type)
+  (Clause0_Clause1_OutputSize : Type) (Clause0_Clause1_Clause0_ArrayType :
+  Type) (Clause0_Clause2_BufferKind : Type) (Clause0_Clause2_Clause0_BlockSize
+  : Type) (Clause0_Clause2_Clause0_Clause0_ArrayType : Type)
+  (Clause0_Clause3_Output : Type) (Clause1_ArrayType : Type) (Clause2_Output :
+  Type) (Clause4_Output : Type) : Type
+
+/-- [digest::core_api::wrapper::CoreWrapper]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7/src/core_api/wrapper.rs', lines 24:0-24:25
+    Name pattern: [digest::core_api::wrapper::CoreWrapper]
+    Visibility: public -/
+@[rust_type "digest::core_api::wrapper::CoreWrapper"]
+axiom digest.core_api.wrapper.CoreWrapper (T : Type) (Clause0_BufferKind :
+  Type) (Clause0_Clause0_BlockSize : Type) (Clause0_Clause0_Clause0_ArrayType :
+  Type) (Clause1_Output : Type) : Type
+
+/-- [generic_array::GenericArrayImplEven]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 126:0-126:37
+    Name pattern: [generic_array::GenericArrayImplEven]
+    Visibility: public -/
+@[rust_type "generic_array::GenericArrayImplEven"]
+axiom generic_array.GenericArrayImplEven (T : Type) (U : Type) : Type
+
+/-- [generic_array::GenericArrayImplOdd]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 148:0-148:36
+    Name pattern: [generic_array::GenericArrayImplOdd]
+    Visibility: public -/
+@[rust_type "generic_array::GenericArrayImplOdd"]
+axiom generic_array.GenericArrayImplOdd (T : Type) (U : Type) : Type
+
+/-- [ghash::GHash]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ghash-0.5.1/src/lib.rs', lines 58:0-58:16
+    Name pattern: [ghash::GHash]
+    Visibility: public -/
+@[rust_type "ghash::GHash"]
+axiom ghash.GHash : Type
+
+/-- [hmac::optim::HmacCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.12.1/src/optim.rs', lines 20:0-20:22
+    Name pattern: [hmac::optim::HmacCore]
+    Visibility: public -/
+@[rust_type "hmac::optim::HmacCore"]
+axiom hmac.optim.HmacCore (D : Type) (Clause0_Core : Type)
+  (Clause2_Clause0_BlockSize : Type) (Clause2_Clause0_Clause0_ArrayType : Type)
+  (Clause3_Clause0_Clause0_BlockSize : Type)
+  (Clause3_Clause0_Clause0_Clause0_ArrayType : Type)
+  (Clause3_Clause1_BufferKind : Type) (Clause3_Clause1_Clause0_BlockSize :
+  Type) (Clause3_Clause1_Clause0_Clause0_ArrayType : Type)
+  (Clause3_Clause2_OutputSize : Type) (Clause3_Clause2_Clause0_ArrayType :
+  Type) (Clause3_Clause3_Output : Type) (Clause4_Clause0_BlockSize : Type)
+  (Clause4_Clause0_Clause0_ArrayType : Type) (Clause7_Output : Type) : Type
+
 /-- [uuid::Uuid]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 457:0-457:15
     Name pattern: [uuid::Uuid]
@@ -108,6 +213,13 @@ axiom bytes.buf.uninit_slice.UninitSlice : Type
 @[rust_type "uuid::Uuid"]
 structure uuid.Uuid where
   bytes : Array Std.U8 16#usize
+
+/-- [uuid::error::Error]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/error.rs', lines 5:0-5:16
+    Name pattern: [uuid::error::Error]
+    Visibility: public -/
+@[rust_type "uuid::error::Error"]
+axiom uuid.error.Error : Type
 
 /-- [subtle::Choice]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
@@ -136,6 +248,34 @@ axiom prost.error.EncodeError : Type
     Visibility: public -/
 @[rust_type "rand_core#1::os::OsError"]
 axiom rand_core_1.os.OsError : Type
+
+/-- [sha1::Sha1Core]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha1-0.10.6/src/lib.rs', lines 77:0-77:19
+    Name pattern: [sha1::Sha1Core]
+    Visibility: public -/
+@[rust_type "sha1::Sha1Core"]
+axiom sha1.Sha1Core : Type
+
+/-- [sha2::core_api::Sha256VarCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 18:0-18:24
+    Name pattern: [sha2::core_api::Sha256VarCore]
+    Visibility: public -/
+@[rust_type "sha2::core_api::Sha256VarCore"]
+axiom sha2.core_api.Sha256VarCore : Type
+
+/-- [sha2::core_api::Sha512VarCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9/src/core_api.rs', lines 90:0-90:24
+    Name pattern: [sha2::core_api::Sha512VarCore]
+    Visibility: public -/
+@[rust_type "sha2::core_api::Sha512VarCore"]
+axiom sha2.core_api.Sha512VarCore : Type
+
+/-- [typenum::uint::UInt]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 148:0-148:21
+    Name pattern: [typenum::uint::UInt]
+    Visibility: public -/
+@[rust_type "typenum::uint::UInt"]
+axiom typenum.uint.UInt (U : Type) (B : Type) : Type
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure]
     Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/

@@ -148,6 +148,17 @@ axiom core.num.error.TryFromIntError.Insts.CoreFmtDebug.fmt
   core.num.error.TryFromIntError → core.fmt.Formatter → Result
     ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
 
+/-- [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU64Inner}::clone]:
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
+    Name pattern: [core::num::niche_types::{core::clone::Clone<core::num::niche_types::NonZeroU64Inner>}::clone]
+    Visibility: public -/
+@[rust_fun
+  "core::num::niche_types::{core::clone::Clone<core::num::niche_types::NonZeroU64Inner>}::clone"]
+axiom core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone.clone
+  :
+  core.num.niche_types.NonZeroU64Inner → Result
+    core.num.niche_types.NonZeroU64Inner
+
 /-- [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU8Inner}::clone]:
     Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
     Name pattern: [core::num::niche_types::{core::clone::Clone<core::num::niche_types::NonZeroU8Inner>}::clone]
@@ -158,6 +169,17 @@ axiom core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone
   :
   core.num.niche_types.NonZeroU8Inner → Result
     core.num.niche_types.NonZeroU8Inner
+
+/-- [core::num::nonzero::{core::num::nonzero::NonZero<T, Clause0_NonZeroInner>}::new]:
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 404:4-404:42
+    Name pattern: [core::num::nonzero::{core::num::nonzero::NonZero<@T, @Clause0_NonZeroInner>}::new]
+    Visibility: public -/
+@[rust_fun
+  "core::num::nonzero::{core::num::nonzero::NonZero<@T, @Clause0_NonZeroInner>}::new"]
+axiom core.num.nonzero.NonZero.new
+  {T : Type} {Clause0_NonZeroInner : Type} (ZeroablePrimitiveInst :
+  core.num.nonzero.ZeroablePrimitive T Clause0_NonZeroInner) :
+  T → Result (Option (core.num.nonzero.NonZero T Clause0_NonZeroInner))
 
 /-- [core::num::nonzero::{core::num::nonzero::NonZero<T, Clause0_NonZeroInner>}::get]:
     Source: '/rustc/library/core/src/num/nonzero.rs', lines 483:4-483:31
@@ -280,6 +302,14 @@ axiom core.option.Option.Insts.CoreOpsTry_traitTry.branch
 axiom
   core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
   (T : Type) : Option core.convert.Infallible → Result (Option T)
+
+/-- [core::result::{core::result::Result<T, E>}::ok]:
+    Source: '/rustc/library/core/src/result.rs', lines 708:4-711:28
+    Name pattern: [core::result::{core::result::Result<@T, @E>}::ok]
+    Visibility: public -/
+@[rust_fun "core::result::{core::result::Result<@T, @E>}::ok"]
+axiom core.result.Result.ok
+  {T : Type} {E : Type} : core.result.Result T E → Result (Option T)
 
 /-- [core::result::{core::result::Result<T, E>}::map_err]:
     Source: '/rustc/library/core/src/result.rs', lines 962:4-964:53
@@ -780,6 +810,15 @@ axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.advance_mut
 axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.remaining_mut
   : alloc.vec.Vec Std.U8 → Result Std.Usize
 
+/-- [derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<T>}::new]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 29:8-29:42
+    Name pattern: [derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<@T>}::new]
+    Visibility: public -/
+@[rust_fun
+  "derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<@T>}::new"]
+axiom derive_more.convert.try_from.TryFromReprError.new
+  {T : Type} : T → Result (derive_more.convert.try_from.TryFromReprError T)
+
 /-- [hex::encode]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hex-0.4.3/src/lib.rs', lines 259:0-259:48
     Name pattern: [hex::encode]
@@ -810,6 +849,13 @@ axiom
 axiom uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq
   : uuid.Uuid → uuid.Uuid → Result Bool
 
+/-- [uuid::builder::{uuid::Uuid}::from_bytes]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs', lines 364:4-364:49
+    Name pattern: [uuid::builder::{uuid::Uuid}::from_bytes]
+    Visibility: public -/
+@[rust_fun "uuid::builder::{uuid::Uuid}::from_bytes"]
+axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
+
 namespace uuid.Uuid
 
 /-- [uuid::{uuid::Uuid}::as_bytes]:
@@ -829,6 +875,14 @@ theorem as_bytes_spec (self : uuid.Uuid) :
   step*
 
 end uuid.Uuid
+
+/-- [uuid::builder::{uuid::Uuid}::from_slice]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs', lines 287:4-287:54
+    Name pattern: [uuid::builder::{uuid::Uuid}::from_slice]
+    Visibility: public -/
+@[rust_fun "uuid::builder::{uuid::Uuid}::from_slice"]
+axiom uuid.builder.Uuid.from_slice
+  : Slice Std.U8 → Result (core.result.Result uuid.Uuid uuid.error.Error)
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
     Source: 'rust/core/src/address.rs', lines 267:4-267:68
@@ -2200,3 +2254,4 @@ axiom triple_ratchet.TripleRatchet.decrypt
     protocol.CiphertextMessageType → session_management.CurrentOrPrevious →
     R → Result ((core.result.Result (alloc.vec.Vec Std.U8)
     error.SignalProtocolError) × triple_ratchet.TripleRatchet × R)
+

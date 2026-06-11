@@ -35,7 +35,7 @@ on the fixed-size buffers involved.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_protocol.libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -84,4 +84,4 @@ theorem service_id_binary_spec
     Array.val_to_slice] at *
     exact a_post2
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_protocol.libsignal_core.address.ServiceId
