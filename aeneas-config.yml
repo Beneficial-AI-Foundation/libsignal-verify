@@ -88,12 +88,15 @@ charon:
     - "signal_crypto::aes_ctr"
     - "signal_crypto::aes_gcm"
     - "signal_crypto::hash"
-    # NOTE: the signal_crypto AEAD *struct impl methods* (Aes256Gcm{Enc,Dec}ryption::
-    # {encrypt,decrypt,compute_tag,verify_tag}, CryptographicMac::update_and_get) that
-    # `main` had via start_from_pub are NOT rooted here: extracting them transparently
-    # drags in AES-GCM's deep generic type-machinery (generic_array, typenum, inout,
-    # cipher, ghash, digest…), each needing hand-added external axioms — crypto-internals
-    # that protocol verification axiomatizes rather than models. See open decision.
+    # NOTE: signal_crypto's AEAD struct methods (Aes256Gcm{Enc,Dec}ryption::{encrypt,
+    # decrypt,compute_tag,verify_tag}, CryptographicMac::update_and_get) and the typenum
+    # trait instances that came with them appear in main only because main *targeted*
+    # signal_crypto (start_from_pub roots every pub item of the target crate). Here
+    # signal_crypto is merely --include'd, so Charon emits only items reachable from the
+    # protocol roots. These structs are unreachable from rust/protocol/src (sealed_sender
+    # uses the external aes_gcm_siv crate, not signal_crypto's Aes256GcmEncryption), and
+    # an explicit --start-from of an unreachable included-crate struct method is a no-op
+    # (produces no def, no error). They are therefore out of scope for this extraction.
     # DEFERRED: `sealed_sender` causes Charon to be very slow
     # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
