@@ -185,26 +185,6 @@ async function main(): Promise<void> {
     console.log();
   }
 
-  // ── Step 4: Realize external templates ─────────────────────────────
-  // TEMPORARY (remove before committing): copies the (already-tweaked) axiom
-  // stubs `*External_Template.lean` → their non-template names. Right now every
-  // external item is an opaque axiom with no hand-written realization, so this
-  // is a convenience. Once others fill in real realizations, TypesExternal.lean /
-  // FunsExternal.lean become hand-maintained and this copy MUST be removed so it
-  // doesn't overwrite their edits.
-  //
-  // This replaces the former TypesPre/TypesPreBase/FunsPre layer-splitting hack,
-  // which worked around an Aeneas Types↔TypesExternal circular-dependency
-  // limitation that is now fixed upstream (the `*_Template.lean` are self-contained).
-  for (const base of ["TypesExternal", "FunsExternal"]) {
-    const tmpl = path.join(outputDir, `${base}_Template.lean`);
-    const dest = path.join(outputDir, `${base}.lean`);
-    if (fs.existsSync(tmpl)) {
-      fs.copyFileSync(tmpl, dest);
-      console.log(chalk.green(`  Realized ${base}.lean from ${base}_Template.lean`));
-    }
-  }
-  console.log();
 
   // ── Step 5: Lean toolchain sync ─────────────────────────────────────
   syncLeanToolchain(root);
