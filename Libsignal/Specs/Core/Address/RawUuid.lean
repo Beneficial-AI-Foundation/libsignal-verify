@@ -43,7 +43,7 @@ conversion.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_protocol.libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -66,10 +66,10 @@ natural language specs:
 
 @[step]
 theorem raw_uuid_spec (self : libsignal_core.address.ServiceId) :
-    raw_uuid self ⦃ result =>
+    raw_uuid self ⦃ (result : uuid.Uuid) =>
       (∀ aci, self = .Aci aci → result = aci.uuid) ∧
       (∀ pni, self = .Pni pni → result = pni.uuid) ⦄ := by
   unfold raw_uuid
   step* <;> (unfold uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from; step*; simp_all)
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_protocol.libsignal_core.address.ServiceId
