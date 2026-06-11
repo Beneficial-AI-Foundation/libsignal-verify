@@ -56,9 +56,9 @@ function generateDiff(upstreamSrc: string, localSrc: string, sourceDir: string, 
   const escapedUpstream = upstreamSrc.replace(/[/&]/g, "\\$&");
   const escapedLocal = localSrc.replace(/[/&]/g, "\\$&");
 
-  // Generate unified diff with normalized paths and no timestamps
+  // Generate unified diff with normalized paths and no timestamps.
   const diffOutput = exec(
-    `diff -Naur --no-dereference "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
+    `LC_ALL=C diff -Naur --no-dereference "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
     { allowFail: true },
   );
 
