@@ -47,7 +47,7 @@ on the fixed-size buffers involved.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_protocol.libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -88,8 +88,6 @@ theorem service_id_fixed_width_binary_spec
       (∀ pni, self = .Pni pni → Array.index_usize result 0#usize = ok 1#u8) ⦄ := by
   unfold service_id_fixed_width_binary
   step*
-  unfold uuid.Uuid.as_bytes
-  step*
   constructor
   · intro h h0
     simp only [Array.index_usize, Array.getElem?_Usize_eq,
@@ -116,4 +114,4 @@ theorem service_id_fixed_width_binary_spec
     Array.val_to_slice]
     simp_lists [Array.setSlice!]
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_protocol.libsignal_core.address.ServiceId

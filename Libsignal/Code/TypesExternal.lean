@@ -103,9 +103,11 @@ axiom bytes.buf.uninit_slice.UninitSlice : Type
 /-- [uuid::Uuid]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 457:0-457:15
     Name pattern: [uuid::Uuid]
-    Visibility: public -/
+    Visibility: public
+    Doc: https://docs.rs/uuid/1.19.0/uuid/struct.Uuid.html -/
 @[rust_type "uuid::Uuid"]
-axiom uuid.Uuid : Type
+structure uuid.Uuid where
+  bytes : Array Std.U8 16#usize
 
 /-- [subtle::Choice]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
@@ -138,4 +140,3 @@ axiom rand_core_1.os.OsError : Type
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure]
     Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
 axiom state.session.SessionRecord.previous_session_states.closure : Type
-

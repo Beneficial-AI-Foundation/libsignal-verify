@@ -810,12 +810,25 @@ axiom
 axiom uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq
   : uuid.Uuid → uuid.Uuid → Result Bool
 
+namespace uuid.Uuid
+
 /-- [uuid::{uuid::Uuid}::as_bytes]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 790:4-790:42
     Name pattern: [uuid::{uuid::Uuid}::as_bytes]
-    Visibility: public -/
+    Visibility: public
+    Docs: https://docs.rs/uuid/1.19.0/uuid/struct.Uuid.html#method.as_bytes -/
 @[rust_fun "uuid::{uuid::Uuid}::as_bytes"]
-axiom uuid.Uuid.as_bytes : uuid.Uuid → Result (Array Std.U8 16#usize)
+def as_bytes (self : uuid.Uuid) : Result (Array Std.U8 16#usize) :=
+  ok self.bytes
+
+@[step]
+theorem as_bytes_spec (self : uuid.Uuid) :
+    as_bytes self ⦃ (result : Std.Array U8 16#usize) =>
+      result = self.bytes ⦄ := by
+  unfold as_bytes
+  step*
+
+end uuid.Uuid
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
     Source: 'rust/core/src/address.rs', lines 267:4-267:68
@@ -2187,4 +2200,3 @@ axiom triple_ratchet.TripleRatchet.decrypt
     protocol.CiphertextMessageType → session_management.CurrentOrPrevious →
     R → Result ((core.result.Result (alloc.vec.Vec Std.U8)
     error.SignalProtocolError) × triple_ratchet.TripleRatchet × R)
-
