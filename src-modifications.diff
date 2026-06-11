@@ -734,6 +734,18 @@ diff -Naur --no-dereference a/rust/protocol/src/sealed_sender.rs b/rust/protocol
  pub async fn sealed_sender_decrypt(
      ciphertext: &[u8],
      trust_root: &PublicKey,
+diff -Naur --no-dereference a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
+--- a/rust/protocol/src/session.rs
++++ b/rust/protocol/src/session.rs
+@@ -154,7 +154,7 @@
+         our_kyber_pre_key_pair,
+         *message.identity_key(),
+         *message.base_key(),
+-        kyber_ciphertext,
++        kyber_ciphertext.clone(),
+         our_identity_key_pair.identity_key().is_same_account(
+             local_address,
+             message.identity_key(),
 diff -Naur --no-dereference a/rust/protocol/src/session_management.rs b/rust/protocol/src/session_management.rs
 --- a/rust/protocol/src/session_management.rs
 +++ b/rust/protocol/src/session_management.rs
@@ -798,18 +810,6 @@ diff -Naur --no-dereference a/rust/protocol/src/session_management.rs b/rust/pro
              false,
          );
  
-diff -Naur --no-dereference a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
---- a/rust/protocol/src/session.rs
-+++ b/rust/protocol/src/session.rs
-@@ -154,7 +154,7 @@
-         our_kyber_pre_key_pair,
-         *message.identity_key(),
-         *message.base_key(),
--        kyber_ciphertext,
-+        kyber_ciphertext.clone(),
-         our_identity_key_pair.identity_key().is_same_account(
-             local_address,
-             message.identity_key(),
 diff -Naur --no-dereference a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
 --- a/rust/protocol/src/state/session.rs
 +++ b/rust/protocol/src/state/session.rs
