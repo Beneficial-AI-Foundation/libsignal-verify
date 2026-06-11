@@ -107,99 +107,6 @@ axiom U32.Insts.CoreHashHash.hash
 @[rust_fun "core::hint::must_use"]
 axiom core.hint.must_use {T : Type} : T → Result T
 
-/-- [core::iter::adapters::enumerate::{impl core::iter::traits::iterator::Iterator<(usize, Clause0_Item)> for core::iter::adapters::enumerate::Enumerate<I>}::next]:
-    Source: '/rustc/library/core/src/iter/adapters/enumerate.rs', lines 79:4-79:64
-    Name pattern: [core::iter::adapters::enumerate::{core::iter::traits::iterator::Iterator<core::iter::adapters::enumerate::Enumerate<@I>, (usize, @Clause0_Item)>}::next]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::adapters::enumerate::{core::iter::traits::iterator::Iterator<core::iter::adapters::enumerate::Enumerate<@I>, (usize, @Clause0_Item)>}::next"]
-axiom
-  core.iter.adapters.enumerate.Enumerate.Insts.CoreIterTraitsIteratorIteratorPairUsizeClause0_Item.next
-  {I : Type} {Clause0_Item : Type} (traitsiteratorIteratorInst :
-  core.iter.traits.iterator.Iterator I Clause0_Item) :
-  core.iter.adapters.enumerate.Enumerate I → Result ((Option (Std.Usize ×
-    Clause0_Item)) × (core.iter.adapters.enumerate.Enumerate I))
-
-/-- [core::iter::adapters::map::{impl core::iter::traits::iterator::Iterator<B> for core::iter::adapters::map::Map<I, F>}::next]:
-    Source: '/rustc/library/core/src/iter/adapters/map.rs', lines 106:4-106:35
-    Name pattern: [core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::next]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::next"]
-axiom core.iter.adapters.map.Map.Insts.CoreIterTraitsIteratorIterator.next
-  {B : Type} {I : Type} {F : Type} {Clause0_Item : Type}
-  (traitsiteratorIteratorInst : core.iter.traits.iterator.Iterator I
-  Clause0_Item) (opsfunctionFnMutFTupleClause0_ItemBInst :
-  core.ops.function.FnMut F Clause0_Item B) :
-  core.iter.adapters.map.Map I F → Result ((Option B) ×
-    (core.iter.adapters.map.Map I F))
-
-/-- [core::iter::adapters::map::{impl core::iter::traits::iterator::Iterator<B> for core::iter::adapters::map::Map<I, F>}::position]:
-    Source: '/rustc/library/core/src/iter/adapters/map.rs', lines 99:0-101:27
-    Name pattern: [core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::position]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::position"]
-axiom core.iter.adapters.map.Map.Insts.CoreIterTraitsIteratorIterator.position
-  {B : Type} {I : Type} {F : Type} {P : Type} {Clause0_Item : Type}
-  (traitsiteratorIteratorInst : core.iter.traits.iterator.Iterator I
-  Clause0_Item) (opsfunctionFnMutFTupleClause0_ItemBInst :
-  core.ops.function.FnMut F Clause0_Item B) (opsfunctionFnMutPTupleBBoolInst :
-  core.ops.function.FnMut P B Bool) :
-  core.iter.adapters.map.Map I F → P → Result ((Option Std.Usize) ×
-    (core.iter.adapters.map.Map I F))
-
-/-- [core::iter::adapters::map::{impl core::iter::traits::iterator::Iterator<B> for core::iter::adapters::map::Map<I, F>}::enumerate]:
-    Source: '/rustc/library/core/src/iter/adapters/map.rs', lines 99:0-101:27
-    Name pattern: [core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::enumerate]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::enumerate"]
-axiom core.iter.adapters.map.Map.Insts.CoreIterTraitsIteratorIterator.enumerate
-  {B : Type} {I : Type} {F : Type} {Clause0_Item : Type}
-  (traitsiteratorIteratorInst : core.iter.traits.iterator.Iterator I
-  Clause0_Item) (opsfunctionFnMutFTupleClause0_ItemBInst :
-  core.ops.function.FnMut F Clause0_Item B) :
-  core.iter.adapters.map.Map I F → Result
-    (core.iter.adapters.enumerate.Enumerate (core.iter.adapters.map.Map I F))
-
-/-- [core::iter::adapters::map::{impl core::iter::traits::iterator::Iterator<B> for core::iter::adapters::map::Map<I, F>}::map]:
-    Source: '/rustc/library/core/src/iter/adapters/map.rs', lines 99:0-101:27
-    Name pattern: [core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::map]
-    Visibility: public -/
-@[rust_fun
-  "core::iter::adapters::map::{core::iter::traits::iterator::Iterator<core::iter::adapters::map::Map<@I, @F>, @B>}::map"]
-axiom core.iter.adapters.map.Map.Insts.CoreIterTraitsIteratorIterator.map
-  {B : Type} {I : Type} {F : Type} {B1 : Type} {F1 : Type} {Clause0_Item :
-  Type} (traitsiteratorIteratorInst : core.iter.traits.iterator.Iterator I
-  Clause0_Item) (opsfunctionFnMutFTupleClause0_ItemBInst :
-  core.ops.function.FnMut F Clause0_Item B) (opsfunctionFnMutFTupleBBInst :
-  core.ops.function.FnMut F1 B B1) :
-  core.iter.adapters.map.Map I F → F1 → Result (core.iter.adapters.map.Map
-    (core.iter.adapters.map.Map I F) F1)
-
-/-- [core::iter::traits::iterator::Iterator::map]:
-    Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 831:4-834:34
-    Name pattern: [core::iter::traits::iterator::Iterator::map]
-    Visibility: public -/
-@[rust_fun "core::iter::traits::iterator::Iterator::map"]
-axiom core.iter.traits.iterator.Iterator.map.default
-  {Self : Type} {B : Type} {F : Type} {Clause0_Item : Type} (IteratorInst :
-  core.iter.traits.iterator.Iterator Self Clause0_Item)
-  (opsfunctionFnMutFTupleClause0_ItemBInst : core.ops.function.FnMut F
-  Clause0_Item B) :
-  Self → F → Result (core.iter.adapters.map.Map Self F)
-
-/-- [core::iter::traits::iterator::Iterator::enumerate]:
-    Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 1044:4-1046:20
-    Name pattern: [core::iter::traits::iterator::Iterator::enumerate]
-    Visibility: public -/
-@[rust_fun "core::iter::traits::iterator::Iterator::enumerate"]
-axiom core.iter.traits.iterator.Iterator.enumerate.default
-  {Self : Type} {Clause0_Item : Type} (IteratorInst :
-  core.iter.traits.iterator.Iterator Self Clause0_Item) :
-  Self → Result (core.iter.adapters.enumerate.Enumerate Self)
-
 /-- [core::iter::traits::iterator::Iterator::position]:
     Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 3134:4-3137:37
     Name pattern: [core::iter::traits::iterator::Iterator::position]
@@ -278,7 +185,7 @@ axiom Mut0T.Insts.CoreOpsDerefDeref.deref {T : Type} : T → Result T
 @[rust_fun
   "core::ops::deref::{core::ops::deref::DerefMut<&'0 mut @T, @T>}::deref_mut"]
 axiom Mut0T.Insts.CoreOpsDerefDerefMut.deref_mut
-  {T : Type} : T → Result (T × (T → T) × (T → T))
+  {T : Type} : T → Result (T × (T → T))
 
 /-- [core::option::{core::option::Option<T>}::as_ref]:
     Source: '/rustc/library/core/src/option.rs', lines 741:4-741:44
@@ -495,18 +402,6 @@ axiom
   core.slice.iter.Iter T → P → Result ((Option Std.Usize) ×
     (core.slice.iter.Iter T))
 
-/-- [core::slice::iter::{impl core::iter::traits::iterator::Iterator<&'a T> for core::slice::iter::Iter<'a, T>}::map]:
-    Source: '/rustc/library/core/src/slice/iter/macros.rs', lines 153:8-153:45
-    Name pattern: [core::slice::iter::{core::iter::traits::iterator::Iterator<core::slice::iter::Iter<'a, @T>, &'a @T>}::map]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::iter::{core::iter::traits::iterator::Iterator<core::slice::iter::Iter<'a, @T>, &'a @T>}::map"]
-axiom core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.map
-  {T : Type} {B : Type} {F : Type} (opsfunctionFnMutFTupleSharedATBInst :
-  core.ops.function.FnMut F T B) :
-  core.slice.iter.Iter T → F → Result (core.iter.adapters.map.Map
-    (core.slice.iter.Iter T) F)
-
 /-- [core::time::{impl core::default::Default for core::time::Duration}::default]:
     Source: '/rustc/library/core/src/time.rs', lines 79:60-79:67
     Name pattern: [core::time::{core::default::Default<core::time::Duration>}::default]
@@ -646,19 +541,6 @@ axiom BoxSlice.Insts.CoreCloneClone.clone
 @[rust_fun "alloc::boxed::{core::convert::AsRef<Box<@T>, @T>}::as_ref"]
 axiom Box.Insts.CoreConvertAsRef.as_ref {T : Type} (A : Type) : T → Result T
 
-/-- [alloc::collections::vec_deque::iter::{impl core::iter::traits::iterator::Iterator<&'a T> for alloc::collections::vec_deque::iter::Iter<'a, T>}::map]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/iter.rs', lines 88:0-88:36
-    Name pattern: [alloc::collections::vec_deque::iter::{core::iter::traits::iterator::Iterator<alloc::collections::vec_deque::iter::Iter<'a, @T>, &'a @T>}::map]
-    Visibility: public -/
-@[rust_fun
-  "alloc::collections::vec_deque::iter::{core::iter::traits::iterator::Iterator<alloc::collections::vec_deque::iter::Iter<'a, @T>, &'a @T>}::map"]
-axiom
-  alloc.collections.vec_deque.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.map
-  {T : Type} {B : Type} {F : Type} (coreopsfunctionFnMutFTupleSharedATBInst :
-  core.ops.function.FnMut F T B) :
-  alloc.collections.vec_deque.iter.Iter T → F → Result
-    (core.iter.adapters.map.Map (alloc.collections.vec_deque.iter.Iter T) F)
-
 /-- [alloc::collections::vec_deque::iter::{impl core::iter::traits::iterator::Iterator<&'a T> for alloc::collections::vec_deque::iter::Iter<'a, T>}::next]:
     Source: '/rustc/library/alloc/src/collections/vec_deque/iter.rs', lines 92:4-92:39
     Name pattern: [alloc::collections::vec_deque::iter::{core::iter::traits::iterator::Iterator<alloc::collections::vec_deque::iter::Iter<'a, @T>, &'a @T>}::next]
@@ -692,17 +574,6 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
 axiom alloc.collections.vec_deque.VecDequeTGlobal.with_capacity
   (T : Type) :
   Std.Usize → Result (alloc.collections.vec_deque.VecDeque T Global)
-
-/-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::iter]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1569:4-1569:37
-    Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::iter]
-    Visibility: public -/
-@[rust_fun
-  "alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::iter"]
-axiom alloc.collections.vec_deque.VecDeque.iter
-  {T : Type} {A : Type} :
-  alloc.collections.vec_deque.VecDeque T A → Result
-    (alloc.collections.vec_deque.iter.Iter T)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::len]:
     Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1703:4-1703:30
@@ -1362,17 +1233,6 @@ axiom
   proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.encode_to_vec
   : proto.storage.SignedPreKeyRecordStructure → Result (alloc.vec.Vec Std.U8)
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::decode]:
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 109:37-109:53
-    Visibility: public -/
-axiom
-  proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.decode
-  {T1 : Type} (coredefaultDefaultSignedPreKeyRecordStructureInst :
-  core.default.Default proto.storage.SignedPreKeyRecordStructure)
-  (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T1) :
-  T1 → Result (core.result.Result proto.storage.SignedPreKeyRecordStructure
-    prost.error.DecodeError)
-
 /-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::encode_to_vec]:
     Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 122:37-122:53
     Visibility: public -/
@@ -1957,6 +1817,15 @@ axiom state.kyber_prekey.KyberPreKeyId.Insts.CoreCmpPartialEqKyberPreKeyId.ne
   state.kyber_prekey.KyberPreKeyId → state.kyber_prekey.KyberPreKeyId →
     Result Bool
 
+/-- [libsignal_protocol::state::kyber_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_protocol::kem::KeyPair, libsignal_protocol::state::kyber_prekey::KyberPreKeyId, libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>, libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>> for libsignal_protocol::state::kyber_prekey::KyberPreKeyRecord}::deserialize]:
+    Source: 'rust/protocol/src/state/kyber_prekey.rs', lines 31:0-44:1
+    Visibility: public -/
+axiom
+  state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.deserialize
+  :
+  Slice Std.U8 → Result (core.result.Result
+    state.kyber_prekey.KyberPreKeyRecord error.SignalProtocolError)
+
 /-- [libsignal_protocol::state::prekey::{impl core::cmp::PartialEq<libsignal_protocol::state::prekey::PreKeyId> for libsignal_protocol::state::prekey::PreKeyId}::ne]:
     Source: 'rust/protocol/src/state/prekey.rs', lines 15:34-15:43
     Visibility: public -/
@@ -2124,14 +1993,12 @@ axiom state.session.SessionRecord.deserialize
   Slice Std.U8 → Result (core.result.Result state.session.SessionRecord
     error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnMut<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}::call_mut]:
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
-axiom
-  state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError.call_mut
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states]:
+    Source: 'rust/protocol/src/state/session.rs', lines 813:4-821:5 -/
+axiom state.session.SessionRecord.previous_session_states
   :
-  state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
-    Std.U8 → Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
-    state.session.InvalidSessionError) ×
+  state.session.SessionRecord → Result (core.iter.adapters.map.Map
+    (core.slice.iter.Iter (alloc.vec.Vec Std.U8))
     state.session.SessionRecord.previous_session_states.closure)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnOnce<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}::call_once]:
@@ -2143,12 +2010,14 @@ axiom
     Std.U8 → Result (core.result.Result _root_.libsignal_protocol.state.session.SessionState
     state.session.InvalidSessionError)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states]:
-    Source: 'rust/protocol/src/state/session.rs', lines 813:4-821:5 -/
-axiom state.session.SessionRecord.previous_session_states
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnMut<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}::call_mut]:
+    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
+axiom
+  state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError.call_mut
   :
-  state.session.SessionRecord → Result (core.iter.adapters.map.Map
-    (core.slice.iter.Iter (alloc.vec.Vec Std.U8))
+  state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
+    Std.U8 → Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
+    state.session.InvalidSessionError) ×
     state.session.SessionRecord.previous_session_states.closure)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::archive_current_state]:
@@ -2254,6 +2123,26 @@ axiom
   :
   state.signed_prekey.SignedPreKeyId → state.signed_prekey.SignedPreKeyId →
     Result Bool
+
+/-- [libsignal_protocol::state::signed_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_core::curve::KeyPair, libsignal_protocol::state::signed_prekey::SignedPreKeyId, libsignal_core::curve::PublicKey, libsignal_core::curve::PrivateKey> for libsignal_protocol::state::signed_prekey::SignedPreKeyRecord}::deserialize]:
+    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 37:0-50:1
+    Visibility: public -/
+axiom
+  state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.deserialize
+  :
+  Slice Std.U8 → Result (core.result.Result
+    state.signed_prekey.SignedPreKeyRecord error.SignalProtocolError)
+
+/-- [libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize]:
+    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 80:4-88:5
+    Visibility: public -/
+axiom state.signed_prekey.GenericSignedPreKey.deserialize.default
+  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
+  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
+  Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
+  Clause0_Clause0_PrivateKey) :
+  Slice Std.U8 → Result (core.result.Result Self error.SignalProtocolError)
 
 /-- [libsignal_protocol::timestamp::{impl core::cmp::PartialEq<libsignal_protocol::timestamp::Timestamp> for libsignal_protocol::timestamp::Timestamp}::ne]:
     Source: 'rust/protocol/src/timestamp.rs', lines 11:33-11:42

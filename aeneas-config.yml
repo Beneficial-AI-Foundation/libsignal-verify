@@ -123,6 +123,23 @@ charon:
     # ...::protocol` (module-rooting); its sole callers are tests + the bridge layer
     # (external), so nothing in scope references it.
     - "libsignal_protocol::protocol::should_use_nonpq_session"
+    # Iterator-adaptor users: build `Map`/`position` iterators, but Aeneas's base
+    # `core.iter.traits.iterator.Iterator` (Aeneas/Std/Core/Iter.lean) only models
+    # {next, step_by, enumerate, take} — NOT `map`/`position` — so the generated
+    # `Map` Iterator instance has fields the base struct lacks ("not a field" / "fields
+    # missing"). Both are `pub(crate)` and their ONLY callers live in source-gated-out
+    # modules (chain_ids_for_logging ← group_cipher; promote_matching_session ←
+    # session), so they're module-rooted dead weight — exclude (nothing in scope
+    # references them). chain_ids_for_logging also returns `impl ExactSizeIterator`
+    # (RPIT), which opaque can't represent anyway.
+    - "libsignal_protocol::sender_keys::_::chain_ids_for_logging"
+    - "libsignal_protocol::state::session::_::promote_matching_session"
+    # set_unacknowledged_kyber_pre_key_id: `pub(crate)`, only caller is
+    # session::process_prekey_bundle (in the source-gated-out `session` module), so
+    # module-rooted dead weight. Its body destructures `Option::as_mut(...).expect(...)`
+    # as an `&mut` writeback pair on a proto type, which Aeneas mis-models ("expected
+    # a product type, got PendingKyberPreKey"). Nothing in scope references it → exclude.
+    - "libsignal_protocol::state::session::_::set_unacknowledged_kyber_pre_key_id"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
     # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never
@@ -293,6 +310,16 @@ charon:
     # are skipped by charon as hax panics, so don't reach aeneas).
     - "libsignal_protocol::storage::inmem::_::load_existing_sessions"
     - "libsignal_protocol::fingerprint::_::display_string"
+    # GenericSignedPreKey::deserialize (trait default): its body's map_err closure
+    # spuriously captures the GenericSignedPreKey instance, and the per-impl
+    # monomorphizations (Kyber/SignedPreKeyRecord) reference that combining instance
+    # which is defined LATER (the instance has a `deserialize` field) → mutual-recursion
+    # forward ref ("Unknown constant <Instance>"). Opaque the per-impl deserialize so
+    # its body isn't emitted (the instance keeps a valid `deserialize` axiom). Targeted
+    # to GenericSignedPreKey deserialize only (NOT the KeySerde deserializes in
+    # signed_prekey). REVERT once Aeneas stops the spurious capture / emits a mutual block.
+    - "libsignal_protocol::state::kyber_prekey::_::deserialize"
+    - "libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize"
     # libsignal_core::curve — Curve25519 (curve25519_dalek) crypto primitives:
     # DH, keygen, sign/verify, deserialize (log macro). Axiomatic crypto leaves.
     - "libsignal_core::curve::_::deserialize"
@@ -453,3 +480,40 @@ tweaks:
       replace: "_root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1"
     - find: "state.session.SessionState.apply_ratchet_state state"
       replace: "_root_.libsignal_protocol.state.session.SessionState.apply_ratchet_state state"
+
+    # `&mut T` DerefMut model has one writeback too many: Aeneas emits the external
+    # axiom `Mut0T...deref_mut : T → Result (T × (T → T) × (T → T))` (two back-fns)
+    # but the DerefMut trait field expects `T → Result (T × (T → T))` (one back-fn,
+    # like Box/Vec's `(x, fun x => x)`). The `&mut` in the type parameter adds the
+    # spurious extra writeback. Correct the axiom's type to the trait's shape. This
+    # fixes BOTH the standalone instance (Funs DerefMut) AND any fn threading `&mut R`
+    # (RNG) through opaqued crypto, e.g. pqxdh_initiate's encapsulate(&mut csprng) —
+    # keeping pqxdh_initiate TRANSPARENT. https://github.com/AeneasVerif/aeneas/issues/961
+    - find: "Result (T × (T → T) × (T → T))"
+      replace: "Result (T × (T → T))"
+
+    # #961 (call-site manifestation), REVERT WHEN FIXED UPSTREAM. pqxdh_initiate calls
+    # `encapsulate(&mut csprng)`; Aeneas wraps the RNG in `CryptoRng.Blanket (… DerefMut R)`
+    # and destructures a TRIPLE `(r, csprng1, encapsulate_back)` with a spurious `&mut`
+    # writeback — but `kem.KeyPublic.encapsulate` takes `R` by value and returns a PAIR
+    # `(result × R)`, so destructuring 3 from 2 gives "expected a product type, got R" (3059).
+    # Calculated correct form: pass the CryptoRng instance directly, destructure a pair,
+    # and use the returned `csprng1` (which IS the writeback) — dropping `encapsulate_back`.
+    # This rewrites pqxdh_initiate's body (verification target), so REVERT once
+    # https://github.com/AeneasVerif/aeneas/issues/961 lands (regeneration will be correct).
+    - regex: '\(rand_core_1\.CryptoRng\.Blanket\s+\(Mut0T\.Insts\.CoreOpsDerefDerefMut R\) rand_core_1CryptoRngInst\)'
+      replace: 'rand_core_1CryptoRngInst'
+    - find: "(r3, csprng1, encapsulate_back)"
+      replace: "(r3, csprng1)"
+    - find: "(r4, csprng1, encapsulate_back)"
+      replace: "(r4, csprng1)"
+    - find: "encapsulate_back csprng1"
+      replace: "csprng1"
+
+    # `core.ops.deref.DerefVec` has an IMPLICIT type param in the Aeneas base
+    # (`DerefVec {T : Type} : Deref (Vec T) (Slice T)`), but Aeneas emits the call
+    # with the type applied EXPLICITLY (`DerefVec Std.U8`) → "Function expected at
+    # DerefVec". `@`-qualify so the implicit arg may be supplied explicitly. Relevant
+    # (generate_keys, reached from triple_ratchet). Aeneas implicit/explicit-arg codegen bug.
+    - find: "(core.ops.deref.DerefVec Std.U8)"
+      replace: "(@core.ops.deref.DerefVec Std.U8)"

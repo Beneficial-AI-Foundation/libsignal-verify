@@ -1071,11 +1071,6 @@ structure sender_keys.SenderKeyRecord where
 @[reducible]
 def sender_keys.SenderKeyRecord.deserialize.closure := Unit
 
-/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyRecord}::chain_ids_for_logging::closure]
-    Source: 'rust/protocol/src/sender_keys.rs', lines 291:31-291:55 -/
-@[reducible]
-def sender_keys.SenderKeyRecord.chain_ids_for_logging.closure := Unit
-
 /-- [libsignal_protocol::session_management::CurrentOrPrevious]
     Source: 'rust/protocol/src/session_management.rs', lines 702:0-707:1 -/
 @[discriminant isize]
@@ -1266,14 +1261,6 @@ structure state.signed_prekey.GenericSignedPreKey (Self : Type) (Self_KeyPair :
     error.SignalProtocolError)
   key_pair : Self → Result (core.result.Result Self_KeyPair
     error.SignalProtocolError)
-
-/-- [libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize::closure]
-    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 86:25-86:73 -/
-@[reducible]
-def state.signed_prekey.GenericSignedPreKey.deserialize.closure (Self : Type)
-  (Clause0_KeyPair : Type) (Clause0_Id : Type) (Clause0_Clause0_PublicKey :
-  Type) (Clause0_Clause0_PrivateKey : Type) :=
-Unit
 
 /-- [libsignal_protocol::state::prekey::PreKeyRecord]
     Source: 'rust/protocol/src/state/prekey.rs', lines 26:0-28:1
