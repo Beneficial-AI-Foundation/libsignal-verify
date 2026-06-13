@@ -374,29 +374,6 @@ tweaks:
         set_option linter.style.whitespace false
         set_option linter.style.nameCheck false
 
-    # Fix Aeneas codegen: scalar Eq generates = (Prop) instead of == (Bool)
-    # https://github.com/AeneasVerif/aeneas/issues/920
-    - find: "then ok (i = 127#u8)"
-      replace: "then ok (i == 127#u8)"
-
-    # Duplicate parentClauses name when two supertraits are the same trait:
-    # `core::num::nonzero::ZeroablePrimitive` gets two `markerCopyInst` fields
-    # (Copy Self and Copy Self_NonZeroInner). Rename the 2nd consistently in the
-    # structure decl, its `parentClauses` attr, and the (sole) NonZeroU8Inner
-    # instance. No projections reference it, so the rename is sound.
-    # https://github.com/AeneasVerif/aeneas/issues/1051
-    - find: '["markerCopyInst", "privateSealedInst", "markerCopyInst"]'
-      replace: '["markerCopyInst", "privateSealedInst", "markerCopyInst1"]'
-    - find: "markerCopyInst : core.marker.Copy Self_NonZeroInner"
-      replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
-    - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
-      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
-    # Same #1051 dup for NonZero<u64> (pulled in by the signal_crypto roots). The
-    # generic ZeroablePrimitive structure decl + parentClauses are shared (fixed above);
-    # only the per-instance construction needs the U64 variant.
-    - find: "markerCopyInst := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
-      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
-
     # KeyPairSerde has two `KeySerde` parent clauses (one per associated type,
     # PublicKey and PrivateKey) which Aeneas names identically `KeySerdeInst`
     # (#1051). Rename the two STRUCTURE FIELDS after the associated type each bound
@@ -481,17 +458,6 @@ tweaks:
       replace: "_root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1"
     - find: "state.session.SessionState.apply_ratchet_state state"
       replace: "_root_.libsignal_protocol.state.session.SessionState.apply_ratchet_state state"
-
-    # `&mut T` DerefMut model has one writeback too many: Aeneas emits the external
-    # axiom `Mut0T...deref_mut : T → Result (T × (T → T) × (T → T))` (two back-fns)
-    # but the DerefMut trait field expects `T → Result (T × (T → T))` (one back-fn,
-    # like Box/Vec's `(x, fun x => x)`). The `&mut` in the type parameter adds the
-    # spurious extra writeback. Correct the axiom's type to the trait's shape. This
-    # fixes BOTH the standalone instance (Funs DerefMut) AND any fn threading `&mut R`
-    # (RNG) through opaqued crypto, e.g. pqxdh_initiate's encapsulate(&mut csprng) —
-    # keeping pqxdh_initiate TRANSPARENT. https://github.com/AeneasVerif/aeneas/issues/961
-    - find: "Result (T × (T → T) × (T → T))"
-      replace: "Result (T × (T → T))"
 
     # #961 (call-site manifestation), REVERT WHEN FIXED UPSTREAM. pqxdh_initiate calls
     # `encapsulate(&mut csprng)`; Aeneas wraps the RNG in `CryptoRng.Blanket (… DerefMut R)`
