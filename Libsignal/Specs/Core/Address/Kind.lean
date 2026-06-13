@@ -3,7 +3,7 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
+import Translation.Core.Funs
 
 /-! # Spec Theorem for `ServiceId::kind`
 
@@ -39,7 +39,7 @@ and every branch immediately returns `ok`.
 
 open Aeneas Aeneas.Std Result
 
-namespace libsignal_protocol.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -65,4 +65,4 @@ theorem kind_spec (self : libsignal_core.address.ServiceId) :
   unfold kind
   step*
 
-end libsignal_protocol.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId

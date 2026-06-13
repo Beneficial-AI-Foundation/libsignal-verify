@@ -6,37 +6,27 @@ crate:
 
 charon:
   cargo_args: ["-p", "libsignal-protocol", "--features", "extraction"]
-  # Detail of charon's per-item translation timings written to .logs/charon.log.
-  #   full → all spans incl. nested trait-proof/type/fn-ptr. IMPRACTICAL at scale:
-  #          Debug-formats giant nested-trait-proof ItemRef{…} per span, which is
-  #          pathologically slow on trait-heavy fns. Use only for a 1-item deep-dive.
-  #   item → per-item durations + live current-item, no giant-ItemRef formatting.
-  #   off  → no profiling (plain echoed log).
   profile: off
   # start_from_pub: true
   start_from:
     - "libsignal_protocol::pqxdh"
-    - "libsignal_protocol::consts" #16
-    - "libsignal_protocol::crypto" #15
-    - "libsignal_protocol::identity_key" #14
-    - "libsignal_protocol::timestamp" #13
+    - "libsignal_protocol::consts" 
+    - "libsignal_protocol::crypto" 
+    - "libsignal_protocol::identity_key" 
+    - "libsignal_protocol::timestamp" 
     # DEFERRED: incremental_mac::update returns `impl Iterator<Item=Output<M>> + 'a`
     # - "libsignal_protocol::incremental_mac"
-    - "libsignal_protocol::ratchet" #12
-    - "libsignal_protocol::state" #11
-    - "libsignal_protocol::fingerprint" #10
-    - "libsignal_protocol::sender_keys" #9
-    - "libsignal_protocol::protocol" #8
-    - "libsignal_protocol::double_ratchet" #7
-    - "libsignal_protocol::triple_ratchet" #6
+    - "libsignal_protocol::ratchet" 
+    - "libsignal_protocol::state"
+    - "libsignal_protocol::fingerprint" 
+    - "libsignal_protocol::sender_keys" 
+    - "libsignal_protocol::protocol" 
+    - "libsignal_protocol::double_ratchet" 
+    - "libsignal_protocol::triple_ratchet" 
     # group_cipher + session are SOURCE-GATED out under `feature="extraction"` 
     # - "libsignal_protocol::group_cipher"
     # - "libsignal_protocol::session"
-    - "libsignal_protocol::session_management" #5
-    # NOTE: no libsignal_core / signal_crypto roots here. Those crates are extracted
-    # independently (LibsignalCoreTranslation / SignalCryptoTranslation) and left opaque
-    # for protocol; their items become external axioms here (to be imported from the
-    # sibling libs later), so rooting them in this config would only emit colliding defs.
+    - "libsignal_protocol::session_management" 
     # DEFERRED: `sealed_sender` causes Charon to be very slow
     # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
@@ -68,9 +58,6 @@ charon:
     - "libsignal_protocol::proto::_::_::_::_::{impl core::fmt::Display for _}"
     - "libsignal_protocol::{impl core::error::Error for _}"
     - "libsignal_protocol::_::{impl core::error::Error for _}"
-    # (Removed: libsignal_core / signal_crypto fmt::Debug/Display + error::Error impl
-    # excludes. Those crates are opaque to protocol now, so their impls are never
-    # emitted here and the excludes had no effect.)
     # group_cipher high-level `async fn` API — async desugars to `impl Future`
     # (RPIT) which opaque can't represent; exclude (invisible). Top-level API,
     # nothing internal references them.
@@ -135,11 +122,6 @@ charon:
     - "zerocopy"                          # raw pointer ops, GATs
     - "log"
     # ── Deferred modules ─────────────────────────────────────────────────
-    # With no explicit start_from (open scope), charon reaches the WHOLE crate,
-    # including these three modules we previously kept out simply by not listing
-    # them. They fail Aeneas for known, intrinsic reasons, and no kept code depends
-    # on them transparently (the curated allow-list ran fine without them), so we
-    # exclude them outright now that the scope is open.
     - "libsignal_protocol::incremental_mac"     # update() returns `impl Iterator + 'a` (RPIT+lifetime) → "Unexpected erased region"
     - "libsignal_protocol::storage"             # async store traits (SessionStore, …) + InMem test impls — charon can't translate async traits → dangling trait ids
     - "libsignal_protocol::session_cipher_legacy" # reaches kem DynParameters `&mut dyn CryptoRng` + async store traits
@@ -304,6 +286,7 @@ charon:
     - "libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize"
     # libsignal_core::curve — Curve25519 (curve25519_dalek) crypto primitives:
     # DH, keygen, sign/verify, deserialize (log macro). Axiomatic crypto leaves.
+    # TODO: remove all the core and crypto excludes since this shouldn't change anything
     - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::try_derive_arrays"
     # libsignal-core functions that use unsupported features
@@ -344,13 +327,43 @@ aeneas_args:
   options:
     - split-files
   dest: "."
-  subdir: "LibsignalProtocolTranslation"
+  subdir: "Translation/Protocol"
 
 tweaks:
-  # Only auto-generated files. TypesExternal.lean / FunsExternal.lean are
-  # hand-maintained (not regenerated), so tweaks must never touch them.
-  files: ["TypesExternal_Template.lean", "Types.lean", "FunsExternal_Template.lean", "Funs.lean"]
+  files: ["Types.lean", "Funs.lean"]
   substitutions:
+    # ── Cross-crate dedup (see [[per-crate-extraction-plan]]) ──────────────────
+    # Aeneas re-emits foreign decls under the local `libsignal_protocol.` namespace.
+    # Strip the duplicates so protocol uses the sibling libs' versions instead:
+    #   • libsignal_core transparent TYPES → fall back to Translation.Core's
+    #     `libsignal_core.*` (relative refs resolve there). Funcs/axioms for them are
+    #     dropped in the hand-maintained TypesExternal/FunsExternal + import added there.
+    #   • third-party trait/type decls → the single root def in Translation.Shared/.
+    # Each regex matches doc-header → trailing blank line.
+    - regex: '/-- \[libsignal_core::curve::KeyPair\]\n[\s\S]*?\n\n'
+      replace: "-- libsignal_core.curve.KeyPair: from Translation.Core.\n\n"
+    - regex: '/-- \[libsignal_core::address::ServiceId\]\n[\s\S]*?\n\n'
+      replace: "-- libsignal_core.address.ServiceId: from Translation.Core.\n\n"
+    - regex: '/-- \[libsignal_core::curve::KeyType\]\n[\s\S]*?\n\n'
+      replace: "-- libsignal_core.curve.KeyType: from Translation.Core.\n\n"
+    - regex: '/-- \[libsignal_core::curve::CurveError\]\n[\s\S]*?\n\n'
+      replace: "-- libsignal_core.curve.CurveError: from Translation.Core.\n\n"
+    - regex: '/-- Trait declaration: \[rand_core#1::RngCore\]\n[\s\S]*?\n\n'
+      replace: "-- rand_core_1.RngCore: shared root def in Translation.Shared.RandCore.\n\n"
+    - regex: '/-- Trait declaration: \[rand_core#1::CryptoRng\]\n[\s\S]*?\n\n'
+      replace: "-- rand_core_1.CryptoRng: shared root def in Translation.Shared.RandCore.\n\n"
+    - regex: '/-- Trait declaration: \[rand::rng::Rng\]\n[\s\S]*?\n\n'
+      replace: "-- rand.rng.Rng: shared root def in Translation.Shared.Rand.\n\n"
+    - regex: '/-- \[derive_more::convert::try_from::TryFromReprError\]\n[\s\S]*?\n\n'
+      replace: "-- derive_more...TryFromReprError: shared root def in Translation.Shared.DeriveMore.\n\n"
+    # ProtocolAddress.name/device_id: core models these as struct FIELDS, but protocol's
+    # code binds them monadically (it modeled the Rust methods). device_id is owned → use
+    # the field directly (`←`→`:=`); name returns &str → deref the String field to Str.
+    - regex: '←(\s*libsignal_core\.address\.ProtocolAddress\.device_id)'
+      replace: ":=$1"
+    - regex: '←(\s*)libsignal_core\.address\.ProtocolAddress\.name (\w+)'
+      replace: "←$1alloc.string.String.Insts.CoreOpsDerefDerefStr.deref $2.«name»"
+
     # Disable linters for auto-generated files
     - find: |
         set_option linter.unusedVariables false
@@ -359,6 +372,7 @@ tweaks:
         set_option linter.style.longLine false
         set_option linter.style.setOption false
         set_option linter.style.whitespace false
+        set_option linter.style.nameCheck false
 
     # Fix Aeneas codegen: scalar Eq generates = (Prop) instead of == (Bool)
     # https://github.com/AeneasVerif/aeneas/issues/920

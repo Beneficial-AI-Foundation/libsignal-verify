@@ -1,7 +1,3 @@
-import Libsignal.Code.Funs
-import Libsignal.Code.FunsExternal
-import Libsignal.Code.Types
-import Libsignal.Code.TypesExternal
 import Libsignal.Specs.Core.Address.From
 import Libsignal.Specs.Core.Address.Kind
 import Libsignal.Specs.Core.Address.RawUuid

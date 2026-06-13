@@ -1,9 +1,5 @@
 # Aeneas extraction — signal-crypto (per-crate overlay).
 # Merged on top of aeneas-config.yml (shared aeneas/upstream/crate.dir).
-#
-# signal-crypto depends on libsignal-core, but we do NOT `--include` it: foreign
-# crates are left opaque (the default), so crypto emits only its own defs. core
-# items become external axioms here, to be imported from the core lib later.
 
 crate:
   name: "signal_crypto"
@@ -47,4 +43,21 @@ aeneas_args:
   options:
     - split-files
   dest: "."
-  subdir: "SignalCryptoTranslation"
+  subdir: "Translation/Crypto"
+
+tweaks:
+  files:
+    - "Types.lean"
+    - "Funs.lean"
+    - "TypesExternal_Template.lean"
+    - "FunsExternal_Template.lean"
+  substitutions:
+    # Disable style linters for auto-generated files
+    - find: |
+        set_option linter.unusedVariables false
+      replace: |
+        set_option linter.unusedVariables false
+        set_option linter.style.longLine false
+        set_option linter.style.setOption false
+        set_option linter.style.whitespace false
+        set_option linter.style.nameCheck false

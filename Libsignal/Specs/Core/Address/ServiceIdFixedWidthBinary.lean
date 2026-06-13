@@ -3,7 +3,7 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
+import Translation.Core.Funs
 import Libsignal.Specs.Core.Address.From
 import Libsignal.Specs.Core.Address.Kind
 import Libsignal.Specs.Core.Address.RawUuid
@@ -47,7 +47,7 @@ on the fixed-size buffers involved.
 
 open Aeneas Aeneas.Std Result
 
-namespace libsignal_protocol.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -114,4 +114,4 @@ theorem service_id_fixed_width_binary_spec
     Array.val_to_slice]
     simp_lists [Array.setSlice!]
 
-end libsignal_protocol.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId
