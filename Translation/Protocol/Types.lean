@@ -150,7 +150,7 @@ inductive spqr.encoding.EncodingError where
 | ChunkDataDecodingError : spqr.encoding.EncodingError
 
 /-- [spqr::proto::pq_ratchet::Direction]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/spqr-d9f3ace09b2c4959/out/signal.proto.pq_ratchet.rs', lines 402:0-402:18
+    Source: 'target/out/signal.proto.pq_ratchet.rs', lines 402:0-402:18
     Name pattern: [spqr::proto::pq_ratchet::Direction]
     Visibility: public -/
 @[discriminant i32, rust_type "spqr::proto::pq_ratchet::Direction"]
@@ -159,7 +159,7 @@ inductive spqr.proto.pq_ratchet.Direction where
 | B2A : spqr.proto.pq_ratchet.Direction
 
 /-- [spqr::proto::pq_ratchet::Version]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/spqr-d9f3ace09b2c4959/out/signal.proto.pq_ratchet.rs', lines 375:0-375:16
+    Source: 'target/out/signal.proto.pq_ratchet.rs', lines 375:0-375:16
     Name pattern: [spqr::proto::pq_ratchet::Version]
     Visibility: public -/
 @[discriminant i32, rust_type "spqr::proto::pq_ratchet::Version"]
@@ -212,13 +212,13 @@ inductive spqr.Error where
 | ChainNotAvailable : spqr.Error
 
 /-- [libsignal_protocol::proto::fingerprint::LogicalFingerprint]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.fingerprint.rs', lines 3:0-7:1
+    Source: 'target/out/signal.proto.fingerprint.rs', lines 3:0-7:1
     Visibility: public -/
 structure proto.fingerprint.LogicalFingerprint where
   content : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::fingerprint::CombinedFingerprints]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.fingerprint.rs', lines 9:0-16:1
+    Source: 'target/out/signal.proto.fingerprint.rs', lines 9:0-16:1
     Visibility: public -/
 structure proto.fingerprint.CombinedFingerprints where
   version : Option Std.U32
@@ -226,14 +226,14 @@ structure proto.fingerprint.CombinedFingerprints where
   remote_fingerprint : Option proto.fingerprint.LogicalFingerprint
 
 /-- [libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 85:4-90:5
+    Source: 'target/out/signal.proto.storage.rs', lines 85:4-90:5
     Visibility: public -/
 structure proto.storage.session_structure.PendingKyberPreKey where
   pre_key_id : Std.U32
   ciphertext : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::session_structure::PendingPreKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 74:4-83:5
+    Source: 'target/out/signal.proto.storage.rs', lines 74:4-83:5
     Visibility: public -/
 structure proto.storage.session_structure.PendingPreKey where
   pre_key_id : Option Std.U32
@@ -242,7 +242,7 @@ structure proto.storage.session_structure.PendingPreKey where
   timestamp : Std.U64
 
 /-- [libsignal_protocol::proto::storage::session_structure::chain::MessageKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 58:8-71:9
+    Source: 'target/out/signal.proto.storage.rs', lines 58:8-71:9
     Visibility: public -/
 structure proto.storage.session_structure.chain.MessageKey where
   index : Std.U32
@@ -252,14 +252,14 @@ structure proto.storage.session_structure.chain.MessageKey where
   seed : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::session_structure::chain::ChainKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 51:8-56:9
+    Source: 'target/out/signal.proto.storage.rs', lines 51:8-56:9
     Visibility: public -/
 structure proto.storage.session_structure.chain.ChainKey where
   index : Std.U32
   key : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::session_structure::Chain]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 38:4-47:5
+    Source: 'target/out/signal.proto.storage.rs', lines 38:4-47:5
     Visibility: public -/
 structure proto.storage.session_structure.Chain where
   sender_ratchet_key : alloc.vec.Vec Std.U8
@@ -268,7 +268,7 @@ structure proto.storage.session_structure.Chain where
   message_keys : alloc.vec.Vec proto.storage.session_structure.chain.MessageKey
 
 /-- [libsignal_protocol::proto::storage::SessionStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 3:0-34:1
+    Source: 'target/out/signal.proto.storage.rs', lines 3:0-34:1
     Visibility: public -/
 structure proto.storage.SessionStructure where
   session_version : Std.U32
@@ -287,14 +287,14 @@ structure proto.storage.SessionStructure where
   pq_ratchet_state : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::RecordStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 93:0-99:1
+    Source: 'target/out/signal.proto.storage.rs', lines 93:0-99:1
     Visibility: public -/
 structure proto.storage.RecordStructure where
   current_session : Option proto.storage.SessionStructure
   previous_sessions : alloc.vec.Vec (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::storage::PreKeyRecordStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 101:0-108:1
+    Source: 'target/out/signal.proto.storage.rs', lines 101:0-108:1
     Visibility: public -/
 structure proto.storage.PreKeyRecordStructure where
   id : Std.U32
@@ -302,7 +302,7 @@ structure proto.storage.PreKeyRecordStructure where
   private_key : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::SignedPreKeyRecordStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 110:0-121:1
+    Source: 'target/out/signal.proto.storage.rs', lines 110:0-121:1
     Visibility: public -/
 structure proto.storage.SignedPreKeyRecordStructure where
   id : Std.U32
@@ -312,35 +312,35 @@ structure proto.storage.SignedPreKeyRecordStructure where
   timestamp : Std.U64
 
 /-- [libsignal_protocol::proto::storage::IdentityKeyPairStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 123:0-128:1
+    Source: 'target/out/signal.proto.storage.rs', lines 123:0-128:1
     Visibility: public -/
 structure proto.storage.IdentityKeyPairStructure where
   public_key : alloc.vec.Vec Std.U8
   private_key : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::sender_key_state_structure::SenderSigningKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 165:4-170:5
+    Source: 'target/out/signal.proto.storage.rs', lines 165:4-170:5
     Visibility: public -/
 structure proto.storage.sender_key_state_structure.SenderSigningKey where
   «public» : alloc.vec.Vec Std.U8
   «private» : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 158:4-163:5
+    Source: 'target/out/signal.proto.storage.rs', lines 158:4-163:5
     Visibility: public -/
 structure proto.storage.sender_key_state_structure.SenderMessageKey where
   iteration : Std.U32
   seed : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::sender_key_state_structure::SenderChainKey]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 151:4-156:5
+    Source: 'target/out/signal.proto.storage.rs', lines 151:4-156:5
     Visibility: public -/
 structure proto.storage.sender_key_state_structure.SenderChainKey where
   iteration : Std.U32
   seed : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::proto::storage::SenderKeyStateStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 130:0-147:1
+    Source: 'target/out/signal.proto.storage.rs', lines 130:0-147:1
     Visibility: public -/
 structure proto.storage.SenderKeyStateStructure where
   message_version : Std.U32
@@ -353,13 +353,13 @@ structure proto.storage.SenderKeyStateStructure where
     proto.storage.sender_key_state_structure.SenderMessageKey
 
 /-- [libsignal_protocol::proto::storage::SenderKeyRecordStructure]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.storage.rs', lines 173:0-176:1
+    Source: 'target/out/signal.proto.storage.rs', lines 173:0-176:1
     Visibility: public -/
 structure proto.storage.SenderKeyRecordStructure where
   sender_key_states : alloc.vec.Vec proto.storage.SenderKeyStateStructure
 
 /-- [libsignal_protocol::proto::wire::SignalMessage]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 3:0-16:1
+    Source: 'target/out/signal.proto.wire.rs', lines 3:0-16:1
     Visibility: public -/
 structure proto.wire.SignalMessage where
   ratchet_key : Option (alloc.vec.Vec Std.U8)
@@ -370,7 +370,7 @@ structure proto.wire.SignalMessage where
   addresses : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::wire::PreKeySignalMessage]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 18:0-36:1
+    Source: 'target/out/signal.proto.wire.rs', lines 18:0-36:1
     Visibility: public -/
 structure proto.wire.PreKeySignalMessage where
   registration_id : Option Std.U32
@@ -383,7 +383,7 @@ structure proto.wire.PreKeySignalMessage where
   message : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::wire::SenderKeyMessage]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 38:0-47:1
+    Source: 'target/out/signal.proto.wire.rs', lines 38:0-47:1
     Visibility: public -/
 structure proto.wire.SenderKeyMessage where
   distribution_uuid : Option (alloc.vec.Vec Std.U8)
@@ -392,7 +392,7 @@ structure proto.wire.SenderKeyMessage where
   ciphertext : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::wire::SenderKeyDistributionMessage]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signal.proto.wire.rs', lines 49:0-60:1
+    Source: 'target/out/signal.proto.wire.rs', lines 49:0-60:1
     Visibility: public -/
 structure proto.wire.SenderKeyDistributionMessage where
   distribution_uuid : Option (alloc.vec.Vec Std.U8)
@@ -402,7 +402,7 @@ structure proto.wire.SenderKeyDistributionMessage where
   signing_key : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::proto::service::DecryptionErrorMessage]
-    Source: '/home/oliver/Projects/libsignal-verify/target/x86_64-unknown-linux-gnu/debug/build/libsignal-protocol-5b01bc683ed7315a/out/signalservice.rs', lines 24:0-32:1
+    Source: 'target/out/signalservice.rs', lines 24:0-32:1
     Visibility: public -/
 structure proto.service.DecryptionErrorMessage where
   ratchet_key : Option (alloc.vec.Vec Std.U8)

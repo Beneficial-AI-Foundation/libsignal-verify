@@ -49,8 +49,6 @@ tweaks:
   files:
     - "Types.lean"
     - "Funs.lean"
-    - "TypesExternal_Template.lean"
-    - "FunsExternal_Template.lean"
   substitutions:
     # Disable style linters for auto-generated files
     - find: |
@@ -61,3 +59,7 @@ tweaks:
         set_option linter.style.setOption false
         set_option linter.style.whitespace false
         set_option linter.style.nameCheck false
+
+    # Normalize absolute build paths in Source comments so they are reproducible across machines
+    - regex: "Source: '[^']*/target/[^']*/out/"
+      replace: "Source: 'target/out/"

@@ -374,6 +374,10 @@ tweaks:
         set_option linter.style.whitespace false
         set_option linter.style.nameCheck false
 
+    # Normalize absolute build paths in Source comments so they are reproducible across machines
+    - regex: "Source: '[^']*/target/[^']*/out/"
+      replace: "Source: 'target/out/"
+
     # KeyPairSerde has two `KeySerde` parent clauses (one per associated type,
     # PublicKey and PrivateKey) which Aeneas names identically `KeySerdeInst`
     # (#1051). Rename the two STRUCTURE FIELDS after the associated type each bound
