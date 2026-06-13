@@ -1,0 +1,119 @@
+# Aeneas extraction — libsignal-core (per-crate overlay).
+# Merged on top of aeneas-config.yml (shared aeneas/upstream/crate.dir).
+#
+# Scope: reproduce the core coverage we had prior to this PR (main extracted
+# core as an --include'd dep via an explicit start_from list). We deliberately
+# do NOT use start_from_pub here — that pulls in a long tail (TryFrom/FromStr/
+# rand Distribution impls + the core::ops::Try builtin mismatch) that was never
+# extracted before. Revisit full coverage later.
+
+crate:
+  name: "libsignal_core"
+
+charon:
+  cargo_args: ["-p", "libsignal-core"]  # libsignal-core has no `extraction` feature
+  profile: off
+  start_from:
+    # free functions and constants
+    - "libsignal_core::try_scoped"
+    - "libsignal_core::version::VERSION"
+    # e164 (E164)
+    - "libsignal_core::e164::_::new"
+    - "libsignal_core::e164::_::to_be_bytes"
+    - "libsignal_core::e164::_::from_be_bytes"
+    # address (DeviceId, ServiceId, SpecificServiceId, ProtocolAddress)
+    - "libsignal_core::address::_::new"
+    - "libsignal_core::address::_::new_nonzero"
+    - "libsignal_core::address::_::kind"
+    - "libsignal_core::address::_::service_id_binary"
+    - "libsignal_core::address::_::service_id_fixed_width_binary"
+    - "libsignal_core::address::_::parse_from_service_id_binary"
+    - "libsignal_core::address::_::parse_from_service_id_fixed_width_binary"
+    - "libsignal_core::address::_::raw_uuid"
+    - "libsignal_core::address::_::from_uuid_bytes"
+    - "libsignal_core::address::_::from_uuid"
+    - "libsignal_core::address::_::name"
+    - "libsignal_core::address::_::device_id"
+    # curve (PublicKey, PrivateKey, KeyPair)
+    - "libsignal_core::curve::_::deserialize"
+    - "libsignal_core::curve::_::serialize"
+    - "libsignal_core::curve::_::key_type"
+    - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::public_key_bytes"
+    - "libsignal_core::curve::_::from_djb_public_key_bytes"
+    - "libsignal_core::curve::_::verify_signature"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_canonical"
+    - "libsignal_core::curve::_::calculate_signature"
+    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
+    - "libsignal_core::curve::_::calculate_agreement"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::from_public_and_private"
+  exclude:
+    # Formatting and error trait impls (not needed for verification)
+    - "libsignal_core::{impl core::fmt::Debug for _}"
+    - "libsignal_core::{impl core::fmt::Display for _}"
+    - "libsignal_core::_::{impl core::fmt::Debug for _}"
+    - "libsignal_core::_::{impl core::fmt::Display for _}"
+    - "libsignal_core::_::_::{impl core::fmt::Debug for _}"
+    - "libsignal_core::_::_::{impl core::fmt::Display for _}"
+    - "libsignal_core::{impl core::error::Error for _}"
+    - "libsignal_core::_::{impl core::error::Error for _}"
+    # Functions using unsupported features
+    - "libsignal_core::address::_::service_id_string"            # uses format! macro
+    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
+    - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
+    # Crate-level excludes
+    - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
+    - "core::str::pattern"                # GATs unsupported by Aeneas
+    - "rand::distr::uniform"              # mutually recursive traits
+    - "zerocopy"                          # raw pointer ops, GATs
+    - "log"
+    # zerocopy-based; their nested Default<[u8;N]>/zerocopy impls crash Aeneas's
+    # update_array_default pass (PrePasses.matches_default_array). Excluded
+    # outright (main opaqued+rooted them, but that crashes on aeneas ce1708e).
+    - "libsignal_core::derive_arrays"
+    - "libsignal_core::try_derive_arrays"
+  opaque:
+    # curve functions that call into curve25519_dalek or use log::warn!
+    - "libsignal_core::curve::_::deserialize"
+    - "libsignal_core::curve::_::verify_signature_for_multipart_message"
+    - "libsignal_core::curve::_::is_torsion_free"
+    - "libsignal_core::curve::_::public_key"
+    - "libsignal_core::curve::_::calculate_signature"
+    - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
+    - "libsignal_core::curve::_::calculate_agreement"
+    - "libsignal_core::curve::_::generate"
+    - "libsignal_core::curve::_::try_from"
+
+aeneas_args:
+  options:
+    - split-files
+  dest: "."
+  subdir: "LibsignalCoreTranslation"
+
+tweaks:
+  files:
+    - "Types.lean"
+    - "Funs.lean"
+    - "TypesExternal_Template.lean"
+    - "FunsExternal_Template.lean"
+  substitutions:
+    # Scalar Eq generates = (Prop) instead of == (Bool); DeviceId::new validation.
+    # https://github.com/AeneasVerif/aeneas/issues/920
+    - find: "then ok (i = 127#u8)"
+      replace: "then ok (i == 127#u8)"
+
+    # Duplicate parentClauses name: core::num::nonzero::ZeroablePrimitive gets two
+    # `markerCopyInst` fields (Copy Self and Copy Self_NonZeroInner). Rename the 2nd
+    # in the structure decl, its parentClauses attr, and the NonZeroU8/U64Inner
+    # instances. No projections reference it, so the rename is sound.
+    # https://github.com/AeneasVerif/aeneas/issues/1051
+    - find: '["markerCopyInst", "privateSealedInst", "markerCopyInst"]'
+      replace: '["markerCopyInst", "privateSealedInst", "markerCopyInst1"]'
+    - find: "markerCopyInst : core.marker.Copy Self_NonZeroInner"
+      replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
+    - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"
+    - find: "markerCopyInst := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"
+      replace: "markerCopyInst1 := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy"

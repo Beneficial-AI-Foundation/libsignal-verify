@@ -13,10 +13,15 @@ import { runStreaming } from "./lib/shell.js";
 import { applyTweaks, warnUnmatchedTweaks } from "./lib/tweaks.js";
 import { syncLeanToolchain } from "./lib/lean-toolchain.js";
 
-async function main(): Promise<void> {
-  console.log(chalk.bold("\nAeneas Extract\n"));
+// Leaf-first order, used when extracting "all" crates.
+const CRATE_KEYS = ["core", "crypto", "protocol"];
 
-  const { config, root } = loadConfig();
+async function runExtraction(crateKey: string): Promise<void> {
+  const configFile = `aeneas-config.${crateKey}.yml`;
+  console.log(chalk.bold(`\nAeneas Extract — ${crateKey}\n`));
+  console.log(chalk.gray(`  Using config: ${configFile}`));
+
+  const { config, root } = loadConfig(undefined, configFile);
 
   // Resolve binaries
   const charonBin = findBinary("charon", root);
@@ -94,9 +99,8 @@ async function main(): Promise<void> {
   //   item → per-item span durations only (small log) — tells you *which* item is
   //          slow but not the intra-item cause.
   //   off  → no profiling; plain echoed log.
-  // NOTE: defaulting to `full` while we investigate the slowdown. Once routine
-  // runs no longer need the deep detail, switch the default to `item` (in
-  // aeneas-config.yml or scripts/lib/config.ts) for much smaller logs.
+  // NOTE: the default (when no `profile` is configured) is `off` — profiling is
+  // opt-in. Set `charon.profile: item|full` in a per-crate config to enable it.
   //
   // `item` ENABLES ONLY the per-item + name spans — crucially with NO
   // `charon_driver=info` catch-all. A catch-all turns every span on and `[span]=off`
@@ -192,7 +196,20 @@ async function main(): Promise<void> {
   console.log(chalk.green("Done."));
 }
 
-main().catch((err) => {
+async function main(): Promise<void> {
+  // With a crate arg, extract just that crate; with none, extract all of them.
+  const arg = process.argv[2];
+  if (arg && !CRATE_KEYS.includes(arg)) {
+    throw new Error(`Unknown crate '${arg}'. Expected one of: ${CRATE_KEYS.join(", ")}`);
+  }
+  const crates = arg ? [arg] : CRATE_KEYS;
+  for (const key of crates) {
+    await runExtraction(key);
+  }
+  if (crates.length > 1) console.log(chalk.green.bold(`\nAll crates extracted (${crates.join(", ")}).`));
+}
+
+main().catch((err: Error) => {
   console.error(chalk.red(`\nError: ${err.message}`));
   process.exit(1);
 });

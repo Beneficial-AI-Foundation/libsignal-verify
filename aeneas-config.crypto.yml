@@ -1,0 +1,50 @@
+# Aeneas extraction — signal-crypto (per-crate overlay).
+# Merged on top of aeneas-config.yml (shared aeneas/upstream/crate.dir).
+#
+# signal-crypto depends on libsignal-core, but we do NOT `--include` it: foreign
+# crates are left opaque (the default), so crypto emits only its own defs. core
+# items become external axioms here, to be imported from the core lib later.
+
+crate:
+  name: "signal_crypto"
+
+charon:
+  cargo_args: ["-p", "signal-crypto", "--features", "extraction"]
+  start_from_pub: true
+  profile: off
+  exclude:
+    # Formatting and error trait impls (not needed for verification)
+    - "signal_crypto::{impl core::fmt::Debug for _}"
+    - "signal_crypto::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::{impl core::error::Error for _}"
+    - "signal_crypto::_::{impl core::error::Error for _}"
+    # Crate-level excludes
+    - "signal_crypto::hpke"               # complex external crypto (hpke-rs)
+    - "core::str::pattern"                # GATs unsupported by Aeneas
+    - "rand::distr::uniform"              # mutually recursive traits
+    - "zerocopy"                          # raw pointer ops, GATs
+    - "log"
+  opaque:
+    # Functions calling external crypto primitives (aes/ctr/gcm/sha backends)
+    - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
+    - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
+    - "signal_crypto::aes_ctr::_::new"
+    - "signal_crypto::aes_ctr::_::from_key"
+    - "signal_crypto::aes_ctr::_::process"
+    - "signal_crypto::aes_gcm::_::new"
+    - "signal_crypto::aes_gcm::_::update"
+    - "signal_crypto::aes_gcm::_::finalize"
+    - "signal_crypto::aes_gcm::setup_gcm"
+    - "signal_crypto::hash::_::new"
+    - "signal_crypto::hash::_::update"
+    - "signal_crypto::hash::_::finalize"
+
+aeneas_args:
+  options:
+    - split-files
+  dest: "."
+  subdir: "SignalCryptoTranslation"
