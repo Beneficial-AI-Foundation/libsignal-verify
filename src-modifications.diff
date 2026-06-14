@@ -8,7 +8,7 @@ Upstream Commit: 46d867c9
 
 ---
 
-diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/core/src/address.rs b/rust/core/src/address.rs
 --- a/rust/core/src/address.rs
 +++ b/rust/core/src/address.rs
 @@ -57,8 +57,12 @@
@@ -137,7 +137,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/core/src/e164.rs b/rust/core/src/e164.rs
 --- a/rust/core/src/e164.rs
 +++ b/rust/core/src/e164.rs
 @@ -7,20 +7,24 @@
@@ -185,7 +185,7 @@ diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
      }
  }
  
-diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
 --- a/rust/crypto/Cargo.toml
 +++ b/rust/crypto/Cargo.toml
 @@ -11,6 +11,9 @@
@@ -198,7 +198,7 @@ diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
  [lints]
  workspace = true
  
-diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs
 --- a/rust/crypto/src/aes_ctr.rs
 +++ b/rust/crypto/src/aes_ctr.rs
 @@ -10,7 +10,12 @@
@@ -232,7 +232,7 @@ diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_c
 +        self.inner.apply_keystream(buf);
      }
  }
-diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
 --- a/rust/crypto/src/hash.rs
 +++ b/rust/crypto/src/hash.rs
 @@ -9,7 +9,8 @@
@@ -255,7 +255,7 @@ diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
  pub enum CryptographicHash {
      Sha1(Sha1),
      Sha256(Sha256),
-diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
 --- a/rust/crypto/src/lib.rs
 +++ b/rust/crypto/src/lib.rs
 @@ -4,6 +4,8 @@
@@ -267,7 +267,7 @@ diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
  
  mod error;
  mod hash;
-diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
 --- a/rust/protocol/Cargo.toml
 +++ b/rust/protocol/Cargo.toml
 @@ -49,6 +49,7 @@
@@ -278,7 +278,7 @@ diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.tom
  kyber768 = ["libcrux-ml-kem/kyber", "libcrux-ml-kem/mlkem768"]
  # ML-KEM matches the NIST standard version of Kyber. It may still change
  # incompatibly until the final version of the standard is published and
-diff -Naur --no-dereference a/rust/protocol/src/error.rs b/rust/protocol/src/error.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/error.rs b/rust/protocol/src/error.rs
 --- a/rust/protocol/src/error.rs
 +++ b/rust/protocol/src/error.rs
 @@ -81,6 +81,7 @@
@@ -297,7 +297,7 @@ diff -Naur --no-dereference a/rust/protocol/src/error.rs b/rust/protocol/src/err
  impl SignalProtocolError {
      /// Convenience factory for [`SignalProtocolError::ApplicationCallbackError`].
      #[inline]
-diff -Naur --no-dereference a/rust/protocol/src/handshake.rs b/rust/protocol/src/handshake.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/handshake.rs b/rust/protocol/src/handshake.rs
 --- a/rust/protocol/src/handshake.rs
 +++ b/rust/protocol/src/handshake.rs
 @@ -28,6 +28,7 @@
@@ -308,7 +308,7 @@ diff -Naur --no-dereference a/rust/protocol/src/handshake.rs b/rust/protocol/src
  pub(crate) trait Handshake {
      /// Parameters for the initiator (constructed from a pre-key bundle).
      type InitiatorParams;
-diff -Naur --no-dereference a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
 --- a/rust/protocol/src/kem.rs
 +++ b/rust/protocol/src/kem.rs
 @@ -106,6 +106,7 @@
@@ -428,7 +428,7 @@ diff -Naur --no-dereference a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.r
          result.into_boxed_slice()
      }
  }
-diff -Naur --no-dereference a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.rs
 --- a/rust/protocol/src/lib.rs
 +++ b/rust/protocol/src/lib.rs
 @@ -16,6 +16,8 @@
@@ -507,7 +507,7 @@ diff -Naur --no-dereference a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.r
 +    KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore, SessionStore, SignedPreKeyStore,
  };
  pub use timestamp::Timestamp;
-diff -Naur --no-dereference a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
 --- a/rust/protocol/src/pqxdh.rs
 +++ b/rust/protocol/src/pqxdh.rs
 @@ -35,9 +35,10 @@
@@ -602,7 +602,7 @@ diff -Naur --no-dereference a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqx
      );
  
      Ok(HandshakeKeys::derive(&secrets))
-diff -Naur --no-dereference a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs
 --- a/rust/protocol/src/ratchet.rs
 +++ b/rust/protocol/src/ratchet.rs
 @@ -8,8 +8,9 @@
@@ -658,7 +658,7 @@ diff -Naur --no-dereference a/rust/protocol/src/ratchet.rs b/rust/protocol/src/r
  
      initialize_recipient_session(
          parameters,
-diff -Naur --no-dereference a/rust/protocol/src/sealed_sender.rs b/rust/protocol/src/sealed_sender.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/sealed_sender.rs b/rust/protocol/src/sealed_sender.rs
 --- a/rust/protocol/src/sealed_sender.rs
 +++ b/rust/protocol/src/sealed_sender.rs
 @@ -19,11 +19,19 @@
@@ -734,7 +734,7 @@ diff -Naur --no-dereference a/rust/protocol/src/sealed_sender.rs b/rust/protocol
  pub async fn sealed_sender_decrypt(
      ciphertext: &[u8],
      trust_root: &PublicKey,
-diff -Naur --no-dereference a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
 --- a/rust/protocol/src/session.rs
 +++ b/rust/protocol/src/session.rs
 @@ -154,7 +154,7 @@
@@ -746,7 +746,7 @@ diff -Naur --no-dereference a/rust/protocol/src/session.rs b/rust/protocol/src/s
          our_identity_key_pair.identity_key().is_same_account(
              local_address,
              message.identity_key(),
-diff -Naur --no-dereference a/rust/protocol/src/session_management.rs b/rust/protocol/src/session_management.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/session_management.rs b/rust/protocol/src/session_management.rs
 --- a/rust/protocol/src/session_management.rs
 +++ b/rust/protocol/src/session_management.rs
 @@ -29,9 +29,16 @@
@@ -810,7 +810,7 @@ diff -Naur --no-dereference a/rust/protocol/src/session_management.rs b/rust/pro
              false,
          );
  
-diff -Naur --no-dereference a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
 --- a/rust/protocol/src/state/session.rs
 +++ b/rust/protocol/src/state/session.rs
 @@ -95,6 +95,7 @@
@@ -855,7 +855,7 @@ diff -Naur --no-dereference a/rust/protocol/src/state/session.rs b/rust/protocol
  #[derive(Clone, Debug)]
  pub(crate) struct SessionState {
      session: SessionStructure,
-diff -Naur --no-dereference a/rust/protocol/src/storage/traits.rs b/rust/protocol/src/storage/traits.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/storage/traits.rs b/rust/protocol/src/storage/traits.rs
 --- a/rust/protocol/src/storage/traits.rs
 +++ b/rust/protocol/src/storage/traits.rs
 @@ -45,6 +45,9 @@
@@ -916,7 +916,7 @@ diff -Naur --no-dereference a/rust/protocol/src/storage/traits.rs b/rust/protoco
  pub trait ProtocolStore:
      SessionStore + PreKeyStore + SignedPreKeyStore + KyberPreKeyStore + IdentityKeyStore
  {
-diff -Naur --no-dereference a/rust/protocol/src/storage.rs b/rust/protocol/src/storage.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/storage.rs b/rust/protocol/src/storage.rs
 --- a/rust/protocol/src/storage.rs
 +++ b/rust/protocol/src/storage.rs
 @@ -7,14 +7,22 @@
@@ -944,7 +944,7 @@ diff -Naur --no-dereference a/rust/protocol/src/storage.rs b/rust/protocol/src/s
 +    IdentityKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore, SessionStore,
 +    SignedPreKeyStore,
  };
-diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
 --- a/rust/protocol/src/timestamp.rs
 +++ b/rust/protocol/src/timestamp.rs
 @@ -3,28 +3,38 @@
