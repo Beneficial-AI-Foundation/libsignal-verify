@@ -1,6 +1,6 @@
-import Libsignal.Translated.Shared.Core.Externals
-import Libsignal.Translated.Shared.Uuid.Externals
-import Libsignal.Translated.Shared.Alloc.Externals
-import Libsignal.Translated.Shared.RandCore.Externals
-import Libsignal.Translated.Shared.Rand.Externals
-import Libsignal.Translated.Shared.DeriveMore.Externals
+import Libsignal.Translated.Shared.Core
+import Libsignal.Translated.Shared.Uuid
+import Libsignal.Translated.Shared.Alloc
+import Libsignal.Translated.Shared.RandCore
+import Libsignal.Translated.Shared.Rand
+import Libsignal.Translated.Shared.DeriveMore

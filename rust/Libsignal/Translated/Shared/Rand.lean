@@ -1,5 +1,5 @@
 import Aeneas
-import Libsignal.Translated.Shared.RandCore.Externals
+import Libsignal.Translated.Shared.RandCore
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.style.longLine false
 set_option linter.style.whitespace false

@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
 
--- core::num::error::TryFromIntError is shared; imported from Libsignal.Translated.Shared.Core.Externals.
+-- core::num::error::TryFromIntError is shared; imported from Libsignal.Translated.Shared.Core.
 
 /-- [aes::autodetect::Aes256]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aes-0.8.4/src/autodetect.rs', lines 52:8-55:9

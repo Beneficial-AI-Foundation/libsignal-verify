@@ -70,7 +70,7 @@ axiom core.num.nonzero.NonZero.get
   core.num.nonzero.ZeroablePrimitive T Clause0_NonZeroInner) :
   core.num.nonzero.NonZero T Clause0_NonZeroInner → Result T
 
--- core::option::Option::map is shared; imported from Libsignal.Translated.Shared.Core.Externals.
+-- core::option::Option::map is shared; imported from Libsignal.Translated.Shared.Core.
 
 -- core::option Try::branch + FromResidual::from_residual are shared (Libsignal.Translated.Shared.Core).
 
@@ -93,7 +93,7 @@ axiom core.result.Result.ok
 axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref
   : String → Result Str
 
--- alloc::vec::Vec::into_boxed_slice is shared; imported from Libsignal.Translated.Shared.Alloc.Externals.
+-- alloc::vec::Vec::into_boxed_slice is shared; imported from Libsignal.Translated.Shared.Alloc.
 
 /-- [derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<T>}::new]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 29:8-29:42
