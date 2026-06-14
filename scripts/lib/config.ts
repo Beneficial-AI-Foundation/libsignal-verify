@@ -47,11 +47,12 @@ export interface AeneasConfig {
 }
 
 /**
- * The shared/base config file name (repo-level `aeneas:` + `upstream:` data),
- * overridable via the AENEAS_CONFIG env var. Per-crate files are merged on top.
+ * The shared/base config file, relative to the repo root (repo-level `aeneas:` +
+ * `upstream:` data); the configs live under `rust/`. Overridable via the
+ * AENEAS_CONFIG env var. Per-crate files are merged on top.
  */
 function configFileName(): string {
-  return process.env.AENEAS_CONFIG ?? "aeneas-config.yml";
+  return process.env.AENEAS_CONFIG ?? "rust/aeneas-config.yml";
 }
 
 /** Read and parse a YAML config file into a plain object. */

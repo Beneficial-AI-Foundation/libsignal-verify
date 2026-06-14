@@ -1,6 +1,6 @@
 name = "Libsignal"
 version = "0.1.0"
-defaultTargets = ["Translation", "Libsignal"]
+defaultTargets = ["Libsignal"]
 
 [leanOptions]
 autoImplicit = false
@@ -14,10 +14,8 @@ git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
 rev = "ce1708e"
 
-# All three per-crate translations + their shared externals, under Translation/.
-[[lean_lib]]
-name = "Translation"
-
-# Hand-written specifications / proofs.
+# The Aeneas translations + their shared externals (Libsignal.Translated.*) and
+# the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.
 [[lean_lib]]
 name = "Libsignal"
+srcDir = "rust"

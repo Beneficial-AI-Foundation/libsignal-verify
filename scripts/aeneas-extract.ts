@@ -17,7 +17,7 @@ import { syncLeanToolchain } from "./lib/lean-toolchain.js";
 const CRATE_KEYS = ["core", "crypto", "protocol"];
 
 async function runExtraction(crateKey: string): Promise<void> {
-  const configFile = `aeneas-config.${crateKey}.yml`;
+  const configFile = `rust/aeneas-config.${crateKey}.yml`;
   console.log(chalk.bold(`\nAeneas Extract — ${crateKey}\n`));
   console.log(chalk.gray(`  Using config: ${configFile}`));
 
