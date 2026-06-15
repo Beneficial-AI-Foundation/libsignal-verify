@@ -17,15 +17,23 @@ class TestStore: KeyTransparency.Store {
         return self.distinguishedTreeHeads.last
     }
 
+    func getAccountData(for aci: Aci) async -> Data? {
+        self.getAccountData(for: aci, context: NullContext())
+    }
+
+    func setAccountData(_ data: Data, for aci: Aci) async {
+        self.setAccountData(data, for: aci, context: NullContext())
+    }
+
     func setLastDistinguishedTreeHead(to data: Data) async {
         self.distinguishedTreeHeads.append(data)
     }
 
-    func getAccountData(for aci: Aci) async -> Data? {
+    func getAccountData(for aci: Aci, context: StoreContext) -> Data? {
         return self.accountData[aci]?.last
     }
 
-    func setAccountData(_ data: Data, for aci: Aci) async {
+    func setAccountData(_ data: Data, for aci: Aci, context: StoreContext) {
         self.accountData[aci, default: []].append(data)
     }
 }
@@ -81,16 +89,6 @@ final class KeyTransparencyTests: TestCaseBase {
         func connectionWasInterrupted(_: UnauthenticatedChatConnection, error: Error?) {}
     }
 
-    func testUnknownDistinguished() async throws {
-        try self.nonHermeticTest()
-
-        let net = Net(env: .staging, userAgent: userAgent, buildVariant: .production)
-        let chat = try await net.connectUnauthenticatedChat()
-        chat.start(listener: NoOpListener())
-
-        XCTAssertNoThrow { try await chat.keyTransparencyClient.getDistinguished() }
-    }
-
     func testCheck() async throws {
         try self.nonHermeticTest()
 
@@ -108,6 +106,8 @@ final class KeyTransparencyTests: TestCaseBase {
             store: store
         )
         XCTAssertEqual(1, store.accountData[self.testAccount.aci]!.count)
+        XCTAssertEqual(1, store.distinguishedTreeHeads.count)
+
         try await chat.keyTransparencyClient.check(
             for: .contact,
             account: self.testAccount.aciInfo,
@@ -115,8 +115,40 @@ final class KeyTransparencyTests: TestCaseBase {
             store: store
         )
         // Second check will send a monitor request, and should update account
-        // data in store
+        // data in store, but the distinguished tree should have been reused
+        // and not updated
         XCTAssertEqual(2, store.accountData[self.testAccount.aci]!.count)
+        XCTAssertEqual(1, store.distinguishedTreeHeads.count)
+    }
+
+    func testResetFieldThrowsOnCorruptData() async throws {
+        let store = TestStore()
+        let context = NullContext()
+        store.setAccountData(Data([1, 2, 3]), for: self.testAccount.aci, context: context)
+        do {
+            try KeyTransparency.resetField(
+                .e164,
+                for: self.testAccount.aci,
+                store: store,
+                context: context
+            )
+            XCTFail("should have failed")
+        } catch SignalError.invalidArgument(_) {
+        } catch {
+            XCTFail("unexpected exception thrown: \(error)")
+        }
+    }
+
+    func testResetFieldIsNoopWhenDataIsMissing() async throws {
+        let store = TestStore()
+        let context = NullContext()
+        try KeyTransparency.resetField(
+            .e164,
+            for: self.testAccount.aci,
+            store: store,
+            context: context
+        )
+        XCTAssertNil(store.accountData[self.testAccount.aci])
     }
 
     // These testing endpoints aren't generated in device builds, to save on code size.
@@ -151,6 +183,25 @@ final class KeyTransparencyTests: TestCaseBase {
         }
     }
 
+    func testResetFieldUpdatesStoreOnSuccess() async throws {
+        let store = TestStore()
+        let context = NullContext()
+        let storedAccountData = failOnError {
+            try invokeFnReturningData {
+                signal_testing_key_trans_stored_account_data($0)
+            }
+        }
+        store.setAccountData(storedAccountData, for: self.testAccount.aci, context: context)
+        XCTAssertEqual(1, store.accountData[self.testAccount.aci]!.count)
+        try KeyTransparency.resetField(
+            .e164,
+            for: self.testAccount.aci,
+            store: store,
+            context: context
+        )
+        XCTAssertEqual(2, store.accountData[self.testAccount.aci]!.count)
+    }
+
     func customNetworkErrorTestImpl(status: UInt16, headers: [String: String] = [:]) async throws {
         let tokio = TokioAsyncContext()
         let (chat, remote) = UnauthenticatedChatConnection.fakeConnect(
@@ -159,7 +210,13 @@ final class KeyTransparencyTests: TestCaseBase {
         )
         defer { withExtendedLifetime(chat) {} }
 
-        async let future = chat.keyTransparencyClient.getDistinguished()
+        let store = TestStore()
+        let aciInfo = self.testAccount.aciInfo
+        async let future: () = chat.keyTransparencyClient.check(
+            for: .contact,
+            account: aciInfo,
+            store: store
+        )
 
         let (_, id) = try await remote.getNextIncomingRequest()
 

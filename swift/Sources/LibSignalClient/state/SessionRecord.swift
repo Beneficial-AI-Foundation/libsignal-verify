@@ -39,18 +39,15 @@ public class SessionRecord: ClonableHandleOwner<SignalMutPointerSessionRecord> {
         }
     }
 
-    public var hasCurrentState: Bool {
-        hasCurrentState(now: Date())
-    }
-
-    public func hasCurrentState(now: Date) -> Bool {
+    public func hasCurrentState(requirePqRatio: Double, now: Date = Date()) -> Bool {
         return self.withNativeHandle { nativeHandle in
             failOnError {
                 try invokeFnReturningBool {
                     signal_session_record_has_usable_sender_chain(
                         $0,
                         nativeHandle.const(),
-                        UInt64(now.timeIntervalSince1970 * 1000)
+                        requirePqRatio,
+                        UInt64(now.timeIntervalSince1970 * 1000),
                     )
                 }
             }
@@ -63,6 +60,7 @@ public class SessionRecord: ClonableHandleOwner<SignalMutPointerSessionRecord> {
         }
     }
 
+    /// - Throws: ``SignalError/sessionNotFound(_:)`` if there is no current session state.
     public func remoteRegistrationId() throws -> UInt32 {
         return try self.withNativeHandle { nativeHandle in
             try invokeFnReturningInteger {

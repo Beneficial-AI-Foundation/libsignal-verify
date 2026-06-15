@@ -3,15 +3,25 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::ControlFlow;
+use std::time::{Duration, SystemTime};
+
 use libsignal_core::curve::PublicKey;
-use libsignal_core::{Aci, E164};
-use libsignal_keytrans::{AccountData, LastTreeHead, MonitoringData};
+use libsignal_core::{Aci, E164, LogSafeDisplay};
+use libsignal_keytrans::{
+    AccountData, LastTreeHead, LocalStateUpdate, MonitoringData, StoredTreeHead,
+};
 
 use crate::api::RequestError;
 use crate::api::keytrans::maybe_partial::MaybePartial;
 use crate::api::keytrans::{
     AccountDataField, CheckMode, Error, SearchKey, UnauthenticatedChatApi, UsernameHash,
 };
+use crate::logging::{DebugByCalling, Redact, RedactBytesAsHex};
+
+const MAX_DISTINGUISHED_TREE_AGE: Duration =
+    Duration::from_secs(7 * 24 * 60 * 60 /* one week */);
 
 /// The main entry point to the module.
 pub async fn check(
@@ -21,19 +31,87 @@ pub async fn check(
     e164: Option<(E164, Vec<u8>)>,
     username_hash: Option<UsernameHash<'_>>,
     stored_account_data: Option<AccountData>,
-    distinguished_tree_head: &LastTreeHead,
+    distinguished_tree_head: Option<TreeHeadWithTimestamp>,
     mode: CheckMode,
-) -> Result<MaybePartial<AccountData>, RequestError<Error>> {
+) -> Result<(MaybePartial<AccountData>, LastTreeHead), RequestError<Error>> {
+    let distinguished_tree_head =
+        update_distinguished_if_needed(kt, distinguished_tree_head).await?;
     let action = Action::plan(
         aci,
         e164.as_ref(),
         username_hash.as_ref(),
         stored_account_data,
     );
+    log::info!("Action: {}", &action);
 
-    action
-        .execute(kt, aci_identity_key, distinguished_tree_head, mode)
-        .await
+    let result = action
+        .execute(kt, aci_identity_key, &distinguished_tree_head, mode)
+        .await?;
+
+    Ok((result, distinguished_tree_head))
+}
+
+fn is_too_old(stored_at_ms: u64) -> bool {
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("valid SystemTime")
+        .saturating_sub(Duration::from_millis(stored_at_ms))
+        > MAX_DISTINGUISHED_TREE_AGE
+}
+
+fn select_baseline_tree_head(
+    tree_head: Option<TreeHeadWithTimestamp>,
+) -> ControlFlow<LastTreeHead, Option<LastTreeHead>> {
+    match tree_head {
+        None => ControlFlow::Continue(None),
+        // Not recent enough to be used for search/monitor but a fine
+        // baseline for refresh.
+        Some(timed_head) if is_too_old(timed_head.stored_at_ms) => {
+            ControlFlow::Continue(Some(timed_head.tree_head))
+        }
+        Some(timed_head) => ControlFlow::Break(timed_head.tree_head),
+    }
+}
+
+async fn update_distinguished_if_needed(
+    kt: &impl UnauthenticatedChatApi,
+    tree_head: Option<TreeHeadWithTimestamp>,
+) -> Result<LastTreeHead, RequestError<Error>> {
+    let tree_head = match select_baseline_tree_head(tree_head) {
+        ControlFlow::Break(tree_head) => return Ok(tree_head),
+        ControlFlow::Continue(baseline) => baseline,
+    };
+    log::info!(
+        "Updating distinguished tree head ({})",
+        if tree_head.is_none() {
+            "unavailable"
+        } else {
+            "stale"
+        }
+    );
+    let LocalStateUpdate {
+        tree_head,
+        tree_root,
+        monitoring_data: _,
+    } = kt.distinguished(tree_head).await?;
+
+    Ok(LastTreeHead(tree_head, tree_root))
+}
+
+#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone)]
+pub struct TreeHeadWithTimestamp {
+    pub tree_head: LastTreeHead,
+    pub stored_at_ms: u64,
+}
+
+impl TreeHeadWithTimestamp {
+    pub fn from_stored(stored: StoredTreeHead) -> Option<Self> {
+        Some(Self {
+            stored_at_ms: stored.stored_at_ms,
+            tree_head: stored.into_last_tree_head()?,
+        })
+    }
 }
 
 /// A more ergonomic search for the clients.
@@ -86,6 +164,7 @@ async fn modal_search(
         .missing_fields
         .contains(&AccountDataField::E164)
     {
+        log::info!("Self check with E.164 discoverability off");
         // Phone number discoverability is off. We should not treat it as error.
         maybe_partial.missing_fields.remove(&AccountDataField::E164);
     }
@@ -98,6 +177,32 @@ struct Parameters<'a> {
     pub aci: &'a Aci,
     pub e164: Option<&'a (E164, Vec<u8>)>,
     pub username_hash: Option<&'a UsernameHash<'a>>,
+}
+
+impl<'a> LogSafeDisplay for Parameters<'a> {}
+impl<'a> Display for Parameters<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Parameters")
+            .field("aci", &Redact(self.aci))
+            .field(
+                "e164",
+                &DebugByCalling(|f| match self.e164 {
+                    None => f.write_str("None"),
+                    Some((e164, uak)) => {
+                        f.write_str("(")?;
+                        Display::fmt(&Redact(e164), f)?;
+                        f.write_str(", ")?;
+                        Display::fmt(&RedactBytesAsHex(uak), f)?;
+                        f.write_str(")")
+                    }
+                }),
+            )
+            .field(
+                "username_hash",
+                &self.username_hash.map(AsRef::as_ref).map(RedactBytesAsHex),
+            )
+            .finish()
+    }
 }
 
 impl<'a> Parameters<'a> {
@@ -124,6 +229,34 @@ enum Action<'a> {
     },
 }
 
+impl<'a> LogSafeDisplay for Action<'a> {}
+
+impl<'a> Display for Action<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Action::SearchOnly(params) => {
+                write!(f, "SearchOnly({params})")
+            }
+            Action::MonitorThenSearch {
+                monitor_parameters,
+                search_parameters,
+                account_data: _,
+            } => f
+                .debug_struct("MonitorThenSearch")
+                .field(
+                    "monitor_parameters",
+                    &DebugByCalling(|f| write!(f, "{monitor_parameters}")),
+                )
+                .field(
+                    "search_parameters",
+                    &DebugByCalling(|f| write!(f, "{search_parameters}")),
+                )
+                .field("account_data", &"[REDACTED]")
+                .finish(),
+        }
+    }
+}
+
 #[cfg_attr(test, derive(Debug, PartialEq))]
 enum PostMonitorAction<'a> {
     None,
@@ -136,6 +269,24 @@ enum PostMonitorAction<'a> {
         // it was successfully monitored and the value version did not change.
         version_change_detected: VersionChanged,
     },
+}
+
+impl<'a> LogSafeDisplay for PostMonitorAction<'a> {}
+
+impl<'a> Display for PostMonitorAction<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PostMonitorAction::None => write!(f, "None"),
+            PostMonitorAction::Search {
+                parameters,
+                version_change_detected,
+            } => f
+                .debug_struct("Search")
+                .field("parameters", &DebugByCalling(|f| write!(f, "{parameters}")))
+                .field("version_change_detected", version_change_detected)
+                .finish(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -193,6 +344,25 @@ impl SearchVersions {
             .into_iter()
             .flatten()
             .max()
+    }
+
+    fn short_description(&self) -> String {
+        fn opt(x: &Option<impl ToString>) -> String {
+            x.as_ref()
+                .map(ToString::to_string)
+                .unwrap_or("_".to_string())
+        }
+        let Self {
+            aci,
+            e164,
+            username_hash,
+        } = self;
+        format!(
+            "[aci: {}, e164: {}, username_hash: {}]",
+            opt(aci),
+            opt(e164),
+            opt(username_hash)
+        )
     }
 }
 
@@ -351,8 +521,8 @@ fn select_monitor_or_search_for<'a, T: SearchKey>(
     }
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 enum VersionChanged {
     No,
     Yes,
@@ -494,7 +664,7 @@ fn remove_missing(partial_account_data: &mut MaybePartial<AccountData>) {
         missing_fields,
     } = partial_account_data;
     for field in missing_fields.iter() {
-        log::debug!("Version change: untracking {:?}", &field);
+        log::info!("Version change: untracking {:?}", &field);
         match field {
             AccountDataField::E164 => inner.e164 = None,
             AccountDataField::UsernameHash => inner.username_hash = None,
@@ -541,6 +711,8 @@ async fn monitor_then_search<'a>(
     distinguished_tree_head: &LastTreeHead,
     mode: CheckMode,
 ) -> Result<MaybePartial<AccountData>, RequestError<Error>> {
+    let stored_versions = SearchVersions::from_account_data(&stored_account_data);
+    log::info!("Stored versions: {}", stored_versions.short_description());
     let monitor_account_data = {
         let Parameters {
             aci,
@@ -559,8 +731,8 @@ async fn monitor_then_search<'a>(
     // Call to `monitor` guarantees that the optionality of E.164 and username hash data
     // will match between `stored_account_data` and `monitor_account_data`. Meaning, they will
     // either both be Some() or both None.
-    let stored_versions = SearchVersions::from_account_data(&stored_account_data);
     let updated_versions = SearchVersions::from_account_data(&monitor_account_data);
+    log::info!("Updated versions: {}", updated_versions.short_description());
     let version_delta = updated_versions
         .try_subtract(&stored_versions)
         .map_err(|_| {
@@ -579,6 +751,8 @@ async fn monitor_then_search<'a>(
         mode,
         any_version_changed.into(),
     )?;
+
+    log::info!("PostMonitorAction: {post_monitor_plan}");
 
     // Combine the stored account data and the one we just obtained from monitor.
     // Not preserving ACI data here as we do need to prefer monitor's version.
@@ -600,15 +774,20 @@ async fn monitor_then_search<'a>(
 
 #[cfg(test)]
 mod test {
+    use std::ops::ControlFlow;
+    use std::time::SystemTime;
+
     use assert_matches::assert_matches;
+    use futures_util::FutureExt;
     use libsignal_core::E164;
     use libsignal_keytrans::AccountData;
     use nonzero_ext::nonzero;
     use test_case::{test_case, test_matrix};
 
     use super::{
-        Action, Parameters, PostMonitorAction, VersionChanged, check, merge_account_data,
-        modal_search, monitor_then_search,
+        Action, Parameters, PostMonitorAction, SearchVersions, TreeHeadWithTimestamp,
+        VersionChanged, check, is_too_old, merge_account_data, modal_search, monitor_then_search,
+        select_baseline_tree_head,
     };
     use crate::api::RequestError;
     use crate::api::keytrans::test_support::{
@@ -626,6 +805,19 @@ mod test {
             aci == other.aci
                 && e164.as_ref() == other.e164
                 && username_hash_bytes.as_deref() == other.username_hash.map(AsRef::as_ref)
+        }
+    }
+
+    fn recent_distinguished_tree() -> TreeHeadWithTimestamp {
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("valid time")
+            .as_millis()
+            .try_into()
+            .expect("fits in u64");
+        TreeHeadWithTimestamp {
+            tree_head: test_distinguished_tree(),
+            stored_at_ms: now,
         }
     }
 
@@ -894,7 +1086,7 @@ mod test {
             None,
             None,
             Some(test_account_data()),
-            &test_distinguished_tree(),
+            Some(recent_distinguished_tree()),
             CheckMode::ContactCheck,
         )
         .await;
@@ -923,7 +1115,7 @@ mod test {
             None,
             Some(test_account::username_hash()),
             Some(stored_account_data),
-            &test_distinguished_tree(),
+            Some(recent_distinguished_tree()),
             CheckMode::ContactCheck,
         )
         .await;
@@ -955,7 +1147,7 @@ mod test {
             None,
             None,
             Some(test_account_data()),
-            &test_distinguished_tree(),
+            Some(recent_distinguished_tree()),
             CheckMode::ContactCheck,
         )
         .await;
@@ -975,12 +1167,12 @@ mod test {
             None,
             None,
             Some(test_account_data()),
-            &test_distinguished_tree(),
+            Some(recent_distinguished_tree()),
             CheckMode::ContactCheck,
         )
         .await
         .expect("monitor should succeed");
-        assert_eq!(actual, monitor_result.into());
+        assert_eq!(actual.0, monitor_result.into());
     }
 
     #[test]
@@ -1366,10 +1558,10 @@ mod test {
 
         assert_eq!(result.inner, test_account_data());
 
-        let invocation = &kt.take_searches()[0];
+        let invocation = kt.search_invocation().expect("search is invoked");
 
         // In case of version change we perform a single search using monitor parameters
-        assert_eq!(*invocation, monitor_parameters);
+        assert_eq!(invocation, monitor_parameters);
     }
 
     #[tokio::test]
@@ -1460,9 +1652,9 @@ mod test {
         .await
         .expect("succeeds");
 
-        let invocation = &kt.take_searches()[0];
+        let invocation = kt.search_invocation().expect("search is invoked");
 
-        assert_eq!(*invocation, search_parameters);
+        assert_eq!(invocation, search_parameters);
 
         // Importantly, despite having done a new search for ACI as well
         // we should have retained the ACI result from an earlier monitor.
@@ -1513,9 +1705,9 @@ mod test {
         .await
         .expect("succeeds");
 
-        let invocation = &kt.take_searches()[0];
+        let invocation = kt.search_invocation().expect("search is invoked");
 
-        assert_eq!(*invocation, search_parameters);
+        assert_eq!(invocation, search_parameters);
 
         assert!(result.inner.e164.is_some());
         assert!(result.missing_fields.is_empty());
@@ -1623,9 +1815,9 @@ mod test {
         .await
         .expect("succeeds");
 
-        let invocation = &kt.take_searches()[0];
+        let invocation = kt.search_invocation().expect("search is invoked");
 
-        assert_eq!(*invocation, search_parameters);
+        assert_eq!(invocation, search_parameters);
 
         assert!(result.missing_fields.is_empty());
         assert_eq!(&result.inner.e164, &monitor_result.e164);
@@ -1710,10 +1902,10 @@ mod test {
         .await
         .expect("succeeds");
 
-        let invocation = &kt.take_searches()[0];
+        let invocation = kt.search_invocation().expect("search is invoked");
 
         assert_eq!(
-            *invocation,
+            invocation,
             Parameters {
                 aci: &aci,
                 e164: Some(&e164),
@@ -1734,5 +1926,147 @@ mod test {
                 assert!(result.missing_fields.contains(&AccountDataField::E164));
             }
         }
+    }
+
+    #[test]
+    fn check_updates_distinguished_when_its_unknown() {
+        let mut expected = test_distinguished_tree();
+        expected.1 = [42; 32];
+        let kt = TestKt::for_search(Ok(test_account_data().into()))
+            .with_distinguished(Ok(expected.clone()));
+
+        let result = check(
+            &kt,
+            &test_account::aci(),
+            &test_account::aci_identity_key(),
+            None,
+            None,
+            None,
+            None,
+            CheckMode::ContactCheck,
+        )
+        .now_or_never()
+        .expect("sync")
+        .expect("check succeeds");
+
+        // Distinguished stub has been consumed
+        assert!(kt.distinguished.take().is_none());
+        // Should return the most recent distinguished tree
+        assert_eq!(expected, result.1);
+    }
+
+    #[test]
+    fn check_does_not_update_distinguished_when_its_recent() {
+        let stored_distinguished = TreeHeadWithTimestamp {
+            tree_head: test_distinguished_tree(),
+            stored_at_ms: now_ms() - 60 * 1000,
+        };
+
+        let mut updated_distinguished = test_distinguished_tree();
+        updated_distinguished.1 = [42; 32];
+        let kt = TestKt::for_search(Ok(test_account_data().into()))
+            .with_distinguished(Ok(updated_distinguished));
+
+        let result = check(
+            &kt,
+            &test_account::aci(),
+            &test_account::aci_identity_key(),
+            None,
+            None,
+            None,
+            Some(stored_distinguished.clone()),
+            CheckMode::ContactCheck,
+        )
+        .now_or_never()
+        .expect("sync")
+        .expect("check succeeds");
+
+        // Distinguished stub has not been consumed
+        assert!(kt.distinguished.take().is_some());
+        // Should return the most recent distinguished tree
+        assert_eq!(stored_distinguished.tree_head, result.1);
+    }
+
+    #[test]
+    fn check_propagates_distinguished_update_failure() {
+        let kt = TestKt::for_search(Ok(test_account_data().into()))
+            .with_distinguished(Err(TestKt::expected_error()));
+
+        let result = check(
+            &kt,
+            &test_account::aci(),
+            &test_account::aci_identity_key(),
+            None,
+            None,
+            None,
+            None,
+            CheckMode::ContactCheck,
+        )
+        .now_or_never()
+        .expect("sync");
+
+        TestKt::assert_expected_error(result);
+    }
+
+    fn now_ms() -> u64 {
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("valid time")
+            .as_millis()
+            .try_into()
+            .expect("fits in u64")
+    }
+
+    #[test_case(0 => false; "now")]
+    #[test_case(6 * 24 * 60 * 60 * 1000 => false; "not quite a week ago")]
+    #[test_case(2 * 7 * 24 * 60 * 60 * 1000 => true; "two weeks ago")]
+    fn is_too_old_for_values_in_the_past(ms_in_the_past: u64) -> bool {
+        is_too_old(now_ms() - ms_in_the_past)
+    }
+
+    #[test]
+    fn is_too_old_value_in_the_future() {
+        assert!(!is_too_old(now_ms() + 1));
+    }
+
+    #[test]
+    fn select_baseline_tree_head_no_stored_head_continues_with_none() {
+        assert_matches!(select_baseline_tree_head(None), ControlFlow::Continue(None));
+    }
+
+    #[test]
+    fn select_baseline_tree_head_too_old_continues_with_tree_head() {
+        let tree_head = test_distinguished_tree();
+        let stored = TreeHeadWithTimestamp {
+            tree_head: tree_head.clone(),
+            stored_at_ms: 0,
+        };
+        assert_eq!(
+            select_baseline_tree_head(Some(stored)),
+            ControlFlow::Continue(Some(tree_head)),
+        );
+    }
+
+    #[test]
+    fn select_baseline_tree_head_recent_breaks_with_tree_head() {
+        let recent = recent_distinguished_tree();
+        let expected = recent.tree_head.clone();
+        assert_eq!(
+            select_baseline_tree_head(Some(recent)),
+            ControlFlow::Break(expected),
+        );
+    }
+
+    #[test]
+    fn search_versions_as_short_string() {
+        assert_eq!(
+            "[aci: 42, e164: _, username_hash: 73]",
+            SearchVersions {
+                aci: Some(42),
+                e164: None,
+                username_hash: Some(73),
+            }
+            .short_description()
+        )
     }
 }

@@ -18,7 +18,11 @@ use crate::support::{BridgedCallbacks, ResultLike, WithContext};
 use crate::*;
 
 /// A bridge-friendly version of [`IdentityKeyStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.IdentityKeyStore")]
+#[bridge_callbacks(
+    ffi = "FfiIdentityKeyStore",
+    jni = "org.signal.libsignal.protocol.state.internal.IdentityKeyStore",
+    node = "IdentityKeyStore"
+)]
 trait BridgeIdentityKeyStore {
     async fn get_local_identity_key_pair(
         &self,
@@ -104,7 +108,11 @@ impl<T: BridgeIdentityKeyStore> IdentityKeyStore for BridgedCallbacks<T> {
 }
 
 /// A bridge-friendly version of [`PreKeyStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.PreKeyStore")]
+#[bridge_callbacks(
+    ffi = "FfiPreKeyStore",
+    jni = "org.signal.libsignal.protocol.state.internal.PreKeyStore",
+    node = "PreKeyStore"
+)]
 pub(crate) trait BridgePreKeyStore {
     async fn load_pre_key(&self, id: u32) -> Result<Option<PreKeyRecord>, SignalProtocolError>;
     async fn store_pre_key(&self, id: u32, record: PreKeyRecord)
@@ -137,7 +145,11 @@ impl<T: BridgePreKeyStore> PreKeyStore for BridgedCallbacks<T> {
 }
 
 /// A bridge-friendly version of [`SignedPreKeyStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.SignedPreKeyStore")]
+#[bridge_callbacks(
+    ffi = "FfiSignedPreKeyStore",
+    jni = "org.signal.libsignal.protocol.state.internal.SignedPreKeyStore",
+    node = "SignedPreKeyStore"
+)]
 pub(crate) trait BridgeSignedPreKeyStore {
     async fn load_signed_pre_key(
         &self,
@@ -176,7 +188,11 @@ impl<T: BridgeSignedPreKeyStore> SignedPreKeyStore for BridgedCallbacks<T> {
 }
 
 /// A bridge-friendly version of [`KyberPreKeyStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.KyberPreKeyStore")]
+#[bridge_callbacks(
+    ffi = "FfiKyberPreKeyStore",
+    jni = "org.signal.libsignal.protocol.state.internal.KyberPreKeyStore",
+    node = "KyberPreKeyStore"
+)]
 pub(crate) trait BridgeKyberPreKeyStore {
     async fn load_kyber_pre_key(
         &self,
@@ -231,7 +247,11 @@ impl<T: BridgeKyberPreKeyStore> KyberPreKeyStore for BridgedCallbacks<T> {
 }
 
 /// A bridge-friendly version of [`SessionStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.SessionStore")]
+#[bridge_callbacks(
+    ffi = "FfiSessionStore",
+    jni = "org.signal.libsignal.protocol.state.internal.SessionStore",
+    node = "SessionStore"
+)]
 pub(crate) trait BridgeSessionStore {
     async fn load_session(
         &self,
@@ -263,7 +283,11 @@ impl<T: BridgeSessionStore> SessionStore for BridgedCallbacks<T> {
 }
 
 /// A bridge-friendly version of [`SenderKeyStore`].
-#[bridge_callbacks(jni = "org.signal.libsignal.protocol.state.internal.SenderKeyStore")]
+#[bridge_callbacks(
+    ffi = "FfiSenderKeyStore",
+    jni = "org.signal.libsignal.protocol.state.internal.SenderKeyStore",
+    node = "SenderKeyStore"
+)]
 trait BridgeSenderKeyStore {
     async fn load_sender_key(
         &self,

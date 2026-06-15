@@ -16,7 +16,7 @@ aeneas:
 
 upstream:
   repo: "https://github.com/signalapp/libsignal"
-  commit: "0a58e80b"
+  commit: "65eac5e"
 
 crate:
   dir: "rust"

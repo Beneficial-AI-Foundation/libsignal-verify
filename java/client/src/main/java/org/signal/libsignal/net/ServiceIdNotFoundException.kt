@@ -16,7 +16,9 @@ import java.io.IOException
  */
 public class ServiceIdNotFoundException :
   IOException,
-  GetPreKeysError {
+  GetPreKeysError,
+  SealedSendFailure,
+  UnsealedSendFailure {
   @CalledFromNative
   public constructor(message: String) : super(message) {
   }

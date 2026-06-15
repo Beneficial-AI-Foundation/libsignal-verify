@@ -20,16 +20,19 @@ import {
   ProvisioningConnectionListener,
 } from './net/Chat.js';
 import { RegistrationService } from './net/Registration.js';
+import { Svr2 } from './net/Svr2.js';
 import { SvrB } from './net/SvrB.js';
 import { BridgedStringMap, newNativeHandle } from './internal.js';
 export * from './net/CDSI.js';
 export * from './net/Chat.js';
 export * from './net/chat/AuthMessagesService.js';
+export * from './net/chat/UnauthBackupsService.js';
 export * from './net/chat/UnauthKeysService.js';
 export * from './net/chat/UnauthMessagesService.js';
 export * from './net/chat/UnauthProfilesService.js';
 export * from './net/chat/UnauthUsernamesService.js';
 export * from './net/Registration.js';
+export * from './net/Svr2.js';
 export * from './net/SvrB.js';
 
 // This must match the libsignal-bridge Rust enum of the same name.
@@ -111,6 +114,7 @@ export type NetConstructorOptions = Readonly<
       TESTING_localServer_svr2Port: number;
       TESTING_localServer_svrBPort: number;
       TESTING_localServer_rootCertificateDer: Uint8Array<ArrayBuffer>;
+      TESTING_localServer_httpVersion?: 1 | 2;
     }
 >;
 
@@ -164,7 +168,8 @@ export class Net {
           options.TESTING_localServer_cdsiPort,
           options.TESTING_localServer_svr2Port,
           options.TESTING_localServer_svrBPort,
-          options.TESTING_localServer_rootCertificateDer
+          options.TESTING_localServer_rootCertificateDer,
+          options.TESTING_localServer_httpVersion ?? 1
         )
       );
     } else {
@@ -446,8 +451,10 @@ export class Net {
     // This does not distinguish between "https://proxy.example" and "https://@proxy.example".
     // This could be done by manually checking `url.href`.
     // But until someone complains about it, let's not worry about it.
-    const username = url.username != '' ? url.username : undefined;
-    const password = url.password != '' ? url.password : undefined;
+    const username =
+      url.username != '' ? decodeURIComponent(url.username) : undefined;
+    const password =
+      url.password != '' ? decodeURIComponent(url.password) : undefined;
 
     const host = url.hostname;
     const port = url.port != '' ? Number.parseInt(url.port, 10) : undefined;
@@ -582,5 +589,22 @@ export class Net {
       ? Environment.Staging
       : this.options.env;
     return new SvrB(this.asyncContext, this._connectionManager, auth, env);
+  }
+
+  /**
+   * Returns an SVR2 service instance for this network configuration.
+   *
+   * SVR2 stores a small piece of data protected by a pin in a secure enclave.
+   * See {@link Svr2} for the storage and restore protocols.
+   *
+   * @param auth The authentication credentials to use when connecting to the SVR2 server.
+   * @returns An Svr2 service instance configured for this network environment.
+   * @see {@link Svr2}
+   */
+  svr2(auth: Readonly<ServiceAuth>): Svr2 {
+    const env = this.options.localTestServer
+      ? Environment.Staging
+      : this.options.env;
+    return new Svr2(this.asyncContext, this._connectionManager, auth, env);
   }
 }

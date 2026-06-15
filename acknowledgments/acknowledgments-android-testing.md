@@ -3152,7 +3152,7 @@ THIS SOFTWARE.
 
 ```
 
-## rustls-webpki 0.103.10
+## rustls-webpki 0.103.13
 
 ```
 Except as otherwise noted, this project is licensed under the following
@@ -3329,7 +3329,7 @@ DEALINGS IN THE SOFTWARE.
 
 ```
 
-## backtrace 0.3.76, cc 1.2.52, cfg-if 1.0.4, cmake 0.1.57, find-msvc-tools 0.1.7, pkg-config 0.3.32, rustc-demangle 0.1.26, socket2 0.6.1
+## backtrace 0.3.76, cc 1.2.52, cfg-if 1.0.4, cmake 0.1.57, find-msvc-tools 0.1.7, pkg-config 0.3.32, rustc-demangle 0.1.26, socket2 0.6.3
 
 ```
 Copyright (c) 2014 Alex Crichton
@@ -3424,7 +3424,7 @@ DEALINGS IN THE SOFTWARE.
 
 ```
 
-## mio 1.1.1
+## mio 1.2.0
 
 ```
 Copyright (c) 2014 Carl Lerche and other MIO contributors
@@ -3598,37 +3598,6 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-```
-
-## libc 0.2.180
-
-```
-Copyright (c) 2014-2020 The Rust Project Developers
-
-Permission is hereby granted, free of charge, to any
-person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the
-Software without restriction, including without
-limitation the rights to use, copy, modify, merge,
-publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software
-is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice
-shall be included in all copies or substantial portions
-of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
-ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
 
 ```
 
@@ -3812,7 +3781,7 @@ DEALINGS IN THE SOFTWARE.
 
 ```
 
-## jni-sys 0.3.0
+## jni-sys-macros 0.4.1, jni-sys 0.3.0, jni-sys 0.4.1
 
 ```
 Copyright (c) 2015 The rust-jni-sys Developers
@@ -4148,6 +4117,31 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+```
+
+## httpdate 1.0.3
+
+```
+Copyright (c) 2016 Pyfisch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 ```
 
@@ -5608,6 +5602,37 @@ DEALINGS IN THE SOFTWARE.
 
 ```
 
+## pbjson-build 0.9.0, pbjson-types 0.9.0, pbjson 0.9.0
+
+```
+Copyright (c) 2020 InfluxData
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+```
+
 ## sha2-asm 0.6.4
 
 ```
@@ -5952,6 +5977,37 @@ SOFTWARE.
 
 ```
 
+## libc 0.2.186
+
+```
+Copyright (c) The Rust Project Developers
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+```
+
 ## arrayvec 0.7.6
 
 ```
@@ -5983,7 +6039,7 @@ DEALINGS IN THE SOFTWARE.
 
 ```
 
-## rand 0.9.2, rand_chacha 0.9.0, rand_core 0.6.4, rand_core 0.9.3
+## rand 0.9.4, rand_chacha 0.9.0, rand_core 0.6.4, rand_core 0.9.3
 
 ```
 Copyright 2018 Developers of the Rand project
@@ -6276,7 +6332,7 @@ SOFTWARE.
 
 ```
 
-## tokio-macros 2.6.0
+## tokio-macros 2.7.0
 
 ```
 MIT License
@@ -6439,7 +6495,7 @@ SOFTWARE.
 
 ```
 
-## derive-where 1.6.0
+## derive-where 1.6.1
 
 ```
 MIT License
@@ -6520,7 +6576,7 @@ SOFTWARE.
 
 ```
 
-## cesu8 1.1.0, pbjson-build 0.9.0, pbjson-types 0.9.0, pbjson 0.9.0
+## cesu8 1.1.0
 
 ```
 MIT License
@@ -6544,7 +6600,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ```
 
-## tokio-stream 0.1.18, tokio-util 0.7.18, tokio 1.49.0
+## tokio-stream 0.1.18, tokio-util 0.7.18, tokio 1.52.2
 
 ```
 MIT License
@@ -6629,6 +6685,30 @@ SOFTWARE.
 
 ```
 
+## simdutf8 0.1.5
+
+```
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## ident_case 1.0.1
 
 ```
@@ -6682,7 +6762,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ```
 
-## curve25519-dalek-derive 0.1.1, adler2 2.0.1, anyhow 1.0.100, async-trait 0.1.89, atomic-waker 1.1.2, auto_enums 0.8.7, derive_utils 0.15.0, displaydoc 0.2.5, dyn-clone 1.0.20, fastrand 2.3.0, home 0.5.11, itoa 1.0.17, linux-raw-sys 0.11.0, linux-raw-sys 0.4.15, minimal-lexical 0.2.1, num_enum 0.7.5, num_enum_derive 0.7.5, once_cell 1.21.3, paste 1.0.15, pin-project-internal 1.1.10, pin-project-lite 0.2.16, pin-project 1.1.10, prettyplease 0.2.37, proc-macro-crate 3.4.0, proc-macro2 1.0.105, quote 1.0.43, ref-cast-impl 1.0.25, ref-cast 1.0.25, rustix 0.38.44, rustix 1.1.3, rustversion 1.0.22, semver 1.0.27, serde 1.0.228, serde_core 1.0.228, serde_derive 1.0.228, serde_json 1.0.149, syn-mid 0.6.0, syn 1.0.109, syn 2.0.114, thiserror-impl 1.0.69, thiserror-impl 2.0.17, thiserror 1.0.69, thiserror 2.0.17, unicode-ident 1.0.22, utf-8 0.7.6, zmij 1.0.12
+## curve25519-dalek-derive 0.1.1, adler2 2.0.1, anyhow 1.0.100, async-trait 0.1.89, atomic-waker 1.1.2, auto_enums 0.8.7, derive_utils 0.15.0, displaydoc 0.2.5, dyn-clone 1.0.20, fastrand 2.3.0, home 0.5.11, itoa 1.0.17, linux-raw-sys 0.11.0, linux-raw-sys 0.4.15, minimal-lexical 0.2.1, num_enum 0.7.5, num_enum_derive 0.7.5, once_cell 1.21.3, paste 1.0.15, pin-project-internal 1.1.10, pin-project-lite 0.2.16, pin-project 1.1.10, prettyplease 0.2.37, proc-macro-crate 3.4.0, proc-macro2 1.0.105, quote 1.0.43, ref-cast-impl 1.0.25, ref-cast 1.0.25, rustix 0.38.44, rustix 1.1.3, rustversion 1.0.22, semver 1.0.27, serde 1.0.228, serde_core 1.0.228, serde_derive 1.0.228, serde_json 1.0.149, simd_cesu8 1.1.1, syn-mid 0.6.0, syn 2.0.114, thiserror-impl 1.0.69, thiserror-impl 2.0.17, thiserror 1.0.69, thiserror 2.0.17, unicode-ident 1.0.22, utf-8 0.7.6, zmij 1.0.12
 
 ```
 Permission is hereby granted, free of charge, to any
@@ -7007,7 +7087,7 @@ SOFTWARE.
 
 ```
 
-## jni 0.21.1
+## jni-macros 0.22.4, jni 0.21.1, jni 0.22.4
 
 ```
 The MIT License (MIT)

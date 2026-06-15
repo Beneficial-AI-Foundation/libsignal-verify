@@ -5,26 +5,45 @@
 
 #![warn(clippy::unwrap_used)]
 
+#[cfg(feature = "json")]
+pub mod json;
+
 pub mod proto {
     pub mod chat {
         pub mod common {
             tonic::include_proto!("org.signal.chat.common");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.common.serde");
         }
         pub mod errors {
             tonic::include_proto!("org.signal.chat.errors");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.errors.serde");
         }
-
         pub mod account {
             tonic::include_proto!("org.signal.chat.account");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.account.serde");
+        }
+        pub mod attachments {
+            tonic::include_proto!("org.signal.chat.attachments");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.attachments.serde");
         }
         pub mod backup {
             tonic::include_proto!("org.signal.chat.backup");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.backup.serde");
         }
         pub mod device {
             tonic::include_proto!("org.signal.chat.device");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.device.serde");
         }
         pub mod messages {
             tonic::include_proto!("org.signal.chat.messages");
+            #[cfg(feature = "json")]
+            tonic::include_proto!("org.signal.chat.messages.serde");
         }
 
         // Not actually a proto, we just make sure to generate our helper file in the same place.
@@ -46,6 +65,11 @@ pub mod proto {
         }
     }
 }
+
+#[cfg(not(feature = "json"))]
+pub type Duration = prost_types::Duration;
+#[cfg(feature = "json")]
+pub type Duration = pbjson_types::Duration;
 
 impl From<libsignal_core::ServiceId> for proto::chat::common::ServiceIdentifier {
     fn from(value: libsignal_core::ServiceId) -> Self {
@@ -136,4 +160,24 @@ impl prost::Name for proto::google::rpc::RetryInfo {
         )
         .to_owned()
     }
+}
+
+/// Manual implementation of the gRPC framing format (Length-Prefixed-Message).
+///
+/// tonic normally takes care of this for us on the Rust side, but app-level tests (using e.g.
+/// `FakeChatRemote`) have to deal with the raw HTTP bodies.
+///
+/// See <https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md>.
+pub fn expect_next_grpc_message_for_testing(input: &[u8]) -> &[u8] {
+    const HEADER_LEN: usize = 5;
+    assert!(input.len() >= HEADER_LEN, "unexpected EOF");
+    assert_eq!(input[0], 0, "compression not supported");
+    let message_length =
+        u32::from_be_bytes(*input[1..].first_chunk().expect("already checked length"));
+    let message_length = usize::try_from(message_length).expect("at least 32-bit usize");
+    assert!(
+        message_length + HEADER_LEN <= input.len(),
+        "message length exceeds remaining input"
+    );
+    &input[HEADER_LEN..][..message_length]
 }
