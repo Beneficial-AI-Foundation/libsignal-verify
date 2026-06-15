@@ -6,11 +6,6 @@
 import Foundation
 import SignalFfi
 
-public enum UserBasedAuthorization: Sendable {
-    case accessKey(Data)
-    case groupSend(GroupSendFullToken)
-}
-
 public enum DeviceSpecifier: Sendable {
     case allDevices
     case specificDevice(DeviceId)
@@ -77,7 +72,7 @@ extension UnauthenticatedChatConnection: UnauthKeysService {
                 withNativeHandle { chatService in
                     target.withPointerToFixedWidthBinary { target in
                         groupSendFullToken.withUnsafeBorrowedBuffer { auth in
-                            signal_unauthenticated_chat_connection_get_pre_keys_access_group_auth(
+                            signal_unauthenticated_chat_connection_get_pre_keys_group_auth(
                                 promise,
                                 tokioAsyncContext.const(),
                                 chatService.const(),
@@ -86,6 +81,22 @@ extension UnauthenticatedChatConnection: UnauthKeysService {
                                 device,
                             )
                         }
+                    }
+                }
+            }
+        case .unrestrictedUnauthenticatedAccess:
+            out = try await self.tokioAsyncContext.invokeAsyncFunction {
+                promise,
+                tokioAsyncContext in
+                withNativeHandle { chatService in
+                    target.withPointerToFixedWidthBinary { target in
+                        signal_unauthenticated_chat_connection_get_pre_keys_unrestricted_auth(
+                            promise,
+                            tokioAsyncContext.const(),
+                            chatService.const(),
+                            target,
+                            device,
+                        )
                     }
                 }
             }

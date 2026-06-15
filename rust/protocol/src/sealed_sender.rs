@@ -18,12 +18,13 @@ use rand::{CryptoRng, Rng, TryRngCore as _};
 use subtle::{Choice, ConstantTimeEq};
 use zerocopy::{FromBytes, Immutable, KnownLayout};
 
+use crate::error::SessionNotFound;
 use crate::{
     Aci, CiphertextMessageType, DeviceId, Direction, IdentityKey, IdentityKeyPair,
     IdentityKeyStore, KeyPair, KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, PrivateKey,
     ProtocolAddress, PublicKey, Result, ServiceId, ServiceIdFixedWidthBinaryBytes, SessionRecord,
     SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, Timestamp, crypto,
-    message_encrypt, proto, session_cipher,
+    message_encrypt, proto, session_management,
 };
 
 #[derive(Debug, Clone)]
@@ -894,8 +895,20 @@ pub async fn sealed_sender_encrypt<R: Rng + CryptoRng>(
     now: SystemTime,
     rng: &mut R,
 ) -> Result<Vec<u8>> {
-    let message =
-        message_encrypt(ptext, destination, session_store, identity_store, now, rng).await?;
+    let sender_address = ProtocolAddress::new(
+        sender_cert.sender_uuid()?.to_owned(),
+        sender_cert.sender_device_id()?,
+    );
+    let message = message_encrypt(
+        ptext,
+        destination,
+        &sender_address,
+        session_store,
+        identity_store,
+        now,
+        rng,
+    )
+    .await?;
     let usmc = UnidentifiedSenderMessageContent::new(
         message.message_type(),
         sender_cert.clone(),
@@ -966,7 +979,12 @@ pub async fn sealed_sender_encrypt_from_usmc<R: Rng + CryptoRng>(
     let their_identity = identity_store
         .get_identity(destination)
         .await?
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(destination.clone()))?;
+        .ok_or_else(|| {
+            SignalProtocolError::SessionNotFound(SessionNotFound::new(
+                destination.clone(),
+                "sealed_sender_encrypt_from_usmc",
+            ))
+        })?;
 
     let ephemeral = KeyPair::generate(rng);
 
@@ -1438,7 +1456,10 @@ where
                         // Returned as a SessionNotFound error because (a) we don't have an identity
                         // error that includes the address, and (b) re-establishing the session should
                         // re-fetch the identity.
-                        SignalProtocolError::SessionNotFound(destination.clone())
+                        SignalProtocolError::SessionNotFound(SessionNotFound::new(
+                            destination.clone(),
+                            "sealed_sender_multi_recipient_encrypt_impl",
+                        ))
                     })?;
             identity_keys_and_ranges.push((their_identity, i..i + count));
         }
@@ -2027,13 +2048,15 @@ pub async fn sealed_sender_decrypt(
         usmc.sender()?.sender_uuid()?.to_string(),
         usmc.sender()?.sender_device_id()?,
     );
+    let local_address = ProtocolAddress::new(local_uuid, local_device_id);
 
     let message = match usmc.msg_type()? {
         CiphertextMessageType::Whisper => {
             let ctext = SignalMessage::try_from(usmc.contents()?)?;
-            session_cipher::message_decrypt_signal(
+            session_management::message_decrypt_signal(
                 &ctext,
                 &remote_address,
+                &local_address,
                 session_store,
                 identity_store,
                 &mut rng,
@@ -2042,9 +2065,10 @@ pub async fn sealed_sender_decrypt(
         }
         CiphertextMessageType::PreKey => {
             let ctext = PreKeySignalMessage::try_from(usmc.contents()?)?;
-            session_cipher::message_decrypt_prekey(
+            session_management::message_decrypt_prekey(
                 &ctext,
                 &remote_address,
+                &local_address,
                 session_store,
                 identity_store,
                 pre_key_store,
@@ -2057,7 +2081,7 @@ pub async fn sealed_sender_decrypt(
         msg_type => {
             return Err(SignalProtocolError::InvalidMessage(
                 msg_type,
-                "unexpected message type for sealed_sender_decrypt",
+                format!("unexpected message type for sealed_sender_decrypt: {msg_type:?}"),
             ));
         }
     };

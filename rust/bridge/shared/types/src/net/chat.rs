@@ -41,7 +41,7 @@ use static_assertions::assert_impl_all;
 
 use crate::net::ConnectionManager;
 use crate::net::remote_config::{RemoteConfig, RemoteConfigKey};
-use crate::support::LimitedLifetimeRef;
+use crate::support::{AsyncMutex, LimitedLifetimeRef};
 use crate::*;
 
 pub type ChatConnectionInfo = ConnectionInfo;
@@ -55,7 +55,11 @@ pub struct UnauthenticatedChatConnection {
     /// reader/writer contention.
     inner: tokio::sync::RwLock<MaybeChatConnection>,
 }
-bridge_as_handle!(UnauthenticatedChatConnection);
+bridge_as_handle!(
+    UnauthenticatedChatConnection,
+    swift_type = "UnauthenticatedChatConnection",
+    jni_class = "org.signal.libsignal.net.UnauthenticatedChatConnection",
+);
 impl UnwindSafe for UnauthenticatedChatConnection {}
 impl RefUnwindSafe for UnauthenticatedChatConnection {}
 
@@ -91,7 +95,7 @@ enum MaybeChatConnection {
     Running(ChatConnection),
     WaitingForListener {
         runtime: tokio::runtime::Handle,
-        pending: tokio::sync::Mutex<chat::PendingChatConnection>,
+        pending: AsyncMutex<chat::PendingChatConnection>,
         grpc_overrides: HashMap<&'static str, chat::GrpcOverride>,
     },
     TemporarilyEvicted,
@@ -141,6 +145,18 @@ impl UnauthenticatedChatConnection {
             panic!("listener was not set")
         };
         callback(LimitedLifetimeRef::from(<&Unauth<_>>::from(inner))).await
+    }
+
+    pub async fn require_grpc(&self) -> Unauth<impl libsignal_net_chat::grpc::GrpcServiceProvider> {
+        let guard = self.as_ref().read().await;
+        let MaybeChatConnection::Running(inner) = &*guard else {
+            panic!("listener was not set")
+        };
+        Unauth(
+            inner
+                .shared_h2_connection()
+                .expect("requires an H2 connection"),
+        )
     }
 }
 
@@ -423,9 +439,11 @@ impl FakeChatConnection {
     pub fn new<'a>(
         tokio_runtime: tokio::runtime::Handle,
         listener: chat::ws::EventListener,
+        grpc_overrides: impl IntoIterator<Item = &'static str>,
         alerts: impl IntoIterator<Item = &'a str>,
     ) -> (Self, FakeChatRemote) {
-        let (inner, remote) = ChatConnection::new_fake(tokio_runtime, listener, alerts);
+        let (inner, remote) =
+            ChatConnection::new_fake(tokio_runtime, listener, grpc_overrides, alerts);
         (Self(inner), remote)
     }
 
@@ -533,8 +551,10 @@ async fn establish_chat_connection(
                 proxy_mode,
             ) {
                 (None, DirectOrProxyModeDiscriminants::DirectOnly)
+                | (None, DirectOrProxyModeDiscriminants::DirectThenProxy)
                 | (Some(_), DirectOrProxyModeDiscriminants::ProxyOnly)
-                | (Some(_), DirectOrProxyModeDiscriminants::ProxyThenDirect) => {
+                | (Some(_), DirectOrProxyModeDiscriminants::ProxyThenDirect)
+                | (Some(_), DirectOrProxyModeDiscriminants::DirectThenProxy) => {
                     log::info!("successfully connected {kind} chat")
                 }
                 (None, DirectOrProxyModeDiscriminants::ProxyThenDirect) => log::warn!(
@@ -811,6 +831,17 @@ impl dyn ProvisioningListener {
 pub struct PreKeysResponse {
     pub identity_key: IdentityKey,
     pub pre_key_bundles: Vec<PreKeyBundle>,
+}
+
+// Must be kept in sync with the app languages.
+#[repr(u8)]
+#[derive(derive_more::TryFrom)]
+#[try_from(repr)]
+pub enum UserBasedSendAuthorizationKind {
+    Story,
+    AccessKey,
+    Group,
+    UnrestrictedUnauthenticatedAccess,
 }
 
 #[cfg(test)]

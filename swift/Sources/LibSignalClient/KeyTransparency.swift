@@ -17,6 +17,8 @@ public enum KeyTransparency {
         func setLastDistinguishedTreeHead(to: Data) async
         func getAccountData(for aci: Aci) async -> Data?
         func setAccountData(_ data: Data, for aci: Aci) async
+        func getAccountData(for aci: Aci, context: StoreContext) -> Data?
+        func setAccountData(_ data: Data, for aci: Aci, context: StoreContext)
     }
 
     /// ACI descriptor for key transparency requests.
@@ -61,6 +63,46 @@ public enum KeyTransparency {
             case .contact: nil
             }
         }
+    }
+
+    /// A tag identifying an optional field of the account data.
+    ///
+    /// (Must be in sync with the Rust counterpart)
+    public enum AccountDataField: UInt8 {
+        case e164 = 0
+        case usernameHash = 1
+    }
+
+    /// Resets a particular field in the data associated with given ACI.
+    ///
+    /// Must only be called for the "self" account when either E.164 or username
+    /// change is performed.
+    ///
+    /// Upon successful completion the data associated with the account will be
+    /// updated in the store, if it was present to begin with, noop if it was not.
+    ///
+    /// - Parameters:
+    ///   - field: Account data field to be reset (E.164 or username hash).
+    ///   - aci: An ACI of "self" account.
+    ///   - store: local persistent storage for key transparency-related data.
+    /// - Throws: ``SignalError/invalidArgument(_:)`` if the stored data cannot
+    ///   be decoded correctly, which means data corruption.
+    public static func resetField(
+        _ field: AccountDataField,
+        for aci: Aci,
+        store: some Store,
+        context: StoreContext
+    ) throws {
+        guard let accountData = store.getAccountData(for: aci, context: context) else { return }
+        let updated = try accountData.withUnsafeBorrowedBuffer { accountDataBuffer in
+            try invokeFnReturningData {
+                signal_key_transparency_reset_data_field($0, accountDataBuffer, field.rawValue)
+            }
+        }
+        if updated.isEmpty {
+            throw SignalError.invalidArgument("failed to decode account data")
+        }
+        store.setAccountData(updated, for: aci, context: context)
     }
 
     /// Typed API to access the key transparency subsystem using an existing
@@ -132,9 +174,8 @@ public enum KeyTransparency {
         ///   - e164Info: E.164 identifying information. Optional.
         ///   - usernameHash: Hash of the username. Optional.
         ///   - store: Local key transparency storage. It will be queried for both
-        ///     the account data and the latest distinguished tree head before sending the
-        ///     server request and, if the request succeeds, will be updated with the
-        ///     search operation results.
+        ///     the account data  before sending the server request and, if the
+        ///     request succeeds, will be updated with the check results.
         /// - Throws:
         ///   - ``SignalError/keyTransparencyError`` for errors related to key transparency logic, which
         ///     includes missing required fields in the serialized data. Retrying the search without
@@ -168,9 +209,9 @@ public enum KeyTransparency {
             let uak = e164Info?.unidentifiedAccessKey
 
             let accountData = await store.getAccountData(for: aciInfo.aci)
-            let distinguished = try await self.updateDistinguished(store)
+            let knownDistinguished = await store.getLastDistinguishedTreeHead()
 
-            let bytes = try await self.asyncContext.invokeAsyncFunction { promise, tokioContext in
+            let rawResponse = try await self.asyncContext.invokeAsyncFunction { promise, tokioContext in
                 try! withAllBorrowed(
                     self.chatConnection,
                     aciInfo.aci,
@@ -178,7 +219,7 @@ public enum KeyTransparency {
                     uak,
                     usernameHash,
                     accountData,
-                    distinguished
+                    knownDistinguished
                 ) { chatHandle, aciBytes, identityKeyHandle, uakBytes, hashBytes, accDataBytes, distinguishedBytes in
                     signal_key_transparency_check(
                         promise,
@@ -197,31 +238,13 @@ public enum KeyTransparency {
                     )
                 }
             }
-            await store.setAccountData(Data(consuming: bytes), for: aciInfo.aci)
-        }
+            let updatedAccountData = Data(consuming: rawResponse.first)
+            let updatedDistinguished = Data(consuming: rawResponse.second)
 
-        private func updateDistinguished(_ store: some Store) async throws -> Data {
-            let knownDistinguished = await store.getLastDistinguishedTreeHead()
-            let latestDistinguished = try await getDistinguished(knownDistinguished)
-            await store.setLastDistinguishedTreeHead(to: latestDistinguished)
-            return latestDistinguished
-        }
-
-        internal func getDistinguished(
-            _ distinguished: Data? = nil
-        ) async throws -> Data {
-            let bytes = try await self.asyncContext.invokeAsyncFunction { promise, tokioContext in
-                try! withAllBorrowed(self.chatConnection, distinguished) { chatHandle, distinguishedBytes in
-                    signal_key_transparency_distinguished(
-                        promise,
-                        tokioContext.const(),
-                        self.environment.rawValue,
-                        chatHandle.const(),
-                        distinguishedBytes
-                    )
-                }
+            await store.setAccountData(updatedAccountData, for: aciInfo.aci)
+            if !updatedDistinguished.isEmpty {
+                await store.setLastDistinguishedTreeHead(to: updatedDistinguished)
             }
-            return Data(consuming: bytes)
         }
     }
 }

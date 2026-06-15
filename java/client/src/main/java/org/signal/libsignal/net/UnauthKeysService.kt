@@ -12,31 +12,6 @@ import org.signal.libsignal.protocol.IdentityKey
 import org.signal.libsignal.protocol.ServiceId
 import org.signal.libsignal.protocol.ecc.ECPublicKey
 import org.signal.libsignal.protocol.state.PreKeyBundle
-import org.signal.libsignal.zkgroup.groupsend.GroupSendFullToken
-
-public sealed class UserBasedAuthorization {
-  public data class AccessKey(
-    val bytes: ByteArray,
-  ) : UserBasedAuthorization() {
-    // Because the default equals+hashCode compare based on identity, not value
-    override fun equals(other: Any?): Boolean {
-      if (this === other) return true
-      if (javaClass != other?.javaClass) return false
-
-      other as AccessKey
-
-      if (!bytes.contentEquals(other.bytes)) return false
-
-      return true
-    }
-
-    override fun hashCode(): Int = bytes.contentHashCode()
-  }
-
-  public data class GroupSend(
-    val token: GroupSendFullToken,
-  ) : UserBasedAuthorization()
-}
 
 public sealed class DeviceSpecifier {
   public object AllDevices : DeviceSpecifier()
@@ -90,10 +65,19 @@ public class UnauthKeysService(
           }
 
           is UserBasedAuthorization.GroupSend -> {
-            Native.UnauthenticatedChatConnection_get_pre_keys_access_group_auth(
+            Native.UnauthenticatedChatConnection_get_pre_keys_group_auth(
               asyncCtx,
               conn,
               auth.token.serialize(),
+              target.toServiceIdFixedWidthBinary(),
+              device,
+            )
+          }
+
+          is UserBasedAuthorization.UnrestrictedUnauthenticatedAccess -> {
+            Native.UnauthenticatedChatConnection_get_pre_keys_unrestricted_auth(
+              asyncCtx,
+              conn,
               target.toServiceIdFixedWidthBinary(),
               device,
             )

@@ -81,7 +81,6 @@ macro_rules! define_keys {
         }
 
         impl RemoteConfigKey {
-            #[doc = concat!("ts: `export const NetRemoteConfigKeys = [", $("'", $key, "', "),* ,"] as const;`")]
             pub const KEYS: &[&str] = &[$($key),*];
             #[cfg(test)]
             const IDENTITIER_KEY_PAIRS: &[(&str, &str)] = &[
@@ -116,6 +115,10 @@ pub enum RemoteConfigKey {
     AccountsAnonymousLookupUsernameLink => "grpc.AccountsAnonymousLookupUsernameLink.2",
     AccountsAnonymousCheckAccountExistence => "grpc.AccountsAnonymousCheckAccountExistence.2",
     MessagesAnonymousSendMultiRecipientMessage => "grpc.MessagesAnonymousSendMultiRecipientMessage.2",
+    MessagesAnonymousSendSingleRecipientMessage => "grpc.MessagesAnonymousSendSingleRecipientMessage",
+    AttachmentsGetUploadForm => "grpc.AttachmentsGetUploadForm",
+    MessagesSendMessage => "grpc.MessagesSendMessage",
+    BackupsAnonymousGetUploadForm => "grpc.BackupsAnonymousGetUploadForm",
 }
 }
 
@@ -295,8 +298,11 @@ mod tests {
         // Add new services as they become relevant.
         let all_known_grpc_keys: HashSet<&str> = std::iter::empty()
             .chain(services::AccountsAnonymous::iter().map(|x| x.into()))
+            .chain(services::Attachments::iter().map(|x| x.into()))
+            .chain(services::BackupsAnonymous::iter().map(|x| x.into()))
             .chain(services::KeysAnonymous::iter().map(|x| x.into()))
             .chain(services::MessagesAnonymous::iter().map(|x| x.into()))
+            .chain(services::Messages::iter().map(|x| x.into()))
             .collect();
 
         for key in super::RemoteConfigKey::KEYS

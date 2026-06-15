@@ -468,7 +468,7 @@ structure rand_core.CryptoRng (Self : Type) where
   RngCoreInst : rand_core.RngCore Self
 
 /-- Trait declaration: [rand::rng::Rng]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.2/src/rng.rs', lines 58:0-58:22
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
     Name pattern: [rand::rng::Rng]
     Visibility: public -/
 @[rust_trait "rand::rng::Rng" (parentClauses := ["rand_coreRngCoreInst"])]
@@ -476,7 +476,7 @@ structure rand.rng.Rng (Self : Type) where
   rand_coreRngCoreInst : rand_core.RngCore Self
 
 /-- Trait declaration: [rand::distr::distribution::Distribution]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.2/src/distr/distribution.rs', lines 35:0-35:25
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/distr/distribution.rs', lines 35:0-35:25
     Name pattern: [rand::distr::distribution::Distribution]
     Visibility: public -/
 @[rust_trait "rand::distr::distribution::Distribution"]
@@ -485,14 +485,14 @@ structure rand.distr.distribution.Distribution (Self : Type) (T : Type) where
     Result (T × R)
 
 /-- [rand::distr::StandardUniform]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.2/src/distr/mod.rs', lines 214:0-214:26
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/distr/mod.rs', lines 214:0-214:26
     Name pattern: [rand::distr::StandardUniform]
     Visibility: public -/
 @[reducible, rust_type "rand::distr::StandardUniform"]
 def rand.distr.StandardUniform := Unit
 
 /-- Trait declaration: [rand::rng::Fill]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.2/src/rng.rs', lines 366:0-366:14
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 366:0-366:14
     Name pattern: [rand::rng::Fill]
     Visibility: public -/
 @[rust_trait "rand::rng::Fill"]
