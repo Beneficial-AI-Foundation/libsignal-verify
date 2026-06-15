@@ -426,7 +426,7 @@ def
     Name pattern: [libsignal_core::version::VERSION]
     Visibility: public -/
 @[global_simps, irreducible, rust_const "libsignal_core::version::VERSION"]
-def libsignal_core.version.VERSION : Str := toStr "0.90.0"
+def libsignal_core.version.VERSION : Str := toStr "0.96.0"
 
 /-- Trait implementation: [subtle::{subtle::ConstantTimeEq for u8}]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36

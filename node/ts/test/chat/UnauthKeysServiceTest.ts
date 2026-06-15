@@ -6,7 +6,6 @@
 import { config, expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { Buffer } from 'node:buffer';
 import * as Native from '../../Native.js';
 import * as util from '../util.js';
 import { TokioAsyncContext, UnauthKeysService } from '../../net.js';
@@ -15,6 +14,7 @@ import { Aci } from '../../Address.js';
 import { GroupSendFullToken } from '../../zkgroup/index.js';
 import { PublicKey } from '../../EcKeys.js';
 import { ErrorCode, KEMPublicKey, LibSignalErrorBase } from '../../index.js';
+import { fromBase64, toBase64 } from '../util.js';
 
 use(chaiAsPromised);
 
@@ -40,39 +40,20 @@ describe('UnauthKeysService', () => {
     const IDENTITY_KEY = dummyEcPublicKey(0x12);
 
     const SIGNED_PRE_KEY_PUBLIC = dummyEcPublicKey(0x34);
-    const SIGNED_PRE_KEY_SIGNATURE = repeatedBytes(0x56, 64);
+    const SIGNED_PRE_KEY_SIGNATURE = util.repeatedBytes(0x56, 64);
     const KYBER_PRE_KEY_PUBLIC = dummyKemPublicKey(0x78);
-    const KYBER_PRE_KEY_SIGNATURE = repeatedBytes(0x9a, 64);
+    const KYBER_PRE_KEY_SIGNATURE = util.repeatedBytes(0x9a, 64);
     const PRE_KEY_PUBLIC = dummyEcPublicKey(0x43);
 
     const SECOND_PRE_KEY_PUBLIC = dummyEcPublicKey(0xd4);
     const SECOND_SIGNED_PRE_KEY_PUBLIC = dummyEcPublicKey(0x21);
-    const SECOND_SIGNED_PRE_KEY_SIGNATURE = repeatedBytes(0x32, 64);
+    const SECOND_SIGNED_PRE_KEY_SIGNATURE = util.repeatedBytes(0x32, 64);
     const SECOND_KYBER_PRE_KEY_PUBLIC = dummyKemPublicKey(0x64);
-    const SECOND_KYBER_PRE_KEY_SIGNATURE = repeatedBytes(0x64, 64);
+    const SECOND_KYBER_PRE_KEY_SIGNATURE = util.repeatedBytes(0x64, 64);
 
     const TEST_GROUP_SEND_TOKEN = new GroupSendFullToken(
       fromBase64('ABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABo5c+LAQAA')
     );
-
-    function fromBase64(base64: string): Uint8Array<ArrayBuffer> {
-      return Uint8Array.from(Buffer.from(base64, 'base64'));
-    }
-
-    function toBase64(buffer: Uint8Array<ArrayBuffer>): string {
-      return Buffer.from(buffer).toString('base64');
-    }
-
-    function repeatedBytes(
-      fill: number,
-      count: number
-    ): Uint8Array<ArrayBuffer> {
-      const out = new Uint8Array<ArrayBuffer>(new ArrayBuffer(count));
-      for (let i = 0; i < count; i++) {
-        out[i] = fill;
-      }
-      return out;
-    }
 
     function bytePrefix(
       prefixByte: number,
@@ -85,13 +66,15 @@ describe('UnauthKeysService', () => {
     }
 
     function dummyEcPublicKey(fill: number): PublicKey {
-      return PublicKey.deserialize(bytePrefix(0x05, repeatedBytes(fill, 32)));
+      return PublicKey.deserialize(
+        bytePrefix(0x05, util.repeatedBytes(fill, 32))
+      );
     }
 
     function dummyKemPublicKey(fill: number): KEMPublicKey {
       return KEMPublicKey.deserialize(
         // 1568 is kyber1024::Parameters::PUBLIC_KEY_LENGTH
-        bytePrefix(0x08, repeatedBytes(fill, 1568))
+        bytePrefix(0x08, util.repeatedBytes(fill, 1568))
       );
     }
 

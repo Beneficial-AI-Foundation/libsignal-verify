@@ -8,7 +8,9 @@ use std::fmt;
 
 use libsignal_net::infra::errors::{RetryLater, TransportConnectError};
 use libsignal_net::infra::ws::WebSocketConnectError;
+use libsignal_net_chat::api::backups::{BackupAuthCredentialRejected, GetUploadFormFailure};
 use libsignal_net_chat::api::keys::GetPreKeysFailure;
+use libsignal_net_chat::api::messages::UploadTooLarge;
 use neon::thread::LocalKey;
 #[cfg(feature = "signal-media")]
 use signal_media::sanitize::mp4::{Error as Mp4Error, ParseError as Mp4ParseError};
@@ -248,6 +250,45 @@ impl DefaultSignalNodeError for attest::enclave::Error {}
 
 impl DefaultSignalNodeError for signal_crypto::Error {}
 
+impl DefaultSignalNodeError for libsignal_account_keys::Error {}
+
+impl SignalNodeError for libsignal_net::svr2::Error {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        let (name, make_props) = match &self {
+            Self::Service(_)
+            | Self::AllConnectionAttemptsFailed
+            | Self::Connect(_)
+            | Self::EnclaveNotFound
+            | Self::Protocol(_) => (Some(IO_ERROR), None),
+            Self::RateLimited(inner) => return inner.into_throwable(cx, operation_name),
+            Self::AttestationError(_) => (Some("SvrAttestationError"), None),
+            Self::RestoreFailed { tries_left } => {
+                let tries_remaining = *tries_left;
+                (
+                    Some("SvrRestoreFailed"),
+                    Some(move |cx: &mut C| {
+                        let props = cx.empty_object();
+                        let tries_remaining = tries_remaining.convert_into(cx)?;
+                        props.set(cx, "triesRemaining", tries_remaining)?;
+                        Ok(props.upcast())
+                    }),
+                )
+            }
+            Self::DataMissing => (Some("SvrDataMissing"), None),
+        };
+
+        let message = self.to_string();
+        match make_props {
+            Some(f) => new_js_error(cx, name, &message, operation_name, f),
+            None => new_js_error(cx, name, &message, operation_name, no_extra_properties),
+        }
+    }
+}
+
 impl SignalNodeError for libsignal_net::svrb::Error {
     fn into_throwable<'a, C: Context<'a>>(
         self,
@@ -255,9 +296,10 @@ impl SignalNodeError for libsignal_net::svrb::Error {
         operation_name: &str,
     ) -> Handle<'a, JsError> {
         let (name, make_props) = match &self {
-            Self::Service(_) | Self::AllConnectionAttemptsFailed | Self::Connect(_) => {
-                (Some(IO_ERROR), None)
-            }
+            Self::Service(_)
+            | Self::AllConnectionAttemptsFailed
+            | Self::Connect(_)
+            | Self::Protocol(_) => (Some(IO_ERROR), None),
             Self::RateLimited(inner) => return inner.into_throwable(cx, operation_name),
             Self::AttestationError(_) => (Some("SvrAttestationError"), None),
             Self::RestoreFailed(tries_remaining) => (
@@ -270,9 +312,8 @@ impl SignalNodeError for libsignal_net::svrb::Error {
                 }),
             ),
             Self::DataMissing => (Some("SvrDataMissing"), None),
-            Self::Protocol(_) => (Some("IoError"), None),
             Self::PreviousBackupDataInvalid => (Some("SvrInvalidData"), None),
-            Self::MetadataInvalid => (Some("SvrInvalidData"), None),
+            Self::MetadataInvalid(_) => (Some("SvrInvalidData"), None),
             Self::DecryptionError(_) => (Some("SvrInvalidData"), None),
         };
 
@@ -636,6 +677,96 @@ impl SignalNodeError for std::convert::Infallible {
     }
 }
 
+impl SignalNodeError for UploadTooLarge {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        new_js_error(
+            cx,
+            Some("UploadTooLarge"),
+            &self.to_string(),
+            operation_name,
+            no_extra_properties,
+        )
+    }
+}
+
+impl SignalNodeError for GetUploadFormFailure {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        let msg = self.to_string();
+        match self {
+            GetUploadFormFailure::Unauthorized => new_js_error(
+                cx,
+                Some("RequestUnauthorized"),
+                &msg,
+                operation_name,
+                no_extra_properties,
+            ),
+            GetUploadFormFailure::UploadTooLarge => new_js_error(
+                cx,
+                Some("UploadTooLarge"),
+                &msg,
+                operation_name,
+                no_extra_properties,
+            ),
+        }
+    }
+}
+
+impl SignalNodeError for BackupAuthCredentialRejected {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        new_js_error(
+            cx,
+            Some("RequestUnauthorized"),
+            &self.to_string(),
+            operation_name,
+            no_extra_properties,
+        )
+    }
+}
+
+/// Returns a function that produces the extra properties for a `MismatchedDevices`
+/// `LibSignalError`.
+///
+/// See [`new_js_error`].
+fn extra_props_for_mismatched_devices<'a, C: Context<'a>>(
+    mismatched_device_errors: impl IntoIterator<
+        Item = libsignal_net_chat::api::messages::MismatchedDeviceError,
+    >,
+) -> impl FnOnce(&mut C) -> JsResult<'a, JsValue> {
+    move |cx| {
+        let errors_module: Handle<JsObject> = match ERRORS_MODULE.get(cx) {
+            Some(root) => root.to_inner(cx),
+            None => cx.throw_error("registerErrors not called")?,
+        };
+        // We want to use the actual class so it can have a real ServiceId object as a
+        // field, which isn't currently accessible to the Rust side of the bridge.
+        let mismatched_device_entry_cls: Handle<JsFunction> =
+            errors_module.get(cx, "MismatchedDevicesEntry")?;
+        let mismatched_device_entry_array = cx.empty_array();
+        for (error, i) in mismatched_device_errors.into_iter().zip(0..) {
+            let js_entry = error.convert_into(cx)?;
+            let js_entry_with_strong_type =
+                mismatched_device_entry_cls.construct(cx, [js_entry.upcast()])?;
+            mismatched_device_entry_array.set(cx, i, js_entry_with_strong_type)?;
+        }
+
+        let props = JsObject::new(cx);
+        props.set(cx, "entries", mismatched_device_entry_array)?;
+        Ok(props.upcast())
+    }
+}
+
 impl SignalNodeError for libsignal_net_chat::api::messages::MultiRecipientSendFailure {
     fn into_throwable<'a, C: Context<'a>>(
         self,
@@ -651,29 +782,72 @@ impl SignalNodeError for libsignal_net_chat::api::messages::MultiRecipientSendFa
                 operation_name,
                 no_extra_properties,
             ),
-            Self::MismatchedDevices(mismatched_device_errors) => {
-                new_js_error(cx, Some("MismatchedDevices"), &msg, operation_name, |cx| {
-                    let errors_module: Handle<JsObject> = match ERRORS_MODULE.get(cx) {
-                        Some(root) => root.to_inner(cx),
-                        None => cx.throw_error("registerErrors not called")?,
-                    };
-                    // We want to use the actual class so it can have a real ServiceId object as a
-                    // field, which isn't currently accessible to the Rust side of the bridge.
-                    let mismatched_device_entry_cls: Handle<JsFunction> =
-                        errors_module.get(cx, "MismatchedDevicesEntry")?;
-                    let mismatched_device_entry_array = cx.empty_array();
-                    for (error, i) in mismatched_device_errors.into_iter().zip(0..) {
-                        let js_entry = error.convert_into(cx)?;
-                        let js_entry_with_strong_type =
-                            mismatched_device_entry_cls.construct(cx, [js_entry.upcast()])?;
-                        mismatched_device_entry_array.set(cx, i, js_entry_with_strong_type)?;
-                    }
+            Self::MismatchedDevices(mismatched_device_errors) => new_js_error(
+                cx,
+                Some("MismatchedDevices"),
+                &msg,
+                operation_name,
+                extra_props_for_mismatched_devices(mismatched_device_errors),
+            ),
+        }
+    }
+}
 
-                    let props = JsObject::new(cx);
-                    props.set(cx, "entries", mismatched_device_entry_array)?;
-                    Ok(props.upcast())
-                })
-            }
+impl SignalNodeError for libsignal_net_chat::api::messages::SealedSendFailure {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        let msg = self.to_string();
+        match self {
+            Self::ServiceIdNotFound => new_js_error(
+                cx,
+                Some("ServiceIdNotFound"),
+                &msg,
+                operation_name,
+                no_extra_properties,
+            ),
+            Self::Unauthorized => new_js_error(
+                cx,
+                Some("RequestUnauthorized"),
+                &msg,
+                operation_name,
+                no_extra_properties,
+            ),
+            Self::MismatchedDevices(mismatched_device_error) => new_js_error(
+                cx,
+                Some("MismatchedDevices"),
+                &msg,
+                operation_name,
+                extra_props_for_mismatched_devices([mismatched_device_error]),
+            ),
+        }
+    }
+}
+
+impl SignalNodeError for libsignal_net_chat::api::messages::UnsealedSendFailure {
+    fn into_throwable<'a, C: Context<'a>>(
+        self,
+        cx: &mut C,
+        operation_name: &str,
+    ) -> Handle<'a, JsError> {
+        let msg = self.to_string();
+        match self {
+            Self::ServiceIdNotFound => new_js_error(
+                cx,
+                Some("ServiceIdNotFound"),
+                &msg,
+                operation_name,
+                no_extra_properties,
+            ),
+            Self::MismatchedDevices(mismatched_device_error) => new_js_error(
+                cx,
+                Some("MismatchedDevices"),
+                &msg,
+                operation_name,
+                extra_props_for_mismatched_devices([mismatched_device_error]),
+            ),
         }
     }
 }

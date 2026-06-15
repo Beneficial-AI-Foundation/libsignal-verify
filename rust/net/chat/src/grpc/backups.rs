@@ -9,13 +9,20 @@ use libsignal_net_grpc::proto::chat::backup::get_upload_form_request::{
     MediaUploadType, MessagesUploadType, UploadType,
 };
 use libsignal_net_grpc::proto::chat::backup::{
-    GetUploadFormRequest, GetUploadFormResponse, SignedPresentation, get_upload_form_response,
+    DeleteAllRequest, DeleteAllResponse, GetCdnCredentialsRequest, GetCdnCredentialsResponse,
+    GetSvrBCredentialsRequest, GetSvrBCredentialsResponse, GetUploadFormRequest,
+    GetUploadFormResponse, RefreshRequest, RefreshResponse, SetPublicKeyRequest,
+    SetPublicKeyResponse, SignedPresentation, delete_all_response, get_cdn_credentials_response,
+    get_svr_b_credentials_response, get_upload_form_response, refresh_response,
+    set_public_key_response,
 };
+use libsignal_net_grpc::proto::chat::common;
 use libsignal_net_grpc::proto::chat::errors::{FailedPrecondition, FailedZkAuthentication};
 
 use super::{GrpcServiceProvider, OverGrpc, log_and_send};
 use crate::api::backups::{
-    BackupAuth, BackupAuthPresentation, GetMediaUploadFormFailure, GetUploadFormFailure,
+    BackupAuth, BackupAuthCredentialRejected, BackupAuthPresentation, CdnCredentials,
+    GetUploadFormFailure,
 };
 use crate::api::{RequestError, Unauth, UploadForm};
 use crate::logging::{DebugByCalling, Redact};
@@ -43,9 +50,8 @@ impl<T: GrpcServiceProvider> crate::api::backups::UnauthenticatedChatApi<OverGrp
 
         let request = GetUploadFormRequest {
             signed_presentation: Some(auth.into()),
-            upload_type: Some(UploadType::Messages(MessagesUploadType {
-                upload_length: upload_size,
-            })),
+            upload_length: upload_size,
+            upload_type: Some(UploadType::Messages(MessagesUploadType {})),
         };
         let log_safe_description = Redact(&request).to_string();
         let response: GetUploadFormResponse = log_and_send("unauth", &log_safe_description, || {
@@ -60,14 +66,16 @@ impl<T: GrpcServiceProvider> crate::api::backups::UnauthenticatedChatApi<OverGrp
     async fn get_media_upload_form(
         &self,
         auth: &BackupAuth,
+        upload_size: u64,
         rng: &mut (dyn rand::CryptoRng + Send),
-    ) -> Result<UploadForm, RequestError<GetMediaUploadFormFailure>> {
+    ) -> Result<UploadForm, RequestError<GetUploadFormFailure>> {
         let mut backup_service = BackupsAnonymousClient::new(self.0.service());
 
         let auth = auth.present(rng)?;
 
         let request = GetUploadFormRequest {
             signed_presentation: Some(auth.into()),
+            upload_length: upload_size,
             upload_type: Some(UploadType::Media(MediaUploadType {})),
         };
         let log_safe_description = Redact(&request).to_string();
@@ -77,19 +85,186 @@ impl<T: GrpcServiceProvider> crate::api::backups::UnauthenticatedChatApi<OverGrp
         .await?
         .into_inner();
 
-        response
-            .try_into()
-            .map_err(|e: RequestError<GetUploadFormFailure>| {
-                e.flat_map_other(|e| match e {
-                    GetUploadFormFailure::Unauthorized => {
-                        RequestError::Other(GetMediaUploadFormFailure::Unauthorized)
-                    }
-                    GetUploadFormFailure::FileTooLarge => RequestError::Unexpected {
-                        log_safe: "unexpected oversize_upload for media upload form request"
-                            .to_owned(),
-                    },
-                })
+        response.try_into()
+    }
+}
+
+impl<T: GrpcServiceProvider> Unauth<T> {
+    pub async fn set_backup_public_key(
+        &self,
+        auth: &BackupAuth<'_>,
+        rng: &mut (dyn rand::CryptoRng + Send),
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
+        let mut backup_service = BackupsAnonymousClient::new(self.0.service());
+
+        let public_key = auth.signing_public_key();
+        let auth = auth.present(rng)?;
+
+        let request = SetPublicKeyRequest {
+            signed_presentation: Some(auth.into()),
+            public_key: public_key.serialize().into_vec(),
+        };
+        let log_safe_description = Redact(&request).to_string();
+        let response: SetPublicKeyResponse = log_and_send("unauth", &log_safe_description, || {
+            backup_service.set_public_key(request)
+        })
+        .await?
+        .into_inner();
+
+        let response = response.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
+        })?;
+        match response {
+            set_public_key_response::Response::Success(_) => Ok(()),
+            set_public_key_response::Response::FailedAuthentication(FailedZkAuthentication {
+                description,
+            }) => {
+                log::warn!("failed zk auth: {description}");
+                Err(RequestError::Other(BackupAuthCredentialRejected))
+            }
+        }
+    }
+
+    pub async fn get_backup_cdn_credentials(
+        &self,
+        auth: &BackupAuth<'_>,
+        cdn: u32,
+        rng: &mut (dyn rand::CryptoRng + Send),
+    ) -> Result<CdnCredentials, RequestError<BackupAuthCredentialRejected>> {
+        let mut backup_service = BackupsAnonymousClient::new(self.0.service());
+
+        let auth = auth.present(rng)?;
+
+        let request = GetCdnCredentialsRequest {
+            signed_presentation: Some(auth.into()),
+            cdn,
+        };
+        let log_safe_description = Redact(&request).to_string();
+        let response: GetCdnCredentialsResponse =
+            log_and_send("unauth", &log_safe_description, || {
+                backup_service.get_cdn_credentials(request)
             })
+            .await?
+            .into_inner();
+
+        let response = response.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
+        })?;
+        match response {
+            get_cdn_credentials_response::Response::CdnCredentials(
+                get_cdn_credentials_response::CdnCredentials { headers },
+            ) => Ok(CdnCredentials {
+                headers: headers.into_iter().collect(),
+            }),
+            get_cdn_credentials_response::Response::FailedAuthentication(
+                FailedZkAuthentication { description },
+            ) => {
+                log::warn!("failed zk auth: {description}");
+                Err(RequestError::Other(BackupAuthCredentialRejected))
+            }
+        }
+    }
+
+    pub async fn get_backup_svrb_credentials(
+        &self,
+        auth: &BackupAuth<'_>,
+        rng: &mut (dyn rand::CryptoRng + Send),
+    ) -> Result<libsignal_net::auth::Auth, RequestError<BackupAuthCredentialRejected>> {
+        let mut backup_service = BackupsAnonymousClient::new(self.0.service());
+
+        let auth = auth.present(rng)?;
+
+        let request = GetSvrBCredentialsRequest {
+            signed_presentation: Some(auth.into()),
+        };
+        let log_safe_description = Redact(&request).to_string();
+        let response: GetSvrBCredentialsResponse =
+            log_and_send("unauth", &log_safe_description, || {
+                backup_service.get_svr_b_credentials(request)
+            })
+            .await?
+            .into_inner();
+
+        let response = response.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
+        })?;
+        match response {
+            get_svr_b_credentials_response::Response::SvrbCredentials(
+                get_svr_b_credentials_response::SvrBCredentials { username, password },
+            ) => Ok(libsignal_net::auth::Auth { username, password }),
+            get_svr_b_credentials_response::Response::FailedAuthentication(
+                FailedZkAuthentication { description },
+            ) => {
+                log::warn!("failed zk auth: {description}");
+                Err(RequestError::Other(BackupAuthCredentialRejected))
+            }
+        }
+    }
+
+    pub async fn refresh_backup(
+        &self,
+        auth: &BackupAuth<'_>,
+        rng: &mut (dyn rand::CryptoRng + Send),
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
+        let mut backup_service = BackupsAnonymousClient::new(self.0.service());
+
+        let auth = auth.present(rng)?;
+
+        let request = RefreshRequest {
+            signed_presentation: Some(auth.into()),
+        };
+        let log_safe_description = Redact(&request).to_string();
+        let response: RefreshResponse = log_and_send("unauth", &log_safe_description, || {
+            backup_service.refresh(request)
+        })
+        .await?
+        .into_inner();
+
+        let response = response.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
+        })?;
+        match response {
+            refresh_response::Response::Success(_) => Ok(()),
+            refresh_response::Response::FailedAuthentication(FailedZkAuthentication {
+                description,
+            }) => {
+                log::warn!("failed zk auth: {description}");
+                Err(RequestError::Other(BackupAuthCredentialRejected))
+            }
+        }
+    }
+
+    pub async fn backup_delete_all(
+        &self,
+        auth: &BackupAuth<'_>,
+        rng: &mut (dyn rand::CryptoRng + Send),
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
+        let mut backup_service = BackupsAnonymousClient::new(self.0.service());
+
+        let auth = auth.present(rng)?;
+
+        let request = DeleteAllRequest {
+            signed_presentation: Some(auth.into()),
+        };
+        let log_safe_description = Redact(&request).to_string();
+        let response: DeleteAllResponse = log_and_send("unauth", &log_safe_description, || {
+            backup_service.delete_all(request)
+        })
+        .await?
+        .into_inner();
+
+        let response = response.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
+        })?;
+        match response {
+            delete_all_response::Response::Success(_) => Ok(()),
+            delete_all_response::Response::FailedAuthentication(FailedZkAuthentication {
+                description,
+            }) => {
+                log::warn!("failed zk auth: {description}");
+                Err(RequestError::Other(BackupAuthCredentialRejected))
+            }
+        }
     }
 }
 
@@ -98,14 +273,12 @@ impl TryFrom<GetUploadFormResponse> for UploadForm {
     type Error = RequestError<GetUploadFormFailure>;
 
     fn try_from(value: GetUploadFormResponse) -> Result<Self, Self::Error> {
-        use get_upload_form_response::Outcome;
-
-        let outcome = value.outcome.ok_or_else(|| RequestError::Unexpected {
-            log_safe: "missing outcome".to_owned(),
+        let response = value.response.ok_or_else(|| RequestError::Unexpected {
+            log_safe: "missing response".to_owned(),
         })?;
 
-        match outcome {
-            Outcome::UploadForm(get_upload_form_response::UploadForm {
+        match response {
+            get_upload_form_response::Response::UploadForm(common::UploadForm {
                 cdn,
                 key,
                 headers,
@@ -117,14 +290,18 @@ impl TryFrom<GetUploadFormResponse> for UploadForm {
                 signed_upload_url: signed_upload_location,
             }),
 
-            Outcome::FailedAuthentication(FailedZkAuthentication { description }) => {
+            get_upload_form_response::Response::FailedAuthentication(FailedZkAuthentication {
+                description,
+            }) => {
                 log::warn!("failed zk auth: {description}");
                 Err(RequestError::Other(GetUploadFormFailure::Unauthorized))
             }
 
-            Outcome::ExceedsMaxUploadLength(FailedPrecondition { description }) => {
+            get_upload_form_response::Response::ExceedsMaxUploadLength(FailedPrecondition {
+                description,
+            }) => {
                 log::warn!("exceeded max upload length: {description}");
-                Err(RequestError::Other(GetUploadFormFailure::FileTooLarge))
+                Err(RequestError::Other(GetUploadFormFailure::UploadTooLarge))
             }
         }
     }
@@ -135,6 +312,7 @@ impl std::fmt::Display for Redact<GetUploadFormRequest> {
         let Self(GetUploadFormRequest {
             // Omit the presentation, in line with WS logs only showing the URL and not headers.
             signed_presentation: _,
+            upload_length,
             upload_type,
         }) = self;
 
@@ -142,17 +320,64 @@ impl std::fmt::Display for Redact<GetUploadFormRequest> {
             .field(
                 "type",
                 &DebugByCalling(|f| match upload_type {
-                    Some(UploadType::Messages(MessagesUploadType { upload_length })) => f
-                        .debug_struct("Messages")
-                        .field("length", upload_length)
-                        .finish(),
+                    Some(UploadType::Messages(MessagesUploadType {})) => {
+                        f.debug_struct("Messages").finish()
+                    }
                     Some(UploadType::Media(MediaUploadType {})) => f.debug_struct("Media").finish(),
                     None => f.write_str("<none>"),
                 }),
             )
+            .field("upload_length", upload_length)
             .finish()
     }
 }
+
+impl std::fmt::Display for Redact<SetPublicKeyRequest> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self(SetPublicKeyRequest {
+            // Omit the presentation, in line with WS logs only showing the URL and not headers.
+            signed_presentation: _,
+            public_key,
+        }) = self;
+
+        f.debug_struct("GetUploadFormRequest")
+            .field("public_key_type", public_key.first().unwrap_or(&0))
+            .finish()
+    }
+}
+
+impl std::fmt::Display for Redact<GetCdnCredentialsRequest> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self(GetCdnCredentialsRequest {
+            // Omit the presentation, in line with WS logs only showing the URL and not headers.
+            signed_presentation: _,
+            cdn,
+        }) = self;
+
+        f.debug_struct("GetCdnCredentialsRequest")
+            .field("cdn", cdn)
+            .finish()
+    }
+}
+
+macro_rules! redact_no_arg_backup_request {
+    ($name:ident) => {
+        impl std::fmt::Display for Redact<$name> {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                let Self($name {
+                    // Omit the presentation, in line with WS logs only showing the URL and not headers.
+                    signed_presentation: _,
+                }) = self;
+
+                f.debug_struct(stringify!($name)).finish_non_exhaustive()
+            }
+        }
+    };
+}
+
+redact_no_arg_backup_request!(GetSvrBCredentialsRequest);
+redact_no_arg_backup_request!(RefreshRequest);
+redact_no_arg_backup_request!(DeleteAllRequest);
 
 #[cfg(test)]
 mod test {
@@ -160,12 +385,13 @@ mod test {
     use std::fmt::Debug;
 
     use futures_util::FutureExt as _;
+    use libsignal_net_grpc::proto::chat::services;
     use test_case::test_case;
 
     use super::*;
     use crate::api::backups::UnauthenticatedChatApi;
     use crate::api::testutil::fixed_seed_test_rng;
-    use crate::grpc::testutil::{RequestValidator, err, ok, req};
+    use crate::grpc::testutil::{GrpcOverrideRequestValidator, RequestValidator, err, ok, req};
 
     /// A variation of `==` that ignores header order, since the gRPC encoding of this type uses a
     /// protobuf map for the headers, which is not guaranteed to preserve order.
@@ -189,7 +415,7 @@ mod test {
     }
 
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::UploadForm(get_upload_form_response::UploadForm {
+        response: Some(get_upload_form_response::Response::UploadForm(common::UploadForm {
             cdn: 123,
             key: "abcde".to_owned(),
             headers: HashMap::from_iter([
@@ -205,36 +431,38 @@ mod test {
         signed_upload_url: "http://example.org/upload".into(),
     }))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::FailedAuthentication(FailedZkAuthentication {
+        response: Some(get_upload_form_response::Response::FailedAuthentication(FailedZkAuthentication {
             description: "bad!".to_owned()
         }))
     }) => matches Err(RequestError::Other(GetUploadFormFailure::Unauthorized)))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::ExceedsMaxUploadLength(FailedPrecondition {
+        response: Some(get_upload_form_response::Response::ExceedsMaxUploadLength(FailedPrecondition {
             description: "bad!".to_owned()
         }))
-    }) => matches Err(RequestError::Other(GetUploadFormFailure::FileTooLarge)))]
+    }) => matches Err(RequestError::Other(GetUploadFormFailure::UploadTooLarge)))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: None,
+        response: None,
     }) => matches Err(RequestError::Unexpected { .. }))]
     #[test_case(err(tonic::Code::Internal) => matches Err(RequestError::Unexpected { .. }))]
     fn test_get_upload_form(
         response: http::Response<Vec<u8>>,
     ) -> Result<UploadForm, RequestError<GetUploadFormFailure>> {
-        let validator = RequestValidator {
-            expected: req(
-                "/org.signal.chat.backup.BackupsAnonymous/GetUploadForm",
-                GetUploadFormRequest {
-                    signed_presentation: Some(SignedPresentation {
-                        presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
-                        presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
-                    }),
-                    upload_type: Some(UploadType::Messages(MessagesUploadType {
+        let validator = GrpcOverrideRequestValidator {
+            message: services::BackupsAnonymous::GetUploadForm.into(),
+            validator: RequestValidator {
+                expected: req(
+                    "/org.signal.chat.backup.BackupsAnonymous/GetUploadForm",
+                    GetUploadFormRequest {
+                        signed_presentation: Some(SignedPresentation {
+                            presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                            presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                        }),
+                        upload_type: Some(UploadType::Messages(MessagesUploadType {})),
                         upload_length: 12345,
-                    })),
-                },
-            ),
-            response,
+                    },
+                ),
+                response,
+            },
         };
 
         Unauth(&validator)
@@ -251,7 +479,7 @@ mod test {
     }
 
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::UploadForm(get_upload_form_response::UploadForm {
+        response: Some(get_upload_form_response::Response::UploadForm(common::UploadForm {
             cdn: 123,
             key: "abcde".to_owned(),
             headers: HashMap::from_iter([
@@ -267,38 +495,254 @@ mod test {
         signed_upload_url: "http://example.org/upload".into(),
     }))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::FailedAuthentication(FailedZkAuthentication {
+        response: Some(get_upload_form_response::Response::FailedAuthentication(FailedZkAuthentication {
             description: "bad!".to_owned()
         }))
-    }) => matches Err(RequestError::Other(GetMediaUploadFormFailure::Unauthorized)))]
+    }) => matches Err(RequestError::Other(GetUploadFormFailure::Unauthorized)))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: Some(get_upload_form_response::Outcome::ExceedsMaxUploadLength(FailedPrecondition {
+        response: Some(get_upload_form_response::Response::ExceedsMaxUploadLength(FailedPrecondition {
             description: "bad!".to_owned()
         }))
-    }) => matches Err(RequestError::Unexpected { .. }))]
+    }) => matches Err(RequestError::Other(GetUploadFormFailure::UploadTooLarge)))]
     #[test_case(ok(GetUploadFormResponse {
-        outcome: None,
+        response: None,
     }) => matches Err(RequestError::Unexpected { .. }))]
     #[test_case(err(tonic::Code::Internal) => matches Err(RequestError::Unexpected { .. }))]
     fn test_get_media_upload_form(
         response: http::Response<Vec<u8>>,
-    ) -> Result<UploadForm, RequestError<GetMediaUploadFormFailure>> {
+    ) -> Result<UploadForm, RequestError<GetUploadFormFailure>> {
+        let validator = GrpcOverrideRequestValidator {
+            message: services::BackupsAnonymous::GetUploadForm.into(),
+            validator: RequestValidator {
+                expected: req(
+                    "/org.signal.chat.backup.BackupsAnonymous/GetUploadForm",
+                    GetUploadFormRequest {
+                        signed_presentation: Some(SignedPresentation {
+                            presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                            presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                        }),
+                        upload_length: 12345,
+                        upload_type: Some(UploadType::Media(MediaUploadType {})),
+                    },
+                ),
+                response,
+            },
+        };
+
+        Unauth(&validator)
+            .get_media_upload_form(
+                &BackupAuth::generate_for_testing(
+                    zkgroup::backups::BackupCredentialType::Media,
+                    &mut fixed_seed_test_rng(),
+                ),
+                12345,
+                &mut fixed_seed_test_rng(),
+            )
+            .now_or_never()
+            .expect("sync")
+    }
+
+    #[test_case(ok(SetPublicKeyResponse {
+        response: Some(set_public_key_response::Response::Success(Default::default()))
+    }) => matches Ok(()))]
+    #[test_case(ok(SetPublicKeyResponse {
+        response: Some(set_public_key_response::Response::FailedAuthentication(FailedZkAuthentication {
+            description: "bad!".to_owned()
+        }))
+    }) => matches Err(RequestError::Other(BackupAuthCredentialRejected)))]
+    #[test_case(ok(SetPublicKeyResponse {
+        response: None,
+    }) => matches Err(RequestError::Unexpected { .. }))]
+    fn test_set_public_key(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
         let validator = RequestValidator {
             expected: req(
-                "/org.signal.chat.backup.BackupsAnonymous/GetUploadForm",
-                GetUploadFormRequest {
+                "/org.signal.chat.backup.BackupsAnonymous/SetPublicKey",
+                SetPublicKeyRequest {
                     signed_presentation: Some(SignedPresentation {
                         presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
                         presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
                     }),
-                    upload_type: Some(UploadType::Media(MediaUploadType {})),
+                    public_key: BackupAuth::TEST_SIGNING_KEY_PUB.to_vec(),
                 },
             ),
             response,
         };
 
         Unauth(&validator)
-            .get_media_upload_form(
+            .set_backup_public_key(
+                &BackupAuth::generate_for_testing(
+                    zkgroup::backups::BackupCredentialType::Media,
+                    &mut fixed_seed_test_rng(),
+                ),
+                &mut fixed_seed_test_rng(),
+            )
+            .now_or_never()
+            .expect("sync")
+    }
+
+    #[test_case(ok(GetCdnCredentialsResponse {
+        response: Some(get_cdn_credentials_response::Response::CdnCredentials(get_cdn_credentials_response::CdnCredentials {
+            headers: HashMap::from_iter([
+                ("one".to_string(), "val1".to_string()),
+                ("two".to_string(), "val2".to_string()),
+            ]),
+        }))
+    }) => matches Ok(CdnCredentials { headers }) if <HashMap<String, String>>::from_iter(headers.clone()) == HashMap::from_iter([
+        ("one".to_string(), "val1".to_string()),
+        ("two".to_string(), "val2".to_string()),
+    ]))]
+    #[test_case(ok(GetCdnCredentialsResponse {
+        response: Some(get_cdn_credentials_response::Response::FailedAuthentication(FailedZkAuthentication {
+            description: "bad!".to_owned()
+        }))
+    }) => matches Err(RequestError::Other(BackupAuthCredentialRejected)))]
+    #[test_case(ok(GetCdnCredentialsResponse {
+        response: None,
+    }) => matches Err(RequestError::Unexpected { .. }))]
+    fn test_get_cdn_credentials(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<CdnCredentials, RequestError<BackupAuthCredentialRejected>> {
+        let validator = RequestValidator {
+            expected: req(
+                "/org.signal.chat.backup.BackupsAnonymous/GetCdnCredentials",
+                GetCdnCredentialsRequest {
+                    signed_presentation: Some(SignedPresentation {
+                        presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                        presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                    }),
+                    cdn: 15,
+                },
+            ),
+            response,
+        };
+
+        Unauth(&validator)
+            .get_backup_cdn_credentials(
+                &BackupAuth::generate_for_testing(
+                    zkgroup::backups::BackupCredentialType::Media,
+                    &mut fixed_seed_test_rng(),
+                ),
+                15,
+                &mut fixed_seed_test_rng(),
+            )
+            .now_or_never()
+            .expect("sync")
+    }
+
+    #[test_case(ok(GetSvrBCredentialsResponse {
+        response: Some(get_svr_b_credentials_response::Response::SvrbCredentials(get_svr_b_credentials_response::SvrBCredentials {
+            username: "user".to_string(),
+            password: "pass".to_string(),
+        }))
+    }) => matches Ok((username, password)) if username == "user" && password == "pass")]
+    #[test_case(ok(GetSvrBCredentialsResponse {
+        response: Some(get_svr_b_credentials_response::Response::FailedAuthentication(FailedZkAuthentication {
+            description: "bad!".to_owned()
+        }))
+    }) => matches Err(RequestError::Other(BackupAuthCredentialRejected)))]
+    #[test_case(ok(GetSvrBCredentialsResponse {
+        response: None,
+    }) => matches Err(RequestError::Unexpected { .. }))]
+    fn test_get_svrb_credentials(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<(String, String), RequestError<BackupAuthCredentialRejected>> {
+        let validator = RequestValidator {
+            expected: req(
+                "/org.signal.chat.backup.BackupsAnonymous/GetSvrBCredentials",
+                GetSvrBCredentialsRequest {
+                    signed_presentation: Some(SignedPresentation {
+                        presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                        presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                    }),
+                },
+            ),
+            response,
+        };
+
+        Unauth(&validator)
+            .get_backup_svrb_credentials(
+                &BackupAuth::generate_for_testing(
+                    zkgroup::backups::BackupCredentialType::Media,
+                    &mut fixed_seed_test_rng(),
+                ),
+                &mut fixed_seed_test_rng(),
+            )
+            .now_or_never()
+            .expect("sync")
+            // Map to something that supports Debug, for test_case failure output.
+            .map(|libsignal_net::auth::Auth { username, password }| (username, password))
+    }
+
+    #[test_case(ok(RefreshResponse {
+        response: Some(refresh_response::Response::Success(Default::default()))
+    }) => matches Ok(()))]
+    #[test_case(ok(RefreshResponse {
+        response: Some(refresh_response::Response::FailedAuthentication(FailedZkAuthentication {
+            description: "bad!".to_owned()
+        }))
+    }) => matches Err(RequestError::Other(BackupAuthCredentialRejected)))]
+    #[test_case(ok(RefreshResponse {
+        response: None,
+    }) => matches Err(RequestError::Unexpected { .. }))]
+    fn test_refresh(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
+        let validator = RequestValidator {
+            expected: req(
+                "/org.signal.chat.backup.BackupsAnonymous/Refresh",
+                RefreshRequest {
+                    signed_presentation: Some(SignedPresentation {
+                        presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                        presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                    }),
+                },
+            ),
+            response,
+        };
+
+        Unauth(&validator)
+            .refresh_backup(
+                &BackupAuth::generate_for_testing(
+                    zkgroup::backups::BackupCredentialType::Media,
+                    &mut fixed_seed_test_rng(),
+                ),
+                &mut fixed_seed_test_rng(),
+            )
+            .now_or_never()
+            .expect("sync")
+    }
+
+    #[test_case(ok(DeleteAllResponse {
+        response: Some(delete_all_response::Response::Success(Default::default()))
+    }) => matches Ok(()))]
+    #[test_case(ok(DeleteAllResponse {
+        response: Some(delete_all_response::Response::FailedAuthentication(FailedZkAuthentication {
+            description: "bad!".to_owned()
+        }))
+    }) => matches Err(RequestError::Other(BackupAuthCredentialRejected)))]
+    #[test_case(ok(DeleteAllResponse {
+        response: None,
+    }) => matches Err(RequestError::Unexpected { .. }))]
+    fn test_delete_all(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<(), RequestError<BackupAuthCredentialRejected>> {
+        let validator = RequestValidator {
+            expected: req(
+                "/org.signal.chat.backup.BackupsAnonymous/DeleteAll",
+                RefreshRequest {
+                    signed_presentation: Some(SignedPresentation {
+                        presentation: BackupAuth::EXPECTED_PRESENTATION.to_vec(),
+                        presentation_signature: BackupAuth::EXPECTED_SIGNATURE.to_vec(),
+                    }),
+                },
+            ),
+            response,
+        };
+
+        Unauth(&validator)
+            .backup_delete_all(
                 &BackupAuth::generate_for_testing(
                     zkgroup::backups::BackupCredentialType::Media,
                     &mut fixed_seed_test_rng(),

@@ -9,7 +9,8 @@
 use std::convert::Infallible;
 use std::fmt::Formatter;
 
-use libsignal_net::infra::errors::{LogSafeDisplay, RetryLater};
+use libsignal_core::LogSafeDisplay;
+use libsignal_net::infra::errors::RetryLater;
 use ref_cast::RefCast as _;
 
 pub mod backups;
@@ -60,8 +61,9 @@ pub enum AllowRateLimitChallenges {
 ///
 /// For multi-recipient messages, see [messages::MultiRecipientSendAuthorization].
 pub enum UserBasedAuthorization {
-    AccessKey([u8; 16]),
+    AccessKey([u8; zkgroup::ACCESS_KEY_LEN]),
     Group(zkgroup::groups::GroupSendFullToken),
+    UnrestrictedUnauthenticatedAccess,
 }
 
 #[derive(Debug, thiserror::Error, displaydoc::Display)]
@@ -118,6 +120,16 @@ impl<E, D> RequestError<E, D> {
             RequestError::Unexpected { log_safe } => RequestError::Unexpected { log_safe },
             RequestError::Other(e) => f(e),
         }
+    }
+}
+
+impl<D> RequestError<Infallible, D> {
+    /// Replaces [`Infallible`] with an actual `Other` error type (which `self` must not be using).
+    ///
+    /// Unfortunately we can't `impl From<RequestError<Infallible, D>> for RequestError<E, D>`
+    /// because that overlaps when `E = Infallible`. So we need a helper instead.
+    pub fn with_other<E2>(self) -> RequestError<E2, D> {
+        self.flat_map_other(|e| match e {})
     }
 }
 

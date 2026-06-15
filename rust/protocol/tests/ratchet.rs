@@ -31,6 +31,8 @@ fn test_alice_and_bob_agree_on_chain_keys_with_kyber() -> Result<(), SignalProto
         bob_signed_pre_key_pair.public_key,
         bob_ephemeral_key_pair.public_key,
         bob_kyber_pre_key_pair.public_key.clone(),
+        // Alice != Bob with high probability
+        false,
     );
 
     let alice_record = initialize_alice_session_record(&alice_parameters, &mut csprng)?;
@@ -51,13 +53,13 @@ fn test_alice_and_bob_agree_on_chain_keys_with_kyber() -> Result<(), SignalProto
         bob_identity_key_pair,
         bob_signed_pre_key_pair,
         None,
-        bob_ephemeral_key_pair,
         bob_kyber_pre_key_pair,
         *alice_identity_key_pair.identity_key(),
         alice_base_key_pair.public_key,
         &kyber_ciphertext,
+        false,
     );
-    let bob_record = initialize_bob_session_record(&bob_parameters)?;
+    let bob_record = initialize_bob_session_record(&bob_parameters, &bob_ephemeral_key_pair)?;
 
     assert_eq!(
         KYBER_AWARE_MESSAGE_VERSION,
@@ -98,6 +100,7 @@ fn test_bob_rejects_torsioned_basekey() -> Result<(), SignalProtocolError> {
         bob_signed_pre_key_pair.public_key,
         bob_ephemeral_key_pair.public_key,
         bob_kyber_pre_key_pair.public_key.clone(),
+        false,
     );
 
     let alice_record = initialize_alice_session_record(&alice_parameters, &mut csprng)?;
@@ -132,14 +135,14 @@ fn test_bob_rejects_torsioned_basekey() -> Result<(), SignalProtocolError> {
         bob_identity_key_pair,
         bob_signed_pre_key_pair,
         None,
-        bob_ephemeral_key_pair,
         bob_kyber_pre_key_pair,
         *alice_identity_key_pair.identity_key(),
         tweaked_alice_base_key,
         &kyber_ciphertext,
+        false,
     );
 
-    assert!(initialize_bob_session_record(&bob_parameters).is_err());
+    assert!(initialize_bob_session_record(&bob_parameters, &bob_ephemeral_key_pair).is_err());
 
     Ok(())
 }
@@ -164,6 +167,7 @@ fn test_bob_rejects_highbit_basekey() -> Result<(), SignalProtocolError> {
         bob_signed_pre_key_pair.public_key,
         bob_ephemeral_key_pair.public_key,
         bob_kyber_pre_key_pair.public_key.clone(),
+        false,
     );
 
     let alice_record = initialize_alice_session_record(&alice_parameters, &mut csprng)?;
@@ -194,14 +198,14 @@ fn test_bob_rejects_highbit_basekey() -> Result<(), SignalProtocolError> {
         bob_identity_key_pair,
         bob_signed_pre_key_pair,
         None,
-        bob_ephemeral_key_pair,
         bob_kyber_pre_key_pair,
         *alice_identity_key_pair.identity_key(),
         tweaked_alice_base_key,
         &kyber_ciphertext,
+        false,
     );
 
-    assert!(initialize_bob_session_record(&bob_parameters).is_err());
+    assert!(initialize_bob_session_record(&bob_parameters, &bob_ephemeral_key_pair).is_err());
 
     Ok(())
 }

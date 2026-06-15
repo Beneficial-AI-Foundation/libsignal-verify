@@ -71,6 +71,8 @@ export enum ErrorCode {
   MismatchedDevices,
 
   ServiceIdNotFound,
+
+  UploadTooLarge,
 }
 
 /** Called out as a separate type so it's not confused with a normal ServiceIdBinary. */
@@ -389,6 +391,21 @@ export type ServiceIdNotFound = LibSignalErrorCommon & {
   code: ErrorCode.ServiceIdNotFound;
 };
 
+export type UploadTooLarge = LibSignalErrorCommon & {
+  code: ErrorCode.UploadTooLarge;
+};
+
+/**
+ * @throws {ChatServiceInactive} if the chat connection has been closed.
+ * @throws {IoError} if an error occurred while communicating with the server.
+ * @throws {RateLimitedError} if the server is rate limiting this client. This is **retryable**
+ * after waiting the designated delay.
+ */
+export type StandardNetworkError =
+  | ChatServiceInactive
+  | IoError
+  | RateLimitedError;
+
 export type LibSignalError =
   | GenericError
   | DuplicatedMessageError
@@ -439,4 +456,5 @@ export type LibSignalError =
   | IncrementalMacVerificationFailed
   | RequestUnauthorizedError
   | MismatchedDevicesError
-  | ServiceIdNotFound;
+  | ServiceIdNotFound
+  | UploadTooLarge;

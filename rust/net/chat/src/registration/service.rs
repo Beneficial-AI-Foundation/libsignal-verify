@@ -11,10 +11,11 @@ use std::panic::UnwindSafe;
 use either::Either;
 use futures_util::future::BoxFuture;
 use futures_util::{FutureExt as _, Stream, StreamExt as _};
+use libsignal_core::LogSafeDisplay;
 use libsignal_net::chat::{
     ChatConnection, ConnectError as ChatConnectError, SendError as ChatSendError,
 };
-use libsignal_net::infra::errors::{LogSafeDisplay, RetryLater};
+use libsignal_net::infra::errors::RetryLater;
 use libsignal_net::infra::route::UnsuccessfulOutcome;
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::{Duration, Instant};
@@ -59,8 +60,8 @@ impl crate::ws::registration::WsClient for &RegistrationConnection<'_> {
 
 /// Describes how to make an unauthenticated [`ChatConnection`].
 ///
-/// This trait is a workaround for lack of AsyncFnMut. Once our MSRV >= 1.85 we
-/// can replace this with an `AsyncFnMut` bound.
+/// This trait is a workaround for lack of dyn-compatible `AsyncFnMut`, which may or may not ever be
+/// provided by the language.
 pub trait ConnectUnauthChat: Send {
     /// Starts an attempt to connect to the Chat server.
     ///
@@ -554,6 +555,7 @@ mod test {
                     tokio::runtime::Handle::current(),
                     DropOnDisconnect::new(on_disconnect).into_listener(),
                     [],
+                    [],
                 );
                 fake_chat_tx.send(fake_remote).unwrap();
                 Ok(Unauth(fake_chat))
@@ -634,7 +636,7 @@ mod test {
             remote: fake_chat_remote_tx,
         };
 
-        let (request_sender, _join_handle) = spawn_connected_chat(&fake_connect)
+        let (request_sender, join_handle) = spawn_connected_chat(&fake_connect)
             .await
             .expect("can connect");
         let fake_chat_remote = fake_chat_remote_rx.recv().await.unwrap();
@@ -686,6 +688,7 @@ mod test {
         let _response = first_send_fut.await;
 
         // The task should reach its inactivity timeout and disconnect.
+        join_handle.await.expect("no panic");
         assert_matches!(fake_chat_remote.receive_request().await, Ok(None));
     }
 }
