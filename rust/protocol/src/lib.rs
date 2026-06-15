@@ -24,25 +24,31 @@
 
 mod consts;
 mod crypto;
+mod double_ratchet;
 pub mod error;
 mod fingerprint;
 mod group_cipher;
+mod handshake;
 mod identity_key;
 pub mod incremental_mac;
 pub mod kem;
+pub mod pqxdh;
 mod proto;
 mod protocol;
 mod ratchet;
 mod sealed_sender;
 mod sender_keys;
 mod session;
-mod session_cipher;
+#[cfg(test)]
+mod session_cipher_legacy;
+mod session_management;
 mod state;
 mod storage;
 mod timestamp;
+mod triple_ratchet;
 
 use error::Result;
-pub use error::SignalProtocolError;
+pub use error::{SessionNotFound, SignalProtocolError};
 pub use fingerprint::{
     DisplayableFingerprint, Error as FingerprintError, Fingerprint, ScannableFingerprint,
 };
@@ -59,6 +65,7 @@ pub use protocol::{
     CiphertextMessage, CiphertextMessageType, DecryptionErrorMessage, KyberPayload,
     PlaintextContent, PreKeySignalMessage, SenderKeyDistributionMessage, SenderKeyMessage,
     SignalMessage, extract_decryption_error_message_from_serialized_content,
+    should_use_nonpq_session,
 };
 pub use ratchet::{
     AliceSignalProtocolParameters, BobSignalProtocolParameters, initialize_alice_session_record,
@@ -72,7 +79,7 @@ pub use sealed_sender::{
 };
 pub use sender_keys::SenderKeyRecord;
 pub use session::{process_prekey, process_prekey_bundle};
-pub use session_cipher::{
+pub use session_management::{
     message_decrypt, message_decrypt_prekey, message_decrypt_signal, message_encrypt,
 };
 pub use state::{

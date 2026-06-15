@@ -14,7 +14,7 @@ generate-ffi:
     swift/build_ffi.sh --generate-ffi
 
 generate-node:
-    rust/bridge/node/bin/gen_ts_decl.py
+    cargo run -p libsignal-node-native_ts
 
 alias generate-java := generate-jni
 alias generate-swift := generate-ffi
@@ -24,6 +24,14 @@ alias generate-ts := generate-node
 generate-bridge: generate-jni generate-node generate-ffi
 
 alias generate-all := generate-bridge
+
+# Regenerate Rust dependency acknowledgments.
+generate-acknowledgments:
+    ./bin/regenerate_acknowledgments.sh
+
+# Verify generated acknowledgments are up to date.
+check-acknowledgments:
+    ./bin/regenerate_acknowledgments.sh --check
 
 format-jni:
     (cd java && ./gradlew spotlessApply)
@@ -56,7 +64,7 @@ check-python:
     $(command -v mypy || echo python3 -m mypy) . --python-version 3.9 --strict --exclude target --exclude node/node_modules --exclude node/build
 
 # Runs some quick local checks; useful to make sure CI will not fail immediately after push.
-check-pre-commit: check-format-all check-python
+check-pre-commit: check-format-all check-python check-acknowledgments
     (cd node && npm run lint)
     (cd swift && ./verify_error_codes.sh)
     (cd swift && swiftlint lint --strict)

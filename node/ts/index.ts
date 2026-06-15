@@ -5,13 +5,16 @@
 
 import { Buffer } from 'node:buffer';
 
-import * as uuid from 'uuid';
-
 import * as Errors from './Errors.js';
 export * from './Errors.js';
 
 import { Aci, ProtocolAddress, ServiceId } from './Address.js';
 export * from './Address.js';
+import {
+  CiphertextMessage,
+  CiphertextMessageConvertible,
+} from './CiphertextMessage.js';
+export * from './CiphertextMessage.js';
 import { IdentityKeyPair, PrivateKey, PublicKey } from './EcKeys.js';
 export * from './EcKeys.js';
 import {
@@ -20,8 +23,7 @@ import {
   SignedPreKeyRecord,
 } from './ProtocolTypes.js';
 export * from './ProtocolTypes.js';
-import { parseUuid, Uuid } from './uuid.js';
-export * from './uuid.js';
+import * as uuid from './uuid.js';
 
 export * as usernames from './usernames.js';
 
@@ -35,6 +37,8 @@ export * as WebpSanitizer from './WebpSanitizer.js';
 import * as Native from './Native.js';
 
 Native.registerErrors(Errors);
+
+export type Uuid = uuid.Uuid;
 
 // These enums must be kept in sync with their Rust counterparts.
 
@@ -407,19 +411,6 @@ export class SignalMessage {
   serialize(): Uint8Array<ArrayBuffer> {
     return Native.SignalMessage_GetSerialized(this);
   }
-
-  verifyMac(
-    senderIdentityKey: PublicKey,
-    recevierIdentityKey: PublicKey,
-    macKey: Uint8Array<ArrayBuffer>
-  ): boolean {
-    return Native.SignalMessage_VerifyMac(
-      this,
-      senderIdentityKey,
-      recevierIdentityKey,
-      macKey
-    );
-  }
 }
 
 export class PreKeySignalMessage {
@@ -514,8 +505,12 @@ export class SessionRecord {
    *
    * If there is no current session, returns false.
    */
-  hasCurrentState(now: Date = new Date()): boolean {
-    return Native.SessionRecord_HasUsableSenderChain(this, now.getTime());
+  hasCurrentState(requirePqRatio: number, now: Date = new Date()): boolean {
+    return Native.SessionRecord_HasUsableSenderChain(
+      this,
+      requirePqRatio,
+      now.getTime()
+    );
   }
 
   currentRatchetKeyMatches(key: PublicKey): boolean {
@@ -700,9 +695,7 @@ export class SenderCertificate {
   }
 }
 
-function bridgeSenderKeyStore(
-  store: SenderKeyStore
-): Native.BridgeSenderKeyStore {
+function bridgeSenderKeyStore(store: SenderKeyStore): Native.SenderKeyStore {
   return {
     async storeSenderKey(
       sender: Native.ProtocolAddress,
@@ -742,7 +735,7 @@ export class SenderKeyDistributionMessage {
   ): Promise<SenderKeyDistributionMessage> {
     const handle = await Native.SenderKeyDistributionMessage_Create(
       sender,
-      parseUuid(distributionId),
+      uuid.parse(distributionId),
       bridgeSenderKeyStore(store)
     );
     return new SenderKeyDistributionMessage(handle);
@@ -759,7 +752,7 @@ export class SenderKeyDistributionMessage {
     return new SenderKeyDistributionMessage(
       Native.SenderKeyDistributionMessage_New(
         messageVersion,
-        parseUuid(distributionId),
+        uuid.parse(distributionId),
         chainId,
         iteration,
         chainKey,
@@ -829,7 +822,7 @@ export class SenderKeyMessage {
     return new SenderKeyMessage(
       Native.SenderKeyMessage_New(
         messageVersion,
-        parseUuid(distributionId),
+        uuid.parse(distributionId),
         chainId,
         iteration,
         ciphertext,
@@ -1015,7 +1008,7 @@ export async function groupEncrypt(
   return CiphertextMessage._fromNativeHandle(
     await Native.GroupCipher_EncryptMessage(
       sender,
-      parseUuid(distributionId),
+      uuid.parse(distributionId),
       message,
       bridgeSenderKeyStore(store)
     )
@@ -1074,36 +1067,6 @@ export class SealedSenderDecryptionResult {
 
   deviceId(): number {
     return Native.SealedSenderDecryptionResult_GetDeviceId(this);
-  }
-}
-
-export interface CiphertextMessageConvertible {
-  asCiphertextMessage: () => CiphertextMessage;
-}
-
-export class CiphertextMessage {
-  readonly _nativeHandle: Native.CiphertextMessage;
-
-  private constructor(nativeHandle: Native.CiphertextMessage) {
-    this._nativeHandle = nativeHandle;
-  }
-
-  static _fromNativeHandle(
-    nativeHandle: Native.CiphertextMessage
-  ): CiphertextMessage {
-    return new CiphertextMessage(nativeHandle);
-  }
-
-  static from(message: CiphertextMessageConvertible): CiphertextMessage {
-    return message.asCiphertextMessage();
-  }
-
-  serialize(): Uint8Array<ArrayBuffer> {
-    return Native.CiphertextMessage_Serialize(this);
-  }
-
-  type(): number {
-    return Native.CiphertextMessage_Type(this);
   }
 }
 
@@ -1204,7 +1167,7 @@ export class DecryptionErrorMessage {
   }
 }
 
-function bridgeSessionStore(store: SessionStore): Native.BridgeSessionStore {
+function bridgeSessionStore(store: SessionStore): Native.SessionStore {
   return {
     async storeSession(
       rawAddress: Native.ProtocolAddress,
@@ -1228,7 +1191,7 @@ function bridgeSessionStore(store: SessionStore): Native.BridgeSessionStore {
 
 function bridgeIdentityKeyStore(
   store: IdentityKeyStore
-): Native.BridgeIdentityKeyStore {
+): Native.IdentityKeyStore {
   return {
     async getLocalIdentityKeyPair(): Promise<
       [Native.PrivateKey, Native.PublicKey]
@@ -1276,6 +1239,7 @@ function bridgeIdentityKeyStore(
 export function processPreKeyBundle(
   bundle: PreKeyBundle,
   address: ProtocolAddress,
+  localAddress: ProtocolAddress,
   sessionStore: SessionStore,
   identityStore: IdentityKeyStore,
   now: Date = new Date()
@@ -1283,6 +1247,7 @@ export function processPreKeyBundle(
   return Native.SessionBuilder_ProcessPreKeyBundle(
     bundle,
     address,
+    localAddress,
     bridgeSessionStore(sessionStore),
     bridgeIdentityKeyStore(identityStore),
     now.getTime()
@@ -1292,6 +1257,7 @@ export function processPreKeyBundle(
 export async function signalEncrypt(
   message: Uint8Array<ArrayBuffer>,
   address: ProtocolAddress,
+  localAddress: ProtocolAddress,
   sessionStore: SessionStore,
   identityStore: IdentityKeyStore,
   now: Date = new Date()
@@ -1300,6 +1266,7 @@ export async function signalEncrypt(
     await Native.SessionCipher_EncryptMessage(
       message,
       address,
+      localAddress,
       bridgeSessionStore(sessionStore),
       bridgeIdentityKeyStore(identityStore),
       now.getTime()
@@ -1310,18 +1277,20 @@ export async function signalEncrypt(
 export function signalDecrypt(
   message: SignalMessage,
   address: ProtocolAddress,
+  localAddress: ProtocolAddress,
   sessionStore: SessionStore,
   identityStore: IdentityKeyStore
 ): Promise<Uint8Array<ArrayBuffer>> {
   return Native.SessionCipher_DecryptSignalMessage(
     message,
     address,
+    localAddress,
     bridgeSessionStore(sessionStore),
     bridgeIdentityKeyStore(identityStore)
   );
 }
 
-function bridgePreKeyStore(store: PreKeyStore): Native.BridgePreKeyStore {
+function bridgePreKeyStore(store: PreKeyStore): Native.PreKeyStore {
   return {
     async storePreKey(id: number, record: Native.PreKeyRecord): Promise<void> {
       return store.savePreKey(id, PreKeyRecord._fromNativeHandle(record));
@@ -1338,7 +1307,7 @@ function bridgePreKeyStore(store: PreKeyStore): Native.BridgePreKeyStore {
 
 function bridgeSignedPreKeyStore(
   store: SignedPreKeyStore
-): Native.BridgeSignedPreKeyStore {
+): Native.SignedPreKeyStore {
   return {
     async storeSignedPreKey(
       id: number,
@@ -1358,7 +1327,7 @@ function bridgeSignedPreKeyStore(
 
 function bridgeKyberPreKeyStore(
   store: KyberPreKeyStore
-): Native.BridgeKyberPreKeyStore {
+): Native.KyberPreKeyStore {
   return {
     async storeKyberPreKey(
       id: number,
@@ -1390,6 +1359,7 @@ function bridgeKyberPreKeyStore(
 export function signalDecryptPreKey(
   message: PreKeySignalMessage,
   address: ProtocolAddress,
+  localAddress: ProtocolAddress,
   sessionStore: SessionStore,
   identityStore: IdentityKeyStore,
   prekeyStore: PreKeyStore,
@@ -1399,6 +1369,7 @@ export function signalDecryptPreKey(
   return Native.SessionCipher_DecryptPreKeySignalMessage(
     message,
     address,
+    localAddress,
     bridgeSessionStore(sessionStore),
     bridgeIdentityKeyStore(identityStore),
     bridgePreKeyStore(prekeyStore),
@@ -1414,9 +1385,14 @@ export async function sealedSenderEncryptMessage(
   sessionStore: SessionStore,
   identityStore: IdentityKeyStore
 ): Promise<Uint8Array<ArrayBuffer>> {
+  const localAddress = ProtocolAddress.new(
+    senderCert.senderUuid(),
+    senderCert.senderDeviceId()
+  );
   const ciphertext = await signalEncrypt(
     message,
     address,
+    localAddress,
     sessionStore,
     identityStore
   );
@@ -1614,6 +1590,85 @@ export class HsmEnclaveClient {
 
   establishedRecv(buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
     return Native.HsmEnclaveClient_EstablishedRecv(this, buffer);
+  }
+}
+
+/**
+ * Svr2Client provides functions that manage data sent over the network when
+ * comminicating with SVR2 service.
+ *
+ * Holds an opaque native handle. Use {@link Svr2Client.new} to construct.
+ *
+ * Interaction with the service is done over a websocket, which is handled by
+ * the client. Once the websocket has been initiated, the client establishes a
+ * connection in the following manner:
+ *
+ * 1. Connect to the service websocket, read service attestation message
+ * 2. Instantiate the client using {@link Svr2Client.new} with the attestation
+ *    message
+ * 3. Send the result of {@link Svr2Client.initialRequest}
+ * 4. Receive a response and pass it to {@link Svr2Client.completeHandshake}
+ *
+ * After a connection has been established, a client may send or receive
+ * messages. To send a message, they formulate the plaintext, then pass it to
+ * {@link Svr2Client.establishedSend} to get the ciphertext message to pass
+ * along. When a message is received (as ciphertext), it is passed to
+ * {@link Svr2Client.establishedRecv}, which decrypts and verifies it, passing
+ * the plaintext back to the client for processing.
+ */
+export class Svr2Client {
+  readonly _nativeHandle: Native.SgxClientState;
+
+  private constructor(nativeHandle: Native.SgxClientState) {
+    this._nativeHandle = nativeHandle;
+  }
+
+  /**
+   * Creates a new instance of the client using the attestation message
+   */
+  static new(
+    mrenclave: Uint8Array<ArrayBuffer>,
+    attestationMsg: Uint8Array<ArrayBuffer>,
+    currentTimestamp: Date
+  ): Svr2Client {
+    return new Svr2Client(
+      Native.Svr2Client_New(
+        mrenclave,
+        attestationMsg,
+        currentTimestamp.getTime()
+      )
+    );
+  }
+
+  /** Initial request to send to SVR2, which begins post-attestation handshake. */
+  initialRequest(): Uint8Array<ArrayBuffer> {
+    return Native.SgxClientState_InitialRequest(this);
+  }
+
+  /**
+   * Called by client upon receipt of first non-attestation message from
+   * service, to complete handshake.
+   */
+  completeHandshake(buffer: Uint8Array<ArrayBuffer>): void {
+    return Native.SgxClientState_CompleteHandshake(this, buffer);
+  }
+
+  /**
+   * Encrypts a plaintext message for SVR2
+   *
+   * Must be called after successfully completing the handshake.
+   */
+  establishedSend(buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
+    return Native.SgxClientState_EstablishedSend(this, buffer);
+  }
+
+  /**
+   * Decrypts message received from SVR2
+   *
+   * Must be called after successfully completing the handshake.
+   */
+  establishedRecv(buffer: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
+    return Native.SgxClientState_EstablishedRecv(this, buffer);
   }
 }
 

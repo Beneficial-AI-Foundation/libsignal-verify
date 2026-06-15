@@ -1,7 +1,17 @@
 //
-// Copyright 2020-2022 Signal Messenger, LLC.
+// Copyright 2020-2026 Signal Messenger, LLC.
 // SPDX-License-Identifier: AGPL-3.0-only
 //
+// Frozen snapshot of session_cipher.rs taken before the protocol refactoring.
+// Used exclusively for interoperability tests: the legacy encrypt/decrypt paths
+// must be able to exchange messages with the new implementation.
+//
+// DO NOT modify the crypto logic in this file. The point is to have an
+// immutable reference implementation to test against.
+
+#![cfg(test)]
+#![allow(dead_code)]
+#![allow(deprecated)]
 
 use std::time::SystemTime;
 
@@ -13,24 +23,32 @@ use crate::state::{InvalidSessionError, SessionState};
 use crate::{
     CiphertextMessage, CiphertextMessageType, Direction, IdentityKeyStore, KeyPair, KyberPayload,
     KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, ProtocolAddress, PublicKey, Result,
-    SessionRecord, SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, session,
+    SessionNotFound, SessionRecord, SessionStore, SignalMessage, SignalProtocolError,
+    SignedPreKeyStore, session,
 };
 
-pub async fn message_encrypt<R: Rng + CryptoRng>(
+pub async fn legacy_message_encrypt<R: Rng + CryptoRng>(
     ptext: &[u8],
     remote_address: &ProtocolAddress,
+    local_address: &ProtocolAddress,
     session_store: &mut dyn SessionStore,
     identity_store: &mut dyn IdentityKeyStore,
     now: SystemTime,
     csprng: &mut R,
 ) -> Result<CiphertextMessage> {
+    let no_session_error = || {
+        SignalProtocolError::SessionNotFound(SessionNotFound::new(
+            remote_address.clone(),
+            "legacy_message_encrypt",
+        ))
+    };
     let mut session_record = session_store
         .load_session(remote_address)
         .await?
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(no_session_error)?;
     let session_state = session_record
         .session_state_mut()
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(no_session_error)?;
 
     let chain_key = session_state.get_sender_chain_key()?;
 
@@ -75,7 +93,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
             log::warn!(
                 "stale unacknowledged session for {remote_address} (created at {timestamp_as_unix_time})"
             );
-            return Err(SignalProtocolError::SessionNotFound(remote_address.clone()));
+            return Err(no_session_error());
         }
 
         let local_registration_id = session_state.local_registration_id();
@@ -92,6 +110,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
         let message = SignalMessage::new(
             session_version,
             message_keys.mac_key(),
+            Some((local_address, remote_address)),
             sender_ephemeral,
             chain_key.index(),
             previous_counter,
@@ -120,6 +139,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
         CiphertextMessage::SignalMessage(SignalMessage::new(
             session_version,
             message_keys.mac_key(),
+            None,
             sender_ephemeral,
             chain_key.index(),
             previous_counter,
@@ -159,9 +179,10 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn message_decrypt<R: Rng + CryptoRng>(
+pub async fn legacy_message_decrypt<R: Rng + CryptoRng>(
     ciphertext: &CiphertextMessage,
     remote_address: &ProtocolAddress,
+    local_address: &ProtocolAddress,
     session_store: &mut dyn SessionStore,
     identity_store: &mut dyn IdentityKeyStore,
     pre_key_store: &mut dyn PreKeyStore,
@@ -171,12 +192,14 @@ pub async fn message_decrypt<R: Rng + CryptoRng>(
 ) -> Result<Vec<u8>> {
     match ciphertext {
         CiphertextMessage::SignalMessage(m) => {
-            message_decrypt_signal(m, remote_address, session_store, identity_store, csprng).await
+            legacy_message_decrypt_signal(m, remote_address, session_store, identity_store, csprng)
+                .await
         }
         CiphertextMessage::PreKeySignalMessage(m) => {
-            message_decrypt_prekey(
+            legacy_message_decrypt_prekey(
                 m,
                 remote_address,
+                local_address,
                 session_store,
                 identity_store,
                 pre_key_store,
@@ -194,9 +217,10 @@ pub async fn message_decrypt<R: Rng + CryptoRng>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
+pub async fn legacy_message_decrypt_prekey<R: Rng + CryptoRng>(
     ciphertext: &PreKeySignalMessage,
     remote_address: &ProtocolAddress,
+    local_address: &ProtocolAddress,
     session_store: &mut dyn SessionStore,
     identity_store: &mut dyn IdentityKeyStore,
     pre_key_store: &mut dyn PreKeyStore,
@@ -213,6 +237,7 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
     let process_prekey_result = session::process_prekey(
         ciphertext,
         remote_address,
+        local_address,
         &mut session_record,
         identity_store,
         pre_key_store,
@@ -241,6 +266,7 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
 
     let ptext = decrypt_message_with_record(
         remote_address,
+        Some(local_address),
         &mut session_record,
         ciphertext.message(),
         CiphertextMessageType::PreKey,
@@ -277,7 +303,7 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
     Ok(ptext)
 }
 
-pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
+pub async fn legacy_message_decrypt_signal<R: Rng + CryptoRng>(
     ciphertext: &SignalMessage,
     remote_address: &ProtocolAddress,
     session_store: &mut dyn SessionStore,
@@ -287,10 +313,16 @@ pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
     let mut session_record = session_store
         .load_session(remote_address)
         .await?
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(|| {
+            SignalProtocolError::SessionNotFound(SessionNotFound::new(
+                remote_address.clone(),
+                "legacy_message_decrypt_signal",
+            ))
+        })?;
 
     let ptext = decrypt_message_with_record(
         remote_address,
+        None,
         &mut session_record,
         ciphertext,
         CiphertextMessageType::Whisper,
@@ -423,6 +455,7 @@ fn create_decryption_failure_log(
 
 fn decrypt_message_with_record<R: Rng + CryptoRng>(
     remote_address: &ProtocolAddress,
+    local_address: Option<&ProtocolAddress>,
     record: &mut SessionRecord,
     ciphertext: &SignalMessage,
     original_message_type: CiphertextMessageType,
@@ -459,6 +492,7 @@ fn decrypt_message_with_record<R: Rng + CryptoRng>(
             ciphertext,
             original_message_type,
             remote_address,
+            local_address,
             csprng,
         );
 
@@ -498,7 +532,7 @@ fn decrypt_message_with_record<R: Rng + CryptoRng>(
                         // as we would for a Whisper message that tried several sessions.
                         return Err(SignalProtocolError::InvalidMessage(
                             original_message_type,
-                            "decryption failed",
+                            "decryption failed".to_owned(),
                         ));
                     }
                     CiphertextMessageType::Whisper => {}
@@ -522,6 +556,7 @@ fn decrypt_message_with_record<R: Rng + CryptoRng>(
             ciphertext,
             original_message_type,
             remote_address,
+            local_address,
             csprng,
         );
 
@@ -576,7 +611,7 @@ fn decrypt_message_with_record<R: Rng + CryptoRng>(
         );
         Err(SignalProtocolError::InvalidMessage(
             original_message_type,
-            "decryption failed",
+            "decryption failed".to_owned(),
         ))
     }
 }
@@ -602,13 +637,14 @@ fn decrypt_message_with_state<R: Rng + CryptoRng>(
     ciphertext: &SignalMessage,
     original_message_type: CiphertextMessageType,
     remote_address: &ProtocolAddress,
+    local_address: Option<&ProtocolAddress>,
     csprng: &mut R,
 ) -> Result<Vec<u8>> {
     // Check for a completely empty or invalid session state before we do anything else.
     let _ = state.root_key().map_err(|_| {
         SignalProtocolError::InvalidMessage(
             original_message_type,
-            "No session available to decrypt",
+            "No session available to decrypt".to_owned(),
         )
     })?;
 
@@ -641,7 +677,7 @@ fn decrypt_message_with_state<R: Rng + CryptoRng>(
                 log::info!("post-quantum ratchet error in decrypt_message_with_state: {e}");
                 SignalProtocolError::InvalidMessage(
                     original_message_type,
-                    "post-quantum ratchet error",
+                    "post-quantum ratchet error".to_owned(),
                 )
             }
         })?;
@@ -654,16 +690,25 @@ fn decrypt_message_with_state<R: Rng + CryptoRng>(
                 "cannot decrypt without remote identity key",
             ))?;
 
-    let mac_valid = ciphertext.verify_mac(
-        &their_identity_key,
-        &state.local_identity_key()?,
-        message_keys.mac_key(),
-    )?;
+    let mac_valid = match local_address {
+        Some(local_address) => ciphertext.verify_mac_with_addresses(
+            remote_address,
+            local_address,
+            &their_identity_key,
+            &state.local_identity_key()?,
+            message_keys.mac_key(),
+        )?,
+        None => ciphertext.verify_mac(
+            &their_identity_key,
+            &state.local_identity_key()?,
+            message_keys.mac_key(),
+        )?,
+    };
 
     if !mac_valid {
         return Err(SignalProtocolError::InvalidMessage(
             original_message_type,
-            "MAC verification failed",
+            "MAC verification failed".to_owned(),
         ));
     }
 
@@ -683,7 +728,7 @@ fn decrypt_message_with_state<R: Rng + CryptoRng>(
             log::warn!("failed to decrypt 1:1 message: {msg}");
             return Err(SignalProtocolError::InvalidMessage(
                 original_message_type,
-                "failed to decrypt",
+                "failed to decrypt".to_owned(),
             ));
         }
     };
@@ -764,7 +809,7 @@ fn get_or_create_message_key(
             );
             return Err(SignalProtocolError::InvalidMessage(
                 original_message_type,
-                "message from too far into the future",
+                "message from too far into the future".to_owned(),
             ));
         }
     }

@@ -6,6 +6,9 @@
 #![allow(clippy::missing_safety_doc)]
 #![deny(clippy::unwrap_used)]
 
+#[cfg(feature = "metadata")]
+pub mod metadata;
+
 #[cfg(feature = "ffi")]
 #[macro_use]
 pub mod ffi;
@@ -31,12 +34,12 @@ pub mod protocol;
 pub mod sgx_session;
 pub mod zkgroup;
 
-// Desktop does not use SVR
-#[cfg(any(feature = "jni", feature = "ffi"))]
 mod pin {
     use ::libsignal_account_keys::PinHash;
 
-    bridge_as_handle!(PinHash, node = false);
+    use crate::*;
+
+    bridge_as_handle!(PinHash);
 }
 
 pub mod incremental_mac;
