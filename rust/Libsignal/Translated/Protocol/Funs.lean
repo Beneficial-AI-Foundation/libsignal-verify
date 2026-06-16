@@ -956,7 +956,7 @@ def double_ratchet.RatchetState.take_root_key
   ok (rk1, { self with root_key := rk2 })
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}]
-    Source: 'rust/protocol/src/state/session.rs', lines 33:0-37:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 35:0-39:1 -/
 @[reducible]
 def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError :
   core.convert.From error.SignalProtocolError state.session.InvalidSessionError
@@ -1248,7 +1248,7 @@ def double_ratchet.RatchetState.set_receiver_chain_key
   ok { self with receiver_chains := v }
 
 /-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/error.rs', lines 121:4-128:5
+    Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
     Visibility: public -/
 def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
   (e : libsignal_core.curve.CurveError) :
@@ -1265,7 +1265,7 @@ def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
     ok error.SignalProtocolError.InvalidKeyAgreement
 
 /-- Trait implementation: [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}]
-    Source: 'rust/protocol/src/error.rs', lines 120:0-129:1 -/
+    Source: 'rust/protocol/src/error.rs', lines 150:0-159:1 -/
 @[reducible]
 def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
   core.convert.From error.SignalProtocolError libsignal_core.curve.CurveError
@@ -2712,7 +2712,7 @@ def pqxdh.RecipientParameters.impl.self_session
   ok self.self_session
 
 /-- [libsignal_protocol::pqxdh::pqxdh_accept]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 329:0-377:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 329:0-379:1 -/
 def pqxdh.pqxdh_accept
   (parameters1 : pqxdh.RecipientParameters) :
   Result (core.result.Result pqxdh.HandshakeKeys error.SignalProtocolError)
@@ -2823,7 +2823,11 @@ def pqxdh.pqxdh_accept
         pqxdh.HandshakeKeys
         error.SignalProtocolError.Insts.CoreConvertFromCurveError residual
   else
-    ok (core.result.Result.Err error.SignalProtocolError.InvalidKeyAgreement)
+    let s ←
+      Str.Insts.AllocBorrowToOwnedString.to_owned (toStr
+        "incoming base key is invalid")
+    ok (core.result.Result.Err (error.SignalProtocolError.InvalidMessage
+      protocol.CiphertextMessageType.PreKey s))
 
 /-- [libsignal_protocol::protocol::CIPHERTEXT_MESSAGE_CURRENT_VERSION]
     Source: 'rust/protocol/src/protocol.rs', lines 19:0-19:60 -/
@@ -2841,7 +2845,7 @@ def protocol.CIPHERTEXT_MESSAGE_PRE_KYBER_VERSION : Std.U8 := 3#u8
 def protocol.SENDERKEY_MESSAGE_CURRENT_VERSION : Std.U8 := 3#u8
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::PlaintextContent}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 808:16-808:21
+    Source: 'rust/protocol/src/protocol.rs', lines 809:16-809:21
     Visibility: public -/
 def protocol.PlaintextContent.Insts.CoreCloneClone.clone
   (self : protocol.PlaintextContent) : Result protocol.PlaintextContent := do
@@ -2851,7 +2855,7 @@ def protocol.PlaintextContent.Insts.CoreCloneClone.clone
   ok { serialized := s }
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 521:16-521:21
+    Source: 'rust/protocol/src/protocol.rs', lines 522:16-522:21
     Visibility: public -/
 def protocol.SenderKeyMessage.Insts.CoreCloneClone.clone
   (self : protocol.SenderKeyMessage) : Result protocol.SenderKeyMessage := do
@@ -3132,14 +3136,14 @@ def protocol.CiphertextMessage.message_type
     ok protocol.CiphertextMessageType.Plaintext
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 832:4-834:5
+    Source: 'rust/protocol/src/protocol.rs', lines 833:4-835:5
     Visibility: public -/
 def protocol.PlaintextContent.impl.serialized
   (self : protocol.PlaintextContent) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 603:4-605:5
+    Source: 'rust/protocol/src/protocol.rs', lines 604:4-606:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.serialized
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
@@ -3727,7 +3731,7 @@ def protocol.PreKeySignalMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PreKeySignalMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 449:0-519:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 449:0-520:1 -/
 @[reducible]
 def
   protocol.PreKeySignalMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -3738,7 +3742,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 521:16-521:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 522:16-522:21 -/
 @[reducible]
 def protocol.SenderKeyMessage.Insts.CoreCloneClone : core.clone.Clone
   protocol.SenderKeyMessage := {
@@ -3746,12 +3750,12 @@ def protocol.SenderKeyMessage.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::SIGNATURE_LEN]
-    Source: 'rust/protocol/src/protocol.rs', lines 532:4-532:36 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 533:4-533:36 -/
 @[global_simps, irreducible]
 def protocol.SenderKeyMessage.SIGNATURE_LEN : Std.Usize := 64#usize
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::new]:
-    Source: 'rust/protocol/src/protocol.rs', lines 534:4-565:5
+    Source: 'rust/protocol/src/protocol.rs', lines 535:4-566:5
     Visibility: public -/
 def protocol.SenderKeyMessage.new
   {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
@@ -3823,49 +3827,49 @@ def protocol.SenderKeyMessage.new
     ok (r2, csprng1)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::message_version]:
-    Source: 'rust/protocol/src/protocol.rs', lines 578:4-580:5
+    Source: 'rust/protocol/src/protocol.rs', lines 579:4-581:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.message_version
   (self : protocol.SenderKeyMessage) : Result Std.U8 := do
   ok self.message_version
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::distribution_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 583:4-585:5
+    Source: 'rust/protocol/src/protocol.rs', lines 584:4-586:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.distribution_id
   (self : protocol.SenderKeyMessage) : Result uuid.Uuid := do
   ok self.distribution_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::chain_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 588:4-590:5
+    Source: 'rust/protocol/src/protocol.rs', lines 589:4-591:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.chain_id
   (self : protocol.SenderKeyMessage) : Result Std.U32 := do
   ok self.chain_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::iteration]:
-    Source: 'rust/protocol/src/protocol.rs', lines 593:4-595:5
+    Source: 'rust/protocol/src/protocol.rs', lines 594:4-596:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.iteration
   (self : protocol.SenderKeyMessage) : Result Std.U32 := do
   ok self.iteration
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::ciphertext]:
-    Source: 'rust/protocol/src/protocol.rs', lines 598:4-600:5
+    Source: 'rust/protocol/src/protocol.rs', lines 599:4-601:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.ciphertext
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
   ok self.ciphertext
 
 /-- [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyMessage}::as_ref]:
-    Source: 'rust/protocol/src/protocol.rs', lines 609:4-611:5
+    Source: 'rust/protocol/src/protocol.rs', lines 610:4-612:5
     Visibility: public -/
 def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8.as_ref
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 608:0-612:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 609:0-613:1 -/
 @[reducible]
 def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8 :
   core.convert.AsRef protocol.SenderKeyMessage (Slice Std.U8) := {
@@ -3873,7 +3877,7 @@ def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 614:0-660:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 615:0-661:1 -/
 @[reducible]
 def
   protocol.SenderKeyMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -3884,7 +3888,7 @@ def
 }
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyDistributionMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 662:16-662:21
+    Source: 'rust/protocol/src/protocol.rs', lines 663:16-663:21
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone.clone
   (self : protocol.SenderKeyDistributionMessage) :
@@ -3912,7 +3916,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone.clone
     }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 662:16-662:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 663:16-663:21 -/
 @[reducible]
 def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone :
   core.clone.Clone protocol.SenderKeyDistributionMessage := {
@@ -3920,7 +3924,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone :
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::new]:
-    Source: 'rust/protocol/src/protocol.rs', lines 674:4-704:5
+    Source: 'rust/protocol/src/protocol.rs', lines 675:4-705:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.new
   (message_version : Std.U8) (distribution_id : uuid.Uuid) (chain_id : Std.U32)
@@ -3975,14 +3979,14 @@ def protocol.SenderKeyDistributionMessage.new
     })
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::message_version]:
-    Source: 'rust/protocol/src/protocol.rs', lines 707:4-709:5
+    Source: 'rust/protocol/src/protocol.rs', lines 708:4-710:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.message_version
   (self : protocol.SenderKeyDistributionMessage) : Result Std.U8 := do
   ok self.message_version
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::distribution_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 712:4-714:5
+    Source: 'rust/protocol/src/protocol.rs', lines 713:4-715:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.distribution_id
   (self : protocol.SenderKeyDistributionMessage) :
@@ -3991,7 +3995,7 @@ def protocol.SenderKeyDistributionMessage.impl.distribution_id
   ok (core.result.Result.Ok self.distribution_id)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::chain_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 717:4-719:5
+    Source: 'rust/protocol/src/protocol.rs', lines 718:4-720:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.chain_id
   (self : protocol.SenderKeyDistributionMessage) :
@@ -4000,7 +4004,7 @@ def protocol.SenderKeyDistributionMessage.impl.chain_id
   ok (core.result.Result.Ok self.chain_id)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::iteration]:
-    Source: 'rust/protocol/src/protocol.rs', lines 722:4-724:5
+    Source: 'rust/protocol/src/protocol.rs', lines 723:4-725:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.iteration
   (self : protocol.SenderKeyDistributionMessage) :
@@ -4009,7 +4013,7 @@ def protocol.SenderKeyDistributionMessage.impl.iteration
   ok (core.result.Result.Ok self.iteration)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::chain_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 727:4-729:5
+    Source: 'rust/protocol/src/protocol.rs', lines 728:4-730:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.chain_key
   (self : protocol.SenderKeyDistributionMessage) :
@@ -4019,7 +4023,7 @@ def protocol.SenderKeyDistributionMessage.impl.chain_key
   ok (core.result.Result.Ok s)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::signing_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 732:4-734:5
+    Source: 'rust/protocol/src/protocol.rs', lines 733:4-735:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.signing_key
   (self : protocol.SenderKeyDistributionMessage) :
@@ -4029,21 +4033,21 @@ def protocol.SenderKeyDistributionMessage.impl.signing_key
   ok (core.result.Result.Ok self.signing_key)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 737:4-739:5
+    Source: 'rust/protocol/src/protocol.rs', lines 738:4-740:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.serialized
   (self : protocol.SenderKeyDistributionMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyDistributionMessage}::as_ref]:
-    Source: 'rust/protocol/src/protocol.rs', lines 743:4-745:5
+    Source: 'rust/protocol/src/protocol.rs', lines 744:4-746:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8.as_ref
   (self : protocol.SenderKeyDistributionMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 742:0-746:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 743:0-747:1 -/
 @[reducible]
 def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8 :
   core.convert.AsRef protocol.SenderKeyDistributionMessage (Slice Std.U8) := {
@@ -4052,7 +4056,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 748:0-806:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 749:0-807:1 -/
 @[reducible]
 def
   protocol.SenderKeyDistributionMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -4063,7 +4067,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 808:16-808:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 809:16-809:21 -/
 @[reducible]
 def protocol.PlaintextContent.Insts.CoreCloneClone : core.clone.Clone
   protocol.PlaintextContent := {
@@ -4071,18 +4075,18 @@ def protocol.PlaintextContent.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::PLAINTEXT_CONTEXT_IDENTIFIER_BYTE]
-    Source: 'rust/protocol/src/protocol.rs', lines 818:4-818:55 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 819:4-819:55 -/
 @[global_simps, irreducible]
 def protocol.PlaintextContent.PLAINTEXT_CONTEXT_IDENTIFIER_BYTE : Std.U8 :=
   192#u8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::PADDING_BOUNDARY_BYTE]
-    Source: 'rust/protocol/src/protocol.rs', lines 824:4-824:43 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 825:4-825:43 -/
 @[global_simps, irreducible]
 def protocol.PlaintextContent.PADDING_BOUNDARY_BYTE : Std.U8 := 128#u8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::body]:
-    Source: 'rust/protocol/src/protocol.rs', lines 827:4-829:5
+    Source: 'rust/protocol/src/protocol.rs', lines 828:4-830:5
     Visibility: public -/
 def protocol.PlaintextContent.body
   (self : protocol.PlaintextContent) : Result (Slice Std.U8) := do
@@ -4090,7 +4094,7 @@ def protocol.PlaintextContent.body
     Std.U8) self.serialized { start := 1#usize }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::From<libsignal_protocol::protocol::DecryptionErrorMessage> for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 837:0-852:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 838:0-853:1 -/
 @[reducible]
 def protocol.PlaintextContent.Insts.CoreConvertFromDecryptionErrorMessage :
   core.convert.From protocol.PlaintextContent protocol.DecryptionErrorMessage
@@ -4100,7 +4104,7 @@ def protocol.PlaintextContent.Insts.CoreConvertFromDecryptionErrorMessage :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 854:0-870:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 855:0-871:1 -/
 @[reducible]
 def
   protocol.PlaintextContent.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -4118,7 +4122,7 @@ def timestamp.Timestamp.Insts.CoreCloneClone.clone
   ok self
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::DecryptionErrorMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 872:16-872:21
+    Source: 'rust/protocol/src/protocol.rs', lines 873:16-873:21
     Visibility: public -/
 def protocol.DecryptionErrorMessage.Insts.CoreCloneClone.clone
   (self : protocol.DecryptionErrorMessage) :
@@ -4135,7 +4139,7 @@ def protocol.DecryptionErrorMessage.Insts.CoreCloneClone.clone
   ok { ratchet_key := o, timestamp := t, device_id := i, serialized := s }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::DecryptionErrorMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 872:16-872:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 873:16-873:21 -/
 @[reducible]
 def protocol.DecryptionErrorMessage.Insts.CoreCloneClone : core.clone.Clone
   protocol.DecryptionErrorMessage := {
@@ -4150,7 +4154,7 @@ def timestamp.Timestamp.epoch_millis
   ok self.millis
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{impl core::ops::function::FnOnce<(libsignal_core::curve::PublicKey,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::closure}::call_once]:
-    Source: 'rust/protocol/src/protocol.rs', lines 906:41-906:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
 def
   protocol.DecryptionErrorMessage.for_original.closure.Insts.CoreOpsFunctionFnOnceTuplePublicKeyVecU8.call_once
   (c : protocol.DecryptionErrorMessage.for_original.closure)
@@ -4162,7 +4166,7 @@ def
     Std.U8 Global) s
 
 /-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{impl core::ops::function::FnOnce<(libsignal_core::curve::PublicKey,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::closure}]
-    Source: 'rust/protocol/src/protocol.rs', lines 906:41-906:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
 @[reducible]
 def
   protocol.DecryptionErrorMessage.for_original.closure.Insts.CoreOpsFunctionFnOnceTuplePublicKeyVecU8
@@ -4174,7 +4178,7 @@ def
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original]:
-    Source: 'rust/protocol/src/protocol.rs', lines 881:4-917:5
+    Source: 'rust/protocol/src/protocol.rs', lines 882:4-918:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.for_original
   (original_bytes : Slice Std.U8)
@@ -4278,14 +4282,14 @@ def protocol.DecryptionErrorMessage.for_original
     ok (core.result.Result.Err (error.SignalProtocolError.InvalidArgument s))
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::timestamp]:
-    Source: 'rust/protocol/src/protocol.rs', lines 920:4-922:5
+    Source: 'rust/protocol/src/protocol.rs', lines 921:4-923:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.timestamp
   (self : protocol.DecryptionErrorMessage) : Result timestamp.Timestamp := do
   ok self.timestamp
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::ratchet_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 925:4-927:5
+    Source: 'rust/protocol/src/protocol.rs', lines 926:4-928:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.ratchet_key
   (self : protocol.DecryptionErrorMessage) :
@@ -4294,21 +4298,21 @@ def protocol.DecryptionErrorMessage.impl.ratchet_key
   core.option.Option.as_ref self.ratchet_key
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::device_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 930:4-932:5
+    Source: 'rust/protocol/src/protocol.rs', lines 931:4-933:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.device_id
   (self : protocol.DecryptionErrorMessage) : Result Std.U32 := do
   ok self.device_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 935:4-937:5
+    Source: 'rust/protocol/src/protocol.rs', lines 936:4-938:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.serialized
   (self : protocol.DecryptionErrorMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::DecryptionErrorMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 940:0-962:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 941:0-963:1 -/
 @[reducible]
 def
   protocol.DecryptionErrorMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -4481,7 +4485,7 @@ def ratchet.spqr_chain_params
   ok { max_jump := i, max_ooo_keys := i1 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_kyber_ciphertext]:
-    Source: 'rust/protocol/src/state/session.rs', lines 555:4-561:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 557:4-563:5 -/
 def state.session.SessionState.set_kyber_ciphertext
   (self : state.session.SessionState) (ciphertext : Slice Std.U8) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -4499,7 +4503,7 @@ def state.session.SessionState.set_kyber_ciphertext
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_sender_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 399:4-413:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 401:4-415:5 -/
 def state.session.SessionState.set_sender_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.KeyPair)
   (next_chain_key : ratchet.keys.ChainKey) :
@@ -4534,7 +4538,7 @@ def state.session.SessionState.set_sender_chain
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::with_sender_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 415:4-418:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 417:4-420:5 -/
 def state.session.SessionState.with_sender_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.KeyPair)
   (next_chain_key : ratchet.keys.ChainKey) :
@@ -4543,7 +4547,7 @@ def state.session.SessionState.with_sender_chain
   state.session.SessionState.set_sender_chain self sender next_chain_key
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::with_receiver_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 394:4-397:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 396:4-399:5 -/
 def state.session.SessionState.with_receiver_chain
   (self : state.session.SessionState) (sender : libsignal_core.curve.PublicKey)
   (chain_key : ratchet.keys.ChainKey) :
@@ -5395,7 +5399,7 @@ def sender_keys.SenderKeyRecord.serialize
   ok (core.result.Result.Ok v)
 
 /-- [libsignal_protocol::session_management::{impl core::clone::Clone for libsignal_protocol::session_management::CurrentOrPrevious}::clone]:
-    Source: 'rust/protocol/src/session_management.rs', lines 701:9-701:14
+    Source: 'rust/protocol/src/session_management.rs', lines 711:9-711:14
     Visibility: public -/
 def session_management.CurrentOrPrevious.Insts.CoreCloneClone.clone
   (self : session_management.CurrentOrPrevious) :
@@ -5404,7 +5408,7 @@ def session_management.CurrentOrPrevious.Insts.CoreCloneClone.clone
   ok self
 
 /-- Trait implementation: [libsignal_protocol::session_management::{impl core::clone::Clone for libsignal_protocol::session_management::CurrentOrPrevious}]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:9-701:14 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:9-711:14 -/
 @[reducible]
 def session_management.CurrentOrPrevious.Insts.CoreCloneClone :
   core.clone.Clone session_management.CurrentOrPrevious := {
@@ -5412,7 +5416,7 @@ def session_management.CurrentOrPrevious.Insts.CoreCloneClone :
 }
 
 /-- Trait implementation: [libsignal_protocol::session_management::{impl core::marker::Copy for libsignal_protocol::session_management::CurrentOrPrevious}]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:16-701:20 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:16-711:20 -/
 @[reducible]
 def session_management.CurrentOrPrevious.Insts.CoreMarkerCopy :
   core.marker.Copy session_management.CurrentOrPrevious := {
@@ -5420,7 +5424,7 @@ def session_management.CurrentOrPrevious.Insts.CoreMarkerCopy :
 }
 
 /-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::DisplayToDisplayDoc for &'_0 T}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 def
   Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc.__displaydoc_display
   {T : Type} (corefmtDisplayInst : core.fmt.Display T) (self : T) :
@@ -5429,7 +5433,7 @@ def
   ok self
 
 /-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::DisplayToDisplayDoc for &'_0 T}]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 @[reducible]
 def Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc {T
   : Type} (corefmtDisplayInst : core.fmt.Display T) :
@@ -5440,14 +5444,14 @@ def Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc {T
 }
 
 /-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::Path}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 def
   std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
   (self : std.path.Path) : Result std.path.Display := do
   std.path.Path.display self
 
 /-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::Path}]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 @[reducible]
 def std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc :
   session_management._.PathToDisplayDoc std.path.Path := {
@@ -5456,7 +5460,7 @@ def std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc :
 }
 
 /-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::PathBuf}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 def
   std.path.PathBuf.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
   (self : std.path.PathBuf) : Result std.path.Display := do
@@ -5464,7 +5468,7 @@ def
   std.path.Path.display p
 
 /-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::PathBuf}]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 @[reducible]
 def
   std.path.PathBuf.Insts.Libsignal_protocolSession_management_PathToDisplayDoc
@@ -5474,7 +5478,7 @@ def
 }
 
 /-- [libsignal_protocol::session_management::_]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 @[global_simps, irreducible] def session_management._ : Unit := ()
 
 /-- [libsignal_protocol::state::bundle::{impl core::clone::Clone for libsignal_protocol::state::bundle::SignedPreKey}::clone]:
@@ -6984,7 +6988,7 @@ def state.prekey.PreKeyRecord.serialize
   ok (core.result.Result.Ok v)
 
 /-- [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::clone]:
-    Source: 'rust/protocol/src/state/session.rs', lines 39:16-39:21
+    Source: 'rust/protocol/src/state/session.rs', lines 41:16-41:21
     Visibility: public -/
 def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone.clone
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
@@ -7017,7 +7021,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone.clone
     }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}]
-    Source: 'rust/protocol/src/state/session.rs', lines 39:16-39:21 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 41:16-41:21 -/
 @[reducible]
 def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone :
   core.clone.Clone state.session.UnacknowledgedPreKeyMessageItems := {
@@ -7026,7 +7030,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone :
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::pre_key_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 73:4-75:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 75:4-77:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.pre_key_id
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result (Option state.prekey.PreKeyId)
@@ -7034,7 +7038,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.pre_key_id
   ok self.pre_key_id
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::signed_pre_key_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 77:4-79:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 79:4-81:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.signed_pre_key_id
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result state.signed_prekey.SignedPreKeyId
@@ -7042,7 +7046,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.signed_pre_key_id
   ok self.signed_pre_key_id
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 81:4-83:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 83:4-85:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.base_key
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result libsignal_core.curve.PublicKey
@@ -7050,7 +7054,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.base_key
   ok self.base_key
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::kyber_pre_key_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 85:4-87:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 87:4-89:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.kyber_pre_key_id
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result (Option state.kyber_prekey.KyberPreKeyId)
@@ -7058,7 +7062,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.kyber_pre_key_id
   ok self.kyber_pre_key_id
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::kyber_ciphertext]:
-    Source: 'rust/protocol/src/state/session.rs', lines 89:4-91:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 91:4-93:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.kyber_ciphertext
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result (Option (Slice Std.U8))
@@ -7066,7 +7070,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.kyber_ciphertext
   ok self.kyber_ciphertext
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::timestamp]:
-    Source: 'rust/protocol/src/state/session.rs', lines 93:4-95:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 95:4-97:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.timestamp
   (self : state.session.UnacknowledgedPreKeyMessageItems) :
   Result std.time.SystemTime
@@ -7074,7 +7078,7 @@ def state.session.UnacknowledgedPreKeyMessageItems.impl.timestamp
   ok self.timestamp
 
 /-- [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionUsabilityRequirements}::clone]:
-    Source: 'rust/protocol/src/state/session.rs', lines 143:9-143:14
+    Source: 'rust/protocol/src/state/session.rs', lines 145:9-145:14
     Visibility: public -/
 def state.session.SessionUsabilityRequirements.Insts.CoreCloneClone.clone
   (self : state.session.SessionUsabilityRequirements) :
@@ -7083,7 +7087,7 @@ def state.session.SessionUsabilityRequirements.Insts.CoreCloneClone.clone
   ok self
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionUsabilityRequirements}]
-    Source: 'rust/protocol/src/state/session.rs', lines 143:9-143:14 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 145:9-145:14 -/
 @[reducible]
 def state.session.SessionUsabilityRequirements.Insts.CoreCloneClone :
   core.clone.Clone state.session.SessionUsabilityRequirements := {
@@ -7092,7 +7096,7 @@ def state.session.SessionUsabilityRequirements.Insts.CoreCloneClone :
 }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::marker::Copy for libsignal_protocol::state::session::SessionUsabilityRequirements}]
-    Source: 'rust/protocol/src/state/session.rs', lines 143:16-143:20 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 145:16-145:20 -/
 @[reducible]
 def state.session.SessionUsabilityRequirements.Insts.CoreMarkerCopy :
   core.marker.Copy state.session.SessionUsabilityRequirements := {
@@ -7100,7 +7104,7 @@ def state.session.SessionUsabilityRequirements.Insts.CoreMarkerCopy :
 }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::marker::StructuralPartialEq for libsignal_protocol::state::session::SessionUsabilityRequirements}]
-    Source: 'rust/protocol/src/state/session.rs', lines 143:22-143:31 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 145:22-145:31 -/
 @[reducible]
 def
   state.session.SessionUsabilityRequirements.Insts.CoreMarkerStructuralPartialEq
@@ -7109,7 +7113,7 @@ def
 }
 
 /-- [libsignal_protocol::state::session::{impl core::cmp::PartialEq<libsignal_protocol::state::session::SessionUsabilityRequirements> for libsignal_protocol::state::session::SessionUsabilityRequirements}::eq]:
-    Source: 'rust/protocol/src/state/session.rs', lines 143:22-143:31
+    Source: 'rust/protocol/src/state/session.rs', lines 145:22-145:31
     Visibility: public -/
 def
   state.session.SessionUsabilityRequirements.Insts.CoreCmpPartialEqSessionUsabilityRequirements.eq
@@ -7120,7 +7124,7 @@ def
   ok (self = other)
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::cmp::PartialEq<libsignal_protocol::state::session::SessionUsabilityRequirements> for libsignal_protocol::state::session::SessionUsabilityRequirements}]
-    Source: 'rust/protocol/src/state/session.rs', lines 143:22-143:31 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 145:22-145:31 -/
 @[reducible]
 def
   state.session.SessionUsabilityRequirements.Insts.CoreCmpPartialEqSessionUsabilityRequirements
@@ -7133,7 +7137,7 @@ def
 }
 
 /-- [libsignal_protocol::state::session::{impl core::cmp::Eq for libsignal_protocol::state::session::SessionUsabilityRequirements}::assert_fields_are_eq]:
-    Source: 'rust/protocol/src/state/session.rs', lines 143:33-143:35
+    Source: 'rust/protocol/src/state/session.rs', lines 145:33-145:35
     Visibility: public -/
 def
   state.session.SessionUsabilityRequirements.Insts.CoreCmpEq.assert_fields_are_eq
@@ -7141,7 +7145,7 @@ def
   ok ()
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::cmp::Eq for libsignal_protocol::state::session::SessionUsabilityRequirements}]
-    Source: 'rust/protocol/src/state/session.rs', lines 143:33-143:35 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 145:33-145:35 -/
 @[reducible]
 def state.session.SessionUsabilityRequirements.Insts.CoreCmpEq : core.cmp.Eq
   state.session.SessionUsabilityRequirements := {
@@ -7152,7 +7156,7 @@ def state.session.SessionUsabilityRequirements.Insts.CoreCmpEq : core.cmp.Eq
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionUsabilityRequirements}::NotStale]
-    Source: 'rust/protocol/src/state/session.rs', lines 149:4-149:44
+    Source: 'rust/protocol/src/state/session.rs', lines 151:4-151:44
     Visibility: public -/
 @[global_simps, irreducible]
 def state.session.SessionUsabilityRequirements.NotStale
@@ -7161,7 +7165,7 @@ def state.session.SessionUsabilityRequirements.NotStale
   ok i
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionUsabilityRequirements}::EstablishedWithPqxdh]
-    Source: 'rust/protocol/src/state/session.rs', lines 150:4-150:56
+    Source: 'rust/protocol/src/state/session.rs', lines 152:4-152:56
     Visibility: public -/
 @[global_simps, irreducible]
 def state.session.SessionUsabilityRequirements.EstablishedWithPqxdh
@@ -7170,7 +7174,7 @@ def state.session.SessionUsabilityRequirements.EstablishedWithPqxdh
   ok i
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionUsabilityRequirements}::Spqr]
-    Source: 'rust/protocol/src/state/session.rs', lines 151:4-151:40
+    Source: 'rust/protocol/src/state/session.rs', lines 153:4-153:40
     Visibility: public -/
 @[global_simps, irreducible]
 def state.session.SessionUsabilityRequirements.Spqr
@@ -7179,7 +7183,7 @@ def state.session.SessionUsabilityRequirements.Spqr
   ok i
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionUsabilityRequirements}::all]:
-    Source: 'rust/protocol/src/state/session.rs', lines 153:4-155:5
+    Source: 'rust/protocol/src/state/session.rs', lines 155:4-157:5
     Visibility: public -/
 def state.session.SessionUsabilityRequirements.all
   : Result state.session.SessionUsabilityRequirements := do
@@ -7191,7 +7195,7 @@ def state.session.SessionUsabilityRequirements.all
   ok i4
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionUsabilityRequirements}::contains]:
-    Source: 'rust/protocol/src/state/session.rs', lines 157:4-159:5
+    Source: 'rust/protocol/src/state/session.rs', lines 159:4-161:5
     Visibility: public -/
 def state.session.SessionUsabilityRequirements.contains
   (self : state.session.SessionUsabilityRequirements)
@@ -7202,7 +7206,7 @@ def state.session.SessionUsabilityRequirements.contains
   ok (i = other)
 
 /-- [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionState}::clone]:
-    Source: 'rust/protocol/src/state/session.rs', lines 162:9-162:14
+    Source: 'rust/protocol/src/state/session.rs', lines 164:9-164:14
     Visibility: public -/
 def state.session.SessionState.Insts.CoreCloneClone.clone
   (self : state.session.SessionState) : Result _root_.libsignal_protocol.state.session.SessionState := do
@@ -7211,7 +7215,7 @@ def state.session.SessionState.Insts.CoreCloneClone.clone
   ok { session := ss }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionState}]
-    Source: 'rust/protocol/src/state/session.rs', lines 162:9-162:14 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 164:9-164:14 -/
 @[reducible]
 def state.session.SessionState.Insts.CoreCloneClone : core.clone.Clone
   state.session.SessionState := {
@@ -7219,7 +7223,7 @@ def state.session.SessionState.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::from_session_structure]:
-    Source: 'rust/protocol/src/state/session.rs', lines 168:4-170:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 170:4-172:5 -/
 def state.session.SessionState.from_session_structure
   (session : proto.storage.SessionStructure) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -7227,7 +7231,7 @@ def state.session.SessionState.from_session_structure
   ok { session }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_with_self]:
-    Source: 'rust/protocol/src/state/session.rs', lines 236:4-244:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 238:4-246:5 -/
 def state.session.SessionState.session_with_self
   (self : state.session.SessionState) :
   Result (core.result.Result Bool state.session.InvalidSessionError)
@@ -7256,13 +7260,13 @@ def state.session.SessionState.session_with_self
       Bool (core.convert.FromSame state.session.InvalidSessionError) residual
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::previous_counter]:
-    Source: 'rust/protocol/src/state/session.rs', lines 246:4-248:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 248:4-250:5 -/
 def state.session.SessionState.previous_counter
   (self : state.session.SessionState) : Result Std.U32 := do
   ok self.session.previous_counter
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::sender_ratchet_key_for_logging]:
-    Source: 'rust/protocol/src/state/session.rs', lines 276:4-278:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 278:4-280:5 -/
 def state.session.SessionState.sender_ratchet_key_for_logging
   (self : state.session.SessionState) :
   Result (core.result.Result String state.session.InvalidSessionError)
@@ -7281,7 +7285,7 @@ def state.session.SessionState.sender_ratchet_key_for_logging
       String (core.convert.FromSame state.session.InvalidSessionError) residual
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_ libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::closure}::call_once]:
-    Source: 'rust/protocol/src/state/session.rs', lines 325:61-325:88 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 def
   state.session.SessionState.all_receiver_chain_logging_info.closure.Insts.CoreOpsFunctionFnOnceTupleSharedChainKeyU32.call_once
   (c : state.session.SessionState.all_receiver_chain_logging_info.closure)
@@ -7291,7 +7295,7 @@ def
   ok tupled_args.index
 
 /-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_ libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 325:61-325:88 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 @[reducible]
 def
   state.session.SessionState.all_receiver_chain_logging_info.closure.Insts.CoreOpsFunctionFnOnceTupleSharedChainKeyU32
@@ -7303,7 +7307,7 @@ def
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info]: loop body 0:
-    Source: 'rust/protocol/src/state/session.rs', lines 322:8-328:9 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 324:8-330:9 -/
 @[rust_loop_body]
 def state.session.SessionState.all_receiver_chain_logging_info_loop.body
   (iter : core.slice.iter.Iter proto.storage.session_structure.Chain)
@@ -7329,7 +7333,7 @@ def state.session.SessionState.all_receiver_chain_logging_info_loop.body
     ok (cont (iter1, results1))
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info]: loop 0:
-    Source: 'rust/protocol/src/state/session.rs', lines 322:8-328:9 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 324:8-330:9 -/
 @[rust_loop]
 def state.session.SessionState.all_receiver_chain_logging_info_loop
   (iter : core.slice.iter.Iter proto.storage.session_structure.Chain)
@@ -7343,7 +7347,7 @@ def state.session.SessionState.all_receiver_chain_logging_info_loop
     (iter, results)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info]:
-    Source: 'rust/protocol/src/state/session.rs', lines 320:4-330:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 322:4-332:5 -/
 def state.session.SessionState.all_receiver_chain_logging_info
   (self : state.session.SessionState) :
   Result (alloc.vec.Vec ((alloc.vec.Vec Std.U8) × (Option Std.U32)))
@@ -7354,7 +7358,7 @@ def state.session.SessionState.all_receiver_chain_logging_info
     (alloc.vec.Vec.new ((alloc.vec.Vec Std.U8) × (Option Std.U32)))
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_sender_chain_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 443:4-465:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 445:4-467:5 -/
 def state.session.SessionState.set_sender_chain_key
   (self : state.session.SessionState) (next_chain_key : ratchet.keys.ChainKey)
   :
@@ -7398,7 +7402,7 @@ def state.session.SessionState.set_sender_chain_key
       }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_unacknowledged_pre_key_message]:
-    Source: 'rust/protocol/src/state/session.rs', lines 535:4-553:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 537:4-555:5 -/
 def state.session.SessionState.set_unacknowledged_pre_key_message
   (self : state.session.SessionState)
   (pre_key_id : Option state.prekey.PreKeyId)
@@ -7439,7 +7443,7 @@ def state.session.SessionState.set_unacknowledged_pre_key_message
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::clear_unacknowledged_pre_key_message]:
-    Source: 'rust/protocol/src/state/session.rs', lines 592:4-615:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 594:4-617:5 -/
 def state.session.SessionState.clear_unacknowledged_pre_key_message
   (self : state.session.SessionState) : Result _root_.libsignal_protocol.state.session.SessionState := do
   ok
@@ -7453,7 +7457,7 @@ def state.session.SessionState.clear_unacknowledged_pre_key_message
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_remote_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 617:4-619:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 619:4-621:5 -/
 def state.session.SessionState.set_remote_registration_id
   (self : state.session.SessionState) (registration_id : Std.U32) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -7465,7 +7469,7 @@ def state.session.SessionState.set_remote_registration_id
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_local_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 625:4-627:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 627:4-629:5 -/
 def state.session.SessionState.set_local_registration_id
   (self : state.session.SessionState) (registration_id : Std.U32) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -7475,7 +7479,7 @@ def state.session.SessionState.set_local_registration_id
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::take_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 651:4-661:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 653:4-663:5 -/
 def state.session.SessionState.take_ratchet_state
   (self : state.session.SessionState) (self_session : Bool) :
   Result ((core.result.Result double_ratchet.RatchetState
@@ -7501,7 +7505,7 @@ def state.session.SessionState.take_ratchet_state
     ok (r1, { session := { self.session with receiver_chains := v } })
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::apply_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 668:4-670:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 670:4-672:5 -/
 def state.session.SessionState.apply_ratchet_state
   (self : state.session.SessionState) (ratchet : double_ratchet.RatchetState) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -7510,13 +7514,13 @@ def state.session.SessionState.apply_ratchet_state
   ok { session := ss }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::pq_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 694:4-696:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 696:4-698:5 -/
 def state.session.SessionState.pq_ratchet_state
   (self : state.session.SessionState) : Result (alloc.vec.Vec Std.U8) := do
   ok self.session.pq_ratchet_state
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::take_pq_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 703:4-705:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 705:4-707:5 -/
 def state.session.SessionState.take_pq_ratchet_state
   (self : state.session.SessionState) :
   Result ((alloc.vec.Vec Std.U8) × state.session.SessionState)
@@ -7527,7 +7531,7 @@ def state.session.SessionState.take_pq_ratchet_state
   ok (v, { session := { self.session with pq_ratchet_state := v1 } })
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_pq_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 707:4-709:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 709:4-711:5 -/
 def state.session.SessionState.set_pq_ratchet_state
   (self : state.session.SessionState) (state : alloc.vec.Vec Std.U8) :
   Result _root_.libsignal_protocol.state.session.SessionState
@@ -7535,7 +7539,7 @@ def state.session.SessionState.set_pq_ratchet_state
   ok { session := { self.session with pq_ratchet_state := state } }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}]
-    Source: 'rust/protocol/src/state/session.rs', lines 712:0-716:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 714:0-718:1 -/
 @[reducible]
 def state.session.SessionState.Insts.CoreConvertFromSessionStructure :
   core.convert.From state.session.SessionState proto.storage.SessionStructure
@@ -7545,7 +7549,7 @@ def state.session.SessionState.Insts.CoreConvertFromSessionStructure :
 }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 718:0-722:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 720:0-724:1 -/
 @[reducible]
 def proto.storage.SessionStructure.Insts.CoreConvertFromSessionState :
   core.convert.From proto.storage.SessionStructure state.session.SessionState
@@ -7555,7 +7559,7 @@ def proto.storage.SessionStructure.Insts.CoreConvertFromSessionState :
 }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<&'_0 libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 724:0-728:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 726:0-730:1 -/
 @[reducible]
 def proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState :
   core.convert.From proto.storage.SessionStructure state.session.SessionState
@@ -7565,7 +7569,7 @@ def proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState :
 }
 
 /-- [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionRecord}::clone]:
-    Source: 'rust/protocol/src/state/session.rs', lines 730:9-730:14
+    Source: 'rust/protocol/src/state/session.rs', lines 732:9-732:14
     Visibility: public -/
 def state.session.SessionRecord.Insts.CoreCloneClone.clone
   (self : state.session.SessionRecord) :
@@ -7580,7 +7584,7 @@ def state.session.SessionRecord.Insts.CoreCloneClone.clone
   ok { current_session := o, previous_sessions := v }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::clone::Clone for libsignal_protocol::state::session::SessionRecord}]
-    Source: 'rust/protocol/src/state/session.rs', lines 730:9-730:14 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 732:9-732:14 -/
 @[reducible]
 def state.session.SessionRecord.Insts.CoreCloneClone : core.clone.Clone
   state.session.SessionRecord := {
@@ -7588,7 +7592,7 @@ def state.session.SessionRecord.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new_fresh]:
-    Source: 'rust/protocol/src/state/session.rs', lines 737:4-742:5
+    Source: 'rust/protocol/src/state/session.rs', lines 739:4-744:5
     Visibility: public -/
 def state.session.SessionRecord.new_fresh
   : Result state.session.SessionRecord := do
@@ -7599,7 +7603,7 @@ def state.session.SessionRecord.new_fresh
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 801:4-803:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 803:4-805:5 -/
 def state.session.SessionRecord.session_state
   (self : state.session.SessionRecord) :
   Result (Option state.session.SessionState)
@@ -7607,7 +7611,7 @@ def state.session.SessionRecord.session_state
   core.option.Option.as_ref self.current_session
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_state_mut]:
-    Source: 'rust/protocol/src/state/session.rs', lines 805:4-807:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 807:4-809:5 -/
 def state.session.SessionRecord.session_state_mut
   (self : state.session.SessionRecord) :
   Result ((Option state.session.SessionState) × (Option
@@ -7620,7 +7624,7 @@ def state.session.SessionRecord.session_state_mut
   ok (o, back)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::set_session_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 809:4-811:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 811:4-813:5 -/
 def state.session.SessionRecord.set_session_state
   (self : state.session.SessionRecord) (session : state.session.SessionState) :
   Result state.session.SessionRecord
@@ -7628,7 +7632,7 @@ def state.session.SessionRecord.set_session_state
   ok { self with current_session := (some session) }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnOnce<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 818:42-822:9 -/
 @[reducible]
 def
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError
@@ -7641,7 +7645,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnMut<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 818:42-822:9 -/
 @[reducible]
 def
   state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError
@@ -7656,7 +7660,7 @@ def
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::archive_current_state_inner]:
-    Source: 'rust/protocol/src/state/session.rs', lines 840:4-852:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 842:4-854:5 -/
 def state.session.SessionRecord.archive_current_state_inner
   (self : state.session.SessionRecord) :
   Result (Bool × state.session.SessionRecord)
@@ -7683,7 +7687,7 @@ def state.session.SessionRecord.archive_current_state_inner
     ok (true, { current_session := o1, previous_sessions := v2 })
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::promote_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 832:4-835:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 834:4-837:5 -/
 def state.session.SessionRecord.promote_state
   (self : state.session.SessionRecord) (new_state : state.session.SessionState)
   :
@@ -7694,7 +7698,7 @@ def state.session.SessionRecord.promote_state
   ok { self1 with current_session := (some new_state) }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::promote_old_session]:
-    Source: 'rust/protocol/src/state/session.rs', lines 823:4-830:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 825:4-832:5 -/
 def state.session.SessionRecord.promote_old_session
   (self : state.session.SessionRecord) (old_session : Std.Usize)
   (updated_session : state.session.SessionState) :
@@ -7705,7 +7709,7 @@ def state.session.SessionRecord.promote_old_session
     { self with previous_sessions := v } updated_session
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_ libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::closure}::call_once]:
-    Source: 'rust/protocol/src/state/session.rs', lines 863:63-863:75 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 def
   state.session.SessionRecord.serialize.closure.Insts.CoreOpsFunctionFnOnceTupleSharedSessionStateSessionStructure.call_once
   (c : state.session.SessionRecord.serialize.closure)
@@ -7717,7 +7721,7 @@ def
     tupled_args
 
 /-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_ libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 863:63-863:75 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 @[reducible]
 def
   state.session.SessionRecord.serialize.closure.Insts.CoreOpsFunctionFnOnceTupleSharedSessionStateSessionStructure
@@ -7728,7 +7732,7 @@ def
 }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize]:
-    Source: 'rust/protocol/src/state/session.rs', lines 861:4-867:5
+    Source: 'rust/protocol/src/state/session.rs', lines 863:4-869:5
     Visibility: public -/
 def state.session.SessionRecord.serialize
   (self : state.session.SessionRecord) :

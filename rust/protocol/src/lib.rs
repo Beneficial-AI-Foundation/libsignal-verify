@@ -16,6 +16,8 @@
 
 #![warn(clippy::unwrap_used)]
 #![deny(unsafe_code)]
+#![cfg_attr(feature = "extraction", feature(register_tool))]
+#![cfg_attr(feature = "extraction", register_tool(charon))]
 
 // TODO(https://github.com/signalapp/libsignal/issues/285): it should be an aspiration to
 // eventually warn and then error for public members without docstrings. Also see
@@ -27,6 +29,11 @@ mod crypto;
 mod double_ratchet;
 pub mod error;
 mod fingerprint;
+// Store-trait-dependent high-level async API. Charon's hax frontend panics on the
+// `async fn` store traits (storage::traits) when `--start-from-pub` roots them, so
+// during extraction we gate out the whole store-using layer (storage + the modules
+// whose public fns take `&dyn …Store`). The protocol/crypto core is independent of it.
+#[cfg(not(feature = "extraction"))]
 mod group_cipher;
 mod handshake;
 mod identity_key;
@@ -38,6 +45,7 @@ mod protocol;
 mod ratchet;
 mod sealed_sender;
 mod sender_keys;
+#[cfg(not(feature = "extraction"))]
 mod session;
 #[cfg(test)]
 mod session_cipher_legacy;
@@ -52,6 +60,7 @@ pub use error::{SessionNotFound, SignalProtocolError};
 pub use fingerprint::{
     DisplayableFingerprint, Error as FingerprintError, Fingerprint, ScannableFingerprint,
 };
+#[cfg(not(feature = "extraction"))]
 pub use group_cipher::{
     create_sender_key_distribution_message, group_decrypt, group_encrypt,
     process_sender_key_distribution_message,
@@ -74,11 +83,18 @@ pub use ratchet::{
 pub use sealed_sender::{
     ContentHint, SealedSenderDecryptionResult, SealedSenderV2SentMessage,
     SealedSenderV2SentMessageRecipient, SenderCertificate, ServerCertificate,
-    UnidentifiedSenderMessageContent, sealed_sender_decrypt, sealed_sender_decrypt_to_usmc,
-    sealed_sender_encrypt, sealed_sender_encrypt_from_usmc, sealed_sender_multi_recipient_encrypt,
+    UnidentifiedSenderMessageContent,
+};
+// Store-using sealed-sender API (gated out during extraction, see above).
+#[cfg(not(feature = "extraction"))]
+pub use sealed_sender::{
+    sealed_sender_decrypt, sealed_sender_decrypt_to_usmc, sealed_sender_encrypt,
+    sealed_sender_encrypt_from_usmc, sealed_sender_multi_recipient_encrypt,
 };
 pub use sender_keys::SenderKeyRecord;
+#[cfg(not(feature = "extraction"))]
 pub use session::{process_prekey, process_prekey_bundle};
+#[cfg(not(feature = "extraction"))]
 pub use session_management::{
     message_decrypt, message_decrypt_prekey, message_decrypt_signal, message_encrypt,
 };
@@ -87,10 +103,13 @@ pub use state::{
     PreKeyId, PreKeyRecord, SessionRecord, SessionUsabilityRequirements, SignedPreKeyId,
     SignedPreKeyRecord,
 };
+// Direction/IdentityChange are plain enums used by kept crypto code; the store
+// traits + InMem impls are the async-trait layer gated out during extraction.
+pub use storage::{Direction, IdentityChange};
+#[cfg(not(feature = "extraction"))]
 pub use storage::{
-    Direction, IdentityChange, IdentityKeyStore, InMemIdentityKeyStore, InMemKyberPreKeyStore,
-    InMemPreKeyStore, InMemSenderKeyStore, InMemSessionStore, InMemSignalProtocolStore,
-    InMemSignedPreKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore,
-    SessionStore, SignedPreKeyStore,
+    IdentityKeyStore, InMemIdentityKeyStore, InMemKyberPreKeyStore, InMemPreKeyStore,
+    InMemSenderKeyStore, InMemSessionStore, InMemSignalProtocolStore, InMemSignedPreKeyStore,
+    KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore, SessionStore, SignedPreKeyStore,
 };
 pub use timestamp::Timestamp;

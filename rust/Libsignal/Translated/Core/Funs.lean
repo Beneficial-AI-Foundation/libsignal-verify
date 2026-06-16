@@ -674,7 +674,7 @@ def e164.E164.from_be_bytes
     o ()
 
 /-- [libsignal_core::try_scoped]:
-    Source: 'rust/core/src/lib.rs', lines 28:0-30:1
+    Source: 'rust/core/src/lib.rs', lines 30:0-32:1
     Visibility: public -/
 def try_scoped
   {T : Type} {E : Type} {T2 : Type} (coreopsfunctionFnOnceT2TupleResultInst :
@@ -686,6 +686,6 @@ def try_scoped
 /-- [libsignal_core::version::VERSION]
     Source: 'rust/core/src/version.rs', lines 8:0-8:35
     Visibility: public -/
-@[global_simps, irreducible] def version.VERSION : Str := toStr "0.94.4"
+@[global_simps, irreducible] def version.VERSION : Str := toStr "0.96.0"
 
 end libsignal_core

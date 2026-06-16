@@ -18,13 +18,22 @@ use rand::{CryptoRng, Rng, TryRngCore as _};
 use subtle::{Choice, ConstantTimeEq};
 use zerocopy::{FromBytes, Immutable, KnownLayout};
 
-use crate::error::SessionNotFound;
 use crate::{
-    Aci, CiphertextMessageType, DeviceId, Direction, IdentityKey, IdentityKeyPair,
-    IdentityKeyStore, KeyPair, KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, PrivateKey,
-    ProtocolAddress, PublicKey, Result, ServiceId, ServiceIdFixedWidthBinaryBytes, SessionRecord,
-    SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, Timestamp, crypto,
-    message_encrypt, proto, session_management,
+    Aci, CiphertextMessageType, DeviceId, Direction, IdentityKey, IdentityKeyPair, KeyPair,
+    PreKeySignalMessage, PrivateKey, ProtocolAddress, PublicKey, Result, ServiceId,
+    ServiceIdFixedWidthBinaryBytes, SessionRecord, SignalMessage, SignalProtocolError, Timestamp,
+    crypto, proto,
+};
+// Store traits + the store-using message API are used only by the sealed-sender
+// encrypt/decrypt fns, which are gated out during extraction (charon hax panics on
+// the async store traits). Direction is a plain enum kept crypto code needs, so it
+// stays above.
+#[cfg(not(feature = "extraction"))]
+use crate::error::SessionNotFound;
+#[cfg(not(feature = "extraction"))]
+use crate::{
+    IdentityKeyStore, KyberPreKeyStore, PreKeyStore, SessionStore, SignedPreKeyStore,
+    message_encrypt, session_management,
 };
 
 #[derive(Debug, Clone)]
@@ -886,6 +895,7 @@ mod sealed_sender_v1 {
 /// This is a simple way to encrypt a message in a 1:1 using [Sealed Sender v1].
 ///
 /// [Sealed Sender v1]: sealed_sender_encrypt_from_usmc
+#[cfg(not(feature = "extraction"))]
 pub async fn sealed_sender_encrypt<R: Rng + CryptoRng>(
     destination: &ProtocolAddress,
     sender_cert: &SenderCertificate,
@@ -969,6 +979,7 @@ pub async fn sealed_sender_encrypt<R: Rng + CryptoRng>(
 /// `sealed_sender.proto`, prepended with an additional byte to indicate the version of Sealed
 /// Sender in use (see [further documentation on the version
 /// byte](sealed_sender_multi_recipient_encrypt#the-version-byte)).
+#[cfg(not(feature = "extraction"))]
 pub async fn sealed_sender_encrypt_from_usmc<R: Rng + CryptoRng>(
     destination: &ProtocolAddress,
     usmc: &UnidentifiedSenderMessageContent,
@@ -1359,6 +1370,7 @@ mod sealed_sender_v2 {
 /// Fixed-width integers are unaligned and in network byte order (big-endian).
 ///
 /// [varint]: https://developers.google.com/protocol-buffers/docs/encoding#varints
+#[cfg(not(feature = "extraction"))]
 pub async fn sealed_sender_multi_recipient_encrypt<
     R: Rng + CryptoRng,
     X: IntoIterator<Item = ServiceId>,
@@ -1384,6 +1396,7 @@ where
     .await
 }
 
+#[cfg(not(feature = "extraction"))]
 async fn sealed_sender_multi_recipient_encrypt_impl<
     R: Rng + CryptoRng,
     X: IntoIterator<Item = ServiceId>,
@@ -1850,6 +1863,7 @@ impl<'a> SealedSenderV2SentMessage<'a> {
 ///
 /// [`sealed_sender_decrypt`] consumes the output of this method to validate the sender's identity
 /// before decrypting the underlying message.
+#[cfg(not(feature = "extraction"))]
 pub async fn sealed_sender_decrypt_to_usmc(
     ciphertext: &[u8],
     identity_store: &dyn IdentityKeyStore,
@@ -2010,6 +2024,7 @@ impl SealedSenderDecryptionResult {
 /// is then validated against the `trust_root` baked into the client to ensure that the sender's
 /// identity was not forged.
 #[expect(clippy::too_many_arguments)]
+#[cfg(not(feature = "extraction"))]
 pub async fn sealed_sender_decrypt(
     ciphertext: &[u8],
     trust_root: &PublicKey,

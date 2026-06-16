@@ -82,6 +82,7 @@ pub enum SignalProtocolError {
     /// error while invoking an ffi callback: {0}
     FfiBindingError(String),
     /// error in method call '{0}': {1}
+    #[cfg(not(feature = "extraction"))]
     ApplicationCallbackError(
         &'static str,
         #[source] Box<dyn std::error::Error + Send + Sync + UnwindSafe + 'static>,
@@ -135,6 +136,7 @@ impl Display for SessionNotFound {
     }
 }
 
+#[cfg(not(feature = "extraction"))]
 impl SignalProtocolError {
     /// Convenience factory for [`SignalProtocolError::ApplicationCallbackError`].
     #[inline]

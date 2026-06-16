@@ -551,6 +551,14 @@ axiom
 @[rust_fun "alloc::fmt::format"]
 axiom alloc.fmt.format : core.fmt.Arguments → Result String
 
+/-- [alloc::str::{impl alloc::borrow::ToOwned<alloc::string::String> for str}::to_owned]:
+    Source: '/rustc/library/alloc/src/str.rs', lines 250:4-250:32
+    Name pattern: [alloc::str::{alloc::borrow::ToOwned<str, alloc::string::String>}::to_owned]
+    Visibility: public -/
+@[rust_fun
+  "alloc::str::{alloc::borrow::ToOwned<str, alloc::string::String>}::to_owned"]
+axiom Str.Insts.AllocBorrowToOwnedString.to_owned : Str → Result String
+
 /-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
     Source: '/rustc/library/alloc/src/string.rs', lines 2364:4-2364:27
     Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]

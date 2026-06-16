@@ -29,9 +29,16 @@ use crate::consts::MAX_UNACKNOWLEDGED_SESSION_AGE;
 use crate::state::{InvalidSessionError, SessionState};
 use crate::triple_ratchet::{OutgoingTripleRatchet, TripleRatchet};
 use crate::{
-    CiphertextMessage, CiphertextMessageType, Direction, IdentityKeyStore, KyberPayload,
-    KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, ProtocolAddress, Result, SessionNotFound,
-    SessionRecord, SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, session,
+    CiphertextMessage, CiphertextMessageType, KyberPayload, PreKeySignalMessage, ProtocolAddress,
+    Result, SessionRecord, SignalMessage, SignalProtocolError,
+};
+// Store traits + the `session` module + `Direction` are used only by the public
+// store-using API (message_encrypt/decrypt*), which is gated out during extraction
+// (charon hax panics on the async store traits). See lib.rs.
+#[cfg(not(feature = "extraction"))]
+use crate::{
+    Direction, IdentityKeyStore, KyberPreKeyStore, PreKeyStore, SessionNotFound, SessionStore,
+    SignedPreKeyStore, session,
 };
 // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -40,6 +47,7 @@ use crate::{
 /// If the session is unacknowledged (a locally-initiated session that has not
 /// yet received a response), wraps the [`SignalMessage`] in a
 /// [`PreKeySignalMessage`] containing the original pre-key material.
+#[cfg(not(feature = "extraction"))]
 pub async fn message_encrypt<R: Rng + CryptoRng>(
     ptext: &[u8],
     remote_address: &ProtocolAddress,
@@ -155,6 +163,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
 /// Routes to [`message_decrypt_signal`] or [`message_decrypt_prekey`] based
 /// on message type.
 #[allow(clippy::too_many_arguments)]
+#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt<R: Rng + CryptoRng>(
     ciphertext: &CiphertextMessage,
     remote_address: &ProtocolAddress,
@@ -204,6 +213,7 @@ pub async fn message_decrypt<R: Rng + CryptoRng>(
 /// Processes the pre-key material to establish a session (via
 /// [`session::process_prekey`]), then decrypts the inner [`SignalMessage`].
 #[allow(clippy::too_many_arguments)]
+#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
     ciphertext: &PreKeySignalMessage,
     remote_address: &ProtocolAddress,
@@ -294,6 +304,7 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
 ///
 /// Tries all sessions in the session record. Checks identity key trust
 /// after decryption.
+#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
     ciphertext: &SignalMessage,
     remote_address: &ProtocolAddress,

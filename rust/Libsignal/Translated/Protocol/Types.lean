@@ -454,7 +454,7 @@ structure double_ratchet.RatchetState where
   max_forward_jumps : Std.Usize
 
 /-- [libsignal_protocol::state::session::InvalidSessionError]
-    Source: 'rust/protocol/src/state/session.rs', lines 25:0-25:63 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 27:0-27:63 -/
 @[reducible]
 def state.session.InvalidSessionError := Str
 
@@ -475,8 +475,15 @@ inductive protocol.CiphertextMessageType where
 inductive kem.KeyType where
 | Kyber1024 : kem.KeyType
 
+/-- [libsignal_protocol::error::SessionNotFound]
+    Source: 'rust/protocol/src/error.rs', lines 111:0-114:1
+    Visibility: public -/
+structure error.SessionNotFound where
+  address : Option libsignal_core.address.ProtocolAddress
+  op : Str
+
 /-- [libsignal_protocol::error::SignalProtocolError]
-    Source: 'rust/protocol/src/error.rs', lines 18:0-107:1
+    Source: 'rust/protocol/src/error.rs', lines 19:0-108:1
     Visibility: public -/
 @[discriminant isize]
 inductive error.SignalProtocolError where
@@ -504,9 +511,7 @@ inductive error.SignalProtocolError where
 | InvalidMacKeyLength : Std.Usize → error.SignalProtocolError
 | NoSenderKeyState : uuid.Uuid → error.SignalProtocolError
 | InvalidProtocolAddress : String → Std.U32 → error.SignalProtocolError
-| SessionNotFound :
-  libsignal_core.address.ProtocolAddress →
-  error.SignalProtocolError
+| SessionNotFound : error.SessionNotFound → error.SignalProtocolError
 | InvalidSessionStructure : Str → error.SignalProtocolError
 | InvalidSenderKeySession : uuid.Uuid → error.SignalProtocolError
 | InvalidRegistrationId :
@@ -516,7 +521,7 @@ inductive error.SignalProtocolError where
 | DuplicatedMessage : Std.U32 → Std.U32 → error.SignalProtocolError
 | InvalidMessage :
   protocol.CiphertextMessageType →
-  Str →
+  String →
   error.SignalProtocolError
 | FfiBindingError : String → error.SignalProtocolError
 | InvalidSealedSenderMessage : String → error.SignalProtocolError
@@ -719,13 +724,13 @@ structure pqxdh.RecipientParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::protocol::PlaintextContent]
-    Source: 'rust/protocol/src/protocol.rs', lines 809:0-811:1
+    Source: 'rust/protocol/src/protocol.rs', lines 810:0-812:1
     Visibility: public -/
 structure protocol.PlaintextContent where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::SenderKeyMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 522:0-529:1
+    Source: 'rust/protocol/src/protocol.rs', lines 523:0-530:1
     Visibility: public -/
 structure protocol.SenderKeyMessage where
   message_version : Std.U8
@@ -825,7 +830,7 @@ def protocol.PreKeySignalMessage.new.closure := Unit
 def protocol.PreKeySignalMessage.kyber_pre_key_id.closure := Unit
 
 /-- [libsignal_protocol::protocol::SenderKeyDistributionMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 663:0-671:1
+    Source: 'rust/protocol/src/protocol.rs', lines 664:0-672:1
     Visibility: public -/
 structure protocol.SenderKeyDistributionMessage where
   message_version : Std.U8
@@ -843,7 +848,7 @@ structure timestamp.Timestamp where
   millis : Std.U64
 
 /-- [libsignal_protocol::protocol::DecryptionErrorMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 873:0-878:1
+    Source: 'rust/protocol/src/protocol.rs', lines 874:0-879:1
     Visibility: public -/
 structure protocol.DecryptionErrorMessage where
   ratchet_key : Option libsignal_core.curve.PublicKey
@@ -852,12 +857,12 @@ structure protocol.DecryptionErrorMessage where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::closure]
-    Source: 'rust/protocol/src/protocol.rs', lines 906:41-906:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
 @[reducible]
 def protocol.DecryptionErrorMessage.for_original.closure := Unit
 
 /-- [libsignal_protocol::state::session::SessionState]
-    Source: 'rust/protocol/src/state/session.rs', lines 163:0-165:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 165:0-167:1 -/
 structure state.session.SessionState where
   session : proto.storage.SessionStructure
 
@@ -872,7 +877,7 @@ def ratchet.initialize_initiator_session.closure (R : Type) := Unit
 def ratchet.initialize_recipient_session.closure := Unit
 
 /-- [libsignal_protocol::state::session::SessionRecord]
-    Source: 'rust/protocol/src/state/session.rs', lines 731:0-734:1
+    Source: 'rust/protocol/src/state/session.rs', lines 733:0-736:1
     Visibility: public -/
 structure state.session.SessionRecord where
   current_session : Option state.session.SessionState
@@ -920,19 +925,19 @@ structure sender_keys.SenderKeyRecord where
 def sender_keys.SenderKeyRecord.deserialize.closure := Unit
 
 /-- [libsignal_protocol::session_management::CurrentOrPrevious]
-    Source: 'rust/protocol/src/session_management.rs', lines 702:0-707:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 712:0-717:1 -/
 @[discriminant isize]
 inductive session_management.CurrentOrPrevious where
 | Current : session_management.CurrentOrPrevious
 | Previous : session_management.CurrentOrPrevious
 
 /-- Trait declaration: [libsignal_protocol::session_management::_::DisplayToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 structure session_management._.DisplayToDisplayDoc (Self : Type) where
   __displaydoc_display : Self → Result Self
 
 /-- Trait declaration: [libsignal_protocol::session_management::_::PathToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 701:22-701:29 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
 structure session_management._.PathToDisplayDoc (Self : Type) where
   __displaydoc_display : Self → Result std.path.Display
 
@@ -1122,7 +1127,7 @@ structure state.prekey.PreKeyRecord where
 def state.prekey.PreKeyRecord.deserialize.closure := Unit
 
 /-- [libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems]
-    Source: 'rust/protocol/src/state/session.rs', lines 40:0-50:1 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 42:0-52:1 -/
 structure state.session.UnacknowledgedPreKeyMessageItems where
   pre_key_id : Option state.prekey.PreKeyId
   signed_pre_key_id : state.signed_prekey.SignedPreKeyId
@@ -1132,18 +1137,18 @@ structure state.session.UnacknowledgedPreKeyMessageItems where
   timestamp : std.time.SystemTime
 
 /-- [libsignal_protocol::state::session::SessionUsabilityRequirements]
-    Source: 'rust/protocol/src/state/session.rs', lines 144:0-144:45
+    Source: 'rust/protocol/src/state/session.rs', lines 146:0-146:45
     Visibility: public -/
 @[reducible]
 def state.session.SessionUsabilityRequirements := Std.U32
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::closure]
-    Source: 'rust/protocol/src/state/session.rs', lines 325:61-325:88 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 @[reducible]
 def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::closure]
-    Source: 'rust/protocol/src/state/session.rs', lines 863:63-863:75 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
 
