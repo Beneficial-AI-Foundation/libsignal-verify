@@ -143,6 +143,26 @@ export const enum LogLevel {
   Trace,
 }
 
+export type ReturnFfiMyRemoteDeriveEnum =
+  | {
+      __type: 0;
+    }
+  | {
+      __type: 1;
+      _0: number;
+      _1: number;
+    }
+  | {
+      __type: 2;
+      x: string;
+      y: number;
+    };
+
+export type ReturnFfiMyRemoteDeriveStruct = {
+  x: number;
+  y: number;
+};
+
 export type ReturnFfiMyTestEnum =
   | {
       __type: 0;
@@ -176,6 +196,26 @@ export type ReturnFfiMyTestPoint = {
 export type ReturnFfiMyTestStruct = {
   my_numeric_field: number;
   my_string_field: string;
+};
+
+export type ArgFfiMyRemoteDeriveEnum =
+  | {
+      __type: 0;
+    }
+  | {
+      __type: 1;
+      _0: number;
+      _1: number;
+    }
+  | {
+      __type: 2;
+      x: string;
+      y: number;
+    };
+
+export type ArgFfiMyRemoteDeriveStruct = {
+  x: number;
+  y: number;
 };
 
 export type ArgFfiMyTestEnum =
@@ -1849,6 +1889,35 @@ type NativeFunctions = {
     attestation_msg: Uint8Array<ArrayBuffer>,
     current_timestamp: Timestamp
   ) => SgxClientState;
+  Svr2_Delete: (
+    asyncRuntime: Wrapper<TokioAsyncContext>,
+    connection_manager: Wrapper<ConnectionManager>,
+    username: string,
+    password: string
+  ) => CancellablePromise<void>;
+  Svr2_FinishBackup: (
+    asyncRuntime: Wrapper<TokioAsyncContext>,
+    session: Wrapper<Svr2BackupSession>,
+    connection_manager: Wrapper<ConnectionManager>,
+    username: string,
+    password: string
+  ) => CancellablePromise<void>;
+  Svr2_Restore: (
+    asyncRuntime: Wrapper<TokioAsyncContext>,
+    pin: Uint8Array<ArrayBuffer>,
+    connection_manager: Wrapper<ConnectionManager>,
+    username: string,
+    password: string
+  ) => CancellablePromise<[Uint8Array<ArrayBuffer>, number]>;
+  Svr2_StartBackup: (
+    asyncRuntime: Wrapper<TokioAsyncContext>,
+    pin: Uint8Array<ArrayBuffer>,
+    data: Uint8Array<ArrayBuffer>,
+    max_tries: number,
+    connection_manager: Wrapper<ConnectionManager>,
+    username: string,
+    password: string
+  ) => CancellablePromise<Svr2BackupSession>;
   TESTING_BridgedStringMap_dump_to_json: (
     map: Wrapper<BridgedStringMap>
   ) => string;
@@ -2020,6 +2089,12 @@ type NativeFunctions = {
   TESTING_KeyTransFatalVerificationFailure: () => void;
   TESTING_KeyTransNonFatalVerificationFailure: () => void;
   TESTING_KeyTransStoredAccountData: () => Uint8Array<ArrayBuffer>;
+  TESTING_MyRemoteDeriveEnum_identity: (
+    x: ArgFfiMyRemoteDeriveEnum
+  ) => ReturnFfiMyRemoteDeriveEnum;
+  TESTING_MyRemoteDeriveStruct_identity: (
+    x: ArgFfiMyRemoteDeriveStruct
+  ) => ReturnFfiMyRemoteDeriveStruct;
   TESTING_MyTestEnum_identity: (x: ArgFfiMyTestEnum) => ReturnFfiMyTestEnum;
   TESTING_MyTestEnum_identity_async: (
     asyncRuntime: Wrapper<TokioAsyncContext>,
@@ -2843,6 +2918,10 @@ const {
   SignedPreKeyRecord_New,
   SignedPreKeyRecord_Serialize,
   Svr2Client_New,
+  Svr2_Delete,
+  Svr2_FinishBackup,
+  Svr2_Restore,
+  Svr2_StartBackup,
   TESTING_BridgedStringMap_dump_to_json,
   TESTING_CdsiLookupErrorConvert,
   TESTING_CdsiLookupResponseConvert,
@@ -2900,6 +2979,8 @@ const {
   TESTING_KeyTransFatalVerificationFailure,
   TESTING_KeyTransNonFatalVerificationFailure,
   TESTING_KeyTransStoredAccountData,
+  TESTING_MyRemoteDeriveEnum_identity,
+  TESTING_MyRemoteDeriveStruct_identity,
   TESTING_MyTestEnum_identity,
   TESTING_MyTestEnum_identity_async,
   TESTING_MyTestEnum_to_string,
@@ -3459,6 +3540,10 @@ export {
   SignedPreKeyRecord_New,
   SignedPreKeyRecord_Serialize,
   Svr2Client_New,
+  Svr2_Delete,
+  Svr2_FinishBackup,
+  Svr2_Restore,
+  Svr2_StartBackup,
   TESTING_BridgedStringMap_dump_to_json,
   TESTING_CdsiLookupErrorConvert,
   TESTING_CdsiLookupResponseConvert,
@@ -3516,6 +3601,8 @@ export {
   TESTING_KeyTransFatalVerificationFailure,
   TESTING_KeyTransNonFatalVerificationFailure,
   TESTING_KeyTransStoredAccountData,
+  TESTING_MyRemoteDeriveEnum_identity,
+  TESTING_MyRemoteDeriveStruct_identity,
   TESTING_MyTestEnum_identity,
   TESTING_MyTestEnum_identity_async,
   TESTING_MyTestEnum_to_string,
@@ -3936,6 +4023,9 @@ export interface SignalMessage {
   readonly __type: unique symbol;
 }
 export interface SignedPreKeyRecord {
+  readonly __type: unique symbol;
+}
+export interface Svr2BackupSession {
   readonly __type: unique symbol;
 }
 export interface TestingFutureCancellationCounter {

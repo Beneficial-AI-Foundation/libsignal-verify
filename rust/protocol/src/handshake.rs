@@ -28,7 +28,6 @@ use crate::Result;
 /// enforce a clean boundary: the message is data for the wire, the secret
 /// is data for the ratchet. These are currently protocol-specific types
 /// but should eventually become opaque byte arrays.
-#[cfg_attr(feature = "extraction", charon::exclude)]
 pub(crate) trait Handshake {
     /// Parameters for the initiator (constructed from a pre-key bundle).
     type InitiatorParams;

@@ -35,10 +35,9 @@ use crate::{
 /// protocol (4 EC DH + 1 ML-KEM encapsulation/decapsulation).
 pub(crate) struct Pqxdh;
 
-#[cfg_attr(feature = "extraction", charon::exclude)]
 impl Handshake for Pqxdh {
     type InitiatorParams = InitiatorParameters;
-    type RecipientParams<'a> = RecipientParameters;
+    type RecipientParams<'a> = RecipientParameters<'a>;
     type InitiatorMessage = kem::SerializedCiphertext;
     type SessionSecret = HandshakeKeys;
 
@@ -99,10 +98,8 @@ impl HandshakeKeys {
 /// Contains the derived handshake keys and the KEM ciphertext that the
 /// recipient needs to complete the agreement.
 pub(crate) struct InitiatorAgreement {
-    // pub(crate) so callers can destructure directly instead of going through
-    // the excluded `Handshake::initiate` trait method (see ratchet.rs).
-    pub(crate) keys: HandshakeKeys,
-    pub(crate) kyber_ciphertext: kem::SerializedCiphertext,
+    keys: HandshakeKeys,
+    kyber_ciphertext: kem::SerializedCiphertext,
 }
 
 /// Parameters for the initiator side of a PQXDH key agreement.
@@ -245,7 +242,7 @@ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
 /// The recipient uses their own pre-keys together with the initiator's
 /// identity and base keys (received in the pre-key message) to compute
 /// the same shared secret.
-pub struct RecipientParameters {
+pub struct RecipientParameters<'a> {
     our_identity_key_pair: IdentityKeyPair,
     our_signed_pre_key_pair: KeyPair,
     our_one_time_pre_key_pair: Option<KeyPair>,
@@ -253,12 +250,12 @@ pub struct RecipientParameters {
 
     their_identity_key: IdentityKey,
     their_ephemeral_key: PublicKey,
-    their_kyber_ciphertext: kem::SerializedCiphertext,
+    their_kyber_ciphertext: &'a kem::SerializedCiphertext,
 
     self_session: bool,
 }
 
-impl RecipientParameters {
+impl<'a> RecipientParameters<'a> {
     pub fn new(
         our_identity_key_pair: IdentityKeyPair,
         our_signed_pre_key_pair: KeyPair,
@@ -266,7 +263,7 @@ impl RecipientParameters {
         our_kyber_pre_key_pair: kem::KeyPair,
         their_identity_key: IdentityKey,
         their_ephemeral_key: PublicKey,
-        their_kyber_ciphertext: kem::SerializedCiphertext,
+        their_kyber_ciphertext: &'a kem::SerializedCiphertext,
         self_session: bool,
     ) -> Self {
         Self {
@@ -313,7 +310,7 @@ impl RecipientParameters {
 
     #[inline]
     pub fn their_kyber_ciphertext(&self) -> &kem::SerializedCiphertext {
-        &self.their_kyber_ciphertext
+        self.their_kyber_ciphertext
     }
 
     #[inline]
@@ -327,10 +324,12 @@ impl RecipientParameters {
 /// Computes DH shared secrets and KEM decapsulation, then applies the KDF
 /// to produce keys ready for ratchet initialization.
 pub(crate) fn pqxdh_accept(parameters: &RecipientParameters) -> Result<HandshakeKeys> {
-    // replace `InvalidMessage(CiphertextMessageType::PreKey, "incoming
-    // base key is invalid")` with the unit variant `InvalidKeyAgreement`.
+    // Validate the initiator's base key before doing any computation.
     if !parameters.their_ephemeral_key.is_canonical() {
-        return Err(SignalProtocolError::InvalidKeyAgreement);
+        return Err(SignalProtocolError::InvalidMessage(
+            CiphertextMessageType::PreKey,
+            "incoming base key is invalid".to_owned(),
+        ));
     }
 
     let mut secrets = Vec::with_capacity(32 * 6);
@@ -370,7 +369,7 @@ pub(crate) fn pqxdh_accept(parameters: &RecipientParameters) -> Result<Handshake
         &parameters
             .our_kyber_pre_key_pair
             .secret_key
-            .decapsulate(&parameters.their_kyber_ciphertext)?,
+            .decapsulate(parameters.their_kyber_ciphertext)?,
     );
 
     Ok(HandshakeKeys::derive(&secrets))

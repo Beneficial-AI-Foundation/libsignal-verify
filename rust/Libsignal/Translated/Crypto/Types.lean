@@ -595,6 +595,146 @@ structure typenum.uint.SetBit (Self : Type) (I : Type) (B : Type) (Self_Output
   set_bit : forall {IM : Type} (privateInternalMarkerInst :
     typenum.private.InternalMarker IM), Self → I → B → Result Self_Output
 
+/-- Trait declaration: [generic_array::ArrayLength]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7/src/lib.rs', lines 112:0-112:41
+    Name pattern: [generic_array::ArrayLength]
+    Visibility: public -/
+@[rust_trait "generic_array::ArrayLength"
+  (parentClauses := ["typenummarker_traitsUnsignedInst"])]
+structure generic_array.ArrayLength (Self : Type) (T : Type) (Self_ArrayType :
+  Type) where
+  typenummarker_traitsUnsignedInst : typenum.marker_traits.Unsigned Self
+
+/-- Trait declaration: [crypto_common::BlockSizeUser]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7/src/lib.rs', lines 42:0-42:23
+    Name pattern: [crypto_common::BlockSizeUser]
+    Visibility: public -/
+@[rust_trait "crypto_common::BlockSizeUser"
+  (parentClauses := ["generic_arrayArrayLengthSelf_BlockSizeU8Self_Clause0_ArrayTypeInst"])]
+structure crypto_common.BlockSizeUser (Self : Type) (Self_BlockSize : Type)
+  (Self_Clause0_ArrayType : Type) where
+  generic_arrayArrayLengthSelf_BlockSizeU8Self_Clause0_ArrayTypeInst :
+    generic_array.ArrayLength Self_BlockSize Std.U8 Self_Clause0_ArrayType
+
+/-- [block_padding::PadType]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-padding-0.3.3/src/lib.rs', lines 23:0-23:16
+    Name pattern: [block_padding::PadType]
+    Visibility: public -/
+@[discriminant isize, rust_type "block_padding::PadType"]
+inductive block_padding.PadType where
+| Reversible : block_padding.PadType
+| Ambiguous : block_padding.PadType
+| NoPadding : block_padding.PadType
+
+/-- [block_padding::UnpadError]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-padding-0.3.3/src/lib.rs', lines 401:0-401:21
+    Name pattern: [block_padding::UnpadError]
+    Visibility: public -/
+@[reducible, rust_type "block_padding::UnpadError"]
+def block_padding.UnpadError := Unit
+
+/-- Trait declaration: [cipher::block::BlockCipher]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cipher-0.4.4/src/block.rs', lines 26:0-26:36
+    Name pattern: [cipher::block::BlockCipher]
+    Visibility: public -/
+@[rust_trait "cipher::block::BlockCipher"
+  (parentClauses := ["crypto_commonBlockSizeUserInst"])]
+structure cipher.block.BlockCipher (Self : Type) (Self_Clause0_BlockSize :
+  Type) (Self_Clause0_Clause0_ArrayType : Type) where
+  crypto_commonBlockSizeUserInst : crypto_common.BlockSizeUser Self
+    Self_Clause0_BlockSize Self_Clause0_Clause0_ArrayType
+
+/-- Trait declaration: [cipher::stream_core::Counter]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cipher-0.4.4/src/stream_core.rs', lines 159:0-169:20
+    Name pattern: [cipher::stream_core::Counter]
+    Visibility: public -/
+@[rust_trait "cipher::stream_core::Counter"
+  (parentClauses := ["coreconvertTryFromSelfI32Self_Clause0_ErrorInst", "coreconvertTryFromSelfU32Self_Clause1_ErrorInst", "coreconvertTryFromSelfU64Self_Clause2_ErrorInst", "coreconvertTryFromSelfU128Self_Clause3_ErrorInst", "coreconvertTryFromSelfUsizeSelf_Clause4_ErrorInst", "coreconvertTryIntoSelfI32Self_Clause5_ErrorInst", "coreconvertTryIntoSelfU32Self_Clause6_ErrorInst", "coreconvertTryIntoSelfU64Self_Clause7_ErrorInst", "coreconvertTryIntoSelfU128Self_Clause8_ErrorInst", "coreconvertTryIntoSelfUsizeSelf_Clause9_ErrorInst"])]
+structure cipher.stream_core.Counter (Self : Type) (Self_Clause0_Error : Type)
+  (Self_Clause1_Error : Type) (Self_Clause2_Error : Type) (Self_Clause3_Error :
+  Type) (Self_Clause4_Error : Type) (Self_Clause5_Error : Type)
+  (Self_Clause6_Error : Type) (Self_Clause7_Error : Type) (Self_Clause8_Error :
+  Type) (Self_Clause9_Error : Type) where
+  coreconvertTryFromSelfI32Self_Clause0_ErrorInst : core.convert.TryFrom Self
+    Std.I32 Self_Clause0_Error
+  coreconvertTryFromSelfU32Self_Clause1_ErrorInst : core.convert.TryFrom Self
+    Std.U32 Self_Clause1_Error
+  coreconvertTryFromSelfU64Self_Clause2_ErrorInst : core.convert.TryFrom Self
+    Std.U64 Self_Clause2_Error
+  coreconvertTryFromSelfU128Self_Clause3_ErrorInst : core.convert.TryFrom Self
+    Std.U128 Self_Clause3_Error
+  coreconvertTryFromSelfUsizeSelf_Clause4_ErrorInst : core.convert.TryFrom Self
+    Std.Usize Self_Clause4_Error
+  coreconvertTryIntoSelfI32Self_Clause5_ErrorInst : core.convert.TryInto Self
+    Std.I32 Self_Clause5_Error
+  coreconvertTryIntoSelfU32Self_Clause6_ErrorInst : core.convert.TryInto Self
+    Std.U32 Self_Clause6_Error
+  coreconvertTryIntoSelfU64Self_Clause7_ErrorInst : core.convert.TryInto Self
+    Std.U64 Self_Clause7_Error
+  coreconvertTryIntoSelfU128Self_Clause8_ErrorInst : core.convert.TryInto Self
+    Std.U128 Self_Clause8_Error
+  coreconvertTryIntoSelfUsizeSelf_Clause9_ErrorInst : core.convert.TryInto Self
+    Std.Usize Self_Clause9_Error
+
+/-- Trait declaration: [rand_core::RngCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 130:0-130:17
+    Name pattern: [rand_core::RngCore]
+    Visibility: public -/
+@[rust_trait "rand_core::RngCore"]
+structure rand_core.RngCore (Self : Type) where
+  next_u32 : Self → Result (Std.U32 × Self)
+  next_u64 : Self → Result (Std.U64 × Self)
+  fill_bytes : Self → Slice Std.U8 → Result (Self × (Slice Std.U8))
+
+/-- Trait declaration: [rand_core::CryptoRng]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 204:0-204:28
+    Name pattern: [rand_core::CryptoRng]
+    Visibility: public -/
+@[rust_trait "rand_core::CryptoRng" (parentClauses := ["RngCoreInst"])]
+structure rand_core.CryptoRng (Self : Type) where
+  RngCoreInst : rand_core.RngCore Self
+
+/-- Trait declaration: [rand::rng::Rng]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
+    Name pattern: [rand::rng::Rng]
+    Visibility: public -/
+@[rust_trait "rand::rng::Rng" (parentClauses := ["rand_coreRngCoreInst"])]
+structure rand.rng.Rng (Self : Type) where
+  rand_coreRngCoreInst : rand_core.RngCore Self
+
+/-- Trait declaration: [rand::distr::distribution::Distribution]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/distr/distribution.rs', lines 35:0-35:25
+    Name pattern: [rand::distr::distribution::Distribution]
+    Visibility: public -/
+@[rust_trait "rand::distr::distribution::Distribution"]
+structure rand.distr.distribution.Distribution (Self : Type) (T : Type) where
+  sample : forall {R : Type} (rngRngInst : rand.rng.Rng R), Self → R →
+    Result (T × R)
+
+/-- [rand::distr::StandardUniform]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/distr/mod.rs', lines 214:0-214:26
+    Name pattern: [rand::distr::StandardUniform]
+    Visibility: public -/
+@[reducible, rust_type "rand::distr::StandardUniform"]
+def rand.distr.StandardUniform := Unit
+
+/-- Trait declaration: [rand::rng::Fill]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 366:0-366:14
+    Name pattern: [rand::rng::Fill]
+    Visibility: public -/
+@[rust_trait "rand::rng::Fill"]
+structure rand.rng.Fill (Self : Type) where
+  fill : forall {R : Type} (RngInst : rand.rng.Rng R), Self → R → Result
+    (Self × R)
+
+/-- [derive_more::convert::try_from::TryFromReprError]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 17:4-17:34
+    Name pattern: [derive_more::convert::try_from::TryFromReprError]
+    Visibility: public -/
+@[rust_type "derive_more::convert::try_from::TryFromReprError"]
+structure derive_more.convert.try_from.TryFromReprError (T : Type) where
+  input : T
+
 /-- [signal_crypto::aes_cbc::EncryptionError]
     Source: 'rust/crypto/src/aes_cbc.rs', lines 13:0-16:1
     Visibility: public -/

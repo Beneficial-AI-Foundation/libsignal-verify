@@ -29,18 +29,10 @@ use crate::consts::MAX_UNACKNOWLEDGED_SESSION_AGE;
 use crate::state::{InvalidSessionError, SessionState};
 use crate::triple_ratchet::{OutgoingTripleRatchet, TripleRatchet};
 use crate::{
-    CiphertextMessage, CiphertextMessageType, KyberPayload, PreKeySignalMessage, ProtocolAddress,
-    Result, SessionRecord, SignalMessage, SignalProtocolError,
+    CiphertextMessage, CiphertextMessageType, Direction, IdentityKeyStore, KyberPayload,
+    KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, ProtocolAddress, Result, SessionNotFound,
+    SessionRecord, SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, session,
 };
-// Store traits + the `session` module + `Direction` are used only by the public
-// store-using API (message_encrypt/decrypt*), which is gated out during extraction
-// (charon hax panics on the async store traits). See lib.rs.
-#[cfg(not(feature = "extraction"))]
-use crate::{
-    Direction, IdentityKeyStore, KyberPreKeyStore, PreKeyStore, SessionStore, SignedPreKeyStore,
-    session,
-};
-
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /// Encrypt `ptext` for `remote_address`, loading and storing session state.
@@ -48,7 +40,6 @@ use crate::{
 /// If the session is unacknowledged (a locally-initiated session that has not
 /// yet received a response), wraps the [`SignalMessage`] in a
 /// [`PreKeySignalMessage`] containing the original pre-key material.
-#[cfg(not(feature = "extraction"))]
 pub async fn message_encrypt<R: Rng + CryptoRng>(
     ptext: &[u8],
     remote_address: &ProtocolAddress,
@@ -58,13 +49,19 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
     now: SystemTime,
     csprng: &mut R,
 ) -> Result<CiphertextMessage> {
+    let no_session_error = || {
+        SignalProtocolError::SessionNotFound(SessionNotFound::new(
+            remote_address.clone(),
+            "message_encrypt",
+        ))
+    };
     let mut session_record = session_store
         .load_session(remote_address)
         .await?
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(no_session_error)?;
     let session_state = session_record
         .session_state_mut()
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(no_session_error)?;
 
     let mut session = OutgoingTripleRatchet::from_session_state(session_state).map_err(|e| {
         log::error!("session state corrupt for {remote_address}: {e}");
@@ -86,7 +83,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
             log::warn!(
                 "stale unacknowledged session for {remote_address} (created at {timestamp_as_unix_time})"
             );
-            return Err(SignalProtocolError::SessionNotFound(remote_address.clone()));
+            return Err(no_session_error());
         }
 
         let local_registration_id = session_state.local_registration_id();
@@ -158,7 +155,6 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
 /// Routes to [`message_decrypt_signal`] or [`message_decrypt_prekey`] based
 /// on message type.
 #[allow(clippy::too_many_arguments)]
-#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt<R: Rng + CryptoRng>(
     ciphertext: &CiphertextMessage,
     remote_address: &ProtocolAddress,
@@ -208,7 +204,6 @@ pub async fn message_decrypt<R: Rng + CryptoRng>(
 /// Processes the pre-key material to establish a session (via
 /// [`session::process_prekey`]), then decrypts the inner [`SignalMessage`].
 #[allow(clippy::too_many_arguments)]
-#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
     ciphertext: &PreKeySignalMessage,
     remote_address: &ProtocolAddress,
@@ -299,7 +294,6 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
 ///
 /// Tries all sessions in the session record. Checks identity key trust
 /// after decryption.
-#[cfg(not(feature = "extraction"))]
 pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
     ciphertext: &SignalMessage,
     remote_address: &ProtocolAddress,
@@ -311,7 +305,12 @@ pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
     let mut session_record = session_store
         .load_session(remote_address)
         .await?
-        .ok_or_else(|| SignalProtocolError::SessionNotFound(remote_address.clone()))?;
+        .ok_or_else(|| {
+            SignalProtocolError::SessionNotFound(SessionNotFound::new(
+                remote_address.clone(),
+                "message_decrypt_signal",
+            ))
+        })?;
 
     let ptext = try_decrypt_from_record(
         &mut session_record,
@@ -451,7 +450,7 @@ pub(crate) fn try_decrypt_from_record<R: Rng + CryptoRng>(
                             // as we would for a Whisper message that tried several sessions.
                             return Err(SignalProtocolError::InvalidMessage(
                                 original_message_type,
-                                "decryption failed",
+                                "decryption failed".to_owned(),
                             ));
                         }
                         CiphertextMessageType::Whisper => {}
@@ -551,7 +550,7 @@ pub(crate) fn try_decrypt_from_record<R: Rng + CryptoRng>(
         );
         Err(SignalProtocolError::InvalidMessage(
             original_message_type,
-            "decryption failed",
+            "decryption failed".to_owned(),
         ))
     }
 }
@@ -712,6 +711,7 @@ pub(crate) enum CurrentOrPrevious {
 // to the legacy snapshot for any message sequence.
 #[cfg(test)]
 mod legacy_interop_tests {
+    use assert_matches::assert_matches;
     // These tests live next to `session_management` rather than under
     // `rust/protocol/tests/` because they compare the refactored code against
     // the private `session_cipher_legacy` implementation and also assert
@@ -808,7 +808,7 @@ mod legacy_interop_tests {
             bob_kyber_key,
             *alice_identity.identity_key(),
             alice_base_key.public_key,
-            kyber_ct,
+            &kyber_ct,
             false,
         );
 
@@ -1479,15 +1479,13 @@ mod legacy_interop_tests {
         .expect("sync")
         .expect_err("decrypt should fail on corrupt matched receiver chain");
 
-        assert!(
-            matches!(
-                err,
-                SignalProtocolError::InvalidMessage(
-                    CiphertextMessageType::Whisper,
-                    "decryption failed"
-                )
-            ),
-            "unexpected error: {err:?}"
+        assert_matches!(
+            err,
+            SignalProtocolError::InvalidMessage(
+                CiphertextMessageType::Whisper,
+                msg
+            )
+            if msg == "decryption failed"
         );
     }
 

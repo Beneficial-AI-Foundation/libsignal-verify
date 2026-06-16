@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+use std::fmt::{Display, Formatter};
 use std::panic::UnwindSafe;
 
 use displaydoc::Display;
@@ -64,8 +65,8 @@ pub enum SignalProtocolError {
 
     /// protocol address is invalid: {name}.{device_id}
     InvalidProtocolAddress { name: String, device_id: u32 },
-    /// session with {0} not found
-    SessionNotFound(crate::ProtocolAddress),
+    /// {0}
+    SessionNotFound(SessionNotFound),
     /// invalid session: {0}
     InvalidSessionStructure(&'static str),
     /// invalid sender key session with distribution ID {distribution_id}
@@ -76,12 +77,11 @@ pub enum SignalProtocolError {
     /// message with old counter {0} / {1}
     DuplicatedMessage(u32, u32),
     /// invalid {0:?} message: {1}
-    InvalidMessage(crate::CiphertextMessageType, &'static str),
+    InvalidMessage(crate::CiphertextMessageType, String),
 
     /// error while invoking an ffi callback: {0}
     FfiBindingError(String),
     /// error in method call '{0}': {1}
-    #[cfg(not(feature = "extraction"))]
     ApplicationCallbackError(
         &'static str,
         #[source] Box<dyn std::error::Error + Send + Sync + UnwindSafe + 'static>,
@@ -106,7 +106,35 @@ pub enum SignalProtocolError {
     BadKEMCiphertextLength(kem::KeyType, usize),
 }
 
-#[cfg(not(feature = "extraction"))]
+#[derive(Debug)]
+pub struct SessionNotFound {
+    pub address: Option<crate::ProtocolAddress>,
+    pub op: &'static str,
+}
+
+impl SessionNotFound {
+    pub const fn without_address(op: &'static str) -> Self {
+        Self { address: None, op }
+    }
+
+    pub const fn new(address: crate::ProtocolAddress, op: &'static str) -> Self {
+        Self {
+            address: Some(address),
+            op,
+        }
+    }
+}
+
+impl Display for SessionNotFound {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "session")?;
+        if let Some(address) = &self.address {
+            write!(f, " with {address}")?;
+        }
+        write!(f, " not found: {}", self.op)
+    }
+}
+
 impl SignalProtocolError {
     /// Convenience factory for [`SignalProtocolError::ApplicationCallbackError`].
     #[inline]

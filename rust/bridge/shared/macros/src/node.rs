@@ -13,7 +13,8 @@ use syn_mid::Signature;
 
 use crate::BridgingKind;
 use crate::util::{
-    DeriveInputInfo, Impl, crates, extract_arg_names_and_types, nice_type_metadata, result_type,
+    DeriveInputInfo, Impl, arg_type_info_storage_decl, crates, extract_arg_names_and_types,
+    nice_type_metadata, result_type,
 };
 
 fn bridge_fn_body(orig_name: &Ident, input_args: &[(&Ident, &Type)]) -> TokenStream2 {
@@ -309,23 +310,30 @@ fn to_lower_camel_case_preserve_underscores(x: &str) -> String {
     format!("{}{core}", &x[0..(x.len() - x_sans_underscore.len())])
 }
 
-pub(crate) fn derive_bridged_as_value(input: &DeriveInput) -> syn::Result<TokenStream2> {
+pub(crate) fn derive_bridged_as_value(
+    input: &DeriveInput,
+    target: &syn::Path,
+) -> syn::Result<TokenStream2> {
     if matches!(input.data, Data::Union(_)) {
         return Err(syn::Error::new_spanned(input, "Unions aren't supported"));
     }
-    let result = derive_bridged_as_value_return(input)?;
-    let arg = derive_bridged_as_value_arg(input)?;
+    let result = derive_bridged_as_value_return(input, target)?;
+    let arg = derive_bridged_as_value_arg(input, target)?;
     Ok(quote! {
         #result
         #arg
     })
 }
-fn derive_bridged_as_value_arg(input: &DeriveInput) -> syn::Result<TokenStream2> {
+fn derive_bridged_as_value_arg(
+    input: &DeriveInput,
+    target: &syn::Path,
+) -> syn::Result<TokenStream2> {
     let krate = crates::libsignal_bridge_types();
     let ident = &input.ident;
     // We setup both arg impls (async and non-async) up here.
     let mut impl_arg_type_info = Impl::new(
         input,
+        target,
         Some(parse_quote!(#krate::node::ArgTypeInfo<'storage, 'context>)),
     );
     impl_arg_type_info
@@ -333,33 +341,19 @@ fn derive_bridged_as_value_arg(input: &DeriveInput) -> syn::Result<TokenStream2>
         .extend([parse_quote!('storage), parse_quote!('context: 'storage)]);
     let mut impl_async_arg_type_info = Impl::new(
         input,
+        target,
         Some(parse_quote!(#krate::node::AsyncArgTypeInfo<'storage>)),
     );
     impl_async_arg_type_info
         .extra_params
         .push(parse_quote!('storage));
-    // Because the arg impl requires intermediate storage, we introduce the ArgStoredType.
-    //
-    // For structs, it looks like:
-    // enum Foo<T> { Foo(T) } (with a matching Finalize impl)
-    // For enums, it looks like:
-    // enum Foo<A, B, ...> { A(A), B(B), ... } (again, with a matching finalize impl)
-    //
-    // We need a custom type because:
-    // 1. For enums, the intermediate data is distinct for each variant
-    // 2. We could avoid declaring a fresh type, and just use nested Eithers, but that'd be more
-    //    annoying than just declaring this type.
-    //
-    // We use one generic type per variant (each containing a tuple), because it's easier to work
-    // with in our macros than it'd be to have one generic type for each field.
-    let stored_decl_name = format_ident!("{ident}NodeArgStoredType");
     let DeriveInputInfo {
         patterns: field_patterns,
         field_names,
         field_types,
         variant_indices: variant_numbers,
         variant_names,
-    } = input.into();
+    } = DeriveInputInfo::new(input, target);
     let get_variant = match &input.data {
         Data::Struct(_) => quote!(0),
         Data::Enum(_) => quote! {{
@@ -380,8 +374,11 @@ fn derive_bridged_as_value_arg(input: &DeriveInput) -> syn::Result<TokenStream2>
             .flatten()
             .map(|ty| parse_quote!(#ty: #krate::node::AsyncArgTypeInfo<'storage>)),
     );
-    let mut impl_nice_arg_converter =
-        Impl::new(input, Some(parse_quote!(#krate::node::NiceArgConverter)));
+    let mut impl_nice_arg_converter = Impl::new(
+        input,
+        target,
+        Some(parse_quote!(#krate::node::NiceArgConverter)),
+    );
     let register_ts_nice_type = nice_type_metadata(
         input,
         &parse_quote!(ctx),
@@ -398,12 +395,11 @@ fn derive_bridged_as_value_arg(input: &DeriveInput) -> syn::Result<TokenStream2>
         &parse_quote!(register_ts_arg_converter),
         &mut impl_nice_arg_converter.extra_where,
     )?;
+    let stored_decl_name = format_ident!("{ident}NodeArgStoredType");
+    let stored_decl = arg_type_info_storage_decl(&stored_decl_name, input, target);
     Ok(quote! {
         #[cfg(feature = "node")]
-        #[doc(hidden)]
-        pub enum #stored_decl_name<#(#variant_names),*> {
-            #(#variant_names(#variant_names)),*
-        }
+        #stored_decl
         #[cfg(feature = "node")]
         impl<
             #(#variant_names: ::neon::types::Finalize),*
@@ -509,13 +505,20 @@ fn derive_bridged_as_value_arg(input: &DeriveInput) -> syn::Result<TokenStream2>
         }
     })
 }
-fn derive_bridged_as_value_return(input: &DeriveInput) -> syn::Result<TokenStream2> {
+fn derive_bridged_as_value_return(
+    input: &DeriveInput,
+    target: &syn::Path,
+) -> syn::Result<TokenStream2> {
     let krate = crates::libsignal_bridge_types();
     let ident = &input.ident;
-    let mut impl_nice_result_converter =
-        Impl::new(input, Some(parse_quote!(#krate::node::NiceResultConverter)));
+    let mut impl_nice_result_converter = Impl::new(
+        input,
+        target,
+        Some(parse_quote!(#krate::node::NiceResultConverter)),
+    );
     let mut impl_result_type_info = Impl::new(
         input,
+        target,
         Some(parse_quote!(#krate::node::ResultTypeInfo<'node_context>)),
     );
     impl_result_type_info
@@ -543,7 +546,7 @@ fn derive_bridged_as_value_return(input: &DeriveInput) -> syn::Result<TokenStrea
         variant_indices,
         field_types,
         variant_names: _,
-    } = input.into();
+    } = DeriveInputInfo::new(input, target);
     impl_result_type_info.extra_where.extend(
         field_types
             .into_iter()
