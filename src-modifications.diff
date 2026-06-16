@@ -8,7 +8,7 @@ Upstream Commit: 65eac5e
 
 ---
 
-diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/core/src/address.rs b/rust/core/src/address.rs
 --- a/rust/core/src/address.rs
 +++ b/rust/core/src/address.rs
 @@ -57,8 +57,12 @@
@@ -137,7 +137,7 @@ diff -Naur --no-dereference a/rust/core/src/address.rs b/rust/core/src/address.r
      }
  }
  
-diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/core/src/e164.rs b/rust/core/src/e164.rs
 --- a/rust/core/src/e164.rs
 +++ b/rust/core/src/e164.rs
 @@ -7,20 +7,24 @@
@@ -185,7 +185,7 @@ diff -Naur --no-dereference a/rust/core/src/e164.rs b/rust/core/src/e164.rs
      }
  }
  
-diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
 --- a/rust/crypto/Cargo.toml
 +++ b/rust/crypto/Cargo.toml
 @@ -11,6 +11,9 @@
@@ -198,7 +198,7 @@ diff -Naur --no-dereference a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
  [lints]
  workspace = true
  
-diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs
 --- a/rust/crypto/src/aes_ctr.rs
 +++ b/rust/crypto/src/aes_ctr.rs
 @@ -10,7 +10,12 @@
@@ -232,7 +232,7 @@ diff -Naur --no-dereference a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_c
 +        self.inner.apply_keystream(buf);
      }
  }
-diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
 --- a/rust/crypto/src/hash.rs
 +++ b/rust/crypto/src/hash.rs
 @@ -9,7 +9,8 @@
@@ -255,7 +255,7 @@ diff -Naur --no-dereference a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
  pub enum CryptographicHash {
      Sha1(Sha1),
      Sha256(Sha256),
-diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
 --- a/rust/crypto/src/lib.rs
 +++ b/rust/crypto/src/lib.rs
 @@ -4,6 +4,8 @@
@@ -267,7 +267,18 @@ diff -Naur --no-dereference a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
  
  mod error;
  mod hash;
-diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/net/infra/src/dns/dns_message.rs b/rust/net/infra/src/dns/dns_message.rs
+--- a/rust/net/infra/src/dns/dns_message.rs
++++ b/rust/net/infra/src/dns/dns_message.rs
+@@ -25,6 +25,7 @@
+ pub(crate) const MAX_DNS_LABEL_LEN: usize = 63;
+ pub(crate) const MAX_DNS_NAME_LEN: usize = 255;
+ pub(crate) const MAX_DNS_UDP_MESSAGE_LEN: usize = 512;
++const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
+ 
+ const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
+ // Maximum number of pointer indirections to follow while parsing names.
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
 --- a/rust/protocol/Cargo.toml
 +++ b/rust/protocol/Cargo.toml
 @@ -49,6 +49,7 @@
@@ -278,7 +289,261 @@ diff -Naur --no-dereference a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.tom
  kyber768 = ["libcrux-ml-kem/kyber", "libcrux-ml-kem/mlkem768"]
  # ML-KEM matches the NIST standard version of Kyber. It may still change
  # incompatibly until the final version of the standard is published and
-diff -Naur --no-dereference a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+--- a/rust/protocol/src/kem.rs
++++ b/rust/protocol/src/kem.rs
+@@ -106,6 +106,7 @@
+ }
+ 
+ /// Acts as a bridge between the static [Parameters] trait and the dynamic [KeyType] enum.
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ trait DynParameters {
+     fn public_key_length(&self) -> usize;
+     fn secret_key_length(&self) -> usize;
+@@ -125,6 +126,7 @@
+     ) -> Result<SharedSecret>;
+ }
+ 
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ impl<T: Parameters> DynParameters for T {
+     fn public_key_length(&self) -> usize {
+         Self::PUBLIC_KEY_LENGTH
+@@ -351,15 +353,21 @@
+         &self,
+         csprng: &mut R,
+     ) -> Result<(SharedSecret, SerializedCiphertext)> {
+-        let (ss, ct) = self
+-            .key_type
+-            .parameters()
+-            .encapsulate(&self.key_data, csprng)?;
++        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
++        let (ss, ct) = match self.key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::encapsulate(
++                &self.key_data,
++                csprng,
++            )
++            .map_err(|BadKEMKeyLength| {
++                SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
++            })?,
++        };
+         Ok((
+             ss,
+             Ciphertext {
+                 key_type: self.key_type,
+-                data: &ct,
++                data: ct,
+             }
+             .serialize(),
+         ))
+@@ -378,9 +386,21 @@
+                 self.key_type.value(),
+             ));
+         }
+-        self.key_type
+-            .parameters()
+-            .decapsulate(&self.key_data, ct.data)
++        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
++        match self.key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::decapsulate(
++                &self.key_data,
++                &ct.data,
++            )
++            .map_err(|e| match e {
++                DecapsulateError::BadKeyLength => {
++                    SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
++                }
++                DecapsulateError::BadCiphertext => {
++                    SignalProtocolError::BadKEMCiphertextLength(self.key_type, ct.data.len())
++                }
++            }),
++        }
+     }
+ }
+ 
+@@ -478,20 +498,25 @@
+ }
+ 
+ /// Utility type to handle serialization and deserialization of ciphertext data
+-struct Ciphertext<'a> {
++struct Ciphertext {
+     key_type: KeyType,
+-    data: &'a [u8],
++    data: Box<[u8]>,
+ }
+ 
+-impl<'a> Ciphertext<'a> {
++impl Ciphertext {
+     /// Create a `Ciphertext` instance from a byte string created with the
+     /// function `Ciphertext::serialize(&self)`.
+-    pub fn deserialize(value: &'a [u8]) -> Result<Self> {
++    pub fn deserialize(value: &[u8]) -> Result<Self> {
+         if value.is_empty() {
+             return Err(SignalProtocolError::NoKeyTypeIdentifier);
+         }
+         let key_type = KeyType::try_from(value[0])?;
+-        if value.len() != key_type.parameters().ciphertext_length() + 1 {
++        // Direct dispatch on the ciphertext-length constant (replaces vtable
++        // dispatch through `DynParameters`).
++        let expected_len = match key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::CIPHERTEXT_LENGTH + 1,
++        };
++        if value.len() != expected_len {
+             return Err(SignalProtocolError::BadKEMCiphertextLength(
+                 key_type,
+                 value.len(),
+@@ -499,7 +524,7 @@
+         }
+         Ok(Ciphertext {
+             key_type,
+-            data: &value[1..],
++            data: value[1..].into(),
+         })
+     }
+ 
+@@ -507,7 +532,7 @@
+     pub fn serialize(&self) -> SerializedCiphertext {
+         let mut result = Vec::with_capacity(1 + self.data.len());
+         result.push(self.key_type.value());
+-        result.extend_from_slice(self.data);
++        result.extend_from_slice(&self.data);
+         result.into_boxed_slice()
+     }
+ }
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -97,6 +97,7 @@
+     }
+ }
+ 
++#[cfg(not(feature = "extraction"))]
+ bitflags! {
+     /// Specifies which criteria make a session "usable" beyond simply having a present sender
+     /// chain.
+@@ -133,6 +134,33 @@
+     }
+ }
+ 
++// Extraction: `bitflags!` generates a `Flags` trait impl + generic iterator
++// machinery (`Iter<Self>`, `IntoIterator`, `const FLAGS: &'static [Flag<Self>]`)
++// that Aeneas cannot extract — generic type-var instantiation over `B: Flags`
++// plus a static slice of structs holding `&'static str`. The underlying type
++// is just a `u32` newtype, so under extraction we provide a plain equivalent
++// exposing only the API the crate actually uses (`all`, `contains`, the consts).
++#[cfg(feature = "extraction")]
++#[repr(transparent)]
++#[derive(Clone, Copy, PartialEq, Eq)]
++pub struct SessionUsabilityRequirements(u32);
++
++#[cfg(feature = "extraction")]
++#[allow(non_upper_case_globals)]
++impl SessionUsabilityRequirements {
++    pub const NotStale: Self = Self(1 << 0);
++    pub const EstablishedWithPqxdh: Self = Self(1 << 1);
++    pub const Spqr: Self = Self(1 << 2);
++
++    pub const fn all() -> Self {
++        Self((1 << 0) | (1 << 1) | (1 << 2))
++    }
++
++    pub fn contains(&self, other: Self) -> bool {
++        self.0 & other.0 == other.0
++    }
++}
++
+ #[derive(Clone, Debug)]
+ pub(crate) struct SessionState {
+     session: SessionStructure,
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/storage/traits.rs b/rust/protocol/src/storage/traits.rs
+--- a/rust/protocol/src/storage/traits.rs
++++ b/rust/protocol/src/storage/traits.rs
+@@ -45,6 +45,9 @@
+ /// Signal clients usually use the identity store in a [TOFU] manner, but this is not required.
+ ///
+ /// [TOFU]: https://en.wikipedia.org/wiki/Trust_on_first_use
++// Async store traits gated out during extraction — charon hax panics on them when
++// rooted by --start-from-pub. (Direction/IdentityChange above are kept.)
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait IdentityKeyStore {
+     /// Return the single specific identity the store is assumed to represent, with private key.
+@@ -82,6 +85,7 @@
+ }
+ 
+ /// Interface for storing pre-keys downloaded from a server.
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait PreKeyStore {
+     /// Look up the pre-key corresponding to `prekey_id`.
+@@ -95,6 +99,7 @@
+ }
+ 
+ /// Interface for storing signed pre-keys downloaded from a server.
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait SignedPreKeyStore {
+     /// Look up the signed pre-key corresponding to `signed_prekey_id`.
+@@ -114,6 +119,7 @@
+ /// Interface for storing signed Kyber pre-keys downloaded from a server.
+ ///
+ /// NB: libsignal makes no distinction between one-time and last-resort pre-keys.
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait KyberPreKeyStore {
+     /// Look up the signed kyber pre-key corresponding to `kyber_prekey_id`.
+@@ -146,6 +152,7 @@
+ /// forward-secret message chain in the [Double Ratchet] protocol.
+ ///
+ /// [Double Ratchet]: https://signal.org/docs/specifications/doubleratchet/
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait SessionStore {
+     /// Look up the session corresponding to `address`.
+@@ -160,6 +167,7 @@
+ }
+ 
+ /// Interface for storing sender key records, allowing multiple keys per user.
++#[cfg(not(feature = "extraction"))]
+ #[async_trait(?Send)]
+ pub trait SenderKeyStore {
+     /// Assign `record` to the entry for `(sender, distribution_id)`.
+@@ -180,6 +188,7 @@
+ }
+ 
+ /// Mixes in all the store interfaces defined in this module.
++#[cfg(not(feature = "extraction"))]
+ pub trait ProtocolStore:
+     SessionStore + PreKeyStore + SignedPreKeyStore + KyberPreKeyStore + IdentityKeyStore
+ {
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/storage.rs b/rust/protocol/src/storage.rs
+--- a/rust/protocol/src/storage.rs
++++ b/rust/protocol/src/storage.rs
+@@ -7,14 +7,22 @@
+ 
+ #![warn(missing_docs)]
+ 
++// The async store traits + their in-memory impls are gated out during extraction:
++// charon's hax frontend panics on the `#[async_trait]` store traits when
++// `--start-from-pub` roots them. Direction/IdentityChange are plain enums that kept
++// code (sealed_sender crypto) depends on, so they stay.
++#[cfg(not(feature = "extraction"))]
+ mod inmem;
+ mod traits;
+ 
++#[cfg(not(feature = "extraction"))]
+ pub use inmem::{
+     InMemIdentityKeyStore, InMemKyberPreKeyStore, InMemPreKeyStore, InMemSenderKeyStore,
+     InMemSessionStore, InMemSignalProtocolStore, InMemSignedPreKeyStore,
+ };
++pub use traits::{Direction, IdentityChange};
++#[cfg(not(feature = "extraction"))]
+ pub use traits::{
+-    Direction, IdentityChange, IdentityKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore,
+-    SenderKeyStore, SessionStore, SignedPreKeyStore,
++    IdentityKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore, SessionStore,
++    SignedPreKeyStore,
+ };
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
 --- a/rust/protocol/src/timestamp.rs
 +++ b/rust/protocol/src/timestamp.rs
 @@ -3,28 +3,38 @@
