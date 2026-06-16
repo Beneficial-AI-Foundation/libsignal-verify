@@ -239,41 +239,6 @@ structure cipher.block.BlockEncrypt (Self : Type) (Self_Clause0_BlockSize :
     Self_Clause0_BlockSize Clause0_Clause0_Clause0_ArrayType), Self → T1 →
     Result Unit
 
-/-- [block_padding::PadType]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-padding-0.3.3/src/lib.rs', lines 23:0-23:16
-    Name pattern: [block_padding::PadType]
-    Visibility: public -/
-@[discriminant isize, rust_type "block_padding::PadType"]
-inductive block_padding.PadType where
-| Reversible : block_padding.PadType
-| Ambiguous : block_padding.PadType
-| NoPadding : block_padding.PadType
-
-/-- [block_padding::UnpadError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-padding-0.3.3/src/lib.rs', lines 401:0-401:21
-    Name pattern: [block_padding::UnpadError]
-    Visibility: public -/
-@[reducible, rust_type "block_padding::UnpadError"]
-def block_padding.UnpadError := Unit
-
-/-- Trait declaration: [block_padding::Padding]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-padding-0.3.3/src/lib.rs', lines 55:0-55:45
-    Name pattern: [block_padding::Padding]
-    Visibility: public -/
-@[rust_trait "block_padding::Padding"
-  (parentClauses := ["generic_arrayArrayLengthBlockSizeU8Self_Clause0_ArrayTypeInst"])
-  (consts := ["TYPE"])]
-structure block_padding.Padding (Self : Type) (BlockSize : Type)
-  (Self_Clause0_ArrayType : Type) where
-  TYPE : Result block_padding.PadType
-  generic_arrayArrayLengthBlockSizeU8Self_Clause0_ArrayTypeInst :
-    generic_array.ArrayLength BlockSize Std.U8 Self_Clause0_ArrayType
-  pad : generic_array.GenericArray Std.U8 BlockSize Self_Clause0_ArrayType →
-    Std.Usize → Result (generic_array.GenericArray Std.U8 BlockSize
-    Self_Clause0_ArrayType)
-  unpad : generic_array.GenericArray Std.U8 BlockSize Self_Clause0_ArrayType
-    → Result (core.result.Result (Slice Std.U8) block_padding.UnpadError)
-
 /-- Trait declaration: [cipher::block::BlockEncryptMut]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cipher-0.4.4/src/block.rs', lines 325:0-325:48
     Name pattern: [cipher::block::BlockEncryptMut]
@@ -390,20 +355,6 @@ inductive ctr.flavors.ctr32.Ctr32BE where
 structure typenum.type_operators.PartialDiv (Self : Type) (Rhs : Type)
   (Self_Output : Type) where
   partial_div : Self → Rhs → Result Self_Output
-
-/-- [inout::errors::NotEqualError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/inout-0.1.4/src/errors.rs', lines 20:0-20:24
-    Name pattern: [inout::errors::NotEqualError]
-    Visibility: public -/
-@[reducible, rust_type "inout::errors::NotEqualError"]
-def inout.errors.NotEqualError := Unit
-
-/-- [inout::errors::PadError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/inout-0.1.4/src/errors.rs', lines 36:0-36:19
-    Name pattern: [inout::errors::PadError]
-    Visibility: public -/
-@[reducible, rust_type "inout::errors::PadError"]
-def inout.errors.PadError := Unit
 
 /-- Trait declaration: [subtle::ConstantTimeEq]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 262:0-262:24

@@ -6,7 +6,7 @@
 # arg to `npm run aeneas-extract`, e.g. `npm run aeneas-extract:protocol`.
 
 aeneas:
-  commit: "ce1708e"
+  commit: "8dd8bfb"
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:
