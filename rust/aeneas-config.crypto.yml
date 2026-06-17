@@ -1,0 +1,65 @@
+# Aeneas extraction — signal-crypto (per-crate overlay).
+# Merged on top of aeneas-config.yml (shared aeneas/upstream/crate.dir).
+
+crate:
+  name: "signal_crypto"
+
+charon:
+  cargo_args: ["-p", "signal-crypto", "--features", "extraction"]
+  start_from_pub: true
+  profile: off
+  exclude:
+    # Formatting and error trait impls (not needed for verification)
+    - "signal_crypto::{impl core::fmt::Debug for _}"
+    - "signal_crypto::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Debug for _}"
+    - "signal_crypto::_::_::{impl core::fmt::Display for _}"
+    - "signal_crypto::{impl core::error::Error for _}"
+    - "signal_crypto::_::{impl core::error::Error for _}"
+    # Crate-level excludes
+    - "signal_crypto::hpke"               # complex external crypto (hpke-rs)
+    - "core::str::pattern"                # GATs unsupported by Aeneas
+    - "rand::distr::uniform"              # mutually recursive traits
+    - "zerocopy"                          # raw pointer ops, GATs
+    - "log"
+  opaque:
+    # Functions calling external crypto primitives (aes/ctr/gcm/sha backends)
+    - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
+    - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
+    - "signal_crypto::aes_ctr::_::new"
+    - "signal_crypto::aes_ctr::_::from_key"
+    - "signal_crypto::aes_ctr::_::process"
+    - "signal_crypto::aes_gcm::_::new"
+    - "signal_crypto::aes_gcm::_::update"
+    - "signal_crypto::aes_gcm::_::finalize"
+    - "signal_crypto::aes_gcm::setup_gcm"
+    - "signal_crypto::hash::_::new"
+    - "signal_crypto::hash::_::update"
+    - "signal_crypto::hash::_::finalize"
+
+aeneas_args:
+  options:
+    - split-files
+  dest: "rust"
+  subdir: "Libsignal/Translated/Crypto"
+
+tweaks:
+  files:
+    - "Types.lean"
+    - "Funs.lean"
+  substitutions:
+    # Disable style linters for auto-generated files
+    - find: |
+        set_option linter.unusedVariables false
+      replace: |
+        set_option linter.unusedVariables false
+        set_option linter.style.longLine false
+        set_option linter.style.setOption false
+        set_option linter.style.whitespace false
+        set_option linter.style.nameCheck false
+
+    # Normalize absolute build paths in Source comments so they are reproducible across machines
+    - regex: "Source: '[^']*/target/[^']*/out/"
+      replace: "Source: 'target/out/"

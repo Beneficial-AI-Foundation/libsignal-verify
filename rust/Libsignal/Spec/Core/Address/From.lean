@@ -3,7 +3,7 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
+import Libsignal.Translated.Core.Funs
 
 /-! # Spec Theorem for `u8::from` (From<ServiceIdKind> trait)
 
@@ -34,7 +34,7 @@ The function always succeeds monadically — `value as u8` on a
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.U8.Insts.CoreConvertFromServiceIdKind
+namespace libsignal_core.U8.Insts.CoreConvertFromServiceIdKind
 
 /-
 natural language description:
@@ -53,7 +53,6 @@ natural language specs:
 • When `value = Aci`, the result is `0#u8`.
 • When `value = Pni`, the result is `1#u8`.
 -/
-
 @[step]
 theorem from_spec (value : libsignal_core.address.ServiceIdKind) :
     «from» value ⦃ result =>
@@ -61,6 +60,6 @@ theorem from_spec (value : libsignal_core.address.ServiceIdKind) :
       (value = .Pni → result = 1#u8) ⦄ := by
   unfold «from»
   step*
-  cases value <;> simp only [reduceCtorEq] <;> decide
+  cases value <;> simp_all only [reduceCtorEq] <;> decide
 
-end signal_crypto.U8.Insts.CoreConvertFromServiceIdKind
+end libsignal_core.U8.Insts.CoreConvertFromServiceIdKind

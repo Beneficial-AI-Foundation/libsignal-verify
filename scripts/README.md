@@ -8,11 +8,12 @@
 
 ## Configuration
 
-All extraction options live in `aeneas-config.yml` at the project root.
+All extraction options live in `rust/aeneas-config.yml` (with per-crate overlays
+`rust/aeneas-config.{core,crypto,protocol}.yml`).
 
 ## Updating the aeneas version
 
 The aeneas commit is pinned in two places that must be kept in sync:
 
-1. `aeneas-config.yml` — `aeneas.commit` (used by the install/extract scripts)
+1. `rust/aeneas-config.yml` — `aeneas.commit` (used by the install/extract scripts)
 2. `lakefile.toml` — `rev` in the aeneas `[[require]]` block (used by Lake for the Lean backend dependency)

@@ -3,8 +3,8 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
-import Libsignal.Specs.Core.Address.From
+import Libsignal.Translated.Core.Funs
+import Libsignal.Spec.Core.Address.From
 
 /-! # Spec Theorem for `ServiceId::raw_uuid`
 
@@ -43,7 +43,7 @@ conversion.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -66,10 +66,10 @@ natural language specs:
 
 @[step]
 theorem raw_uuid_spec (self : libsignal_core.address.ServiceId) :
-    raw_uuid self ⦃ result =>
+    raw_uuid self ⦃ (result : uuid.Uuid) =>
       (∀ aci, self = .Aci aci → result = aci.uuid) ∧
       (∀ pni, self = .Pni pni → result = pni.uuid) ⦄ := by
   unfold raw_uuid
   step* <;> simp [uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from]
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId

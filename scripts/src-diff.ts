@@ -56,9 +56,16 @@ function generateDiff(upstreamSrc: string, localSrc: string, sourceDir: string, 
   const escapedUpstream = upstreamSrc.replace(/[/&]/g, "\\$&");
   const escapedLocal = localSrc.replace(/[/&]/g, "\\$&");
 
+  // The Lean translation/specs (rust/Libsignal/) and the aeneas YAML configs also
+  // live under rust/, but they are project artifacts — not modifications to the
+  // upstream source — so exclude them from the diff. In particular, this script
+  // must never look at .yml files. `-x` matches by basename, so excluding the
+  // `Libsignal` dir also suppresses its "Only in" listing.
+  const excludes = ["*.lean", "*.yml", "Libsignal"].map((p) => `-x '${p}'`).join(" ");
+
   // Generate unified diff with normalized paths and no timestamps.
   const diffOutput = exec(
-    `LC_ALL=C diff -Naur --no-dereference "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
+    `LC_ALL=C diff -Naur --no-dereference ${excludes} "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
     { allowFail: true },
   );
 

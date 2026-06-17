@@ -7,14 +7,22 @@
 
 #![warn(missing_docs)]
 
+// The async store traits + their in-memory impls are gated out during extraction:
+// charon's hax frontend panics on the `#[async_trait]` store traits when
+// `--start-from-pub` roots them. Direction/IdentityChange are plain enums that kept
+// code (sealed_sender crypto) depends on, so they stay.
+#[cfg(not(feature = "extraction"))]
 mod inmem;
 mod traits;
 
+#[cfg(not(feature = "extraction"))]
 pub use inmem::{
     InMemIdentityKeyStore, InMemKyberPreKeyStore, InMemPreKeyStore, InMemSenderKeyStore,
     InMemSessionStore, InMemSignalProtocolStore, InMemSignedPreKeyStore,
 };
+pub use traits::{Direction, IdentityChange};
+#[cfg(not(feature = "extraction"))]
 pub use traits::{
-    Direction, IdentityChange, IdentityKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore,
-    SenderKeyStore, SessionStore, SignedPreKeyStore,
+    IdentityKeyStore, KyberPreKeyStore, PreKeyStore, ProtocolStore, SenderKeyStore, SessionStore,
+    SignedPreKeyStore,
 };

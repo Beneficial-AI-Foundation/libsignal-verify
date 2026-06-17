@@ -3,10 +3,10 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
-import Libsignal.Specs.Core.Address.From
-import Libsignal.Specs.Core.Address.Kind
-import Libsignal.Specs.Core.Address.RawUuid
+import Libsignal.Translated.Core.Funs
+import Libsignal.Spec.Core.Address.From
+import Libsignal.Spec.Core.Address.Kind
+import Libsignal.Spec.Core.Address.RawUuid
 
 /-! # Spec Theorem for `ServiceId::service_id_fixed_width_binary`
 
@@ -47,7 +47,7 @@ on the fixed-size buffers involved.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -86,7 +86,7 @@ theorem service_id_fixed_width_binary_spec
     service_id_fixed_width_binary self ⦃ result =>
       (∀ aci, self = .Aci aci → Array.index_usize result 0#usize = ok 0#u8) ∧
       (∀ pni, self = .Pni pni → Array.index_usize result 0#usize = ok 1#u8) ⦄ := by
-  unfold service_id_fixed_width_binary uuid.Uuid.as_bytes
+  unfold service_id_fixed_width_binary
   step*
   constructor
   all_goals
@@ -95,4 +95,4 @@ theorem service_id_fixed_width_binary_spec
     simp_all only [Aci.injEq, Pni.injEq]
     simp_lists
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId

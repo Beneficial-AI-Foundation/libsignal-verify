@@ -3,7 +3,7 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
+import Libsignal.Translated.Core.Funs
 
 /-! # Spec Theorem for `ServiceId::kind`
 
@@ -39,7 +39,7 @@ and every branch immediately returns `ok`.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -57,13 +57,12 @@ natural language specs:
 • When `self = Aci aci`, the result is `ServiceIdKind.Aci`.
 • When `self = Pni pni`, the result is `ServiceIdKind.Pni`.
 -/
-
 @[step]
 theorem kind_spec (self : libsignal_core.address.ServiceId) :
-    kind self ⦃ result =>
+    kind self ⦃ (result : ServiceIdKind) =>
       (∀ aci, self = .Aci aci → result = .Aci) ∧
       (∀ pni, self = .Pni pni → result = .Pni) ⦄ := by
   unfold kind
   step*
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId

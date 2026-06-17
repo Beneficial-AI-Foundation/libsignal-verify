@@ -1,0 +1,17 @@
+# Aeneas extraction — shared / repo-level configuration.
+#
+# This base file holds settings common to every crate. The per-crate files
+# (aeneas-config.protocol.yml, aeneas-config.core.yml, aeneas-config.crypto.yml)
+# are merged on top of it by scripts/lib/config.ts; select one with the crate
+# arg to `npm run aeneas-extract`, e.g. `npm run aeneas-extract:protocol`.
+
+aeneas:
+  commit: "8dd8bfb"
+  repo: "https://github.com/AeneasVerif/aeneas.git"
+
+upstream:
+  repo: "https://github.com/signalapp/libsignal"
+  commit: "65eac5e"
+
+crate:
+  dir: "rust"

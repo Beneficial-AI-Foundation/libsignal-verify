@@ -12,7 +12,10 @@ maxRecDepth = 10000
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "1180be60"
+rev = "8dd8bfb"
 
+# The Aeneas translations + their shared externals (Libsignal.Translated.*) and
+# the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.
 [[lean_lib]]
 name = "Libsignal"
+srcDir = "rust"

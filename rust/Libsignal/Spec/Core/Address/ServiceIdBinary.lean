@@ -3,8 +3,8 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
-import Libsignal.Code.Funs
-import Libsignal.Specs.Core.Address.ServiceIdFixedWidthBinary
+import Libsignal.Translated.Core.Funs
+import Libsignal.Spec.Core.Address.ServiceIdFixedWidthBinary
 
 /-! # Spec Theorem for `ServiceId::service_id_binary`
 
@@ -35,7 +35,7 @@ on the fixed-size buffers involved.
 
 open Aeneas Aeneas.Std Result
 
-namespace signal_crypto.libsignal_core.address.ServiceId
+namespace libsignal_core.address.ServiceId
 
 /-
 natural language description:
@@ -69,4 +69,4 @@ theorem service_id_binary_spec
   unfold service_id_binary uuid.Uuid.as_bytes
   step* <;> simp_all [Array.index_usize, alloc.vec.Vec.index_usize]
 
-end signal_crypto.libsignal_core.address.ServiceId
+end libsignal_core.address.ServiceId

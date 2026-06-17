@@ -13,10 +13,15 @@ import { runStreaming } from "./lib/shell.js";
 import { applyTweaks, warnUnmatchedTweaks } from "./lib/tweaks.js";
 import { syncLeanToolchain } from "./lib/lean-toolchain.js";
 
-async function main(): Promise<void> {
-  console.log(chalk.bold("\nAeneas Extract\n"));
+// Leaf-first order, used when extracting "all" crates.
+const CRATE_KEYS = ["core", "crypto", "protocol"];
 
-  const { config, root } = loadConfig();
+async function runExtraction(crateKey: string): Promise<void> {
+  const configFile = `rust/aeneas-config.${crateKey}.yml`;
+  console.log(chalk.bold(`\nAeneas Extract — ${crateKey}\n`));
+  console.log(chalk.gray(`  Using config: ${configFile}`));
+
+  const { config, root } = loadConfig(undefined, configFile);
 
   // Resolve binaries
   const charonBin = findBinary("charon", root);
@@ -74,9 +79,66 @@ async function main(): Promise<void> {
 
   fs.mkdirSync(logsDir, { recursive: true });
 
+  // Per-item charon timings are captured by DEFAULT (we often want this data
+  // after the fact). charon translates one item at a time, each wrapped in a
+  // `#[tracing::instrument]` span, and its logger is a HierarchicalLayer with an
+  // uptime timer (RUST_LOG-controlled). So setting RUST_LOG makes charon write
+  // timestamped, nested, per-item translation spans to charon.log; slow items
+  // show up as large span durations (`translate_fun_decl{…}: <N>ms`).
+  //
+  //   default                      → per-item info, with the noisy per-type
+  //                                  `translate_ty` spans silenced (keeps volume sane)
+  //   `RUST_LOG=… npm run …`       → override the filter (e.g. charon_driver=trace)
+  //   `CHARON_PROFILE=0 npm run …` → disable; revert to a plain echoed log
+  // Map the configured detail level (charon.profile in aeneas-config.yml) to a
+  // RUST_LOG filter for charon's per-item tracing spans:
+  //   full → every info span incl. nested trait-proof / per-type / fn-ptr spans.
+  //          Large log (100s of MB), but shows *why* an item is slow — e.g. it's
+  //          what revealed the Index<RangeFull> trait-proof explosion in
+  //          fingerprint::get_fingerprint (see charon-slowdown-notes.md).
+  //   item → per-item span durations only (small log) — tells you *which* item is
+  //          slow but not the intra-item cause.
+  //   off  → no profiling; plain echoed log.
+  // NOTE: the default (when no `profile` is configured) is `off` — profiling is
+  // opt-in. Set `charon.profile: item|full` in a per-crate config to enable it.
+  //
+  // `item` ENABLES ONLY the per-item + name spans — crucially with NO
+  // `charon_driver=info` catch-all. A catch-all turns every span on and `[span]=off`
+  // directives do NOT override it, so the giant `translate_bound_fn_ptr` /
+  // `translate_trait_proof` spans (multi-100KB ItemRef Debug dumps) keep firing —
+  // that bloats the log to 100MB+ and adds a crippling format penalty (one item,
+  // compute_mac, took ~50min and crashed the run). Listing only the spans we read
+  // leaves everything else at the default (off): the item openings
+  // (translate_*_decl) drive the spinner + slow-item logger, and get_mir carries the
+  // readable name. Result: small log, no penalty, full per-item wall-clock timing.
+  const PROFILE_FILTERS: Record<string, string> = {
+    full: "charon_driver=info",
+    item: "[translate_fun_decl]=trace,[translate_global]=trace,[translate_type_decl]=trace,[translate_trait_decl]=trace,[translate_trait_impl]=trace,[get_mir_for_def_id_and_level]=trace",
+    off: "",
+  };
+  const charonEnv: Record<string, string> = {};
+  if (process.env.RUST_LOG) {
+    charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit env override wins
+  } else if (process.env.CHARON_PROFILE === "0") {
+    // legacy escape hatch: disable profiling regardless of config
+  } else {
+    const filter = PROFILE_FILTERS[config.charon.profile] ?? PROFILE_FILTERS.full;
+    if (filter) charonEnv.RUST_LOG = filter;
+  }
+  const profiling = !!charonEnv.RUST_LOG;
+  if (profiling) {
+    console.log(chalk.gray(`  Capturing per-item timings to charon.log (RUST_LOG=${charonEnv.RUST_LOG}; CHARON_PROFILE=0 to disable)`));
+    console.log(chalk.gray(`  Slow items: grep -oE 'translate_[a-z_]+\\{[^}]*\\}|:\\s+[0-9]+ms' .logs/charon.log | paste - - | sort -t: -k2 -n | tail -30`));
+  }
+
   await runStreaming(charonBin, charonArgs, {
     cwd: root,
+    label: "charon translating",
     logFile: path.join(logsDir, "charon.log"),
+    env: profiling ? charonEnv : undefined,
+    // Timing logs can be large; stream to disk instead of buffering in memory
+    // (avoids OOM / terminal flooding). Disk has ample room.
+    streamToFile: profiling,
   });
 
   if (!fs.existsSync(llbcPath)) {
@@ -106,16 +168,11 @@ async function main(): Promise<void> {
 
   console.log(chalk.green(`  Lean files generated in ${config.aeneas_args.dest}/\n`));
 
-  // ── Step 3: Split Types.lean ───────────────────────────────────────
-  // Move declarations that don't reference TypesExternal axioms into
-  // TypesPre.lean to break the circular dependency.
-  const { execSync } = await import("node:child_process");
-  execSync("npx tsx scripts/split-types.ts", { cwd: root, stdio: "inherit" });
-  console.log();
-
-  // ── Step 4: Tweaks ──────────────────────────────────────────────────
+  // ── Step 3: Tweaks ──────────────────────────────────────────────────
+  // Applied only to the auto-generated files (Types/Funs/*_Template) listed in
+  // config.tweaks.files — never the hand-maintained TypesExternal/FunsExternal.
   if (config.tweaks.substitutions.length > 0 && config.tweaks.files.length > 0) {
-    console.log(chalk.bold("Step 4: Applying tweaks..."));
+    console.log(chalk.bold("Step 3: Applying tweaks..."));
 
     const matchedPerFile: Set<number>[] = [];
     for (const file of config.tweaks.files) {
@@ -132,13 +189,27 @@ async function main(): Promise<void> {
     console.log();
   }
 
+
   // ── Step 5: Lean toolchain sync ─────────────────────────────────────
   syncLeanToolchain(root);
 
   console.log(chalk.green("Done."));
 }
 
-main().catch((err) => {
+async function main(): Promise<void> {
+  // With a crate arg, extract just that crate; with none, extract all of them.
+  const arg = process.argv[2];
+  if (arg && !CRATE_KEYS.includes(arg)) {
+    throw new Error(`Unknown crate '${arg}'. Expected one of: ${CRATE_KEYS.join(", ")}`);
+  }
+  const crates = arg ? [arg] : CRATE_KEYS;
+  for (const key of crates) {
+    await runExtraction(key);
+  }
+  if (crates.length > 1) console.log(chalk.green.bold(`\nAll crates extracted (${crates.join(", ")}).`));
+}
+
+main().catch((err: Error) => {
   console.error(chalk.red(`\nError: ${err.message}`));
   process.exit(1);
 });

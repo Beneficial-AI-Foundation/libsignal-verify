@@ -4,6 +4,10 @@
   "scripts": {
     "aeneas-install": "tsx scripts/aeneas-install.ts",
     "aeneas-extract": "tsx scripts/aeneas-extract.ts",
+    "aeneas-extract:protocol": "tsx scripts/aeneas-extract.ts protocol",
+    "aeneas-extract:core": "tsx scripts/aeneas-extract.ts core",
+    "aeneas-extract:crypto": "tsx scripts/aeneas-extract.ts crypto",
+    "aeneas-extract:all": "tsx scripts/aeneas-extract.ts",
     "src-diff": "tsx scripts/src-diff.ts",
     "typecheck": "tsc --noEmit"
   },

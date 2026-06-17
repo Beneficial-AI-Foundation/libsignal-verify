@@ -45,6 +45,9 @@ pub enum IdentityChange {
 /// Signal clients usually use the identity store in a [TOFU] manner, but this is not required.
 ///
 /// [TOFU]: https://en.wikipedia.org/wiki/Trust_on_first_use
+// Async store traits gated out during extraction — charon hax panics on them when
+// rooted by --start-from-pub. (Direction/IdentityChange above are kept.)
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait IdentityKeyStore {
     /// Return the single specific identity the store is assumed to represent, with private key.
@@ -82,6 +85,7 @@ pub trait IdentityKeyStore {
 }
 
 /// Interface for storing pre-keys downloaded from a server.
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait PreKeyStore {
     /// Look up the pre-key corresponding to `prekey_id`.
@@ -95,6 +99,7 @@ pub trait PreKeyStore {
 }
 
 /// Interface for storing signed pre-keys downloaded from a server.
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait SignedPreKeyStore {
     /// Look up the signed pre-key corresponding to `signed_prekey_id`.
@@ -114,6 +119,7 @@ pub trait SignedPreKeyStore {
 /// Interface for storing signed Kyber pre-keys downloaded from a server.
 ///
 /// NB: libsignal makes no distinction between one-time and last-resort pre-keys.
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait KyberPreKeyStore {
     /// Look up the signed kyber pre-key corresponding to `kyber_prekey_id`.
@@ -146,6 +152,7 @@ pub trait KyberPreKeyStore {
 /// forward-secret message chain in the [Double Ratchet] protocol.
 ///
 /// [Double Ratchet]: https://signal.org/docs/specifications/doubleratchet/
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait SessionStore {
     /// Look up the session corresponding to `address`.
@@ -160,6 +167,7 @@ pub trait SessionStore {
 }
 
 /// Interface for storing sender key records, allowing multiple keys per user.
+#[cfg(not(feature = "extraction"))]
 #[async_trait(?Send)]
 pub trait SenderKeyStore {
     /// Assign `record` to the entry for `(sender, distribution_id)`.
@@ -180,6 +188,7 @@ pub trait SenderKeyStore {
 }
 
 /// Mixes in all the store interfaces defined in this module.
+#[cfg(not(feature = "extraction"))]
 pub trait ProtocolStore:
     SessionStore + PreKeyStore + SignedPreKeyStore + KyberPreKeyStore + IdentityKeyStore
 {

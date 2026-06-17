@@ -25,6 +25,7 @@ const POINTER_MASK: u8 = 0xC0;
 pub(crate) const MAX_DNS_LABEL_LEN: usize = 63;
 pub(crate) const MAX_DNS_NAME_LEN: usize = 255;
 pub(crate) const MAX_DNS_UDP_MESSAGE_LEN: usize = 512;
+const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
 
 const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
 // Maximum number of pointer indirections to follow while parsing names.
