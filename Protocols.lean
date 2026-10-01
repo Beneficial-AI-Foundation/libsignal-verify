@@ -1,5 +1,12 @@
 /-
 Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the terms of the LICENSE file in the project root.
-Authors: Beneficial AI Foundation
+Authors: Jin Xing Lim
 -/
+
+import Protocols.ToMathlib
+
+/-! # Protocol security
+
+Umbrella for the protocol-security library: paper-level models, their realisation on the
+extracted code, and material staged for VCVio and Mathlib. Layout follows SPQR-verify PR #503. -/
