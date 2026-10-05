@@ -5,9 +5,9 @@ open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
 set_option linter.unusedVariables false
-set_option linter.style.longLine false
-set_option linter.style.setOption false
 set_option linter.style.whitespace false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -17,34 +17,46 @@ set_option maxRecDepth 2048
 open libsignal_protocol
 
 /-- [core::convert::{impl core::convert::AsRef<U> for &'_0 T}::as_ref]:
-    Source: '/rustc/library/core/src/convert/mod.rs', lines 717:4-717:26
+    Source: '/rustc/library/core/src/convert/mod.rs', lines 719:4-719:26
     Name pattern: [core::convert::{core::convert::AsRef<&'0 @T, @U>}::as_ref]
     Visibility: public -/
 @[rust_fun "core::convert::{core::convert::AsRef<&'0 @T, @U>}::as_ref"]
 axiom Shared0T.Insts.CoreConvertAsRef.as_ref
   {T : Type} {U : Type} (AsRefInst : core.convert.AsRef T U) : T → Result U
 
+/-- [core::convert::{impl core::convert::Into<U> for T}::{impl core::ops::function::FnOnce<(T,), U> for core::convert::{impl core::convert::Into<U> for T}::into<T, U>[TraitClause0]}::call_once]:
+    Source: '/rustc/library/core/src/convert/mod.rs', lines 779:4-779:22
+    Name pattern: [core::convert::{core::convert::Into<@T, @U>}::{core::ops::function::FnOnce<@, (@T), @U>}::call_once]
+    Visibility: public -/
+@[rust_fun
+  "core::convert::{core::convert::Into<@T, @U>}::{core::ops::function::FnOnce<@, (@T), @U>}::call_once"]
+-- Calling a function item applies it (the template's type lacks parentheses).
+def P.Insts.CoreOpsFunctionFnOnceTupleTU.call_once
+  {T : Type} {U : Type} (FromInst : core.convert.From U T) :
+  (T → Result U) → T → Result U :=
+  fun f x => f x
+
 /-- [core::convert::{impl core::convert::AsRef<[T]> for [T]}::as_ref]:
-    Source: '/rustc/library/core/src/convert/mod.rs', lines 847:4-847:28
+    Source: '/rustc/library/core/src/convert/mod.rs', lines 834:4-834:28
     Name pattern: [core::convert::{core::convert::AsRef<[@T], [@T]>}::as_ref]
     Visibility: public -/
 @[rust_fun "core::convert::{core::convert::AsRef<[@T], [@T]>}::as_ref"]
 axiom Slice.Insts.CoreConvertAsRefSlice.as_ref
   {T : Type} : Slice T → Result (Slice T)
 
-/-- [core::convert::num::ptr_try_from_impls::{impl core::convert::TryFrom<usize, core::num::error::TryFromIntError> for u32}::try_from]:
-    Source: '/rustc/library/core/src/convert/num.rs', lines 300:12-300:64
-    Name pattern: [core::convert::num::ptr_try_from_impls::{core::convert::TryFrom<u32, usize, core::num::error::TryFromIntError>}::try_from]
+/-- [core::convert::num::{impl core::convert::TryFrom<u32, core::num::error::TryFromIntError> for u8}::try_from]:
+    Source: '/rustc/library/core/src/convert/num.rs', lines 383:12-383:64
+    Name pattern: [core::convert::num::{core::convert::TryFrom<u8, u32, core::num::error::TryFromIntError>}::try_from]
     Visibility: public -/
 @[rust_fun
-  "core::convert::num::ptr_try_from_impls::{core::convert::TryFrom<u32, usize, core::num::error::TryFromIntError>}::try_from"]
-axiom U32.Insts.CoreConvertTryFromUsizeTryFromIntError.try_from
-  :
-  Std.Usize → Result (core.result.Result Std.U32
-    core.num.error.TryFromIntError)
+  "core::convert::num::{core::convert::TryFrom<u8, u32, core::num::error::TryFromIntError>}::try_from"]
+def U8.Insts.CoreConvertTryFromU32TryFromIntError.try_from
+  (i : Std.U32) :
+  Result (core.result.Result Std.U8 core.num.error.TryFromIntError) :=
+  core.num.tryFromUScalar .U8 i
 
 /-- [core::convert::num::{impl core::convert::TryFrom<u128, core::num::error::TryFromIntError> for u64}::try_from]:
-    Source: '/rustc/library/core/src/convert/num.rs', lines 300:12-300:64
+    Source: '/rustc/library/core/src/convert/num.rs', lines 383:12-383:64
     Name pattern: [core::convert::num::{core::convert::TryFrom<u64, u128, core::num::error::TryFromIntError>}::try_from]
     Visibility: public -/
 @[rust_fun
@@ -55,7 +67,7 @@ axiom U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from
     core.num.error.TryFromIntError)
 
 /-- [core::fmt::{impl core::fmt::Display for str}::fmt]:
-    Source: '/rustc/library/core/src/fmt/mod.rs', lines 2966:4-2966:50
+    Source: '/rustc/library/core/src/fmt/mod.rs', lines 2965:4-2965:50
     Name pattern: [core::fmt::{core::fmt::Display<str>}::fmt]
     Visibility: public -/
 @[rust_fun "core::fmt::{core::fmt::Display<str>}::fmt"]
@@ -65,7 +77,7 @@ axiom Str.Insts.CoreFmtDisplay.fmt
     core.fmt.Error) × core.fmt.Formatter)
 
 /-- [core::hash::impls::{impl core::hash::Hash for u64}::hash]:
-    Source: '/rustc/library/core/src/hash/mod.rs', lines 812:16-812:56
+    Source: '/rustc/library/core/src/hash/mod.rs', lines 813:16-813:56
     Name pattern: [core::hash::impls::{core::hash::Hash<u64>}::hash]
     Visibility: public -/
 @[rust_fun "core::hash::impls::{core::hash::Hash<u64>}::hash"]
@@ -73,7 +85,7 @@ axiom U64.Insts.CoreHashHash.hash
   {H : Type} (HasherInst : core.hash.Hasher H) : Std.U64 → H → Result H
 
 /-- [core::hash::impls::{impl core::hash::Hash for u32}::hash]:
-    Source: '/rustc/library/core/src/hash/mod.rs', lines 812:16-812:56
+    Source: '/rustc/library/core/src/hash/mod.rs', lines 813:16-813:56
     Name pattern: [core::hash::impls::{core::hash::Hash<u32>}::hash]
     Visibility: public -/
 @[rust_fun "core::hash::impls::{core::hash::Hash<u32>}::hash"]
@@ -88,10 +100,10 @@ axiom U32.Insts.CoreHashHash.hash
 axiom core.hint.must_use {T : Type} : T → Result T
 
 /-- [core::iter::traits::iterator::Iterator::position]:
-    Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 3134:4-3137:37
+    Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 3146:4-3149:37
     Name pattern: [core::iter::traits::iterator::Iterator::position]
     Visibility: public -/
-@[rust_fun "core::iter::traits::iterator::Iterator::position"]
+@[trait_default, rust_fun "core::iter::traits::iterator::Iterator::position"]
 axiom core.iter.traits.iterator.Iterator.position.default
   {Self : Type} {P : Type} {Clause0_Item : Type} (IteratorInst :
   core.iter.traits.iterator.Iterator Self Clause0_Item)
@@ -108,17 +120,10 @@ axiom core.iter.traits.iterator.Iterator.position.default
 axiom core.marker.PhantomData.Insts.CoreCloneClone.clone
   {T : Type} : core.marker.PhantomData T → Result (core.marker.PhantomData T)
 
-/-- [core::mem::take]:
-    Source: '/rustc/library/core/src/mem/mod.rs', lines 849:0-849:56
-    Name pattern: [core::mem::take]
-    Visibility: public -/
-@[rust_fun "core::mem::take"]
-axiom core.mem.take
-  {T : Type} (defaultDefaultInst : core.default.Default T) :
-  T → Result (T × T)
+-- (dropped axiom core.mem.take; provided by an imported sibling lib)
 
 /-- [core::num::error::{impl core::fmt::Debug for core::num::error::TryFromIntError}::fmt]:
-    Source: '/rustc/library/core/src/num/error.rs', lines 9:9-9:14
+    Source: '/rustc/library/core/src/num/error.rs', lines 8:9-8:14
     Name pattern: [core::num::error::{core::fmt::Debug<core::num::error::TryFromIntError>}::fmt]
     Visibility: public -/
 @[rust_fun
@@ -128,32 +133,10 @@ axiom core.num.error.TryFromIntError.Insts.CoreFmtDebug.fmt
   core.num.error.TryFromIntError → core.fmt.Formatter → Result
     ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
 
-/-- [core::ops::deref::{impl core::ops::deref::Deref<T> for &'_0 mut T}::deref]:
-    Source: '/rustc/library/core/src/ops/deref.rs', lines 172:4-172:25
-    Name pattern: [core::ops::deref::{core::ops::deref::Deref<&'0 mut @T, @T>}::deref]
-    Visibility: public -/
-@[rust_fun
-  "core::ops::deref::{core::ops::deref::Deref<&'0 mut @T, @T>}::deref"]
-axiom Mut0T.Insts.CoreOpsDerefDeref.deref {T : Type} : T → Result T
-
-/-- [core::ops::deref::{impl core::ops::deref::DerefMut<T> for &'_0 mut T}::deref_mut]:
-    Source: '/rustc/library/core/src/ops/deref.rs', lines 280:4-280:37
-    Name pattern: [core::ops::deref::{core::ops::deref::DerefMut<&'0 mut @T, @T>}::deref_mut]
-    Visibility: public -/
-@[rust_fun
-  "core::ops::deref::{core::ops::deref::DerefMut<&'0 mut @T, @T>}::deref_mut"]
-axiom Mut0T.Insts.CoreOpsDerefDerefMut.deref_mut
-  {T : Type} : T → Result (T × (T → T))
-
-/-- [core::option::{core::option::Option<T>}::as_ref]:
-    Source: '/rustc/library/core/src/option.rs', lines 741:4-741:44
-    Name pattern: [core::option::{core::option::Option<@T>}::as_ref]
-    Visibility: public -/
-@[rust_fun "core::option::{core::option::Option<@T>}::as_ref"]
-axiom core.option.Option.as_ref {T : Type} : Option T → Result (Option T)
+-- (dropped axiom core.option.Option.as_ref; provided by an imported sibling lib)
 
 /-- [core::option::{core::option::Option<T>}::as_mut]:
-    Source: '/rustc/library/core/src/option.rs', lines 763:4-763:52
+    Source: '/rustc/library/core/src/option.rs', lines 766:4-766:52
     Name pattern: [core::option::{core::option::Option<@T>}::as_mut]
     Visibility: public -/
 @[rust_fun "core::option::{core::option::Option<@T>}::as_mut"]
@@ -162,16 +145,8 @@ axiom core.option.Option.as_mut
 
 -- (dropped axiom core.option.Option.map; provided by an imported sibling lib)
 
-/-- [core::option::{core::option::Option<T>}::ok_or]:
-    Source: '/rustc/library/core/src/option.rs', lines 1334:4-1334:73
-    Name pattern: [core::option::{core::option::Option<@T>}::ok_or]
-    Visibility: public -/
-@[rust_fun "core::option::{core::option::Option<@T>}::ok_or"]
-axiom core.option.Option.ok_or
-  {T : Type} {E : Type} : Option T → E → Result (core.result.Result T E)
-
 /-- [core::option::{core::option::Option<T>}::ok_or_else]:
-    Source: '/rustc/library/core/src/option.rs', lines 1360:4-1362:52
+    Source: '/rustc/library/core/src/option.rs', lines 1361:4-1363:52
     Name pattern: [core::option::{core::option::Option<@T>}::ok_or_else]
     Visibility: public -/
 @[rust_fun "core::option::{core::option::Option<@T>}::ok_or_else"]
@@ -181,7 +156,7 @@ axiom core.option.Option.ok_or_else
   Option T → F → Result (core.result.Result T E)
 
 /-- [core::option::{core::option::Option<T>}::as_deref]:
-    Source: '/rustc/library/core/src/option.rs', lines 1387:4-1389:25
+    Source: '/rustc/library/core/src/option.rs', lines 1388:4-1390:25
     Name pattern: [core::option::{core::option::Option<@T>}::as_deref]
     Visibility: public -/
 @[rust_fun "core::option::{core::option::Option<@T>}::as_deref"]
@@ -191,7 +166,7 @@ axiom core.option.Option.as_deref
   Option T → Result (Option Clause0_Target)
 
 /-- [core::option::{core::option::Option<T>}::and_then]:
-    Source: '/rustc/library/core/src/option.rs', lines 1538:4-1540:61
+    Source: '/rustc/library/core/src/option.rs', lines 1539:4-1541:61
     Name pattern: [core::option::{core::option::Option<@T>}::and_then]
     Visibility: public -/
 @[rust_fun "core::option::{core::option::Option<@T>}::and_then"]
@@ -200,8 +175,18 @@ axiom core.option.Option.and_then
   core.ops.function.FnOnce F T (Option U)) :
   Option T → F → Result (Option U)
 
+/-- [core::option::{core::option::Option<T>}::zip]:
+    Source: '/rustc/library/core/src/option.rs', lines 1983:4-1986:28
+    Name pattern: [core::option::{core::option::Option<@T>}::zip]
+    Visibility: public -/
+@[rust_fun "core::option::{core::option::Option<@T>}::zip"]
+axiom core.option.Option.zip
+  {T : Type} {U : Type} : Option T → Option U → Result (Option (T × U))
+
+-- (dropped axiom core.option.OptionResult.transpose; provided by an imported sibling lib)
+
 /-- [core::option::{impl core::clone::Clone for core::option::Option<T>}::clone]:
-    Source: '/rustc/library/core/src/option.rs', lines 2277:4-2277:27
+    Source: '/rustc/library/core/src/option.rs', lines 2278:4-2278:27
     Name pattern: [core::option::{core::clone::Clone<core::option::Option<@T>>}::clone]
     Visibility: public -/
 @[rust_fun
@@ -212,20 +197,10 @@ axiom core.option.Option.Insts.CoreCloneClone.clone
 
 -- (dropped axiom core.option.Option.Insts.CoreOpsTry_traitTry.branch; provided by an imported sibling lib)
 
--- (dropped axiom core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual; provided by an imported sibling lib)
-
-/-- [core::result::{core::result::Result<T, E>}::map_err]:
-    Source: '/rustc/library/core/src/result.rs', lines 962:4-964:53
-    Name pattern: [core::result::{core::result::Result<@T, @E>}::map_err]
-    Visibility: public -/
-@[rust_fun "core::result::{core::result::Result<@T, @E>}::map_err"]
-axiom core.result.Result.map_err
-  {T : Type} {E : Type} {F : Type} {O : Type} (opsfunctionFnOnceOTupleEFInst :
-  core.ops.function.FnOnce O E F) :
-  core.result.Result T E → O → Result (core.result.Result T F)
+-- (dropped axiom core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual; provided by an imported sibling lib)
 
 /-- [core::result::{core::result::Result<T, E>}::unwrap_or_default]:
-    Source: '/rustc/library/core/src/result.rs', lines 1265:4-1268:28
+    Source: '/rustc/library/core/src/result.rs', lines 1264:4-1267:28
     Name pattern: [core::result::{core::result::Result<@T, @E>}::unwrap_or_default]
     Visibility: public -/
 @[rust_fun "core::result::{core::result::Result<@T, @E>}::unwrap_or_default"]
@@ -233,88 +208,64 @@ axiom core.result.Result.unwrap_or_default
   {T : Type} {E : Type} (defaultDefaultInst : core.default.Default T) :
   core.result.Result T E → Result T
 
--- (dropped axiom core.result.Result.Insts.CoreOpsTry_traitTry.branch; provided by an imported sibling lib)
-
--- (dropped axiom core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual; provided by an imported sibling lib)
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::index_mut]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 660:4-660:51
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index_mut]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index_mut"]
-axiom
-  core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.index_mut
-  {T : Type} :
-  core.ops.range.RangeFull → Slice T → Result ((Slice T) × (Slice T →
-    Slice T))
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::index]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 655:4-655:39
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index"]
-axiom core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.index
-  {T : Type} : core.ops.range.RangeFull → Slice T → Result (Slice T)
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_unchecked_mut]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 650:4-650:66
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked_mut]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked_mut"]
-axiom
-  core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_unchecked_mut
-  {T : Type} :
-  core.ops.range.RangeFull → MutRawPtr (Slice T) → Result (MutRawPtr (Slice
-    T))
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_unchecked]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 645:4-645:66
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_unchecked"]
-axiom
-  core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_unchecked
-  {T : Type} :
-  core.ops.range.RangeFull → ConstRawPtr (Slice T) → Result (ConstRawPtr
-    (Slice T))
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_mut]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 640:4-640:57
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_mut]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_mut"]
-axiom core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get_mut
-  {T : Type} :
-  core.ops.range.RangeFull → Slice T → Result ((Option (Slice T)) ×
-    (Option (Slice T) → Slice T))
-
-/-- [core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get]:
-    Source: '/rustc/library/core/src/slice/index.rs', lines 635:4-635:45
-    Name pattern: [core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get]
-    Visibility: public -/
-@[rust_fun
-  "core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get"]
-axiom core.ops.range.RangeFull.Insts.CoreSliceIndexSliceIndexSliceSlice.get
-  {T : Type} :
-  core.ops.range.RangeFull → Slice T → Result (Option (Slice T))
-
 /-- [core::slice::iter::{impl core::iter::traits::iterator::Iterator<&'a T> for core::slice::iter::Iter<'a, T>}::position]:
-    Source: '/rustc/library/core/src/slice/iter/macros.rs', lines 377:12-379:45
+    Source: '/rustc/library/core/src/slice/iter/macros.rs', lines 372:12-374:45
     Name pattern: [core::slice::iter::{core::iter::traits::iterator::Iterator<core::slice::iter::Iter<'a, @T>, &'a @T>}::position]
     Visibility: public -/
+-- Transcribes the slice iterator's `position`: apply the predicate to the
+-- remaining elements in order and stop at the first `true`, consuming that
+-- element. The index counts from the iterator's current position.
 @[rust_fun
   "core::slice::iter::{core::iter::traits::iterator::Iterator<core::slice::iter::Iter<'a, @T>, &'a @T>}::position"]
-axiom
-  core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.position
+def core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.position
   {T : Type} {P : Type} (opsfunctionFnMutPTupleSharedATBoolInst :
-  core.ops.function.FnMut P T Bool) :
-  core.slice.iter.Iter T → P → Result ((Option Std.Usize) ×
-    (core.slice.iter.Iter T))
+  core.ops.function.FnMut P T Bool) (it : core.slice.iter.Iter T)
+  (predicate : P) : Result ((Option Std.Usize) × (core.slice.iter.Iter T)) :=
+  go (it.slice.val.drop it.i) predicate 0 >>= fun (found, consumed) =>
+    let it := { it with i := it.i + consumed }
+    match found with
+    | none => ok (none, it)
+    | some k =>
+      if h : k < 2 ^ UScalarTy.Usize.numBits then ok (some (Usize.ofNatCore k h), it)
+      else fail .integerOverflow
+where
+  go : List T → P → Nat → Result (Option Nat × Nat)
+  | [], _, k => ok (none, k)
+  | x :: xs, predicate, k => do
+    let (b, predicate) ← opsfunctionFnMutPTupleSharedATBoolInst.call_mut predicate x
+    if b then ok (some k, k + 1) else go xs predicate (k + 1)
+
+/-- [core::slice::{[T]}::first_chunk]:
+    Source: '/rustc/library/core/src/slice/mod.rs', lines 329:4-329:70
+    Name pattern: [core::slice::{[@T]}::first_chunk]
+    Visibility: public -/
+-- The core library function: the first `N` elements, or `None` when the
+-- slice is shorter.
+@[rust_fun "core::slice::{[@T]}::first_chunk"]
+def core.slice.Slice.first_chunk
+  {T : Type} (N : Std.Usize) (s : Slice T) : Result (Option (Array T N)) :=
+  if h : N.val ≤ s.length then
+    ok (some (Array.from (s.val.take N.val)
+      (by simp only [List.length_take, Slice.length] at *; omega)))
+  else ok none
+
+/-- [core::slice::{[T]}::split_last_chunk]:
+    Source: '/rustc/library/core/src/slice/mod.rs', lines 449:4-449:83
+    Name pattern: [core::slice::{[@T]}::split_last_chunk]
+    Visibility: public -/
+-- The core library function: the slice without its last `N` elements and
+-- those elements, or `None` when the slice is shorter.
+@[rust_fun "core::slice::{[@T]}::split_last_chunk"]
+def core.slice.Slice.split_last_chunk
+  {T : Type} (N : Std.Usize) (s : Slice T) :
+  Result (Option ((Slice T) × (Array T N))) :=
+  if h : N.val ≤ s.length then
+    ok (some
+      (Slice.from (s.val.take (s.length - N.val))
+        (by have := s.property; simp only [List.length_take]; omega),
+       Array.from (s.val.drop (s.length - N.val))
+        (by simp only [List.length_drop, Slice.length] at *; omega)))
+  else ok none
 
 /-- [core::time::{impl core::default::Default for core::time::Duration}::default]:
     Source: '/rustc/library/core/src/time.rs', lines 79:60-79:67
@@ -340,21 +291,21 @@ axiom core.time.Duration.from_secs : Std.U64 → Result core.time.Duration
 axiom core.time.Duration.from_millis : Std.U64 → Result core.time.Duration
 
 /-- [core::time::{core::time::Duration}::as_secs]:
-    Source: '/rustc/library/core/src/time.rs', lines 506:4-506:38
+    Source: '/rustc/library/core/src/time.rs', lines 514:4-514:38
     Name pattern: [core::time::{core::time::Duration}::as_secs]
     Visibility: public -/
 @[rust_fun "core::time::{core::time::Duration}::as_secs"]
 axiom core.time.Duration.as_secs : core.time.Duration → Result Std.U64
 
 /-- [core::time::{core::time::Duration}::as_millis]:
-    Source: '/rustc/library/core/src/time.rs', lines 593:4-593:41
+    Source: '/rustc/library/core/src/time.rs', lines 601:4-601:41
     Name pattern: [core::time::{core::time::Duration}::as_millis]
     Visibility: public -/
 @[rust_fun "core::time::{core::time::Duration}::as_millis"]
 axiom core.time.Duration.as_millis : core.time.Duration → Result Std.U128
 
 /-- [std::path::{impl core::ops::deref::Deref<std::path::Path> for std::path::PathBuf}::deref]:
-    Source: '/rustc/library/std/src/path.rs', lines 2096:4-2096:28
+    Source: '/rustc/library/std/src/path.rs', lines 2095:4-2095:28
     Name pattern: [std::path::{core::ops::deref::Deref<std::path::PathBuf, std::path::Path>}::deref]
     Visibility: public -/
 @[rust_fun
@@ -363,14 +314,14 @@ axiom std.path.PathBuf.Insts.CoreOpsDerefDerefPath.deref
   : std.path.PathBuf → Result std.path.Path
 
 /-- [std::path::{std::path::Path}::display]:
-    Source: '/rustc/library/std/src/path.rs', lines 3296:4-3296:40
+    Source: '/rustc/library/std/src/path.rs', lines 3306:4-3306:40
     Name pattern: [std::path::{std::path::Path}::display]
     Visibility: public -/
 @[rust_fun "std::path::{std::path::Path}::display"]
 axiom std.path.Path.display : std.path.Path → Result std.path.Display
 
 /-- [std::time::{impl core::clone::Clone for std::time::SystemTime}::clone]:
-    Source: '/rustc/library/std/src/time.rs', lines 248:15-248:20
+    Source: '/rustc/library/std/src/time.rs', lines 246:15-246:20
     Name pattern: [std::time::{core::clone::Clone<std::time::SystemTime>}::clone]
     Visibility: public -/
 @[rust_fun "std::time::{core::clone::Clone<std::time::SystemTime>}::clone"]
@@ -378,7 +329,7 @@ axiom std.time.SystemTime.Insts.CoreCloneClone.clone
   : std.time.SystemTime → Result std.time.SystemTime
 
 /-- [std::time::{impl core::fmt::Debug for std::time::SystemTimeError}::fmt]:
-    Source: '/rustc/library/std/src/time.rs', lines 270:16-270:21
+    Source: '/rustc/library/std/src/time.rs', lines 268:16-268:21
     Name pattern: [std::time::{core::fmt::Debug<std::time::SystemTimeError>}::fmt]
     Visibility: public -/
 @[rust_fun "std::time::{core::fmt::Debug<std::time::SystemTimeError>}::fmt"]
@@ -388,21 +339,21 @@ axiom std.time.SystemTimeError.Insts.CoreFmtDebug.fmt
     ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
 
 /-- [std::time::{std::time::SystemTime}::UNIX_EPOCH]
-    Source: '/rustc/library/std/src/time.rs', lines 513:4-513:36
+    Source: '/rustc/library/std/src/time.rs', lines 511:4-511:36
     Name pattern: [std::time::{std::time::SystemTime}::UNIX_EPOCH]
     Visibility: public -/
 @[rust_const "std::time::{std::time::SystemTime}::UNIX_EPOCH"]
 axiom std.time.SystemTime.UNIX_EPOCH : Result std.time.SystemTime
 
 /-- [std::time::{std::time::SystemTime}::now]:
-    Source: '/rustc/library/std/src/time.rs', lines 603:4-603:30
+    Source: '/rustc/library/std/src/time.rs', lines 601:4-601:30
     Name pattern: [std::time::{std::time::SystemTime}::now]
     Visibility: public -/
 @[rust_fun "std::time::{std::time::SystemTime}::now"]
 axiom std.time.SystemTime.now : Result std.time.SystemTime
 
 /-- [std::time::{std::time::SystemTime}::duration_since]:
-    Source: '/rustc/library/std/src/time.rs', lines 632:4-632:90
+    Source: '/rustc/library/std/src/time.rs', lines 630:4-630:90
     Name pattern: [std::time::{std::time::SystemTime}::duration_since]
     Visibility: public -/
 @[rust_fun "std::time::{std::time::SystemTime}::duration_since"]
@@ -412,7 +363,7 @@ axiom std.time.SystemTime.duration_since
     core.time.Duration std.time.SystemTimeError)
 
 /-- [std::time::{impl core::ops::arith::Add<core::time::Duration, std::time::SystemTime> for std::time::SystemTime}::add]:
-    Source: '/rustc/library/std/src/time.rs', lines 748:4-748:45
+    Source: '/rustc/library/std/src/time.rs', lines 746:4-746:45
     Name pattern: [std::time::{core::ops::arith::Add<std::time::SystemTime, core::time::Duration, std::time::SystemTime>}::add]
     Visibility: public -/
 @[rust_fun
@@ -439,7 +390,7 @@ axiom BoxSlice.Insts.CoreConvertFromShared0Slice.from
   Slice T → Result (Slice T)
 
 /-- [alloc::boxed::{impl core::clone::Clone for alloc::boxed::Box<[T]>}::clone]:
-    Source: '/rustc/library/alloc/src/boxed.rs', lines 2078:4-2078:27
+    Source: '/rustc/library/alloc/src/boxed.rs', lines 2136:4-2136:27
     Name pattern: [alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone]
     Visibility: public -/
 @[rust_fun "alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone"]
@@ -449,7 +400,7 @@ axiom BoxSlice.Insts.CoreCloneClone.clone
   Slice T → Result (Slice T)
 
 /-- [alloc::boxed::{impl core::convert::AsRef<T> for alloc::boxed::Box<T>}::as_ref]:
-    Source: '/rustc/library/alloc/src/boxed.rs', lines 2352:4-2352:26
+    Source: '/rustc/library/alloc/src/boxed.rs', lines 2429:4-2429:26
     Name pattern: [alloc::boxed::{core::convert::AsRef<Box<@T>, @T>}::as_ref]
     Visibility: public -/
 @[rust_fun "alloc::boxed::{core::convert::AsRef<Box<@T>, @T>}::as_ref"]
@@ -480,7 +431,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
     (alloc.collections.vec_deque.VecDeque T A)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, alloc::alloc::Global>}::with_capacity]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 843:4-843:56
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 868:4-868:56
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, alloc::alloc::Global>}::with_capacity]
     Visibility: public -/
 @[rust_fun
@@ -490,7 +441,7 @@ axiom alloc.collections.vec_deque.VecDequeTGlobal.with_capacity
   Std.Usize → Result (alloc.collections.vec_deque.VecDeque T Global)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::len]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1703:4-1703:30
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1808:4-1808:30
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::len]
     Visibility: public -/
 @[rust_fun
@@ -500,7 +451,7 @@ axiom alloc.collections.vec_deque.VecDeque.len
   alloc.collections.vec_deque.VecDeque T A → Result Std.Usize
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::push_back]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 2275:4-2275:41
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 2385:4-2385:41
     Name pattern: [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, @A>}::push_back]
     Visibility: public -/
 @[rust_fun
@@ -511,7 +462,7 @@ axiom alloc.collections.vec_deque.VecDeque.push_back
     (alloc.collections.vec_deque.VecDeque T A)
 
 /-- [alloc::collections::vec_deque::{impl core::ops::index::Index<usize, T> for alloc::collections::vec_deque::VecDeque<T, A>}::index]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3810:4-3810:39
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3944:4-3944:39
     Name pattern: [alloc::collections::vec_deque::{core::ops::index::Index<alloc::collections::vec_deque::VecDeque<@T, @A>, usize, @T>}::index]
     Visibility: public -/
 @[rust_fun
@@ -521,7 +472,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreOpsIndexIndexUsizeT.index
   alloc.collections.vec_deque.VecDeque T A → Std.Usize → Result T
 
 /-- [alloc::collections::vec_deque::{impl core::ops::index::IndexMut<usize, T> for alloc::collections::vec_deque::VecDeque<T, A>}::index_mut]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3818:4-3818:51
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3952:4-3952:51
     Name pattern: [alloc::collections::vec_deque::{core::ops::index::IndexMut<alloc::collections::vec_deque::VecDeque<@T, @A>, usize, @T>}::index_mut]
     Visibility: public -/
 @[rust_fun
@@ -533,7 +484,7 @@ axiom
     → alloc.collections.vec_deque.VecDeque T A))
 
 /-- [alloc::collections::vec_deque::{impl core::iter::traits::collect::IntoIterator<&'a T, alloc::collections::vec_deque::iter::Iter<'a, T>> for &'a alloc::collections::vec_deque::VecDeque<T, A>}::into_iter]:
-    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3847:4-3847:37
+    Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 3981:4-3981:37
     Name pattern: [alloc::collections::vec_deque::{core::iter::traits::collect::IntoIterator<&'a alloc::collections::vec_deque::VecDeque<@T, @A>, &'a @T, alloc::collections::vec_deque::iter::Iter<'a, @T>>}::into_iter]
     Visibility: public -/
 @[rust_fun
@@ -545,14 +496,14 @@ axiom
     (alloc.collections.vec_deque.iter.Iter T)
 
 /-- [alloc::fmt::format]:
-    Source: '/rustc/library/alloc/src/fmt.rs', lines 649:0-649:52
+    Source: '/rustc/library/alloc/src/fmt.rs', lines 651:0-651:52
     Name pattern: [alloc::fmt::format]
     Visibility: public -/
 @[rust_fun "alloc::fmt::format"]
 axiom alloc.fmt.format : core.fmt.Arguments → Result String
 
 /-- [alloc::str::{impl alloc::borrow::ToOwned<alloc::string::String> for str}::to_owned]:
-    Source: '/rustc/library/alloc/src/str.rs', lines 250:4-250:32
+    Source: '/rustc/library/alloc/src/str.rs', lines 252:4-252:32
     Name pattern: [alloc::str::{alloc::borrow::ToOwned<str, alloc::string::String>}::to_owned]
     Visibility: public -/
 @[rust_fun
@@ -560,14 +511,16 @@ axiom alloc.fmt.format : core.fmt.Arguments → Result String
 axiom Str.Insts.AllocBorrowToOwnedString.to_owned : Str → Result String
 
 /-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
-    Source: '/rustc/library/alloc/src/string.rs', lines 2364:4-2364:27
+    Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
     Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
     Visibility: public -/
 @[rust_fun "alloc::string::{core::clone::Clone<alloc::string::String>}::clone"]
 axiom alloc.string.String.Insts.CoreCloneClone.clone : String → Result String
 
+-- (dropped axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref; provided by an imported sibling lib)
+
 /-- [alloc::string::{impl alloc::string::ToString for T}::to_string]:
-    Source: '/rustc/library/alloc/src/string.rs', lines 2906:4-2906:33
+    Source: '/rustc/library/alloc/src/string.rs', lines 2965:4-2965:33
     Name pattern: [alloc::string::{alloc::string::ToString<@T>}::to_string]
     Visibility: public -/
 @[rust_fun "alloc::string::{alloc::string::ToString<@T>}::to_string"]
@@ -576,8 +529,10 @@ axiom alloc.string.ToString.Blanket.to_string
 
 -- (dropped axiom alloc.vec.Vec.into_boxed_slice; provided by an imported sibling lib)
 
+-- (dropped axiom alloc.vec.Vec.as_slice; provided by an imported sibling lib)
+
 /-- [alloc::vec::{alloc::vec::Vec<T>}::remove]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 2401:4-2401:47
+    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 2407:4-2407:47
     Name pattern: [alloc::vec::{alloc::vec::Vec<@T>}::remove]
     Visibility: public -/
 @[rust_fun "alloc::vec::{alloc::vec::Vec<@T>}::remove"]
@@ -586,7 +541,7 @@ axiom alloc.vec.Vec.remove
   alloc.vec.Vec T → Std.Usize → Result (T × (alloc.vec.Vec T))
 
 /-- [alloc::vec::{alloc::vec::Vec<T>}::pop]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 2850:4-2850:38
+    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 2901:4-2901:38
     Name pattern: [alloc::vec::{alloc::vec::Vec<@T>}::pop]
     Visibility: public -/
 @[rust_fun "alloc::vec::{alloc::vec::Vec<@T>}::pop"]
@@ -594,17 +549,10 @@ axiom alloc.vec.Vec.pop
   {T : Type} (A : Type) :
   alloc.vec.Vec T → Result ((Option T) × (alloc.vec.Vec T))
 
-/-- [alloc::vec::{impl core::default::Default for alloc::vec::Vec<T>}::default]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4304:4-4304:26
-    Name pattern: [alloc::vec::{core::default::Default<alloc::vec::Vec<@T>>}::default]
-    Visibility: public -/
-@[rust_fun
-  "alloc::vec::{core::default::Default<alloc::vec::Vec<@T>>}::default"]
-axiom alloc.vec.Vec.Insts.CoreDefaultDefault.default
-  (T : Type) : Result (alloc.vec.Vec T)
+-- (dropped axiom alloc.vec.Vec.Insts.CoreDefaultDefault.default; provided by an imported sibling lib)
 
 /-- [alloc::vec::{impl core::convert::AsRef<[T]> for alloc::vec::Vec<T>}::as_ref]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4332:4-4332:28
+    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4445:4-4445:28
     Name pattern: [alloc::vec::{core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>}::as_ref]
     Visibility: public -/
 @[rust_fun
@@ -613,7 +561,7 @@ axiom alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref
   {T : Type} (A : Type) : alloc.vec.Vec T → Result (Slice T)
 
 /-- [alloc::vec::{impl core::convert::From<&'_0 [T]> for alloc::vec::Vec<T>}::from]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4354:4-4354:30
+    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4467:4-4467:30
     Name pattern: [alloc::vec::{core::convert::From<alloc::vec::Vec<@T>, &'0 [@T]>}::from]
     Visibility: public -/
 @[rust_fun
@@ -623,7 +571,7 @@ axiom alloc.vec.Vec.Insts.CoreConvertFromShared0Slice.from
   Slice T → Result (alloc.vec.Vec T)
 
 /-- [alloc::vec::{impl core::convert::From<alloc::boxed::Box<[T]>> for alloc::vec::Vec<T>}::from]:
-    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4455:4-4455:35
+    Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4568:4-4568:35
     Name pattern: [alloc::vec::{core::convert::From<alloc::vec::Vec<@T>, Box<[@T]>>}::from]
     Visibility: public -/
 @[rust_fun
@@ -632,7 +580,7 @@ axiom alloc.vec.Vec.Insts.CoreConvertFromBoxSlice.from
   {T : Type} (A : Type) : Slice T → Result (alloc.vec.Vec T)
 
 /-- [bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::advance]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 2901:4-2901:37
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
     Name pattern: [bytes::buf::buf_impl::{bytes::buf::buf_impl::Buf<&'0 [u8]>}::advance]
     Visibility: public -/
 @[rust_fun
@@ -641,7 +589,7 @@ axiom Shared0SliceU8.Insts.BytesBufBuf_implBuf.advance
   : Slice Std.U8 → Std.Usize → Result (Slice Std.U8)
 
 /-- [bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::chunk]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 2896:4-2896:28
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_impl.rs', lines 2901:4-2901:28
     Name pattern: [bytes::buf::buf_impl::{bytes::buf::buf_impl::Buf<&'0 [u8]>}::chunk]
     Visibility: public -/
 @[rust_fun
@@ -650,7 +598,7 @@ axiom Shared0SliceU8.Insts.BytesBufBuf_implBuf.chunk
   : Slice Std.U8 → Result (Slice Std.U8)
 
 /-- [bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::remaining]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 2891:4-2891:32
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_impl.rs', lines 2896:4-2896:32
     Name pattern: [bytes::buf::buf_impl::{bytes::buf::buf_impl::Buf<&'0 [u8]>}::remaining]
     Visibility: public -/
 @[rust_fun
@@ -659,7 +607,7 @@ axiom Shared0SliceU8.Insts.BytesBufBuf_implBuf.remaining
   : Slice Std.U8 → Result Std.Usize
 
 /-- [bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::chunk_mut]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_mut.rs', lines 1623:4-1623:47
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_mut.rs', lines 1623:4-1623:47
     Name pattern: [bytes::buf::buf_mut::{bytes::buf::buf_mut::BufMut<alloc::vec::Vec<u8>>}::chunk_mut]
     Visibility: public -/
 @[rust_fun
@@ -670,7 +618,7 @@ axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.chunk_mut
     (bytes.buf.uninit_slice.UninitSlice → alloc.vec.Vec Std.U8))
 
 /-- [bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::advance_mut]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_mut.rs', lines 1607:4-1607:48
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_mut.rs', lines 1607:4-1607:48
     Name pattern: [bytes::buf::buf_mut::{bytes::buf::buf_mut::BufMut<alloc::vec::Vec<u8>>}::advance_mut]
     Visibility: public -/
 @[rust_fun
@@ -679,7 +627,7 @@ axiom alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.advance_mut
   : alloc.vec.Vec Std.U8 → Std.Usize → Result (alloc.vec.Vec Std.U8)
 
 /-- [bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::remaining_mut]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_mut.rs', lines 1601:4-1601:36
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_mut.rs', lines 1601:4-1601:36
     Name pattern: [bytes::buf::buf_mut::{bytes::buf::buf_mut::BufMut<alloc::vec::Vec<u8>>}::remaining_mut]
     Visibility: public -/
 @[rust_fun
@@ -741,6 +689,17 @@ axiom U8.Insts.CoreConvertFromDeviceId.from
 
 -- (dropped axiom libsignal_core.address.ProtocolAddress.device_id; provided by an imported sibling lib)
 
+/-- [libsignal_core::address::{impl core::fmt::Display for libsignal_core::address::ProtocolAddress}::fmt]:
+    Source: 'rust/core/src/address.rs', lines 824:4-824:56
+    Name pattern: [libsignal_core::address::{core::fmt::Display<libsignal_core::address::ProtocolAddress>}::fmt]
+    Visibility: public -/
+@[rust_fun
+  "libsignal_core::address::{core::fmt::Display<libsignal_core::address::ProtocolAddress>}::fmt"]
+axiom libsignal_core.address.ProtocolAddress.Insts.CoreFmtDisplay.fmt
+  :
+  libsignal_core.address.ProtocolAddress → core.fmt.Formatter → Result
+    ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+
 /-- [libsignal_core::curve::{impl core::clone::Clone for libsignal_core::curve::PublicKey}::clone]:
     Source: 'rust/core/src/curve.rs', lines 63:9-63:14
     Name pattern: [libsignal_core::curve::{core::clone::Clone<libsignal_core::curve::PublicKey>}::clone]
@@ -750,16 +709,7 @@ axiom U8.Insts.CoreConvertFromDeviceId.from
 axiom libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone
   : libsignal_core.curve.PublicKey → Result libsignal_core.curve.PublicKey
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]:
-    Source: 'rust/core/src/curve.rs', lines 84:4-84:64
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize"]
-axiom libsignal_core.curve.PublicKey.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result libsignal_core.curve.PublicKey
-    libsignal_core.curve.CurveError)
+-- (dropped axiom libsignal_core.curve.PublicKey.deserialize; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PublicKey.public_key_bytes; provided by an imported sibling lib)
 
@@ -801,27 +751,7 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
   libsignal_core.curve.PublicKey → libsignal_core.curve.PublicKey → Result
     Bool
 
-/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::ne]:
-    Source: 'rust/core/src/curve.rs', lines 214:0-214:28
-    Name pattern: [libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::ne]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::ne"]
-axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.ne
-  :
-  libsignal_core.curve.PublicKey → libsignal_core.curve.PublicKey → Result
-    Bool
-
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize]:
-    Source: 'rust/core/src/curve.rs', lines 242:4-242:64
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize"]
-axiom libsignal_core.curve.PrivateKey.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result libsignal_core.curve.PrivateKey
-    libsignal_core.curve.CurveError)
+-- (dropped axiom libsignal_core.curve.PrivateKey.deserialize; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PrivateKey.serialize; provided by an imported sibling lib)
 
@@ -844,7 +774,7 @@ axiom libsignal_core.curve.PrivateKey.public_key
   "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature"]
 axiom libsignal_core.curve.PrivateKey.calculate_signature
   {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
-  (randrngRngInst : rand.rng.Rng R) :
+  (rand_1rngRngInst : rand_1.rng.Rng R) :
   libsignal_core.curve.PrivateKey → Slice Std.U8 → R → Result
     ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
 
@@ -856,20 +786,11 @@ axiom libsignal_core.curve.PrivateKey.calculate_signature
   "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature_for_multipart_message"]
 axiom libsignal_core.curve.PrivateKey.calculate_signature_for_multipart_message
   {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
-  (randrngRngInst : rand.rng.Rng R) :
+  (rand_1rngRngInst : rand_1.rng.Rng R) :
   libsignal_core.curve.PrivateKey → Slice (Slice Std.U8) → R → Result
     ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_agreement]:
-    Source: 'rust/core/src/curve.rs', lines 296:4-296:93
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_agreement]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_agreement"]
-axiom libsignal_core.curve.PrivateKey.calculate_agreement
-  :
-  libsignal_core.curve.PrivateKey → libsignal_core.curve.PublicKey → Result
-    (core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError)
+-- (dropped axiom libsignal_core.curve.PrivateKey.calculate_agreement; provided by an imported sibling lib)
 
 /-- [libsignal_core::curve::{impl core::clone::Clone for libsignal_core::curve::KeyPair}::clone]:
     Source: 'rust/core/src/curve.rs', lines 320:15-320:20
@@ -886,7 +807,7 @@ axiom libsignal_core.curve.KeyPair.Insts.CoreCloneClone.clone
     Visibility: public -/
 @[rust_fun "libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate"]
 axiom libsignal_core.curve.KeyPair.generate
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) :
   R → Result (libsignal_core.curve.KeyPair × R)
 
@@ -903,7 +824,7 @@ axiom libsignal_core.curve.KeyPair.new
 -- (dropped axiom libsignal_core.curve.KeyPair.from_public_and_private; provided by an imported sibling lib)
 
 /-- [prost::error::{impl core::fmt::Debug for prost::error::EncodeError}::fmt]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 89:22-89:27
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/error.rs', lines 184:22-184:27
     Name pattern: [prost::error::{core::fmt::Debug<prost::error::EncodeError>}::fmt]
     Visibility: public -/
 @[rust_fun "prost::error::{core::fmt::Debug<prost::error::EncodeError>}::fmt"]
@@ -912,51 +833,75 @@ axiom prost.error.EncodeError.Insts.CoreFmtDebug.fmt
   prost.error.EncodeError → core.fmt.Formatter → Result
     ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
 
-/-- [rand_core#1::{impl rand_core#1::RngCore for T}::fill_bytes]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 173:4-173:44
-    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::fill_bytes]
+/-- [prost::message::Message::encode]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/message.rs', lines 46:4-48:20
+    Name pattern: [prost::message::Message::encode]
     Visibility: public -/
-@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::fill_bytes"]
-axiom rand_core_1.RngCore.Blanket.fill_bytes
-  {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
-  core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core_1.RngCore Clause0_Clause0_Target) :
-  T → Slice Std.U8 → Result (T × (Slice Std.U8))
+-- Opaque default indexed by the types instead of the instance. Rust coherence
+-- allows at most one impl of a trait per type, so this is as general as one
+-- external per impl, and `impl_def` can close the instance.
+axiom prost.message.Message.encode.external
+  {Self : Type} {T1 : Type} :
+  Self → T1 → Result ((core.result.Result Unit prost.error.EncodeError) ×
+    T1)
 
-/-- [rand_core#1::{impl rand_core#1::RngCore for T}::next_u64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 168:4-168:33
-    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::next_u64]
-    Visibility: public -/
-@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::next_u64"]
-axiom rand_core_1.RngCore.Blanket.next_u64
-  {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
-  core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core_1.RngCore Clause0_Clause0_Target) :
-  T → Result (Std.U64 × T)
+@[trait_default, rust_fun "prost::message::Message::encode"]
+noncomputable def prost.message.Message.encode.default
+  {Self : Type} {T1 : Type} (MessageInst : prost.message.Message Self)
+  (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
+  Self → T1 → Result ((core.result.Result Unit prost.error.EncodeError) ×
+    T1) :=
+  prost.message.Message.encode.external
 
-/-- [rand_core#1::{impl rand_core#1::RngCore for T}::next_u32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 163:4-163:33
-    Name pattern: [rand_core#1::{rand_core#1::RngCore<@T>}::next_u32]
+/-- [prost::message::Message::encode_to_vec]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/message.rs', lines 61:4-63:20
+    Name pattern: [prost::message::Message::encode_to_vec]
     Visibility: public -/
-@[rust_fun "rand_core#1::{rand_core#1::RngCore<@T>}::next_u32"]
-axiom rand_core_1.RngCore.Blanket.next_u32
-  {T : Type} {Clause0_Clause0_Target : Type} (coreopsderefDerefMutInst :
-  core.ops.deref.DerefMut T Clause0_Clause0_Target) (RngCoreInst :
-  rand_core_1.RngCore Clause0_Clause0_Target) :
-  T → Result (Std.U32 × T)
+-- Opaque default indexed by the types instead of the instance. Rust coherence
+-- allows at most one impl of a trait per type, so this is as general as one
+-- external per impl, and `impl_def` can close the instance.
+axiom prost.message.Message.encode_to_vec.external
+  {Self : Type} : Self → Result (alloc.vec.Vec Std.U8)
+
+@[trait_default, rust_fun "prost::message::Message::encode_to_vec"]
+noncomputable def prost.message.Message.encode_to_vec.default
+  {Self : Type} (MessageInst : prost.message.Message Self) :
+  Self → Result (alloc.vec.Vec Std.U8) :=
+  prost.message.Message.encode_to_vec.external
+
+/-- [prost::message::Message::decode]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/message.rs', lines 105:4-107:22
+    Name pattern: [prost::message::Message::decode]
+    Visibility: public -/
+-- Opaque default indexed by the types instead of the instance. Rust coherence
+-- allows at most one impl of a trait per type, so this is as general as one
+-- external per impl, and `impl_def` can close the instance.
+axiom prost.message.Message.decode.external
+  {Self : Type} {T1 : Type} :
+  T1 → Result (core.result.Result Self prost.error.DecodeError)
+
+@[trait_default, rust_fun "prost::message::Message::decode"]
+noncomputable def prost.message.Message.decode.default
+  {Self : Type} {T1 : Type} (MessageInst : prost.message.Message Self)
+  (coredefaultDefaultInst : core.default.Default Self) (bytesbufbuf_implBufInst
+  : bytes.buf.buf_impl.Buf T1) :
+  T1 → Result (core.result.Result Self prost.error.DecodeError) :=
+  prost.message.Message.decode.external
 
 /-- [rand_core#1::TryRngCore::unwrap_err]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 232:4-234:20
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 232:4-234:20
     Name pattern: [rand_core#1::TryRngCore::unwrap_err]
     Visibility: public -/
-@[rust_fun "rand_core#1::TryRngCore::unwrap_err"]
-axiom rand_core_1.TryRngCore.unwrap_err.default
+-- rand_core 0.9.5 returns `UnwrapErr(self)`; Aeneas models `UnwrapErr<R>` as `R`.
+@[trait_default, rust_fun "rand_core#1::TryRngCore::unwrap_err"]
+def rand_core_1.TryRngCore.unwrap_err.default
   {Self : Type} {Clause0_Error : Type} (TryRngCoreInst : rand_core_1.TryRngCore
   Self Clause0_Error) :
-  Self → Result (rand_core_1.UnwrapErr Self Clause0_Error)
+  Self → Result (rand_core_1.UnwrapErr Self Clause0_Error) :=
+  fun self => ok self
 
 /-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::fill_bytes]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 312:4-312:44
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 312:4-312:44
     Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::fill_bytes]
     Visibility: public -/
 @[rust_fun
@@ -968,7 +913,7 @@ axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.fill_bytes
     ((rand_core_1.UnwrapErr R Clause0_Error) × (Slice Std.U8))
 
 /-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::next_u64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 307:4-307:33
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 307:4-307:33
     Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u64]
     Visibility: public -/
 @[rust_fun
@@ -980,7 +925,7 @@ axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.next_u64
     (rand_core_1.UnwrapErr R Clause0_Error))
 
 /-- [rand_core#1::{impl rand_core#1::RngCore for rand_core#1::UnwrapErr<R, Clause0_Error>}::next_u32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 302:4-302:33
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 302:4-302:33
     Name pattern: [rand_core#1::{rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>}::next_u32]
     Visibility: public -/
 @[rust_fun
@@ -992,7 +937,7 @@ axiom rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.next_u32
     (rand_core_1.UnwrapErr R Clause0_Error))
 
 /-- [rand_core#1::os::{impl core::fmt::Debug for rand_core#1::os::OsError}::fmt]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 50:22-50:27
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 50:22-50:27
     Name pattern: [rand_core#1::os::{core::fmt::Debug<rand_core#1::os::OsError>}::fmt]
     Visibility: public -/
 @[rust_fun
@@ -1003,7 +948,7 @@ axiom rand_core_1.os.OsError.Insts.CoreFmtDebug.fmt
     Unit core.fmt.Error) × core.fmt.Formatter)
 
 /-- [rand_core#1::os::{impl core::fmt::Display for rand_core#1::os::OsError}::fmt]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 55:4-55:72
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 55:4-55:72
     Name pattern: [rand_core#1::os::{core::fmt::Display<rand_core#1::os::OsError>}::fmt]
     Visibility: public -/
 @[rust_fun
@@ -1014,7 +959,7 @@ axiom rand_core_1.os.OsError.Insts.CoreFmtDisplay.fmt
     Unit core.fmt.Error) × core.fmt.Formatter)
 
 /-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_fill_bytes]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 97:4-97:76
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 97:4-97:76
     Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_fill_bytes]
     Visibility: public -/
 @[rust_fun
@@ -1025,7 +970,7 @@ axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_fill_bytes
     rand_core_1.os.OsError) × rand_core_1.os.OsRng × (Slice Std.U8))
 
 /-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_next_u64]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 92:4-92:58
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 92:4-92:58
     Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u64]
     Visibility: public -/
 @[rust_fun
@@ -1036,7 +981,7 @@ axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_next_u64
     rand_core_1.os.OsError) × rand_core_1.os.OsRng)
 
 /-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::try_next_u32]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 87:4-87:58
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 87:4-87:58
     Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::try_next_u32]
     Visibility: public -/
 @[rust_fun
@@ -1046,19 +991,26 @@ axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.try_next_u32
   rand_core_1.os.OsRng → Result ((core.result.Result Std.U32
     rand_core_1.os.OsError) × rand_core_1.os.OsRng)
 
-/-- [rand_core#1::os::{impl rand_core#1::TryRngCore<rand_core#1::os::OsError> for rand_core#1::os::OsRng}::unwrap_err]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 83:0-83:25
-    Name pattern: [rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::unwrap_err]
+/-- [signal_crypto::aes_cbc::aes_256_cbc_encrypt]:
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 26:0-30:37
+    Name pattern: [signal_crypto::aes_cbc::aes_256_cbc_encrypt]
     Visibility: public -/
-@[rust_fun
-  "rand_core#1::os::{rand_core#1::TryRngCore<rand_core#1::os::OsRng, rand_core#1::os::OsError>}::unwrap_err"]
-axiom rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError.unwrap_err
-  :
-  rand_core_1.os.OsRng → Result (rand_core_1.UnwrapErr rand_core_1.os.OsRng
-    rand_core_1.os.OsError)
+@[rust_fun "signal_crypto::aes_cbc::aes_256_cbc_encrypt"]
+-- Alias of the crypto-cbc profile's external.
+noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_encrypt :=
+  _root_.aes_cbc.aes_256_cbc_encrypt
+
+/-- [signal_crypto::aes_cbc::aes_256_cbc_decrypt]:
+    Source: 'rust/crypto/src/aes_cbc.rs', lines 37:0-41:37
+    Name pattern: [signal_crypto::aes_cbc::aes_256_cbc_decrypt]
+    Visibility: public -/
+@[rust_fun "signal_crypto::aes_cbc::aes_256_cbc_decrypt"]
+-- Alias of the crypto-cbc profile's external.
+noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_decrypt :=
+  _root_.aes_cbc.aes_256_cbc_decrypt
 
 /-- [spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default]:
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/chain.rs', lines 29:4-29:24
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 29:4-29:24
     Name pattern: [spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default]
     Visibility: public -/
 @[rust_fun
@@ -1067,7 +1019,7 @@ axiom spqr.chain.ChainParams.Insts.CoreDefaultDefault.default
   : Result spqr.chain.ChainParams
 
 /-- [spqr::{impl core::fmt::Display for spqr::Error}::fmt]:
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/lib.rs', lines 95:16-95:32
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 96:16-96:32
     Name pattern: [spqr::{core::fmt::Display<spqr::Error>}::fmt]
     Visibility: public -/
 @[rust_fun "spqr::{core::fmt::Display<spqr::Error>}::fmt"]
@@ -1076,8 +1028,10 @@ axiom spqr.Error.Insts.CoreFmtDisplay.fmt
   spqr.Error → core.fmt.Formatter → Result ((core.result.Result Unit
     core.fmt.Error) × core.fmt.Formatter)
 
+-- SPQR v1.6.0 interface consumed by libsignal (`initial_state`, `send`, `recv`).
+-- SPQR-verify extracts and verifies SPQR itself.
 /-- [spqr::initial_state]:
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/lib.rs', lines 210:0-210:70
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 211:0-211:70
     Name pattern: [spqr::initial_state]
     Visibility: public -/
 @[rust_fun "spqr::initial_state"]
@@ -1085,8 +1039,67 @@ axiom spqr.initial_state
   :
   spqr.Params → Result (core.result.Result (alloc.vec.Vec Std.U8) spqr.Error)
 
+/-- [spqr::send]:
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 264:0-264:92
+    Name pattern: [spqr::send]
+    Visibility: public -/
+@[rust_fun "spqr::send"]
+axiom spqr.send
+  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) :
+  alloc.vec.Vec Std.U8 → R → Result ((core.result.Result spqr.Send
+    spqr.Error) × R)
+
+/-- [spqr::recv]:
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 355:0-355:84
+    Name pattern: [spqr::recv]
+    Visibility: public -/
+@[rust_fun "spqr::recv"]
+axiom spqr.recv
+  :
+  alloc.vec.Vec Std.U8 → alloc.vec.Vec Std.U8 → Result (core.result.Result
+    spqr.Recv spqr.Error)
+
+/-- [subtle::{impl core::convert::From<subtle::Choice> for bool}::from]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 153:4-153:35
+    Name pattern: [subtle::{core::convert::From<bool, subtle::Choice>}::from]
+    Visibility: public -/
+-- Transcribes `source.0 != 0`; the `debug_assert!` is not modelled.
+@[rust_fun "subtle::{core::convert::From<bool, subtle::Choice>}::from"]
+def Bool.Insts.CoreConvertFromChoice.from (source : subtle.Choice) : Result Bool :=
+  ok (source.val != 0#u8)
+
+/-- [subtle::{impl subtle::ConstantTimeEq for [T]}::ct_eq]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 313:4-313:41
+    Name pattern: [subtle::{subtle::ConstantTimeEq<[@T]>}::ct_eq]
+    Visibility: public -/
+-- Transcribes the loop in `subtle`: 0 when the lengths differ, otherwise the
+-- bitwise AND of the elementwise results, starting from 1.
+@[rust_fun "subtle::{subtle::ConstantTimeEq<[@T]>}::ct_eq"]
+def Slice.Insts.SubtleConstantTimeEq.ct_eq
+  {T : Type} (ConstantTimeEqInst : subtle.ConstantTimeEq T) (s rhs : Slice T) :
+  Result subtle.Choice :=
+  if s.length ≠ rhs.length then ok ⟨0#u8⟩
+  else do
+    let x ← (List.zip s.val rhs.val).foldlM
+      (fun (x : Std.U8) (p : T × T) => do
+        let c ← ConstantTimeEqInst.ct_eq p.1 p.2
+        ok (x &&& c.val))
+      1#u8
+    ok ⟨x⟩
+
+/-- [subtle::{impl subtle::ConstantTimeEq for u8}::ct_eq]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 348:12-348:51
+    Name pattern: [subtle::{subtle::ConstantTimeEq<u8>}::ct_eq]
+    Visibility: public -/
+-- The value computed by the branch-free comparison in `subtle`: 1 when the
+-- bytes are equal, 0 otherwise. Timing is not modelled.
+@[rust_fun "subtle::{subtle::ConstantTimeEq<u8>}::ct_eq"]
+def U8.Insts.SubtleConstantTimeEq.ct_eq (a b : Std.U8) : Result subtle.Choice :=
+  ok ⟨if a = b then 1#u8 else 0#u8⟩
+
 /-- [uuid::{impl core::clone::Clone for uuid::Uuid}::clone]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/lib.rs', lines 436:9-436:14
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/lib.rs', lines 446:9-446:14
     Name pattern: [uuid::{core::clone::Clone<uuid::Uuid>}::clone]
     Visibility: public -/
 @[rust_fun "uuid::{core::clone::Clone<uuid::Uuid>}::clone"]
@@ -1094,146 +1107,382 @@ axiom uuid.Uuid.Insts.CoreCloneClone.clone : uuid.Uuid → Result uuid.Uuid
 
 -- (dropped axiom uuid.Uuid.as_bytes; provided by an imported sibling lib)
 
-/-- [libsignal_protocol::proto::fingerprint::{impl prost::message::Message for libsignal_protocol::proto::fingerprint::CombinedFingerprints}::encode_to_vec]:
-    Source: 'target/out/signal.proto.fingerprint.rs', lines 8:37-8:53
+/-- [libsignal_protocol::proto::fingerprint::{impl prost::message::Message for libsignal_protocol::proto::fingerprint::CombinedFingerprints}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.fingerprint.rs', lines 8:37-8:53
+    Visibility: public -/
+axiom proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.clear
+  :
+  proto.fingerprint.CombinedFingerprints → Result
+    proto.fingerprint.CombinedFingerprints
+
+/-- [libsignal_protocol::proto::fingerprint::{impl prost::message::Message for libsignal_protocol::proto::fingerprint::CombinedFingerprints}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.fingerprint.rs', lines 8:37-8:53
     Visibility: public -/
 axiom
-  proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.encode_to_vec
-  : proto.fingerprint.CombinedFingerprints → Result (alloc.vec.Vec Std.U8)
+  proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.encoded_len
+  : proto.fingerprint.CombinedFingerprints → Result Std.Usize
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 2:27-2:43
-    Visibility: public -/
-axiom proto.storage.SessionStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.SessionStructure → Result (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::RecordStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 92:27-92:43
-    Visibility: public -/
-axiom proto.storage.RecordStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.RecordStructure → Result (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 100:37-100:53
+/-- [libsignal_protocol::proto::fingerprint::{impl prost::message::Message for libsignal_protocol::proto::fingerprint::CombinedFingerprints}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.fingerprint.rs', lines 8:37-8:53
     Visibility: public -/
 axiom
-  proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.PreKeyRecordStructure → Result (alloc.vec.Vec Std.U8)
+  proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.fingerprint.CombinedFingerprints → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.fingerprint.CombinedFingerprints × T0)
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::decode]:
-    Source: 'target/out/signal.proto.storage.rs', lines 100:37-100:53
-    Visibility: public -/
-axiom proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.decode
-  {T1 : Type} (coredefaultDefaultPreKeyRecordStructureInst :
-  core.default.Default proto.storage.PreKeyRecordStructure)
-  (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T1) :
-  T1 → Result (core.result.Result proto.storage.PreKeyRecordStructure
-    prost.error.DecodeError)
-
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 109:37-109:53
+/-- [libsignal_protocol::proto::fingerprint::{impl prost::message::Message for libsignal_protocol::proto::fingerprint::CombinedFingerprints}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.fingerprint.rs', lines 8:37-8:53
     Visibility: public -/
 axiom
-  proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.SignedPreKeyRecordStructure → Result (alloc.vec.Vec Std.U8)
+  proto.fingerprint.CombinedFingerprints.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.fingerprint.CombinedFingerprints → T0 → Result T0
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 122:37-122:53
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 2:27-2:43
+    Visibility: public -/
+axiom proto.storage.SessionStructure.Insts.ProstMessageMessage.clear
+  : proto.storage.SessionStructure → Result proto.storage.SessionStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 2:27-2:43
+    Visibility: public -/
+axiom proto.storage.SessionStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.SessionStructure → Result Std.Usize
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 2:27-2:43
+    Visibility: public -/
+axiom proto.storage.SessionStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.SessionStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.SessionStructure × T0)
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SessionStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 2:27-2:43
+    Visibility: public -/
+axiom proto.storage.SessionStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.SessionStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::RecordStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 92:27-92:43
+    Visibility: public -/
+axiom proto.storage.RecordStructure.Insts.ProstMessageMessage.clear
+  : proto.storage.RecordStructure → Result proto.storage.RecordStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::RecordStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 92:27-92:43
+    Visibility: public -/
+axiom proto.storage.RecordStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.RecordStructure → Result Std.Usize
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::RecordStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 92:27-92:43
+    Visibility: public -/
+axiom proto.storage.RecordStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.RecordStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.RecordStructure × T0)
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::RecordStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 92:27-92:43
+    Visibility: public -/
+axiom proto.storage.RecordStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.RecordStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 100:37-100:53
+    Visibility: public -/
+axiom proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.clear
+  :
+  proto.storage.PreKeyRecordStructure → Result
+    proto.storage.PreKeyRecordStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 100:37-100:53
+    Visibility: public -/
+axiom proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.PreKeyRecordStructure → Result Std.Usize
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 100:37-100:53
+    Visibility: public -/
+axiom proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.PreKeyRecordStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.PreKeyRecordStructure × T0)
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::PreKeyRecordStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 100:37-100:53
+    Visibility: public -/
+axiom proto.storage.PreKeyRecordStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.PreKeyRecordStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 109:37-109:53
+    Visibility: public -/
+axiom proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.clear
+  :
+  proto.storage.SignedPreKeyRecordStructure → Result
+    proto.storage.SignedPreKeyRecordStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 109:37-109:53
     Visibility: public -/
 axiom
-  proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.IdentityKeyPairStructure → Result (alloc.vec.Vec Std.U8)
+  proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.SignedPreKeyRecordStructure → Result Std.Usize
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::decode]:
-    Source: 'target/out/signal.proto.storage.rs', lines 122:37-122:53
-    Visibility: public -/
-axiom proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.decode
-  {T1 : Type} (coredefaultDefaultIdentityKeyPairStructureInst :
-  core.default.Default proto.storage.IdentityKeyPairStructure)
-  (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T1) :
-  T1 → Result (core.result.Result proto.storage.IdentityKeyPairStructure
-    prost.error.DecodeError)
-
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::encode_to_vec]:
-    Source: 'target/out/signal.proto.storage.rs', lines 172:27-172:43
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 109:37-109:53
     Visibility: public -/
 axiom
-  proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.encode_to_vec
-  : proto.storage.SenderKeyRecordStructure → Result (alloc.vec.Vec Std.U8)
+  proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.SignedPreKeyRecordStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.SignedPreKeyRecordStructure × T0)
 
-/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::decode]:
-    Source: 'target/out/signal.proto.storage.rs', lines 172:27-172:43
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SignedPreKeyRecordStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 109:37-109:53
     Visibility: public -/
-axiom proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.decode
-  {T1 : Type} (coredefaultDefaultSenderKeyRecordStructureInst :
-  core.default.Default proto.storage.SenderKeyRecordStructure)
-  (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T1) :
-  T1 → Result (core.result.Result proto.storage.SenderKeyRecordStructure
-    prost.error.DecodeError)
+axiom
+  proto.storage.SignedPreKeyRecordStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.SignedPreKeyRecordStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 122:37-122:53
+    Visibility: public -/
+axiom proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.clear
+  :
+  proto.storage.IdentityKeyPairStructure → Result
+    proto.storage.IdentityKeyPairStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 122:37-122:53
+    Visibility: public -/
+axiom
+  proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.IdentityKeyPairStructure → Result Std.Usize
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 122:37-122:53
+    Visibility: public -/
+axiom
+  proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.IdentityKeyPairStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.IdentityKeyPairStructure × T0)
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::IdentityKeyPairStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 122:37-122:53
+    Visibility: public -/
+axiom
+  proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.IdentityKeyPairStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 172:27-172:43
+    Visibility: public -/
+axiom proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.clear
+  :
+  proto.storage.SenderKeyRecordStructure → Result
+    proto.storage.SenderKeyRecordStructure
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 172:27-172:43
+    Visibility: public -/
+axiom
+  proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.encoded_len
+  : proto.storage.SenderKeyRecordStructure → Result Std.Usize
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 172:27-172:43
+    Visibility: public -/
+axiom
+  proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.storage.SenderKeyRecordStructure → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.storage.SenderKeyRecordStructure × T0)
+
+/-- [libsignal_protocol::proto::storage::{impl prost::message::Message for libsignal_protocol::proto::storage::SenderKeyRecordStructure}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.storage.rs', lines 172:27-172:43
+    Visibility: public -/
+axiom
+  proto.storage.SenderKeyRecordStructure.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.storage.SenderKeyRecordStructure → T0 → Result T0
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 2:37-2:53
+    Visibility: public -/
+axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.clear
+  : proto.wire.SignalMessage → Result proto.wire.SignalMessage
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 2:37-2:53
+    Visibility: public -/
+axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.wire.SignalMessage → Std.U32 → prost.encoding.wire_type.WireType
+    → T0 → prost.encoding.DecodeContext → Result ((core.result.Result
+    Unit prost.error.DecodeError) × proto.wire.SignalMessage × T0)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 2:37-2:53
+    Visibility: public -/
+axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.wire.SignalMessage → T0 → Result T0
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encoded_len]:
-    Source: 'target/out/signal.proto.wire.rs', lines 2:37-2:53
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 2:37-2:53
     Visibility: public -/
 axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.encoded_len
   : proto.wire.SignalMessage → Result Std.Usize
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SignalMessage}::encode]:
-    Source: 'target/out/signal.proto.wire.rs', lines 2:37-2:53
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 17:37-17:53
     Visibility: public -/
-axiom proto.wire.SignalMessage.Insts.ProstMessageMessage.encode
-  {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
-  proto.wire.SignalMessage → T1 → Result ((core.result.Result Unit
-    prost.error.EncodeError) × T1)
+axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.clear
+  : proto.wire.PreKeySignalMessage → Result proto.wire.PreKeySignalMessage
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 17:37-17:53
+    Visibility: public -/
+axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.wire.PreKeySignalMessage → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.wire.PreKeySignalMessage × T0)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 17:37-17:53
+    Visibility: public -/
+axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.wire.PreKeySignalMessage → T0 → Result T0
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encoded_len]:
-    Source: 'target/out/signal.proto.wire.rs', lines 17:37-17:53
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 17:37-17:53
     Visibility: public -/
 axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.encoded_len
   : proto.wire.PreKeySignalMessage → Result Std.Usize
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::PreKeySignalMessage}::encode]:
-    Source: 'target/out/signal.proto.wire.rs', lines 17:37-17:53
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 37:37-37:53
     Visibility: public -/
-axiom proto.wire.PreKeySignalMessage.Insts.ProstMessageMessage.encode
-  {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
-  proto.wire.PreKeySignalMessage → T1 → Result ((core.result.Result Unit
-    prost.error.EncodeError) × T1)
+axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.clear
+  : proto.wire.SenderKeyMessage → Result proto.wire.SenderKeyMessage
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 37:37-37:53
+    Visibility: public -/
+axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.wire.SenderKeyMessage → Std.U32 → prost.encoding.wire_type.WireType
+    → T0 → prost.encoding.DecodeContext → Result ((core.result.Result
+    Unit prost.error.DecodeError) × proto.wire.SenderKeyMessage × T0)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 37:37-37:53
+    Visibility: public -/
+axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.wire.SenderKeyMessage → T0 → Result T0
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encoded_len]:
-    Source: 'target/out/signal.proto.wire.rs', lines 37:37-37:53
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 37:37-37:53
     Visibility: public -/
 axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.encoded_len
   : proto.wire.SenderKeyMessage → Result Std.Usize
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyMessage}::encode]:
-    Source: 'target/out/signal.proto.wire.rs', lines 37:37-37:53
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 48:37-48:53
     Visibility: public -/
-axiom proto.wire.SenderKeyMessage.Insts.ProstMessageMessage.encode
-  {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
-  proto.wire.SenderKeyMessage → T1 → Result ((core.result.Result Unit
-    prost.error.EncodeError) × T1)
+axiom proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.clear
+  :
+  proto.wire.SenderKeyDistributionMessage → Result
+    proto.wire.SenderKeyDistributionMessage
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 48:37-48:53
+    Visibility: public -/
+axiom
+  proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.wire.SenderKeyDistributionMessage → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.wire.SenderKeyDistributionMessage × T0)
+
+/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 48:37-48:53
+    Visibility: public -/
+axiom
+  proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.wire.SenderKeyDistributionMessage → T0 → Result T0
 
 /-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encoded_len]:
-    Source: 'target/out/signal.proto.wire.rs', lines 48:37-48:53
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signal.proto.wire.rs', lines 48:37-48:53
     Visibility: public -/
 axiom
   proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.encoded_len
   : proto.wire.SenderKeyDistributionMessage → Result Std.Usize
 
-/-- [libsignal_protocol::proto::wire::{impl prost::message::Message for libsignal_protocol::proto::wire::SenderKeyDistributionMessage}::encode]:
-    Source: 'target/out/signal.proto.wire.rs', lines 48:37-48:53
+/-- [libsignal_protocol::proto::service::{impl prost::message::Message for libsignal_protocol::proto::service::DecryptionErrorMessage}::clear]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signalservice.rs', lines 23:37-23:53
     Visibility: public -/
-axiom proto.wire.SenderKeyDistributionMessage.Insts.ProstMessageMessage.encode
-  {T1 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T1) :
-  proto.wire.SenderKeyDistributionMessage → T1 → Result
-    ((core.result.Result Unit prost.error.EncodeError) × T1)
+axiom proto.service.DecryptionErrorMessage.Insts.ProstMessageMessage.clear
+  :
+  proto.service.DecryptionErrorMessage → Result
+    proto.service.DecryptionErrorMessage
 
-/-- [libsignal_protocol::proto::service::{impl prost::message::Message for libsignal_protocol::proto::service::DecryptionErrorMessage}::encode_to_vec]:
-    Source: 'target/out/signalservice.rs', lines 23:37-23:53
+/-- [libsignal_protocol::proto::service::{impl prost::message::Message for libsignal_protocol::proto::service::DecryptionErrorMessage}::encoded_len]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signalservice.rs', lines 23:37-23:53
     Visibility: public -/
 axiom
-  proto.service.DecryptionErrorMessage.Insts.ProstMessageMessage.encode_to_vec
-  : proto.service.DecryptionErrorMessage → Result (alloc.vec.Vec Std.U8)
+  proto.service.DecryptionErrorMessage.Insts.ProstMessageMessage.encoded_len
+  : proto.service.DecryptionErrorMessage → Result Std.Usize
+
+/-- [libsignal_protocol::proto::service::{impl prost::message::Message for libsignal_protocol::proto::service::DecryptionErrorMessage}::merge_field]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signalservice.rs', lines 23:37-23:53
+    Visibility: public -/
+axiom
+  proto.service.DecryptionErrorMessage.Insts.ProstMessageMessage.merge_field
+  {T0 : Type} (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T0) :
+  proto.service.DecryptionErrorMessage → Std.U32 →
+    prost.encoding.wire_type.WireType → T0 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) ×
+    proto.service.DecryptionErrorMessage × T0)
+
+/-- [libsignal_protocol::proto::service::{impl prost::message::Message for libsignal_protocol::proto::service::DecryptionErrorMessage}::encode_raw]:
+    Source: '.aeneas/cargo/0855ce1b8ed3958512b6c19de6bf3035b7acb552/darwin-arm64/aarch64-apple-darwin/debug/build/libsignal-protocol/f13d4e70addacea3/out/signalservice.rs', lines 23:37-23:53
+    Visibility: public -/
+axiom proto.service.DecryptionErrorMessage.Insts.ProstMessageMessage.encode_raw
+  {T0 : Type} (bytesbufbuf_mutBufMutInst : bytes.buf.buf_mut.BufMut T0) :
+  proto.service.DecryptionErrorMessage → T0 → Result T0
 
 /-- [libsignal_protocol::crypto::aes_256_ctr_encrypt]:
     Source: 'rust/protocol/src/crypto.rs', lines 30:0-40:1 -/
@@ -1242,85 +1491,73 @@ axiom crypto.aes_256_ctr_encrypt
   Slice Std.U8 → Slice Std.U8 → Result (core.result.Result (alloc.vec.Vec
     Std.U8) crypto.EncryptionError)
 
+/-- [libsignal_protocol::crypto::hkdf_sha256]:
+    Source: 'rust/protocol/src/crypto.rs', lines 50:0-57:1 -/
+axiom crypto.hkdf_sha256
+  :
+  Option (Slice Std.U8) → Slice Std.U8 → Slice Std.U8 → Slice Std.U8 →
+    Result ((core.result.Result Unit hkdf.errors.InvalidLength) × (Slice
+    Std.U8))
+
 /-- [libsignal_protocol::crypto::hmac_sha256]:
-    Source: 'rust/protocol/src/crypto.rs', lines 48:0-54:1 -/
+    Source: 'rust/protocol/src/crypto.rs', lines 59:0-65:1 -/
 axiom crypto.hmac_sha256
   : Slice Std.U8 → Slice Std.U8 → Result (Array Std.U8 32#usize)
 
+/-- [libsignal_protocol::crypto::hmac_sha256_parts]:
+    Source: 'rust/protocol/src/crypto.rs', lines 69:0-76:1 -/
+axiom crypto.hmac_sha256_parts
+  : Slice Std.U8 → Slice (Slice Std.U8) → Result (Array Std.U8 32#usize)
+
 /-- [libsignal_protocol::crypto::aes256_ctr_hmacsha256_decrypt]:
-    Source: 'rust/protocol/src/crypto.rs', lines 67:0-81:1 -/
+    Source: 'rust/protocol/src/crypto.rs', lines 89:0-103:1 -/
 axiom crypto.aes256_ctr_hmacsha256_decrypt
   :
   Slice Std.U8 → Slice Std.U8 → Slice Std.U8 → Result (core.result.Result
     (alloc.vec.Vec Std.U8) crypto.DecryptionError)
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 71:4-99:5 -/
-axiom double_ratchet.RatchetState.from_pb
-  :
-  proto.storage.SessionStructure → Bool → alloc.vec.Vec
-    proto.storage.session_structure.Chain → Result (core.result.Result
-    double_ratchet.RatchetState state.session.InvalidSessionError)
+/-- [libsignal_protocol::double_ratchet::log_duplicate_message]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 68:0-70:1 -/
+-- Logging has no effect on protocol state or results.
+def double_ratchet.log_duplicate_message
+  (_remote_address_for_logging : Str) (_counter : Std.U32) : Result Unit :=
+  ok ()
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 105:4-117:5 -/
-axiom double_ratchet.RatchetState.apply_to_pb
-  :
-  double_ratchet.RatchetState → proto.storage.SessionStructure → Result
-    proto.storage.SessionStructure
+/-- [libsignal_protocol::double_ratchet::log_future_message_limit]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 72:0-82:1 -/
+-- Logging has no effect on protocol state or results.
+def double_ratchet.log_future_message_limit
+  (_remote_address_for_logging : Str) (_max_forward_jumps : Std.Usize)
+  (_chain_index _counter : Std.U32) : Result Unit :=
+  ok ()
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::SenderChain}::from_pb]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 121:4-139:5 -/
-axiom double_ratchet.SenderChain.from_pb
-  :
-  proto.storage.session_structure.Chain → Result (core.result.Result
-    double_ratchet.SenderChain state.session.InvalidSessionError)
+/-- [libsignal_protocol::double_ratchet::log_jump_ahead]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 84:0-88:1 -/
+-- Logging has no effect on protocol state or results.
+def double_ratchet.log_jump_ahead
+  (_remote_address_for_logging : Str) (_jump : Std.Usize)
+  (_chain_index _counter : Std.U32) : Result Unit :=
+  ok ()
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::ratchet::keys::ChainKey}::from_pb]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 152:4-161:5 -/
-axiom double_ratchet.ChainKey.from_pb
-  :
-  proto.storage.session_structure.chain.ChainKey → Result (core.result.Result
-    ratchet.keys.ChainKey state.session.InvalidSessionError)
+/-- [libsignal_protocol::double_ratchet::log_corrupt_receiver_chain]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 90:0-92:1 -/
+-- Logging has no effect on protocol state or results.
+def double_ratchet.log_corrupt_receiver_chain : Result Unit :=
+  ok ()
 
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 34:4-36:5
+    Source: 'rust/protocol/src/state/session.rs', lines 36:4-38:5
     Visibility: public -/
 axiom error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
   : state.session.InvalidSessionError → Result error.SignalProtocolError
 
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 199:4-218:5 -/
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-221:5 -/
 axiom ratchet.keys.RootKey.create_chain
   :
   ratchet.keys.RootKey → libsignal_core.curve.PublicKey →
     libsignal_core.curve.PrivateKey → Result (core.result.Result
     (ratchet.keys.RootKey × ratchet.keys.ChainKey) error.SignalProtocolError)
-
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 370:4-380:5 -/
-axiom double_ratchet.RatchetState.find_receiver_chain_index
-  :
-  double_ratchet.RatchetState → libsignal_core.curve.PublicKey → Result
-    (Option Std.Usize)
-
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::consume_message_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 203:4-253:5
-    Visibility: public -/
-axiom double_ratchet.RatchetState.consume_message_key
-  :
-  double_ratchet.RatchetState → libsignal_core.curve.PublicKey →
-    ratchet.keys.ChainKey → Std.U32 → protocol.CiphertextMessageType →
-    Str → Result ((core.result.Result ratchet.keys.MessageKeyGenerator
-    error.SignalProtocolError) × double_ratchet.RatchetState)
-
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 322:4-344:5 -/
-axiom double_ratchet.RatchetState.take_skipped_key
-  :
-  double_ratchet.RatchetState → libsignal_core.curve.PublicKey → Std.U32
-    → Result ((core.result.Result (Option ratchet.keys.MessageKeyGenerator)
-    state.session.InvalidSessionError) × double_ratchet.RatchetState)
 
 /-- [libsignal_protocol::fingerprint::get_encoded_string]:
     Source: 'rust/protocol/src/fingerprint.rs', lines 42:0-64:1 -/
@@ -1358,12 +1595,6 @@ axiom fingerprint.Fingerprint.display_string
   fingerprint.Fingerprint → Result (core.result.Result String
     fingerprint.Error)
 
-/-- [libsignal_protocol::identity_key::{impl core::cmp::PartialEq<libsignal_protocol::identity_key::IdentityKey> for libsignal_protocol::identity_key::IdentityKey}::ne]:
-    Source: 'rust/protocol/src/identity_key.rs', lines 23:16-23:25
-    Visibility: public -/
-axiom identity_key.IdentityKey.Insts.CoreCmpPartialEqIdentityKey.ne
-  : identity_key.IdentityKey → identity_key.IdentityKey → Result Bool
-
 /-- [libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::encapsulate]:
     Source: 'rust/protocol/src/kem/kyber1024.rs', lines 31:4-40:5 -/
 axiom
@@ -1380,12 +1611,6 @@ axiom
   kem.KeyMaterial kem.Secret → Slice Std.U8 → Result (core.result.Result
     (Slice Std.U8) kem.DecapsulateError)
 
-/-- [libsignal_protocol::kem::{impl core::cmp::PartialEq<libsignal_protocol::kem::KeyType> for libsignal_protocol::kem::KeyType}::ne]:
-    Source: 'rust/protocol/src/kem.rs', lines 202:38-202:47
-    Visibility: public -/
-axiom kem.KeyType.Insts.CoreCmpPartialEqKeyType.ne
-  : kem.KeyType → kem.KeyType → Result Bool
-
 /-- [libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}::key_length]:
     Source: 'rust/protocol/src/kem.rs', lines 261:4-263:5
     Visibility: public -/
@@ -1399,10 +1624,10 @@ axiom kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length
   : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::KeyPair}::generate]:
-    Source: 'rust/protocol/src/kem.rs', lines 459:4-471:5
+    Source: 'rust/protocol/src/kem.rs', lines 470:4-482:5
     Visibility: public -/
 axiom kem.KeyPair.generate
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) :
   kem.KeyType → R → Result (kem.KeyPair × R)
 
@@ -1411,34 +1636,25 @@ axiom kem.KeyPair.generate
 axiom pqxdh.HandshakeKeys.derive : Slice Std.U8 → Result pqxdh.HandshakeKeys
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive_with_label]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 80:4-92:5 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 80:4-90:5 -/
 axiom pqxdh.HandshakeKeys.derive_with_label
   : Slice Std.U8 → Slice Std.U8 → Result pqxdh.HandshakeKeys
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_one_time_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 173:4-175:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 171:4-173:5
     Visibility: public -/
 axiom pqxdh.InitiatorParameters.impl.their_one_time_pre_key
   :
   pqxdh.InitiatorParameters → Result (Option libsignal_core.curve.PublicKey)
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_one_time_pre_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 295:4-297:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 297:4-299:5
     Visibility: public -/
 axiom pqxdh.RecipientParameters.impl.our_one_time_pre_key_pair
   : pqxdh.RecipientParameters → Result (Option libsignal_core.curve.KeyPair)
 
-/-- [libsignal_protocol::protocol::{impl core::cmp::PartialEq<libsignal_protocol::protocol::CiphertextMessageType> for libsignal_protocol::protocol::CiphertextMessageType}::ne]:
-    Source: 'rust/protocol/src/protocol.rs', lines 32:26-32:35
-    Visibility: public -/
-axiom
-  protocol.CiphertextMessageType.Insts.CoreCmpPartialEqCiphertextMessageType.ne
-  :
-  protocol.CiphertextMessageType → protocol.CiphertextMessageType → Result
-    Bool
-
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<u8, derive_more::convert::try_from::TryFromReprError<u8>> for libsignal_protocol::protocol::CiphertextMessageType}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 32:44-32:64
+    Source: 'rust/protocol/src/protocol.rs', lines 30:44-30:64
     Visibility: public -/
 axiom
   protocol.CiphertextMessageType.Insts.CoreConvertTryFromU8TryFromReprErrorU8.try_from
@@ -1446,34 +1662,24 @@ axiom
   Std.U8 → Result (core.result.Result protocol.CiphertextMessageType
     (derive_more.convert.try_from.TryFromReprError Std.U8))
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::compute_mac]:
-    Source: 'rust/protocol/src/protocol.rs', lines 225:4-246:5 -/
-axiom protocol.SignalMessage.compute_mac
-  :
-  identity_key.IdentityKey → identity_key.IdentityKey → Slice Std.U8 →
-    Slice Std.U8 → Result (core.result.Result (Array Std.U8 8#usize)
-    error.SignalProtocolError)
+/-- [libsignal_protocol::protocol::log_invalid_local_addresses]:
+    Source: 'rust/protocol/src/protocol.rs', lines 62:0-71:1 -/
+-- Logging has no effect on protocol state or results.
+def protocol.log_invalid_local_addresses
+  (_sender_address _recipient_address : libsignal_core.address.ProtocolAddress) :
+  Result Unit :=
+  ok ()
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::verify_mac]:
-    Source: 'rust/protocol/src/protocol.rs', lines 160:4-184:5 -/
-axiom protocol.SignalMessage.verify_mac
-  :
-  protocol.SignalMessage → identity_key.IdentityKey →
-    identity_key.IdentityKey → Slice Std.U8 → Result (core.result.Result
-    Bool error.SignalProtocolError)
-
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::verify_mac_with_addresses]:
-    Source: 'rust/protocol/src/protocol.rs', lines 186:4-223:5
-    Visibility: public -/
-axiom protocol.SignalMessage.verify_mac_with_addresses
-  :
-  protocol.SignalMessage → libsignal_core.address.ProtocolAddress →
-    libsignal_core.address.ProtocolAddress → identity_key.IdentityKey →
-    identity_key.IdentityKey → Slice Std.U8 → Result (core.result.Result
-    Bool error.SignalProtocolError)
+/-- [libsignal_protocol::protocol::log_address_mismatch]:
+    Source: 'rust/protocol/src/protocol.rs', lines 73:0-79:1 -/
+-- Logging has no effect on protocol state or results.
+def protocol.log_address_mismatch
+  (_sender_address _recipient_address : libsignal_core.address.ProtocolAddress) :
+  Result Unit :=
+  ok ()
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SignalMessage}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 275:4-318:5
+    Source: 'rust/protocol/src/protocol.rs', lines 272:4-315:5
     Visibility: public -/
 axiom
   protocol.SignalMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1482,13 +1688,13 @@ axiom
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_ciphertext]:
-    Source: 'rust/protocol/src/protocol.rs', lines 418:4-420:5
+    Source: 'rust/protocol/src/protocol.rs', lines 415:4-417:5
     Visibility: public -/
 axiom protocol.PreKeySignalMessage.kyber_ciphertext
   : protocol.PreKeySignalMessage → Result (Option (Slice Std.U8))
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PreKeySignalMessage}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 452:4-518:5
+    Source: 'rust/protocol/src/protocol.rs', lines 449:4-516:5
     Visibility: public -/
 axiom
   protocol.PreKeySignalMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1497,7 +1703,7 @@ axiom
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::verify_signature]:
-    Source: 'rust/protocol/src/protocol.rs', lines 567:4-575:5
+    Source: 'rust/protocol/src/protocol.rs', lines 565:4-573:5
     Visibility: public -/
 axiom protocol.SenderKeyMessage.verify_signature
   :
@@ -1505,7 +1711,7 @@ axiom protocol.SenderKeyMessage.verify_signature
     (core.result.Result Bool error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyMessage}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 617:4-659:5
+    Source: 'rust/protocol/src/protocol.rs', lines 615:4-657:5
     Visibility: public -/
 axiom
   protocol.SenderKeyMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1514,7 +1720,7 @@ axiom
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyDistributionMessage}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 751:4-805:5
+    Source: 'rust/protocol/src/protocol.rs', lines 749:4-803:5
     Visibility: public -/
 axiom
   protocol.SenderKeyDistributionMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1523,14 +1729,14 @@ axiom
     protocol.SenderKeyDistributionMessage error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{impl core::convert::From<libsignal_protocol::protocol::DecryptionErrorMessage> for libsignal_protocol::protocol::PlaintextContent}::from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 838:4-851:5
+    Source: 'rust/protocol/src/protocol.rs', lines 836:4-849:5
     Visibility: public -/
 axiom
   protocol.PlaintextContent.Insts.CoreConvertFromDecryptionErrorMessage.from
   : protocol.DecryptionErrorMessage → Result protocol.PlaintextContent
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PlaintextContent}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 857:4-869:5
+    Source: 'rust/protocol/src/protocol.rs', lines 855:4-867:5
     Visibility: public -/
 axiom
   protocol.PlaintextContent.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1539,7 +1745,7 @@ axiom
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::DecryptionErrorMessage}::try_from]:
-    Source: 'rust/protocol/src/protocol.rs', lines 943:4-961:5
+    Source: 'rust/protocol/src/protocol.rs', lines 941:4-959:5
     Visibility: public -/
 axiom
   protocol.DecryptionErrorMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError.try_from
@@ -1548,7 +1754,7 @@ axiom
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content]:
-    Source: 'rust/protocol/src/protocol.rs', lines 965:0-982:1
+    Source: 'rust/protocol/src/protocol.rs', lines 963:0-980:1
     Visibility: public -/
 axiom protocol.extract_decryption_error_message_from_serialized_content
   :
@@ -1556,7 +1762,7 @@ axiom protocol.extract_decryption_error_message_from_serialized_content
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::MessageKeys}::derive_keys]:
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 100:4-118:5 -/
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 100:4-122:5 -/
 axiom ratchet.keys.MessageKeys.derive_keys
   :
   Slice Std.U8 → Option (Slice Std.U8) → Std.U32 → Result
@@ -1569,30 +1775,43 @@ axiom ratchet.keys.MessageKeyGenerator.from_pb
   proto.storage.session_structure.chain.MessageKey → Result
     (core.result.Result ratchet.keys.MessageKeyGenerator Str)
 
+/-- [libsignal_protocol::double_ratchet::skipped_key_from_pb]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 97:0-103:1 -/
+-- Transcribes `MessageKeyGenerator::from_pb(key_pb).map(Some)
+-- .map_err(InvalidSessionError)`; `InvalidSessionError` translates to `Str`.
+noncomputable def double_ratchet.skipped_key_from_pb
+  (key_pb : proto.storage.session_structure.chain.MessageKey) :
+  Result (core.result.Result (Option ratchet.keys.MessageKeyGenerator)
+    state.session.InvalidSessionError) := do
+  let r ← ratchet.keys.MessageKeyGenerator.from_pb key_pb
+  ok (match r with
+    | .Ok key => .Ok (some key)
+    | .Err message => .Err message)
+
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::ChainKey}::calculate_base_material]:
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 179:4-182:5 -/
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 183:4-186:5 -/
 axiom ratchet.keys.ChainKey.calculate_base_material
   :
   ratchet.keys.ChainKey → Array Std.U8 1#usize → Result (Array Std.U8
     32#usize)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::add_receiver_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 368:4-392:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 370:4-394:5 -/
 axiom state.session.SessionState.add_receiver_chain
   :
   state.session.SessionState → libsignal_core.curve.PublicKey →
-    ratchet.keys.ChainKey → Result _root_.libsignal_protocol.state.session.SessionState
+    ratchet.keys.ChainKey → Result state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 172:4-197:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 174:4-199:5 -/
 axiom state.session.SessionState.new
   :
   Std.U8 → identity_key.IdentityKey → identity_key.IdentityKey →
     ratchet.keys.RootKey → libsignal_core.curve.PublicKey → alloc.vec.Vec
-    Std.U8 → Result _root_.libsignal_protocol.state.session.SessionState
+    Std.U8 → Result state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 744:4-749:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 746:4-751:5 -/
 axiom state.session.SessionRecord.new
   : state.session.SessionState → Result state.session.SessionRecord
 
@@ -1675,9 +1894,9 @@ axiom sender_keys.SenderKeyRecord.remove_states_with_chain_id
     sender_keys.SenderKeyRecord)
 
 /-- [libsignal_protocol::session_management::try_decrypt_from_record]:
-    Source: 'rust/protocol/src/session_management.rs', lines 369:0-557:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 379:0-567:1 -/
 axiom session_management.try_decrypt_from_record
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) :
   state.session.SessionRecord → libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
@@ -1686,9 +1905,9 @@ axiom session_management.try_decrypt_from_record
     state.session.SessionRecord × R)
 
 /-- [libsignal_protocol::session_management::try_decrypt_with_state]:
-    Source: 'rust/protocol/src/session_management.rs', lines 567:0-607:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 577:0-617:1 -/
 axiom session_management.try_decrypt_with_state
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) :
   state.session.SessionState → libsignal_core.address.ProtocolAddress →
     libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
@@ -1697,7 +1916,7 @@ axiom session_management.try_decrypt_with_state
     error.SignalProtocolError) × state.session.SessionState × R)
 
 /-- [libsignal_protocol::session_management::format_decryption_failure_log]:
-    Source: 'rust/protocol/src/session_management.rs', lines 611:0-699:1 -/
+    Source: 'rust/protocol/src/session_management.rs', lines 621:0-709:1 -/
 axiom session_management.format_decryption_failure_log
   :
   libsignal_core.address.ProtocolAddress → Slice error.SignalProtocolError
@@ -1705,7 +1924,7 @@ axiom session_management.format_decryption_failure_log
     (core.result.Result String error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::bundle::{libsignal_protocol::state::bundle::PreKeyBundle}::modify]:
-    Source: 'rust/protocol/src/state/bundle.rs', lines 223:4-230:5
+    Source: 'rust/protocol/src/state/bundle.rs', lines 221:4-228:5
     Visibility: public -/
 axiom state.bundle.PreKeyBundle.modify
   {F : Type} (coreopsfunctionFnOnceFTupleMutPreKeyBundleContentTupleInst :
@@ -1713,31 +1932,32 @@ axiom state.bundle.PreKeyBundle.modify
   state.bundle.PreKeyBundle → F → Result (core.result.Result
     state.bundle.PreKeyBundle error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::kyber_prekey::{impl core::cmp::PartialEq<libsignal_protocol::state::kyber_prekey::KyberPreKeyId> for libsignal_protocol::state::kyber_prekey::KyberPreKeyId}::ne]:
-    Source: 'rust/protocol/src/state/kyber_prekey.rs', lines 16:34-16:43
+/-- [libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize]:
+    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 80:4-88:5
     Visibility: public -/
-axiom state.kyber_prekey.KyberPreKeyId.Insts.CoreCmpPartialEqKyberPreKeyId.ne
-  :
-  state.kyber_prekey.KyberPreKeyId → state.kyber_prekey.KyberPreKeyId →
-    Result Bool
+-- Opaque default indexed by the types instead of the instance. Rust coherence
+-- allows at most one impl of a trait per type, so this is as general as one
+-- external per impl, and `impl_def` can close the instance.
+axiom state.signed_prekey.GenericSignedPreKey.deserialize.external
+  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
+  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type} :
+  Slice Std.U8 → Result (core.result.Result Self error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::kyber_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_protocol::kem::KeyPair, libsignal_protocol::state::kyber_prekey::KyberPreKeyId, libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>, libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>> for libsignal_protocol::state::kyber_prekey::KyberPreKeyRecord}::deserialize]:
-    Source: 'rust/protocol/src/state/kyber_prekey.rs', lines 31:0-44:1
-    Visibility: public -/
-axiom
-  state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result
-    state.kyber_prekey.KyberPreKeyRecord error.SignalProtocolError)
-
-/-- [libsignal_protocol::state::prekey::{impl core::cmp::PartialEq<libsignal_protocol::state::prekey::PreKeyId> for libsignal_protocol::state::prekey::PreKeyId}::ne]:
-    Source: 'rust/protocol/src/state/prekey.rs', lines 15:34-15:43
-    Visibility: public -/
-axiom state.prekey.PreKeyId.Insts.CoreCmpPartialEqPreKeyId.ne
-  : state.prekey.PreKeyId → state.prekey.PreKeyId → Result Bool
+@[trait_default]
+noncomputable def state.signed_prekey.GenericSignedPreKey.deserialize.default
+  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
+  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
+  Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
+  Clause0_Clause0_PrivateKey) :
+  Slice Std.U8 → Result (core.result.Result Self error.SignalProtocolError) :=
+  state.signed_prekey.GenericSignedPreKey.deserialize.external
+    (Clause0_KeyPair := Clause0_KeyPair) (Clause0_Id := Clause0_Id)
+    (Clause0_Clause0_PublicKey := Clause0_Clause0_PublicKey)
+    (Clause0_Clause0_PrivateKey := Clause0_Clause0_PrivateKey)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 53:4-71:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 55:4-73:5 -/
 axiom state.session.UnacknowledgedPreKeyMessageItems.new
   :
   Option state.prekey.PreKeyId → state.signed_prekey.SignedPreKeyId →
@@ -1745,71 +1965,62 @@ axiom state.session.UnacknowledgedPreKeyMessageItems.new
     proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
     → Result state.session.UnacknowledgedPreKeyMessageItems
 
-/-- [libsignal_protocol::state::session::{impl core::cmp::PartialEq<libsignal_protocol::state::session::SessionUsabilityRequirements> for libsignal_protocol::state::session::SessionUsabilityRequirements}::ne]:
-    Source: 'rust/protocol/src/state/session.rs', lines 143:22-143:31
-    Visibility: public -/
-axiom
-  state.session.SessionUsabilityRequirements.Insts.CoreCmpPartialEqSessionUsabilityRequirements.ne
-  :
-  state.session.SessionUsabilityRequirements →
-    state.session.SessionUsabilityRequirements → Result Bool
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 199:4-202:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 201:4-204:5 -/
 axiom state.session.SessionState.alice_base_key
   : state.session.SessionState → Result (Slice Std.U8)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 204:4-209:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 206:4-211:5 -/
 axiom state.session.SessionState.session_version
   :
   state.session.SessionState → Result (core.result.Result Std.U32
     state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 211:4-219:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 213:4-221:5 -/
 axiom state.session.SessionState.remote_identity_key
   :
   state.session.SessionState → Result (core.result.Result (Option
     identity_key.IdentityKey) state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 221:4-223:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 223:4-225:5 -/
 axiom state.session.SessionState.remote_identity_key_bytes
   :
   state.session.SessionState → Result (core.result.Result (Option
     (alloc.vec.Vec Std.U8)) state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::local_identity_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 225:4-228:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 227:4-230:5 -/
 axiom state.session.SessionState.local_identity_key
   :
   state.session.SessionState → Result (core.result.Result
     identity_key.IdentityKey state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::local_identity_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 230:4-232:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 232:4-234:5 -/
 axiom state.session.SessionState.local_identity_key_bytes
   :
   state.session.SessionState → Result (core.result.Result (alloc.vec.Vec
     Std.U8) state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::sender_ratchet_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 268:4-274:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 270:4-276:5 -/
 axiom state.session.SessionState.sender_ratchet_key
   :
   state.session.SessionState → Result (core.result.Result
     libsignal_core.curve.PublicKey state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::sender_ratchet_private_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 280:4-286:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 282:4-288:5 -/
 axiom state.session.SessionState.sender_ratchet_private_key
   :
   state.session.SessionState → Result (core.result.Result
     libsignal_core.curve.PrivateKey state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::has_usable_sender_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 288:4-318:5
+    Source: 'rust/protocol/src/state/session.rs', lines 290:4-320:5
     Visibility: public -/
 axiom state.session.SessionState.has_usable_sender_chain
   :
@@ -1818,7 +2029,7 @@ axiom state.session.SessionState.has_usable_sender_chain
     Bool state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::get_receiver_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 332:4-348:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 334:4-350:5 -/
 axiom state.session.SessionState.get_receiver_chain
   :
   state.session.SessionState → libsignal_core.curve.PublicKey → Result
@@ -1826,7 +2037,7 @@ axiom state.session.SessionState.get_receiver_chain
     Std.Usize)) state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::get_receiver_chain_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 350:4-366:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 352:4-368:5 -/
 axiom state.session.SessionState.get_receiver_chain_key
   :
   state.session.SessionState → libsignal_core.curve.PublicKey → Result
@@ -1834,21 +2045,21 @@ axiom state.session.SessionState.get_receiver_chain_key
     state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::get_sender_chain_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 420:4-437:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 422:4-439:5 -/
 axiom state.session.SessionState.get_sender_chain_key
   :
   state.session.SessionState → Result (core.result.Result
     ratchet.keys.ChainKey state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::get_sender_chain_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 439:4-441:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 441:4-443:5 -/
 axiom state.session.SessionState.get_sender_chain_key_bytes
   :
   state.session.SessionState → Result (core.result.Result (alloc.vec.Vec
     Std.U8) state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::unacknowledged_pre_key_message_items]:
-    Source: 'rust/protocol/src/state/session.rs', lines 575:4-590:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 577:4-592:5 -/
 axiom state.session.SessionState.unacknowledged_pre_key_message_items
   :
   state.session.SessionState → Result (core.result.Result (Option
@@ -1856,41 +2067,41 @@ axiom state.session.SessionState.unacknowledged_pre_key_message_items
     state.session.InvalidSessionError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 621:4-623:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 623:4-625:5 -/
 axiom state.session.SessionState.remote_registration_id
   : state.session.SessionState → Result Std.U32
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::local_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 629:4-631:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 631:4-633:5 -/
 axiom state.session.SessionState.local_registration_id
   : state.session.SessionState → Result Std.U32
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::get_kyber_ciphertext]:
-    Source: 'rust/protocol/src/state/session.rs', lines 633:4-638:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 635:4-640:5 -/
 axiom state.session.SessionState.get_kyber_ciphertext
   : state.session.SessionState → Result (Option (alloc.vec.Vec Std.U8))
 
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 713:4-715:5
+    Source: 'rust/protocol/src/state/session.rs', lines 715:4-717:5
     Visibility: public -/
 axiom state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
-  : proto.storage.SessionStructure → Result _root_.libsignal_protocol.state.session.SessionState
+  : proto.storage.SessionStructure → Result state.session.SessionState
 
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 719:4-721:5
+    Source: 'rust/protocol/src/state/session.rs', lines 721:4-723:5
     Visibility: public -/
 axiom proto.storage.SessionStructure.Insts.CoreConvertFromSessionState.from
   : state.session.SessionState → Result proto.storage.SessionStructure
 
 /-- [libsignal_protocol::state::session::{impl core::convert::From<&'_0 libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 725:4-727:5
+    Source: 'rust/protocol/src/state/session.rs', lines 727:4-729:5
     Visibility: public -/
 axiom
   proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState.from
   : state.session.SessionState → Result proto.storage.SessionStructure
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::deserialize]:
-    Source: 'rust/protocol/src/state/session.rs', lines 751:4-759:5
+    Source: 'rust/protocol/src/state/session.rs', lines 753:4-761:5
     Visibility: public -/
 axiom state.session.SessionRecord.deserialize
   :
@@ -1898,34 +2109,15 @@ axiom state.session.SessionRecord.deserialize
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states]:
-    Source: 'rust/protocol/src/state/session.rs', lines 813:4-821:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 815:4-823:5 -/
 axiom state.session.SessionRecord.previous_session_states
   :
   state.session.SessionRecord → Result (core.iter.adapters.map.Map
     (core.slice.iter.Iter (alloc.vec.Vec Std.U8))
     state.session.SessionRecord.previous_session_states.closure)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnOnce<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}::call_once]:
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
-axiom
-  state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnOnceTupleSharedVecU8ResultSessionStateInvalidSessionError.call_once
-  :
-  state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
-    Std.U8 → Result (core.result.Result _root_.libsignal_protocol.state.session.SessionState
-    state.session.InvalidSessionError)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{impl core::ops::function::FnMut<(&'_ alloc::vec::Vec<u8>,), core::result::Result<libsignal_protocol::state::session::SessionState, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure}::call_mut]:
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
-axiom
-  state.session.SessionRecord.previous_session_states.closure.Insts.CoreOpsFunctionFnMutTupleSharedVecU8ResultSessionStateInvalidSessionError.call_mut
-  :
-  state.session.SessionRecord.previous_session_states.closure → alloc.vec.Vec
-    Std.U8 → Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
-    state.session.InvalidSessionError) ×
-    state.session.SessionRecord.previous_session_states.closure)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::archive_current_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 854:4-859:5
+    Source: 'rust/protocol/src/state/session.rs', lines 856:4-861:5
     Visibility: public -/
 axiom state.session.SessionRecord.archive_current_state
   :
@@ -1933,13 +2125,13 @@ axiom state.session.SessionRecord.archive_current_state
     error.SignalProtocolError) × state.session.SessionRecord)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::current_pq_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 869:4-871:5
+    Source: 'rust/protocol/src/state/session.rs', lines 871:4-873:5
     Visibility: public -/
 axiom state.session.SessionRecord.current_pq_state
   : state.session.SessionRecord → Result (Option (alloc.vec.Vec Std.U8))
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::remote_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 873:4-883:5
+    Source: 'rust/protocol/src/state/session.rs', lines 875:4-884:5
     Visibility: public -/
 axiom state.session.SessionRecord.remote_registration_id
   :
@@ -1947,7 +2139,7 @@ axiom state.session.SessionRecord.remote_registration_id
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::local_registration_id]:
-    Source: 'rust/protocol/src/state/session.rs', lines 885:4-895:5
+    Source: 'rust/protocol/src/state/session.rs', lines 886:4-895:5
     Visibility: public -/
 axiom state.session.SessionRecord.local_registration_id
   :
@@ -1955,7 +2147,7 @@ axiom state.session.SessionRecord.local_registration_id
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 897:4-904:5
+    Source: 'rust/protocol/src/state/session.rs', lines 897:4-906:5
     Visibility: public -/
 axiom state.session.SessionRecord.session_version
   :
@@ -1963,7 +2155,7 @@ axiom state.session.SessionRecord.session_version
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::local_identity_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 906:4-916:5
+    Source: 'rust/protocol/src/state/session.rs', lines 908:4-917:5
     Visibility: public -/
 axiom state.session.SessionRecord.local_identity_key_bytes
   :
@@ -1971,7 +2163,7 @@ axiom state.session.SessionRecord.local_identity_key_bytes
     Std.U8) error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::remote_identity_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 918:4-928:5
+    Source: 'rust/protocol/src/state/session.rs', lines 919:4-928:5
     Visibility: public -/
 axiom state.session.SessionRecord.remote_identity_key_bytes
   :
@@ -1988,7 +2180,7 @@ axiom state.session.SessionRecord.has_usable_sender_chain
     Bool error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 941:4-948:5
+    Source: 'rust/protocol/src/state/session.rs', lines 941:4-950:5
     Visibility: public -/
 axiom state.session.SessionRecord.alice_base_key
   :
@@ -1996,7 +2188,7 @@ axiom state.session.SessionRecord.alice_base_key
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::get_receiver_chain_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 950:4-964:5
+    Source: 'rust/protocol/src/state/session.rs', lines 952:4-965:5
     Visibility: public -/
 axiom state.session.SessionRecord.get_receiver_chain_key_bytes
   :
@@ -2004,7 +2196,7 @@ axiom state.session.SessionRecord.get_receiver_chain_key_bytes
     (core.result.Result (Option (Slice Std.U8)) error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::get_sender_chain_key_bytes]:
-    Source: 'rust/protocol/src/state/session.rs', lines 966:4-976:5
+    Source: 'rust/protocol/src/state/session.rs', lines 967:4-976:5
     Visibility: public -/
 axiom state.session.SessionRecord.get_sender_chain_key_bytes
   :
@@ -2012,82 +2204,48 @@ axiom state.session.SessionRecord.get_sender_chain_key_bytes
     Std.U8) error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::get_kyber_ciphertext]:
-    Source: 'rust/protocol/src/state/session.rs', lines 988:4-998:5
+    Source: 'rust/protocol/src/state/session.rs', lines 988:4-997:5
     Visibility: public -/
 axiom state.session.SessionRecord.get_kyber_ciphertext
   :
   state.session.SessionRecord → Result (core.result.Result (Option
     (alloc.vec.Vec Std.U8)) error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::signed_prekey::{impl core::cmp::PartialEq<libsignal_protocol::state::signed_prekey::SignedPreKeyId> for libsignal_protocol::state::signed_prekey::SignedPreKeyId}::ne]:
-    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 16:34-16:43
-    Visibility: public -/
-axiom
-  state.signed_prekey.SignedPreKeyId.Insts.CoreCmpPartialEqSignedPreKeyId.ne
-  :
-  state.signed_prekey.SignedPreKeyId → state.signed_prekey.SignedPreKeyId →
-    Result Bool
 
-/-- [libsignal_protocol::state::signed_prekey::{impl libsignal_protocol::state::signed_prekey::GenericSignedPreKey<libsignal_core::curve::KeyPair, libsignal_protocol::state::signed_prekey::SignedPreKeyId, libsignal_core::curve::PublicKey, libsignal_core::curve::PrivateKey> for libsignal_protocol::state::signed_prekey::SignedPreKeyRecord}::deserialize]:
-    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 37:0-50:1
-    Visibility: public -/
-axiom
-  state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result
-    state.signed_prekey.SignedPreKeyRecord error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize]:
-    Source: 'rust/protocol/src/state/signed_prekey.rs', lines 80:4-88:5
-    Visibility: public -/
-axiom state.signed_prekey.GenericSignedPreKey.deserialize.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
-  (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
-  Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
-  Clause0_Clause0_PrivateKey) :
-  Slice Std.U8 → Result (core.result.Result Self error.SignalProtocolError)
+/-- [libsignal_protocol::triple_ratchet::log_sender_chain_corrupt]:
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 37:0-39:1 -/
+-- Logging has no effect on protocol state or results.
+def triple_ratchet.log_sender_chain_corrupt
+  (_remote_address : libsignal_core.address.ProtocolAddress) : Result Unit :=
+  ok ()
 
-/-- [libsignal_protocol::timestamp::{impl core::cmp::PartialEq<libsignal_protocol::timestamp::Timestamp> for libsignal_protocol::timestamp::Timestamp}::ne]:
-    Source: 'rust/protocol/src/timestamp.rs', lines 11:33-11:42
-    Visibility: public -/
-axiom timestamp.Timestamp.Insts.CoreCmpPartialEqTimestamp.ne
-  : timestamp.Timestamp → timestamp.Timestamp → Result Bool
+/-- [libsignal_protocol::triple_ratchet::is_bad_key_or_iv]:
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 63:0-65:1 -/
+-- Transcribes `matches!(error, DecryptionError::BadKeyOrIv)`.
+def triple_ratchet.is_bad_key_or_iv
+  (error : signal_crypto.aes_cbc.DecryptionError) : Result Bool :=
+  ok (match error with
+    | .BadKeyOrIv => true
+    | _ => false)
 
-/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::from_session_state]:
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 52:4-79:5 -/
-axiom triple_ratchet.OutgoingTripleRatchet.from_session_state
-  :
-  state.session.SessionState → Result ((core.result.Result
-    triple_ratchet.OutgoingTripleRatchet error.SignalProtocolError) ×
-    state.session.SessionState)
+/-- [libsignal_protocol::triple_ratchet::decrypt_failure_message]:
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 68:0-75:1 -/
+axiom triple_ratchet.decrypt_failure_message
+  : signal_crypto.aes_cbc.DecryptionError → Result String
 
-/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt]:
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 86:4-135:5 -/
-axiom triple_ratchet.OutgoingTripleRatchet.encrypt
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) :
-  triple_ratchet.OutgoingTripleRatchet → Slice Std.U8 → Option
-    libsignal_core.address.ProtocolAddress →
-    libsignal_core.address.ProtocolAddress → R → Result
-    ((core.result.Result protocol.SignalMessage error.SignalProtocolError) ×
-    triple_ratchet.OutgoingTripleRatchet × R)
+/-- [libsignal_protocol::triple_ratchet::is_state_decode]:
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 79:0-81:1 -/
+-- Transcribes `matches!(error, spqr::Error::StateDecode)`.
+def triple_ratchet.is_state_decode (error : spqr.Error) : Result Bool :=
+  ok (match error with
+    | .StateDecode => true
+    | _ => false)
 
-/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::from_session_state]:
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 176:4-193:5 -/
-axiom triple_ratchet.TripleRatchet.from_session_state
-  :
-  state.session.SessionState → Bool → Result ((core.result.Result
-    triple_ratchet.TripleRatchet error.SignalProtocolError) ×
-    state.session.SessionState)
-
-/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::decrypt]:
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 215:4-302:5 -/
-axiom triple_ratchet.TripleRatchet.decrypt
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) :
-  triple_ratchet.TripleRatchet → libsignal_core.address.ProtocolAddress →
-    libsignal_core.address.ProtocolAddress → protocol.SignalMessage →
-    protocol.CiphertextMessageType → session_management.CurrentOrPrevious →
-    R → Result ((core.result.Result (alloc.vec.Vec Std.U8)
-    error.SignalProtocolError) × triple_ratchet.TripleRatchet × R)
+/-- [libsignal_protocol::triple_ratchet::log_receiver_chain_corrupt]:
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 41:0-46:1 -/
+-- Logging has no effect on protocol state or results.
+def triple_ratchet.log_receiver_chain_corrupt
+  (_current_or_previous : session_management.CurrentOrPrevious)
+  (_sender_address : libsignal_core.address.ProtocolAddress) : Result Unit :=
+  ok ()

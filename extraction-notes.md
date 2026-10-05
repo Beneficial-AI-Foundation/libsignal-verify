@@ -204,6 +204,41 @@ Contains:
 
 The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
 
+## Lean model choices
+
+`Protocol/TypesExternal.lean` and `Protocol/FunsExternal.lean` start from the Aeneas templates. A declaration that an imported Shared/Core/Crypto module already provides is dropped and replaced by a `(dropped axiom …)` line. The remaining choices are:
+
+| Declaration | Model | Reason |
+| --- | --- | --- |
+| `prost::Message::{encode, encode_to_vec, decode}` defaults; `GenericSignedPreKey::deserialize` default | `@[trait_default]` definition that calls an external indexed by the types (`….external`) | `impl_def` must unfold a default to close a trait instance; an axiom taking the instance itself cannot be unfolded. Rust coherence allows one impl per type, so indexing by types loses nothing compared with one external per impl. These bodies were already opaque on `main`. |
+| `rand_core::TryRngCore::unwrap_err` default | `fun self => ok self` | rand_core 0.9.5 returns `UnwrapErr(self)`, and Aeneas models `UnwrapErr<R>` as `R` |
+| `FnOnce::call_once` for `Into::into` used as a function value | `fun f x => f x` | The template prints the type without parentheses; calling a function item applies it |
+| `core::num::error::TryFromIntError` (`Shared/Core.lean`) | Alias of the backend's `Aeneas.Std.core.num.error.TryFromIntError` | The backend now defines it, so a separate opaque type made the two incompatible |
+| `u8::try_from(u32)` | `core.num.tryFromUScalar .U8` from the backend | The backend's checked conversion is the same operation |
+| `signal_crypto::aes_cbc::{aes_256_cbc_encrypt, aes_256_cbc_decrypt}` and their error types | Reuse the crypto-cbc profile's externals and types | Protocol and Crypto share one AES-CBC model. Exact-match tweaks remove Protocol's duplicate error types and fail if their generated shape changes. |
+| `spqr::{initial_state, send, recv}` | Externals | The SPQR v1.6.0 interface libsignal consumes; SPQR itself is extracted and verified in SPQR-verify |
+| `triple_ratchet::{is_state_decode, is_bad_key_or_iv}` | `ok (match error with \| .StateDecode => true \| _ => false)` and the same for `BadKeyOrIv` | Exact transcription of the `matches!` bodies; the Lean inductive has no borrow problem |
+| The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol` | `ok ()` | Logging affects neither protocol state nor results |
+| `double_ratchet::skipped_key_from_pb` | `MessageKeyGenerator::from_pb` followed by the same `map` and `map_err` | Transcription; `InvalidSessionError` translates to `Str` |
+| `Iterator::position` for slice iterators | Transcription of the loop in core's `slice/iter/macros.rs`: apply the predicate in order, stop at the first `true`, consume that element | It was an axiom, so nothing fixed which receiver chain or skipped key `find_receiver_chain_index` and `take_skipped_key` select |
+| `subtle::Choice` | Structure with one `U8` field | Rust defines `struct Choice(u8)`, holding 0 or 1 |
+| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
+| `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
+| `triple_ratchet::decrypt_failure_message` | External | String formatting, as for `format!` elsewhere |
+
+`OutgoingTripleRatchet::{from_session_state, encrypt}` and `TripleRatchet::{from_session_state, decrypt}` are transparent. Their Lean bodies contain the SPQR calls, the mixing of chain and SPQR keys, MAC verification, AES-CBC, error classification, and the order in which ratchet and SPQR state is committed. `SignalMessage::{compute_mac, verify_mac, verify_mac_with_addresses}` are transparent as well, so the MAC is computed and compared in translated code; HMAC-SHA256 (`hmac_sha256_parts`) is the remaining external. `RatchetState::{consume_message_key, take_skipped_key, find_receiver_chain_index}`, which `decrypt` calls, are transparent; `MessageKeyGenerator::from_pb` stays external.
+
+## Known model defects
+
+### `Vec::insert` at the end of a vector
+
+The pinned Aeneas library models `Vec::insert(i, x)` as failing with `arrayOutOfBounds` when `i = len`; Rust appends in that case and panics only when `i > len` ([aeneas#1288](https://github.com/AeneasVerif/aeneas/issues/1288), still open after the partial fix in #1302). Two translated functions insert at index 0, so their Lean models fail on an empty vector where Rust succeeds:
+
+- `RatchetState::store_skipped_key`, for the first skipped message key of a receiver chain;
+- `SessionRecord::archive_current_state_inner`, when the record has no previous sessions.
+
+Proofs about these paths need the corrected model. In-order delivery does not call `store_skipped_key`.
+
 ## Known warnings
 
 ### `inout::inout::InOut` — region parameter warning

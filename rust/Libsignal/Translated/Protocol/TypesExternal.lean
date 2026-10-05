@@ -1,23 +1,21 @@
 -- [libsignal_protocol]: external types.
 import Aeneas
 import Libsignal.Translated.Shared
-import Libsignal.Translated.Core.Funs
+import Libsignal.Translated.Core.CurveProvider
 import Libsignal.Translated.Crypto.Funs
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
 set_option linter.unusedVariables false
-set_option linter.style.longLine false
-set_option linter.style.setOption false
 set_option linter.style.whitespace false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
 
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
-
--- (dropped axiom core.num.error.TryFromIntError; provided by an imported sibling lib)
 
 /-- [core::time::Duration]
     Source: '/rustc/library/core/src/time.rs', lines 81:0-81:19
@@ -34,28 +32,28 @@ axiom core.time.Duration : Type
 axiom std.path.PathBuf : Type
 
 /-- [std::path::Path]
-    Source: '/rustc/library/std/src/path.rs', lines 2357:0-2357:15
+    Source: '/rustc/library/std/src/path.rs', lines 2356:0-2356:15
     Name pattern: [std::path::Path]
     Visibility: public -/
 @[rust_type "std::path::Path"]
 axiom std.path.Path : Type
 
 /-- [std::path::Display]
-    Source: '/rustc/library/std/src/path.rs', lines 3727:0-3727:22
+    Source: '/rustc/library/std/src/path.rs', lines 3739:0-3739:22
     Name pattern: [std::path::Display]
     Visibility: public -/
 @[rust_type "std::path::Display"]
 axiom std.path.Display : Type
 
 /-- [std::time::SystemTime]
-    Source: '/rustc/library/std/src/time.rs', lines 250:0-250:21
+    Source: '/rustc/library/std/src/time.rs', lines 248:0-248:21
     Name pattern: [std::time::SystemTime]
     Visibility: public -/
 @[rust_type "std::time::SystemTime"]
 axiom std.time.SystemTime : Type
 
 /-- [std::time::SystemTimeError]
-    Source: '/rustc/library/std/src/time.rs', lines 272:0-272:26
+    Source: '/rustc/library/std/src/time.rs', lines 270:0-270:26
     Name pattern: [std::time::SystemTimeError]
     Visibility: public -/
 @[rust_type "std::time::SystemTimeError"]
@@ -76,7 +74,7 @@ axiom alloc.collections.vec_deque.iter.Iter (T : Type) : Type
 axiom alloc.collections.vec_deque.VecDeque (T : Type) (A : Type) : Type
 
 /-- [bytes::buf::uninit_slice::UninitSlice]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/uninit_slice.rs', lines 22:0-22:22
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/uninit_slice.rs', lines 22:0-22:22
     Name pattern: [bytes::buf::uninit_slice::UninitSlice]
     Visibility: public -/
 @[rust_type "bytes::buf::uninit_slice::UninitSlice"]
@@ -92,29 +90,45 @@ axiom bytes.buf.uninit_slice.UninitSlice : Type
 
 -- (dropped axiom libsignal_core.curve.PrivateKey; provided by an imported sibling lib)
 
+/-- [prost::encoding::DecodeContext]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/encoding.rs', lines 37:0-37:24
+    Name pattern: [prost::encoding::DecodeContext]
+    Visibility: public -/
+@[rust_type "prost::encoding::DecodeContext"]
+axiom prost.encoding.DecodeContext : Type
+
 /-- [prost::error::DecodeError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 17:0-17:22
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/error.rs', lines 19:0-19:22
     Name pattern: [prost::error::DecodeError]
     Visibility: public -/
 @[rust_type "prost::error::DecodeError"]
 axiom prost.error.DecodeError : Type
 
 /-- [prost::error::EncodeError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.1/src/error.rs', lines 90:0-90:22
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/error.rs', lines 185:0-185:22
     Name pattern: [prost::error::EncodeError]
     Visibility: public -/
 @[rust_type "prost::error::EncodeError"]
 axiom prost.error.EncodeError : Type
 
 /-- [rand_core#1::os::OsError]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 51:0-51:18
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 51:0-51:18
     Name pattern: [rand_core#1::os::OsError]
     Visibility: public -/
 @[rust_type "rand_core#1::os::OsError"]
 axiom rand_core_1.os.OsError : Type
 
+/-- [subtle::Choice]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
+    Name pattern: [subtle::Choice]
+    Visibility: public -/
+-- `subtle::Choice` is `struct Choice(u8)`, holding 0 or 1.
+@[rust_type "subtle::Choice"]
+structure subtle.Choice where
+  val : Std.U8
+
 -- (dropped axiom uuid.Uuid; provided by an imported sibling lib)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::closure]
-    Source: 'rust/protocol/src/state/session.rs', lines 816:42-820:9 -/
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 818:42-822:9 -/
 axiom state.session.SessionRecord.previous_session_states.closure : Type
