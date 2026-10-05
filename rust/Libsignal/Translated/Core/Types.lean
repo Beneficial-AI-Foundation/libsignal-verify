@@ -10,6 +10,9 @@ set_option linter.style.longLine false
 set_option linter.style.setOption false
 set_option linter.style.whitespace false
 set_option linter.style.nameCheck false
+set_option linter.style.whitespace false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -19,32 +22,44 @@ set_option maxRecDepth 2048
 
 namespace libsignal_core
 
-/-- Trait declaration: [core::num::nonzero::private::Sealed]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:28
-    Name pattern: [core::num::nonzero::private::Sealed]
-    Visibility: public -/
-@[rust_trait "core::num::nonzero::private::Sealed"]
-structure core.num.nonzero.private.Sealed (Self : Type) where
-
 /-- Trait declaration: [core::num::nonzero::ZeroablePrimitive]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 34:0-34:66
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 34:0-34:59
     Name pattern: [core::num::nonzero::ZeroablePrimitive]
     Visibility: public -/
 @[rust_trait "core::num::nonzero::ZeroablePrimitive"
-  (parentClauses := ["markerCopyInst", "privateSealedInst", "markerCopyInst1"])]
+  (parentClauses := ["markerCopyInst", "markerCopyInst1"])]
 structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
   Type) where
   markerCopyInst : core.marker.Copy Self
-  privateSealedInst : core.num.nonzero.private.Sealed Self
   markerCopyInst1 : core.marker.Copy Self_NonZeroInner
 
--- derive_more...TryFromReprError: shared root def in Libsignal.Translated.Shared.DeriveMore.
+/-- [derive_more::convert::try_from::TryFromReprError]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 17:4-17:34
+    Name pattern: [derive_more::convert::try_from::TryFromReprError]
+    Visibility: public -/
+@[rust_type "derive_more::convert::try_from::TryFromReprError"]
+structure derive_more.convert.try_from.TryFromReprError (T : Type) where
+  input : T
 
--- rand_core_1.RngCore: shared root def in Libsignal.Translated.Shared.RandCore.
+/-- Trait declaration: [rand_core#1::RngCore]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 130:0-130:17
+    Name pattern: [rand_core#1::RngCore]
+    Visibility: public -/
+abbrev rand_core_1.RngCore := _root_.rand_core_1.RngCore
 
--- rand.rng.Rng: shared root def in Libsignal.Translated.Shared.Rand.
+/-- Trait declaration: [rand::rng::Rng]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
+    Name pattern: [rand::rng::Rng]
+    Visibility: public -/
+@[rust_trait "rand::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
+structure rand.rng.Rng (Self : Type) where
+  rand_core_1RngCoreInst : rand_core_1.RngCore Self
 
--- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.
+/-- Trait declaration: [rand_core#1::CryptoRng]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 204:0-204:28
+    Name pattern: [rand_core#1::CryptoRng]
+    Visibility: public -/
+abbrev rand_core_1.CryptoRng := _root_.rand_core_1.CryptoRng
 
 /-- [libsignal_core::address::ServiceIdKind]
     Source: 'rust/core/src/address.rs', lines 19:0-24:1
@@ -141,7 +156,7 @@ structure curve.KeyPair where
 structure e164.E164 where
   inner : core.num.nonzero.NonZero Std.U64 core.num.niche_types.NonZeroU64Inner
 
-/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure]
+/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{closure}]
     Source: 'rust/core/src/e164.rs', lines 27:55-27:77 -/
 @[reducible]
 def e164.E164.from_be_bytes.closure := Unit
