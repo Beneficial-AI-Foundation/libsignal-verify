@@ -8,28 +8,168 @@
 @file:Suppress(
     "ktlint:standard:function-naming",
     "ktlint:standard:property-naming",
+    "ktlint:standard:class-naming",
     "ktlint:standard:filename",
+    "ktlint:standard:max-line-length",
+    "ktlint:standard:no-consecutive-comments",
+    "PLATFORM_CLASS_MAPPED_TO_KOTLIN",
 )
 
 package org.signal.libsignal.internal
 
+import org.signal.libsignal.internal.NativeNiceHelpers.convertToObject
+import org.signal.libsignal.internal.NativeNiceHelpers.downcastFromObject
+import org.signal.libsignal.internal.NativeNiceHelpers.identity
+import org.signal.libsignal.internal.NativeNiceHelpers.mapPair
+import org.signal.libsignal.internal.NativeNiceHelpers.mapBridgeVecArg
+import org.signal.libsignal.internal.NativeNiceHelpers.mapBridgeVecReturn
+
 {% set ctx = testing_ctx if testing else non_testing_ctx %}
 
-internal object {{ "NativeTestingNice" if testing else "NativeNice" }} {
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun <T> identity(x: T): T = x
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-    private fun convertToObject(x: Any): Object = x as Object
+{# Due to how our gradle build is currently configured, many internal items must be public. #}
+{% set pub_for_tests = "public" %}
 
-    private inline fun <InA, InB, OutA, OutB> mapPair(
-        crossinline transformA: (InA) -> OutA,
-        crossinline transformB: (InB) -> OutB,
-    ): (Pair<InA, InB>) -> Pair<OutA, OutB> = {
-        Pair(transformA(it.first), transformB(it.second))
+{% macro converter_name(name, kind) %}{{ name|replace(".", "_") }}_{{kind}}{% endmacro %}
+
+{% macro struct_return_converter(name, return_converter, nice_type) %}
+    {{pub_for_tests}} object {{ converter_name(name, "ReturnConverter") }} {
+        @CalledFromNative
+        @JvmStatic
+        @JvmName("fromNative")
+        internal fun fromNative(
+            {%- for (field, ty) in return_converter.fields -%}{{ field }}: Any?,{%- endfor -%}
+        ): Any? = {{ nice_type }}{% if return_converter.fields|count > 0 %}(
+            {%- for (field, ty) in return_converter.fields -%}
+                {{ field|to_lower_camel_case }} =
+                    {{ ty.converter_function }}({{ field }} as {{ ty.ffi_type }}),
+            {%- endfor -%}
+        ){% endif %}
     }
+{% endmacro %}
 
+{% macro struct_arg_converter(name, arg_converter, superclass, nice_type) %}
+    {%- if arg_converter.fields|count == 0 -%}
+        @CalledFromNative
+        {{pub_for_tests}} object {{ converter_name(name, "FfiArgType") }}
+            {%- if superclass -%}: {{ superclass }}(){%- endif -%}
+        {{pub_for_tests}} fun {{ nice_type }}.toFfiArgType(): {{ converter_name(name, "FfiArgType") }} =
+            {{ converter_name(name, "FfiArgType") }}
+    {%- else -%}
+        @CalledFromNative
+        @Suppress("ktlint:standard:backing-property-naming")
+        {{pub_for_tests}} class {{ converter_name(name, "FfiArgType") }}{% if superclass %}: {{ superclass }}{% endif %} {
+            {% for (field, ty) in arg_converter.fields %}
+                @CalledFromNative
+                internal val {{ field }}: {{ ty.ffi_field_type_erased }}
+            {%- endfor %}
+            internal constructor(
+                {% for (field, ty) in arg_converter.fields -%}
+                    {{ field }}: {{ ty.ffi_field_type_erased }},
+                {%- endfor %}
+            ) {
+                {%- for (field, ty) in arg_converter.fields %}
+                    this.{{ field }} = {{ field }}
+                {%- endfor %}
+            }
+        }
+        {{pub_for_tests}} fun {{ nice_type }}.toFfiArgType(): {{ converter_name(name, "FfiArgType") }} =
+            {{ converter_name(name, "FfiArgType") }}(
+                {% for (field, ty) in arg_converter.fields -%}
+                    {{ field }} = {{ ty.converter_function }}({{ field|to_lower_camel_case }}),
+                {%- endfor %}
+            )
+    {%- endif -%}
+{% endmacro %}
+
+{% macro struct_class(name, struct, superclass) %}
+    {%- if struct.fields|count == 0 -%}
+        {{pub_for_tests}} data object {{ name }}{% if superclass %}: {{ superclass }}(){% endif %}
+    {%- else -%}
+        {{pub_for_tests}} data class {{ name }}(
+            {% for (field, ty) in struct.fields -%}
+                {{pub_for_tests}} val {{ field|to_lower_camel_case }}: {{ ty }},
+            {%- endfor %}
+        ){% if superclass %}: {{ superclass }}(){% endif %}
+    {%- endif -%}
+{% endmacro %}
+
+{% for (name, struct_or_enum) in ctx.derived_types|items %}
+    {% if struct_or_enum.nice_type %}
+        // BEGIN BLOCK COMMENT
+        // {{ struct_or_enum.nice_type }}
+    {% endif %}
+    {% if struct_or_enum.kind == "Struct" %}
+        {{ struct_class(
+            name,
+            struct_or_enum,
+            superclass=none,
+        ) }}
+    {% else %}
+        {{pub_for_tests}} sealed class {{ name }} {
+            {% for (variant, struct) in struct_or_enum.variants -%}
+                {{ struct_class(
+                    variant,
+                    struct,
+                    superclass=name,
+                ) }}
+            {%- endfor %}
+        }
+    {% endif %}
+    {% if struct_or_enum.nice_type %}
+        // END BLOCK COMMENT
+    {% endif %}
+{% endfor %}
+
+{% for (name, struct_or_enum) in ctx.derived_return_converters|items %}
+    {% if struct_or_enum.kind == "Struct" %}
+        {{ struct_return_converter(
+            name,
+            struct_or_enum,
+            struct_or_enum.nice_type or name,
+        ) }}
+    {% else %}
+        {% for (variant, struct) in struct_or_enum.variants %}
+            {{ struct_return_converter(
+                name ~ "." ~ variant,
+                struct,
+                (struct_or_enum.nice_type or name) ~ "." ~ variant,
+            ) }}
+        {% endfor %}
+    {% endif %}
+{% endfor %}
+
+{% for (name, struct_or_enum) in ctx.derived_arg_converters|items %}
+    {% set nice_name = struct_or_enum.nice_type or name %}
+    {% if struct_or_enum.kind == "Struct" %}
+        {{ struct_arg_converter(
+            name,
+            struct_or_enum,
+            superclass=none,
+            nice_type=nice_name,
+        ) }}
+        {{pub_for_tests}} fun {{ nice_name }}.toFfiArgTypeObject(): Object =
+            convertToObject(this.toFfiArgType())
+    {% else %}
+        {{pub_for_tests}} sealed class {{ converter_name(name, "FfiArgType") }}()
+        {% for (variant, struct) in struct_or_enum.variants %}
+            {{ struct_arg_converter(
+                name ~ "." ~ variant,
+                struct,
+                superclass=converter_name(name, "FfiArgType"),
+                nice_type=nice_name ~ "." ~ variant,
+            ) }}
+        {% endfor %}
+        {{pub_for_tests}} fun {{nice_name}}.toFfiArgTypeObject(): Object = convertToObject(when(this) {
+            {% for (variant, struct) in struct_or_enum.variants -%}
+                is {{ nice_name }}.{{ variant }} -> this.toFfiArgType()
+            {% endfor %}
+        })
+    {% endif %}
+{% endfor %}
+
+{{pub_for_tests}} object {{ "NativeTestingNice" if testing else "NativeNice" }} {
     {% for (name, f) in ctx.nice_functions|items %}
-        public fun {{ name }}(
+        {{pub_for_tests}} fun {{ name }}(
             {% if f.is_tokio_async -%}
                 asyncCtx: TokioAsyncContext,
             {% endif -%}
@@ -57,7 +197,9 @@ internal object {{ "NativeTestingNice" if testing else "NativeNice" }} {
             {% if f.is_tokio_async -%}
                 return ffiOut
                   .makeCancelable(asyncCtx)
+                  {% if f.return_type.converter_function != "identity" -%}
                   .thenApply { {{ f.return_type.converter_function }}(it) }
+                  {%- endif %}
             {%- else -%}
                 return {{ f.return_type.converter_function }}(ffiOut)
             {%- endif %}

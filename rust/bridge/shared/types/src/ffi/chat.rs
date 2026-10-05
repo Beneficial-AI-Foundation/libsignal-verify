@@ -14,9 +14,7 @@ use libsignal_net_chat::registration::ConnectUnauthChat;
 
 use super::*;
 use crate::net::ConnectionManager;
-// TODO: This re-export is because of the ffi_arg_type macro expecting all bridging structs to be
-// under the ffi module; eventually we should be able to remove it.
-pub use crate::net::chat::{FfiChatListenerStruct, FfiProvisioningListenerStruct};
+use crate::net::chat::{FfiChatListenerStruct, FfiProvisioningListenerStruct};
 use crate::net::registration::ConnectChatBridge;
 
 // SAFETY: Chat listeners are used from multiple threads. It's up to the creator of the C struct to
@@ -30,6 +28,7 @@ type DestroyConnectChatBridge = extern "C" fn(ctx: *mut c_void);
 /// A ref-counting pointer to a [`ConnectionManager`] and a callback to
 /// decrement the count.
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiConnectChatBridgeStruct {
     ctx: *mut c_void,
     get_connection_manager: GetConnectChatConnectionManager,

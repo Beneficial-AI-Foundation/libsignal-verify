@@ -3,15 +3,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+use http::HeaderMap;
+use libsignal_core::LogSafeDisplay;
 use libsignal_net::chat::Response as ChatResponse;
 
 use crate::api::registration::{
-    CheckSvr2CredentialsError, CreateSessionError, RegisterAccountError, RegistrationLock,
-    RequestVerificationCodeError, ResumeSessionError, SubmitVerificationError, UpdateSessionError,
-    VerificationCodeNotDeliverable,
+    CheckSvr2CredentialsError, CreateSessionError, RegisterAccountError, RegisterAccountMethod,
+    RegistrationSession, RequestVerificationCodeError, ResumeSessionError, SubmitVerificationError,
+    UpdateSessionError, WithRecoveredSession,
 };
 use crate::api::{AllowRateLimitChallenges, RequestError};
-use crate::ws::{CustomError, ResponseError};
+use crate::ws::{CustomError, ResponseError, parse_json_from_body};
 
 // Rate limit challenges are allowed for all registration requests.
 const ALLOW_RATE_LIMIT_CHALLENGES: AllowRateLimitChallenges = AllowRateLimitChallenges::Yes;
@@ -49,6 +51,13 @@ impl<D> From<ResponseError> for RequestError<ResumeSessionError, D> {
     }
 }
 
+fn session_state_from_json_body(
+    headers: &HeaderMap,
+    body: Option<&[u8]>,
+) -> Option<RegistrationSession> {
+    parse_json_from_body(headers, Some(body?)).ok()
+}
+
 impl<D> From<ResponseError> for RequestError<RequestVerificationCodeError, D> {
     fn from(value: ResponseError) -> Self {
         value.into_request_error(ALLOW_RATE_LIMIT_CHALLENGES, |value| {
@@ -61,12 +70,18 @@ impl<D> From<ResponseError> for RequestError<RequestVerificationCodeError, D> {
             CustomError::Err(match status.as_u16() {
                 400 => RequestVerificationCodeError::InvalidSessionId,
                 404 => RequestVerificationCodeError::SessionNotFound,
-                409 => RequestVerificationCodeError::NotReadyForVerification,
-                418 => RequestVerificationCodeError::SendFailed,
+                409 => RequestVerificationCodeError::NotReadyForVerification(
+                    session_state_from_json_body(headers, body.as_deref()),
+                ),
+                418 => RequestVerificationCodeError::SendFailed(session_state_from_json_body(
+                    headers,
+                    body.as_deref(),
+                )),
                 440 => {
-                    let Some(not_deliverable) = body.as_deref().and_then(|body| {
-                        VerificationCodeNotDeliverable::from_response(headers, body)
-                    }) else {
+                    let Some(not_deliverable) = body
+                        .as_deref()
+                        .and_then(|body| parse_json_from_body(headers, Some(body)).ok())
+                    else {
                         return CustomError::NoCustomHandling;
                     };
                     RequestVerificationCodeError::CodeNotDeliverable(not_deliverable)
@@ -82,14 +97,88 @@ impl<D> From<ResponseError> for RequestError<RequestVerificationCodeError, D> {
 impl<D> From<ResponseError> for RequestError<SubmitVerificationError, D> {
     fn from(value: ResponseError) -> Self {
         value.into_request_error(ALLOW_RATE_LIMIT_CHALLENGES, |value| {
-            let ChatResponse { status, .. } = value;
+            let ChatResponse {
+                status,
+                message: _,
+                headers,
+                body,
+            } = value;
             CustomError::Err(match status.as_u16() {
                 400 => SubmitVerificationError::InvalidSessionId,
                 404 => SubmitVerificationError::SessionNotFound,
-                409 => SubmitVerificationError::NotReadyForVerification,
+                409 => SubmitVerificationError::NotReadyForVerification(
+                    session_state_from_json_body(headers, body.as_deref()),
+                ),
                 _ => return CustomError::NoCustomHandling,
             })
         })
+    }
+}
+
+/// Recovers session state carried in the body of a failure response whose status
+/// is one of `statuses`.
+///
+/// The status list is explicit rather than "any body that parses" because some
+/// failure bodies (e.g. a 440's [`VerificationCodeNotDeliverable`]) would parse
+/// into an all-default [`RegistrationSession`] and wrongly update the cache.
+///
+/// [`VerificationCodeNotDeliverable`]: crate::api::registration::VerificationCodeNotDeliverable
+fn recover_session_for_statuses(
+    response: &ChatResponse,
+    statuses: &[u16],
+) -> Option<RegistrationSession> {
+    let ChatResponse {
+        status,
+        message: _,
+        headers,
+        body,
+    } = response;
+    statuses
+        .contains(&status.as_u16())
+        .then(|| session_state_from_json_body(headers, body.as_deref()))
+        .flatten()
+}
+
+/// Session state an endpoint may carry in a failure response body.
+///
+/// This covers every status whose body carries session state, both the ones
+/// that turn into a typed error (409, 418) and the ones that come back as a
+/// generic error (429), so the caller can refresh its cache uniformly.
+///
+/// Defaults to none; endpoints whose responses carry it override.
+trait RecoverSession {
+    fn recover_session(_response: &ChatResponse) -> Option<RegistrationSession> {
+        None
+    }
+}
+
+impl RecoverSession for ResumeSessionError {}
+impl RecoverSession for UpdateSessionError {}
+impl RecoverSession for RequestVerificationCodeError {
+    fn recover_session(response: &ChatResponse) -> Option<RegistrationSession> {
+        recover_session_for_statuses(response, &[409, 418, 429])
+    }
+}
+impl RecoverSession for SubmitVerificationError {
+    fn recover_session(response: &ChatResponse) -> Option<RegistrationSession> {
+        recover_session_for_statuses(response, &[409, 429])
+    }
+}
+
+/// Pairs the plain error conversion with any session recovered from the response.
+impl<E: RecoverSession, D> From<ResponseError> for WithRecoveredSession<RequestError<E, D>>
+where
+    RequestError<E, D>: From<ResponseError>,
+{
+    fn from(value: ResponseError) -> Self {
+        let session = match &value {
+            ResponseError::UnrecognizedStatus { response, .. } => E::recover_session(response),
+            _ => None,
+        };
+        WithRecoveredSession {
+            result: value.into(),
+            session,
+        }
     }
 }
 
@@ -105,9 +194,37 @@ impl<D> From<ResponseError> for RequestError<CheckSvr2CredentialsError, D> {
     }
 }
 
-impl<D> From<ResponseError> for RequestError<RegisterAccountError, D> {
-    fn from(value: ResponseError) -> Self {
-        value.into_request_error(ALLOW_RATE_LIMIT_CHALLENGES, |value| {
+/// What a 401 means for `method`.
+///
+/// The server answers 401 whichever credential the request presented, so only
+/// the flow that sent it can say which one was refused. The recovery password
+/// flows authenticate with a registration recovery password, which the server
+/// rejects with a 403, so a 401 on those is not a response we can attribute.
+///
+/// Note that the server also answers 401 for a malformed `authorization`
+/// header, so a caller that sends an empty account password sees the flow's
+/// credential blamed for what is really a bad request.
+fn unauthorized_error(method: RegisterAccountMethod<'_>) -> Option<RegisterAccountError> {
+    match method {
+        RegisterAccountMethod::SessionId { .. } => Some(RegisterAccountError::InvalidSession),
+        RegisterAccountMethod::ReceiptCredential { .. } => {
+            Some(RegisterAccountError::InvalidReceipt)
+        }
+        RegisterAccountMethod::PhoneNumberRecoveryPassword { .. }
+        | RegisterAccountMethod::AccountRecoveryPassword { .. } => None,
+    }
+}
+
+impl ResponseError {
+    /// Converts a failed `/v1/registration` response into a typed error.
+    ///
+    /// A 401 means different things depending on which credential the request
+    /// presented; see [`unauthorized_error`].
+    pub(crate) fn into_register_account_error<D>(
+        self,
+        method: RegisterAccountMethod<'_>,
+    ) -> RequestError<RegisterAccountError, D> {
+        self.into_request_error(ALLOW_RATE_LIMIT_CHALLENGES, |value| {
             let ChatResponse {
                 headers,
                 status,
@@ -115,17 +232,28 @@ impl<D> From<ResponseError> for RequestError<RegisterAccountError, D> {
                 ..
             } = value;
             CustomError::Err(match status.as_u16() {
+                400 => RegisterAccountError::RequestRejected,
+                401 => match unauthorized_error(method) {
+                    Some(error) => error,
+                    None => return CustomError::NoCustomHandling,
+                },
                 403 => RegisterAccountError::RegistrationRecoveryVerificationFailed,
                 409 => RegisterAccountError::DeviceTransferIsPossibleButNotSkipped,
                 423 => {
-                    let Some(registration_lock) = body
-                        .as_deref()
-                        .and_then(|body| RegistrationLock::from_response(headers, body))
-                    else {
-                        return CustomError::NoCustomHandling;
-                    };
-                    RegisterAccountError::RegistrationLock(registration_lock)
+                    // parse_json_from_body already handles missing bodies.
+                    match parse_json_from_body(headers, body.as_deref()) {
+                        Ok(registration_lock) => {
+                            RegisterAccountError::RegistrationLock(registration_lock)
+                        }
+                        Err(e) => {
+                            let e: ResponseError = e;
+                            static_assertions::assert_impl_all!(ResponseError: LogSafeDisplay);
+                            log::warn!("Failed to parse registration lock response: {e}");
+                            return CustomError::NoCustomHandling;
+                        }
+                    }
                 }
+                441 => RegisterAccountError::OneTimePasswordRequired,
                 _ => return CustomError::NoCustomHandling,
             })
         })
@@ -136,9 +264,12 @@ impl<D> From<ResponseError> for RequestError<RegisterAccountError, D> {
 mod test {
     use std::convert::Infallible;
     use std::fmt::Debug;
+    use std::str::FromStr;
 
+    use assert_matches::assert_matches;
     use http::{HeaderMap, StatusCode};
     use itertools::Itertools;
+    use libsignal_core::Aci;
     use libsignal_net::infra::AsHttpHeader;
     use libsignal_net::infra::errors::RetryLater;
     use strum::{IntoDiscriminant, IntoEnumIterator};
@@ -149,7 +280,7 @@ mod test {
     use crate::api::registration::{
         CheckSvr2CredentialsErrorDiscriminants, CreateSessionErrorDiscriminants,
         RegisterAccountErrorDiscriminants, RequestVerificationCodeErrorDiscriminants,
-        ResumeSessionErrorDiscriminants, SubmitVerificationErrorDiscriminants,
+        ResumeSessionErrorDiscriminants, SessionId, SubmitVerificationErrorDiscriminants,
         UpdateSessionErrorDiscriminants,
     };
     use crate::ws::CONTENT_TYPE_JSON;
@@ -264,11 +395,18 @@ mod test {
 
     impl AsStatus for RegisterAccountErrorDiscriminants {
         fn as_status(&self) -> Option<u16> {
-            Some(match self {
-                Self::DeviceTransferIsPossibleButNotSkipped => 409,
-                Self::RegistrationRecoveryVerificationFailed => 403,
-                Self::RegistrationLock => 423,
-            })
+            match self {
+                Self::DeviceTransferIsPossibleButNotSkipped => Some(409),
+                Self::RegistrationRecoveryVerificationFailed => Some(403),
+                Self::RegistrationLock => Some(423),
+                Self::RequestRejected => Some(400),
+                Self::InvalidSession | Self::InvalidReceipt => Some(401),
+                Self::RecoveryPasswordRequired => {
+                    // Produced locally, not from an HTTP status code.
+                    None
+                }
+                Self::OneTimePasswordRequired => Some(441),
+            }
         }
     }
 
@@ -290,7 +428,8 @@ mod test {
         );
         assert_eq!(
             RegisterAccountError::sorted_statuses(),
-            vec![403, 409, 423, 429]
+            // 401 appears once per variant that maps to it.
+            vec![400, 401, 401, 403, 409, 423, 429, 441]
         );
     }
 
@@ -341,15 +480,20 @@ mod test {
         }
     }
 
-    fn round_trip_all_variants<T>()
-    where
-        T: CollectSortedStatuses + IntoDiscriminant<Discriminant: AsStatus> + Debug,
-        RequestError<T, Infallible>: From<ResponseError>,
+    /// Checks that every status a type claims round-trips back to itself.
+    ///
+    /// `statuses` is taken separately from `T::sorted_statuses()` so a caller
+    /// whose conversion handles only some of them can narrow the set.
+    fn round_trip_variants<T>(
+        statuses: impl IntoIterator<Item = u16>,
+        convert: impl Fn(ResponseError) -> RequestError<T, Infallible>,
+    ) where
+        T: IntoDiscriminant<Discriminant: AsStatus> + Debug,
     {
-        for status in T::sorted_statuses() {
+        for status in statuses {
             let error = error_for_status(status);
             println!("status = {status}, error = {error:?}");
-            let request_error = RequestError::<T, Infallible>::from(error);
+            let request_error = convert(error);
             println!("request error: {request_error:?}");
             let error_status = match request_error {
                 RequestError::Other(inner) => inner.discriminant().as_status(),
@@ -362,7 +506,7 @@ mod test {
                 }
                 RequestError::Disconnected(d) => match d {},
             };
-            assert_eq!(error_status, Some(status));
+            assert_eq!(error_status, Some(status), "status {status}");
         }
     }
 
@@ -375,12 +519,107 @@ mod test {
     #[test_case(e::<RequestVerificationCodeError>)]
     #[test_case(e::<SubmitVerificationError>)]
     #[test_case(e::<CheckSvr2CredentialsError>)]
-    #[test_case(e::<RegisterAccountError>)]
     fn error_type_from_status<T>(_type_hint: fn(T))
     where
         RequestError<T, Infallible>: From<ResponseError>,
         T: CollectSortedStatuses + IntoDiscriminant<Discriminant: AsStatus> + Debug,
     {
-        round_trip_all_variants::<T>();
+        round_trip_variants::<T>(T::sorted_statuses(), RequestError::from);
+    }
+
+    // The server's [`RegistrationLockFailure`] marks `svr2Credentials` as
+    // nullable, so a real 423 body can be just `{"timeRemaining": ...}`.
+    // Such a response must still map to [`RegisterAccountError::RegistrationLock`].
+    // If the body fails to parse, the 423 arm falls through to a generic
+    // "unexpected status" error and the client loses the lock (including its
+    // time remaining).
+    //
+    // [`RegistrationLockFailure`]: https://github.com/signalapp/Signal-Server/blob/6a8bf7f78e3516421382f7773762bf2f7f0a78a9/service/src/main/java/org/whispersystems/textsecuregcm/entities/RegistrationLockFailure.java#L20
+    #[test]
+    fn register_account_423_without_svr2_credentials_is_registration_lock() {
+        let headers = HeaderMap::from_iter([CONTENT_TYPE_JSON]);
+        let status = StatusCode::from_u16(423).unwrap();
+        let error = ResponseError::UnrecognizedStatus {
+            status,
+            response: ChatResponse {
+                status,
+                message: None,
+                headers,
+                body: Some(
+                    serde_json::to_vec(&serde_json::json!({ "timeRemaining": 1234 }))
+                        .unwrap()
+                        .into(),
+                ),
+            },
+        };
+
+        let session_id = SessionId::from_str("aaabbbcccdddeee").unwrap();
+        assert_matches!(
+            error.into_register_account_error::<Infallible>(session_id_method(&session_id)),
+            RequestError::Other(RegisterAccountError::RegistrationLock(_))
+        );
+    }
+
+    fn session_id_method(session_id: &SessionId) -> RegisterAccountMethod<'_> {
+        RegisterAccountMethod::SessionId {
+            number: "+18005550101",
+            session_id,
+        }
+    }
+
+    /// `RegisterAccountError` is excluded from [`error_type_from_status`]
+    /// because two of its variants share the 401 status, so the generic
+    /// round trip cannot decide which one to expect. Every other status is
+    /// checked here through the same harness, once per flow.
+    #[test]
+    fn register_account_error_from_status_per_method() {
+        let presentation = crate::api::testutil::valid_receipt_credential_presentation();
+        let session_id = SessionId::from_str("aaabbbcccdddeee").unwrap();
+
+        let receipt_method = RegisterAccountMethod::ReceiptCredential {
+            presentation: &presentation,
+        };
+        let session_method = session_id_method(&session_id);
+        let recovery_password_methods = [
+            RegisterAccountMethod::PhoneNumberRecoveryPassword {
+                number: "+18005550101",
+            },
+            RegisterAccountMethod::AccountRecoveryPassword {
+                aci: Aci::from(uuid::Uuid::nil()),
+            },
+        ];
+
+        // Every status but 401 means the same thing on every flow.
+        let shared_statuses = || {
+            RegisterAccountError::sorted_statuses()
+                .into_iter()
+                .filter(|status| *status != 401)
+        };
+        for method in [session_method, receipt_method]
+            .into_iter()
+            .chain(recovery_password_methods)
+        {
+            round_trip_variants::<RegisterAccountError>(shared_statuses(), |e: ResponseError| {
+                e.into_register_account_error(method)
+            });
+        }
+
+        // A 401 names the credential the flow actually presented.
+        assert_matches!(
+            error_for_status(401).into_register_account_error::<Infallible>(session_method),
+            RequestError::Other(RegisterAccountError::InvalidSession)
+        );
+        assert_matches!(
+            error_for_status(401).into_register_account_error::<Infallible>(receipt_method),
+            RequestError::Other(RegisterAccountError::InvalidReceipt)
+        );
+
+        // The recovery password flows have no credential a 401 could refer to.
+        for method in recovery_password_methods {
+            assert_matches!(
+                error_for_status(401).into_register_account_error::<Infallible>(method),
+                RequestError::Unexpected { .. }
+            );
+        }
     }
 }

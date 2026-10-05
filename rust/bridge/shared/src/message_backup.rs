@@ -11,6 +11,7 @@ use libsignal_message_backup::backup::Purpose;
 use libsignal_message_backup::frame::LimitedReaderFactory;
 use libsignal_message_backup::{BackupReader, FoundUnknownField, ReadError, ReadResult};
 use libsignal_protocol::Aci;
+use rand::TryRngCore as _;
 
 use crate::io::{AsyncInput, InputStream};
 use crate::support::*;
@@ -117,7 +118,7 @@ async fn MessageBackupValidator_Validate(
 }
 
 bridge_handle_fns!(OnlineBackupValidator, clone = false);
-bridge_handle_fns!(BackupJsonExporter, clone = false, ffi = false);
+bridge_handle_fns!(BackupJsonExporter, clone = false);
 
 #[bridge_fn]
 fn OnlineBackupValidator_New(
@@ -153,7 +154,7 @@ fn OnlineBackupValidator_Finalize(backup: &mut OnlineBackupValidator) -> Result<
     backup.finalize().map_err(ReadError::with_error_only)
 }
 
-#[bridge_fn(ffi = false)]
+#[bridge_fn]
 fn BackupJsonExporter_New(
     backup_info: &[u8],
     should_validate: bool,
@@ -165,12 +166,12 @@ fn BackupJsonExporter_New(
     Ok(BackupJsonExporter::new(exporter, initial_chunk))
 }
 
-#[bridge_fn(ffi = false)]
+#[bridge_fn(nice_swift = true)]
 fn BackupJsonExporter_GetInitialChunk(exporter: &BackupJsonExporter) -> String {
     exporter.initial_chunk().to_owned()
 }
 
-#[bridge_fn(ffi = false)]
+#[bridge_fn(nice_swift = true)]
 fn BackupJsonExporter_ExportFrames(
     exporter: &mut BackupJsonExporter,
     frames: &[u8],
@@ -180,7 +181,26 @@ fn BackupJsonExporter_ExportFrames(
         .map_err(ReadError::with_error_only)
 }
 
-#[bridge_fn(ffi = false)]
+#[bridge_fn(nice_swift = true)]
 fn BackupJsonExporter_Finish(exporter: &mut BackupJsonExporter) -> Result<(), ReadError> {
     exporter.finish().map_err(ReadError::with_error_only)
+}
+
+#[bridge_fn]
+fn MessageBackupSizing_FlushInterval(
+    uncompressed_len: u64,
+    estimated_total_uncompressed_len: u64,
+) -> u64 {
+    let estimate =
+        (estimated_total_uncompressed_len != 0).then_some(estimated_total_uncompressed_len);
+    libsignal_message_backup::padding::flush_interval(uncompressed_len, estimate)
+}
+
+#[bridge_fn]
+fn MessageBackupSizing_PaddingSize(max_interval_bytes: u64, compressed_len: u64) -> u64 {
+    libsignal_message_backup::padding::padding_size(
+        max_interval_bytes,
+        compressed_len,
+        &mut rand::rngs::OsRng.unwrap_err(),
+    )
 }

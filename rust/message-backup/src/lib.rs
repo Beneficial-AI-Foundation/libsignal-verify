@@ -28,6 +28,7 @@ pub mod args;
 pub mod backup;
 pub mod frame;
 pub mod key;
+pub mod padding;
 pub mod parse;
 pub mod unknown;
 

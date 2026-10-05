@@ -157,7 +157,7 @@ where
 /// # impl std::fmt::Display for MyError {
 /// #   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { unimplemented!() }
 /// # }
-/// # impl DefaultSignalNodeError for MyError {}
+/// # impl SimpleNodeError for MyError {}
 /// # fn test(cx: &mut FunctionContext, async_runtime: &NoOpAsyncRuntime) -> NeonResult<()> {
 /// let js_promise = run_future_on_runtime(cx, async_runtime, "example", |_cancel| async {
 ///     let future = async {
@@ -188,7 +188,9 @@ where
     let cancellation_token = runtime.run_future(future, completer, node_function_name);
     if cancellation_token != CancellationId::NotSupported {
         let js_cancellation_token = JsBigInt::from_u64(cx, cancellation_token.into());
-        promise.set(cx, "_cancellationToken", js_cancellation_token)?;
+        promise
+            .prop(cx, "_cancellationToken")
+            .set(js_cancellation_token)?;
     }
     Ok(promise)
 }

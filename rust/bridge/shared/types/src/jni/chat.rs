@@ -11,9 +11,6 @@ use libsignal_net::chat::ChatConnection;
 use libsignal_net_chat::api::Unauth;
 
 use super::*;
-// TODO: This re-export is because of the jni_arg_type macro expecting all bridging structs to be
-// under the jni module; eventually we should be able to remove it.
-pub use crate::net::chat::{JavaBridgeChatListener, JavaBridgeProvisioningListener};
 
 fn attach_and_log_on_error(
     vm: &JavaVM,
@@ -34,7 +31,10 @@ fn attach_and_log_on_error(
     }
 }
 
-pub type JavaConnectChatBridge<'a> = JObject<'a>;
+crate::jni_custom_spellings! {
+    #[kt = "ConnectChatBridge"]
+    pub struct JavaConnectChatBridge<'a>(pub JObject<'a>);
+}
 
 const CONNECTION_MANAGER_CLASS: ClassName =
     ClassName("org.signal.libsignal.net.Network$ConnectionManager");

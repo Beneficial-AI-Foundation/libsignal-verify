@@ -24,9 +24,13 @@ pub mod usernames;
 /// Marker wrapper for unauthenticated connections.
 ///
 /// You can get `&Unauth<Connection>` from `&Connection` using `Into`.
-#[derive(derive_more::Deref, ref_cast::RefCast)]
+#[derive(derive_more::Deref, ref_cast::RefCast, derive_more::From)]
 #[repr(transparent)]
 pub struct Unauth<T>(pub T);
+
+impl<T> Unauth<T> {
+    pub(crate) const LOG_TAG: &'static str = "unauth";
+}
 
 impl<'a, T> From<&'a T> for &'a Unauth<T> {
     fn from(value: &'a T) -> Self {
@@ -37,9 +41,13 @@ impl<'a, T> From<&'a T> for &'a Unauth<T> {
 /// Marker wrapper for authenticated connections.
 ///
 /// You can get `&Auth<Connection>` from `&Connection` using `Into`.
-#[derive(derive_more::Deref, ref_cast::RefCast)]
+#[derive(derive_more::Deref, ref_cast::RefCast, derive_more::From)]
 #[repr(transparent)]
 pub struct Auth<T>(pub T);
+
+impl<T> Auth<T> {
+    pub(crate) const LOG_TAG: &'static str = "auth";
+}
 
 impl<'a, T> From<&'a T> for &'a Auth<T> {
     fn from(value: &'a T) -> Self {
@@ -50,6 +58,10 @@ impl<'a, T> From<&'a T> for &'a Auth<T> {
 /// Marker wrapper for registration connections.
 #[derive(derive_more::Deref)]
 pub struct Registration<T>(pub T);
+
+impl<T> Registration<T> {
+    pub(crate) const LOG_TAG: &'static str = "reg";
+}
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum AllowRateLimitChallenges {
@@ -196,6 +208,34 @@ pub struct UploadForm {
     pub signed_upload_url: String,
 }
 
+// The upload form for CDN0 is different because S3 uses a POST-based API.
+#[derive(Clone, Debug)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
+pub struct S3UploadForm {
+    // The S3 key (i.e. path and filename) for the uploaded file.
+    pub key: String,
+
+    // A scoped credential. Includes the AWS access key, date, region targeted,
+    // and AWS service.
+    pub credential: String,
+
+    // The type of access control for the uploaded file.
+    pub acl: String,
+
+    // The algorithm used to calculate a signature on the S3 policy.
+    pub algorithm: String,
+
+    // The timestamp (formatted as "yyyyMMdd'T'HHmmssX") at which the S3 policy
+    // and signature were generated.
+    pub date: String,
+
+    // The S3 policy (as a base64-encoded JSON string) used to upload the file.
+    pub policy: String,
+
+    // A digital signature (formatted as a hex string) on the S3 policy.
+    pub signature: String,
+}
+
 /// A convenience trait covering all Chat APIs.
 ///
 /// This should be extended to include any new submodules' traits.
@@ -236,6 +276,36 @@ pub(crate) mod testutil {
     /// A standard RNG used for exact-match tests that (normally) depend on randomness.
     pub(crate) fn fixed_seed_test_rng() -> impl rand::CryptoRng + Send {
         rand_chacha::ChaCha20Rng::seed_from_u64(0)
+    }
+
+    const TEST_RANDOMNESS: [u8; zkgroup::RANDOMNESS_LEN] = zkgroup::TEST_ARRAY_32;
+
+    pub(crate) fn test_server_params() -> (zkgroup::ServerSecretParams, zkgroup::ServerPublicParams)
+    {
+        let secret = zkgroup::ServerSecretParams::generate(TEST_RANDOMNESS);
+        let public = secret.get_public_params();
+        (secret, public)
+    }
+
+    /// A `ReceiptCredentialPresentation` issued by [`test_server_params`].
+    pub(crate) fn valid_receipt_credential_presentation()
+    -> zkgroup::receipts::ReceiptCredentialPresentation {
+        let (secret_params, public_params) = test_server_params();
+
+        let request_context = public_params
+            .create_receipt_credential_request_context(TEST_RANDOMNESS, zkgroup::TEST_ARRAY_16);
+        let response = secret_params.issue_receipt_credential(
+            TEST_RANDOMNESS,
+            &request_context.get_request(),
+            zkgroup::Timestamp::from_epoch_seconds(zkgroup::SECONDS_PER_DAY),
+            6,
+        );
+        public_params.create_receipt_credential_presentation(
+            TEST_RANDOMNESS,
+            &public_params
+                .receive_receipt_credential(&request_context, &response)
+                .expect("valid response"),
+        )
     }
 
     /// A fake `GroupSendFullToken` with a known form for serialization

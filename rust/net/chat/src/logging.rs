@@ -7,6 +7,7 @@ use libsignal_core::{Aci, E164, Pni, ServiceId};
 use ref_cast::RefCast as _;
 
 /// Implement Debug for use in DebugStruct etc. using existing Display impl.
+#[macro_export]
 macro_rules! impl_debug_from_display {
     ($target:ident < $($args:tt),* >) => {
         impl< $($args)* > std::fmt::Debug for $target< $($args)* >
@@ -89,6 +90,14 @@ where
 
 impl_debug_from_display!(Redact<T>);
 
+/// Useful for tests that need a dummy request.
+#[cfg(test)]
+impl std::fmt::Display for Redact<()> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", ())
+    }
+}
+
 /// Redacts all but the last 3 characters of its contents, which are assumed to be hex.
 ///
 /// We keep the last characters rather than the first characters for consistency with the redaction
@@ -98,7 +107,7 @@ impl std::fmt::Display for RedactHex<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let index_of_last_three_digits = self.0.len().saturating_sub(3);
         if index_of_last_three_digits == 0 {
-            return write!(f, "{}", &self.0);
+            return write!(f, "{}", self.0);
         }
         write!(
             f,
@@ -135,7 +144,7 @@ impl std::fmt::Display for RedactBase64<'_> {
             .unwrap_or_default()
             .saturating_sub(1);
         if index_of_last_two_non_padding_characters == 0 {
-            return write!(f, "{}", &self.0);
+            return write!(f, "{}", self.0);
         }
         write!(
             f,
@@ -145,6 +154,7 @@ impl std::fmt::Display for RedactBase64<'_> {
         )
     }
 }
+impl_debug_from_display!(RedactBase64<'__lifetime>);
 
 pub struct DebugAsStrOrBytes<'b>(pub &'b [u8]);
 impl std::fmt::Debug for DebugAsStrOrBytes<'_> {

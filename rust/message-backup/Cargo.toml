@@ -22,8 +22,13 @@ json = [
     "dep:prost-build",
     "dep:serde_json",
 ]
-scramble = ["dep:rand"]
-cli = ["dep:clap", "dep:clap-stdin", "dep:env_logger"]
+scramble = []
+cli = [
+    "dep:clap",
+    "dep:clap-stdin",
+    "dep:env_logger",
+    "dep:libsignal-cli-utils",
+]
 test-util = []
 
 [[bin]]
@@ -51,6 +56,7 @@ required-features = ["test-util"]
 libsignal-message-backup-macros = { path = "macros" }
 
 libsignal-account-keys = { workspace = true }
+libsignal-cli-utils = { workspace = true, optional = true }
 libsignal-core = { workspace = true }
 libsignal-protocol = { workspace = true }
 libsignal-svrb = { workspace = true }
@@ -84,7 +90,8 @@ pbjson = { workspace = true, optional = true }
 pbjson-types = { workspace = true, optional = true }
 prost = { workspace = true }
 protobuf = { workspace = true }
-rand = { workspace = true, optional = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true, optional = true, features = ["preserve_order"] }
 serde_with = { workspace = true, features = ["hex"] }
@@ -100,7 +107,6 @@ visibility = { workspace = true }
 [dev-dependencies]
 libsignal-message-backup = { path = "./", features = ["cli", "json", "scramble", "test-util"] }
 
-libsignal-cli-utils = { workspace = true }
 signal-crypto = { workspace = true }
 
 assert_cmd = { workspace = true }
@@ -121,14 +127,6 @@ pbjson-build = { workspace = true, optional = true }
 prost-build = { workspace = true, optional = true }
 protobuf = { workspace = true }
 protobuf-codegen = { workspace = true }
-
-# Enable sha2 asm for local builds (there is a similar block in libsignal-bridge-types).
-[target.'cfg(not(any(windows, target_arch = "x86")))'.dev-dependencies]
-# sha2's asm implementation uses standalone .S files that aren't compiled correctly on Windows,
-# and aren't linked correctly on x86 Android.
-# This will be fixed in sha2 0.11, which also removes the "asm" feature and turns it on by default.
-# So when sha2 0.11 is released, this section will go away.
-sha2 = { workspace = true, features = ["asm"] }
 
 # Prefer the system zlib for Android.
 # We'd probably prefer to use this everywhere, but some of our tests depend on exact output.

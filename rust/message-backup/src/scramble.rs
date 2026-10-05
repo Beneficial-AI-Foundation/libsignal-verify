@@ -313,6 +313,14 @@ impl Visit<Scrambler> for proto::account_data::AccountSettings {
             allowSealedSenderFromAnyone: _,
             allowAutomaticKeyVerification: _,
             hasSeenAdminDeleteEducationDialog: _,
+            unreadBadgeType: _,
+            includeMutedChatsInBadge: _,
+            reactionNotifications: _,
+            notifyForCallsIfMuted: _,
+            notifyForMentionsIfMuted: _,
+            notifyForRepliesIfMuted: _,
+            showUnreadReminders: _,
+            notifyWhenContactJoins: _,
             special_fields: _,
         } = self;
 
@@ -476,6 +484,7 @@ impl Visit<Scrambler> for proto::Contact {
             username,
             e164,
             blocked: _,
+            blockedAtTimestamp: _,
             visibility: _,
             profileKey,
             profileSharing: _,
@@ -487,6 +496,7 @@ impl Visit<Scrambler> for proto::Contact {
             keyTransparencyData,
             registration,
             nickname,
+            sharedName,
             systemGivenName,
             systemFamilyName,
             systemNickname,
@@ -530,6 +540,7 @@ impl Visit<Scrambler> for proto::Contact {
         }
 
         nickname.accept(visitor);
+        sharedName.accept(visitor);
         systemGivenName.randomize(&mut visitor.rng);
         systemFamilyName.randomize(&mut visitor.rng);
         systemNickname.randomize(&mut visitor.rng);
@@ -574,6 +585,7 @@ impl Visit<Scrambler> for proto::Group {
             storySendMode: _,
             snapshot,
             blocked: _,
+            blockedAtTimestamp: _,
             avatarColor: _,
             special_fields: _,
         } = self;
@@ -779,6 +791,10 @@ impl Visit<Scrambler> for proto::Chat {
             muteUntilMs: _,
             markedUnread: _,
             dontNotifyForMentionsIfMuted: _,
+            notifyForCallsIfMuted: _,
+            notifyForMentionsIfMuted: _,
+            notifyForRepliesIfMuted: _,
+            showUnreadReminders: _,
             style,
             expireTimerVersion: _,
             special_fields: _,
@@ -1124,6 +1140,9 @@ impl Visit<Scrambler> for proto::ContactAttachment {
             address,
             avatar,
             organization,
+            aci,
+            nickname,
+            note,
             special_fields: _,
         } = self;
         name.accept(visitor);
@@ -1132,6 +1151,21 @@ impl Visit<Scrambler> for proto::ContactAttachment {
         address.accept(visitor);
         avatar.accept(visitor);
         organization.randomize(&mut visitor.rng);
+        visitor.replace_service_id(aci);
+        nickname.accept(visitor);
+        note.randomize(&mut visitor.rng);
+    }
+}
+
+impl Visit<Scrambler> for proto::contact_attachment::SignalNickname {
+    fn accept(&mut self, visitor: &mut Scrambler) {
+        let Self {
+            given,
+            family,
+            special_fields: _,
+        } = self;
+        given.randomize(&mut visitor.rng);
+        family.randomize(&mut visitor.rng);
     }
 }
 
@@ -1884,6 +1918,7 @@ impl Visit<Scrambler> for proto::LearnedProfileChatUpdate {
             match name {
                 PreviousName::E164(e164) => visitor.replace_e164(e164),
                 PreviousName::Username(username) => *username = visitor.next_username(),
+                PreviousName::SharedName(shared_name) => shared_name.randomize(&mut visitor.rng),
             }
         }
     }

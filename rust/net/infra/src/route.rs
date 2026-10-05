@@ -119,9 +119,6 @@ pub use tcp::*;
 mod tls;
 pub use tls::*;
 
-mod udp;
-pub use udp::*;
-
 mod ws;
 pub use ws::*;
 
@@ -720,8 +717,9 @@ mod test {
     use std::num::NonZeroU16;
     use std::sync::LazyLock;
 
-    use ::http::HeaderMap;
+    use ::http::header::USER_AGENT;
     use ::http::uri::PathAndQuery;
+    use ::http::{HeaderMap, HeaderValue};
     use assert_matches::assert_matches;
     use const_str::ip_addr;
     use futures_util::{Stream, StreamExt};
@@ -1185,9 +1183,10 @@ mod test {
         ];
 
         let provider = DirectOrProxyProvider {
-            mode: DirectOrProxyMode::DirectThenProxy(ConnectionProxyConfig::Reflector(
-                &*TEST_REFLECTOR_PROVIDERS,
-            )),
+            mode: DirectOrProxyMode::DirectThenProxy(ConnectionProxyConfig::Reflector {
+                providers: &*TEST_REFLECTOR_PROVIDERS,
+                user_agent: HeaderValue::from_static("test-user-agent"),
+            }),
             inner: direct_routes.clone(),
         };
 
@@ -1215,6 +1214,8 @@ mod test {
                     if &*reflector.target_host == target_host
                         && reflector.target_port == TARGET_PORT
                         && reflector.outer.fragment.endpoint == expected_endpoint
+                        && reflector.outer.fragment.headers.get(USER_AGENT)
+                            == Some(&HeaderValue::from_static("test-user-agent"))
                         && reflector.outer.inner.fragment.host_header.as_ref()
                             == "reflector-signal.global.ssl.fastly.net"
                         && reflector.outer.inner.fragment.front_name == Some(RouteType::ProxyF.into())
@@ -1236,6 +1237,8 @@ mod test {
                     if &*reflector.target_host == target_host
                         && reflector.target_port == TARGET_PORT
                         && reflector.outer.fragment.endpoint == expected_endpoint
+                        && reflector.outer.fragment.headers.get(USER_AGENT)
+                            == Some(&HeaderValue::from_static("test-user-agent"))
                         && reflector.outer.inner.fragment.host_header.as_ref()
                             == "reflector-nrgwuv7kwq-uc.a.run.app"
                         && reflector.outer.inner.fragment.front_name == Some(RouteType::ProxyG.into())

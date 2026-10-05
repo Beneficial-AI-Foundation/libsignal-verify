@@ -141,7 +141,7 @@ impl BackupJsonExporter {
     }
 }
 
-bridge_as_handle!(BackupJsonExporter, mut = true, ffi = false);
+bridge_as_handle!(BackupJsonExporter, mut = true, swift_type = "BackupJsonExporter");
 impl std::panic::RefUnwindSafe for BackupJsonExporter {}
 static_assertions::assert_impl_all!(BackupJsonExporter: std::panic::UnwindSafe);
 pub struct OnlineBackupValidator {

@@ -37,7 +37,7 @@ impl<T: WsConnection> crate::api::profiles::UnauthenticatedChatApi for Unauth<T>
         let serialized_request = hex::encode(zkgroup::serialize(&request));
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &format!(
                     "/v1/profile/{}/{}/{}",
                     Redact(&peer_aci),
@@ -98,7 +98,7 @@ impl<T: WsConnection> crate::api::profiles::UnauthenticatedAccountExistenceApi<O
         let log_safe_path = format!("/v1/accounts/account/{}", Redact(&account));
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &log_safe_path,
                 Request {
                     method: http::Method::HEAD,
