@@ -1,6 +1,6 @@
 name = "Libsignal"
 version = "0.1.0"
-defaultTargets = ["Libsignal"]
+defaultTargets = ["Libsignal", "Protocols"]
 
 [leanOptions]
 autoImplicit = false
@@ -12,10 +12,23 @@ maxRecDepth = 10000
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "8dd8bfb"
+rev = "0855ce1b8ed3958512b6c19de6bf3035b7acb552"
+
+[[require]]
+name = "VCVio"
+git = "https://github.com/Verified-zkEVM/VCV-io"
+rev = "cbd4144b51d92da00dd50f05e068b2348fa6e529"
+
+[[require]]
+name = "PQXDH"
+git = "https://github.com/Beneficial-AI-Foundation/PQXDH-model.git"
+rev = "f8625935808bff4a85f9a59f751dac81d03384ca"
 
 # The Aeneas translations + their shared externals (Libsignal.Translated.*) and
 # the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.
 [[lean_lib]]
 name = "Libsignal"
 srcDir = "rust"
+
+[[lean_lib]]
+name = "Protocols"
