@@ -1,0 +1,23 @@
+# Request a review from the pqxdh-bridging team when a PR gets that label.
+# pull_request_target runs this file from the default branch and never checks
+# out PR code, so it also works for PRs from forks.
+name: Request pqxdh-bridging review
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  request:
+    if: github.event.label.name == 'pqxdh-bridging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request team review
+        run: gh api --method POST "repos/$REPO/pulls/$PR/requested_reviewers" -f 'team_reviewers[]=pqxdh-bridging'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
