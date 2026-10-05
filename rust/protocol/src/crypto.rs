@@ -45,11 +45,33 @@ fn aes_256_ctr_decrypt(ctext: &[u8], key: &[u8]) -> Result<Vec<u8>, DecryptionEr
     })
 }
 
+// Keep the primitive interface byte-oriented: the extraction toolchain cannot
+// lift the generic array associated types used internally by HKDF-SHA256.
+pub(crate) fn hkdf_sha256(
+    salt: Option<&[u8]>,
+    input_key_material: &[u8],
+    info: &[u8],
+    output: &mut [u8],
+) -> Result<(), hkdf::InvalidLength> {
+    hkdf::Hkdf::<Sha256>::new(salt, input_key_material).expand(info, output)
+}
+
 pub(crate) fn hmac_sha256(key: &[u8], input: &[u8]) -> [u8; 32] {
     let _trace = libsignal_debug::trace_block!("hmac_sha256");
     let mut hmac =
         Hmac::<Sha256>::new_from_slice(key).expect("HMAC-SHA256 should accept any size key");
     hmac.update(input);
+    hmac.finalize().into_bytes().into()
+}
+
+// Feed the parts to one HMAC-SHA256 state in order: the extraction toolchain
+// cannot lift the generic array associated types of an inline incremental HMAC.
+pub(crate) fn hmac_sha256_parts(key: &[u8], parts: &[&[u8]]) -> [u8; 32] {
+    let mut hmac =
+        Hmac::<Sha256>::new_from_slice(key).expect("HMAC-SHA256 should accept any size key");
+    for part in parts {
+        hmac.update(part);
+    }
     hmac.finalize().into_bytes().into()
 }
 

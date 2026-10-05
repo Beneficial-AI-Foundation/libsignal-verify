@@ -271,12 +271,23 @@ impl KeyKind for Secret {
     }
 }
 
-#[derive(derive_more::Deref)]
+#[cfg_attr(not(feature = "extraction"), derive(derive_more::Deref))]
 #[derive_where(Clone)]
 pub(crate) struct KeyMaterial<T: KeyKind> {
-    #[deref(forward)]
+    #[cfg_attr(not(feature = "extraction"), deref(forward))]
     data: Box<[u8]>,
     kind: PhantomData<T>,
+}
+
+// The derived forward dereference triggers an Aeneas type mismatch. This
+// explicit slice coercion borrows the same bytes without changing production code.
+#[cfg(feature = "extraction")]
+impl<T: KeyKind> std::ops::Deref for KeyMaterial<T> {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &*self.data
+    }
 }
 
 impl<T: KeyKind> KeyMaterial<T> {

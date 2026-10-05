@@ -3,10 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-use hmac::{Hmac, KeyInit as _, Mac as _};
 use prost::Message;
 use rand::{CryptoRng, Rng};
-use sha2::Sha256;
 use subtle::ConstantTimeEq;
 use uuid::Uuid;
 
@@ -57,6 +55,27 @@ impl CiphertextMessage {
             CiphertextMessage::PlaintextContent(x) => x.serialized(),
         }
     }
+}
+
+// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
+// these as opaque effects. Level and message are unchanged.
+fn log_invalid_local_addresses(
+    sender_address: &ProtocolAddress,
+    recipient_address: &ProtocolAddress,
+) {
+    log::warn!(
+        "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
+        sender_address,
+        recipient_address,
+    );
+}
+
+fn log_address_mismatch(sender_address: &ProtocolAddress, recipient_address: &ProtocolAddress) {
+    log::warn!(
+        "Address mismatch: sender={}, recipient={}",
+        sender_address,
+        recipient_address,
+    );
 }
 
 #[derive(Debug, Clone)]
@@ -191,22 +210,14 @@ impl SignalMessage {
         };
 
         let Some(expected) = Self::serialize_addresses(sender_address, recipient_address) else {
-            log::warn!(
-                "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
-                sender_address,
-                recipient_address,
-            );
+            log_invalid_local_addresses(sender_address, recipient_address);
             return Ok(false);
         };
 
         if bool::from(expected.ct_eq(encoded_addresses.as_ref())) {
             Ok(true)
         } else {
-            log::warn!(
-                "Address mismatch: sender={}, recipient={}",
-                sender_address,
-                recipient_address,
-            );
+            log_address_mismatch(sender_address, recipient_address);
             Ok(false)
         }
     }
@@ -220,18 +231,15 @@ impl SignalMessage {
         if mac_key.len() != 32 {
             return Err(SignalProtocolError::InvalidMacKeyLength(mac_key.len()));
         }
-        let mut mac = Hmac::<Sha256>::new_from_slice(mac_key)
-            .expect("HMAC-SHA256 should accept any size key");
-
-        mac.update(sender_identity_key.public_key().serialize().as_ref());
-        mac.update(receiver_identity_key.public_key().serialize().as_ref());
-        mac.update(message);
-        let result = *mac
-            .finalize()
-            .into_bytes()
-            .first_chunk()
-            .expect("enough bytes");
-        Ok(result)
+        let mac = crate::crypto::hmac_sha256_parts(
+            mac_key,
+            &[
+                sender_identity_key.public_key().serialize().as_ref(),
+                receiver_identity_key.public_key().serialize().as_ref(),
+                message,
+            ],
+        );
+        Ok(*mac.first_chunk().expect("enough bytes"))
     }
 
     /// Serializes sender and recipient addresses into a single byte vector.

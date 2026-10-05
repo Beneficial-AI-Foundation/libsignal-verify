@@ -1,6 +1,6 @@
 # Extraction notes
 
-`signal-crypto` depends on `libsignal-core`. We extract both in a single Charon+Aeneas run, with `signal-crypto` as the target crate and `libsignal-core` as a transparent dependency (`--include libsignal_core`).
+Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the AES-CBC part of `signal-crypto`, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
 
 ## Public functions — signal-crypto
 
@@ -178,6 +178,31 @@ Contains:
 ### Workspace root
 
 - `Cargo.toml` — added `exclude = [".aeneas"]`
+
+### libsignal-protocol (`rust/protocol/`)
+
+`src-modifications.diff` has the full diff, including the earlier `extraction` feature gates. The changes below work around limitations of the pinned Charon/Aeneas, except the `session.rs` row, which adapts a patch carried from `main` to the refreshed upstream code. Each extraction workaround has a comment naming the limitation. None changes inputs, outputs, call order or error values. To revert one, restore the upstream form in a scratch copy and require clean Charon LLBC, Aeneas generation of the same roots, `lake build Libsignal` and the production Rust build.
+
+| Site | Change | Limitation | Revert when |
+| --- | --- | --- | --- |
+| `kem.rs` `KeyMaterial` | Under `extraction`, explicit `Deref` to `[u8]` instead of `derive_more::Deref` with `forward` | Forwarding dereference gives an Aeneas type mismatch | The derived `Deref` translates |
+| `crypto.rs` `hkdf_sha256`; callers in `pqxdh.rs`, `ratchet/keys.rs` | Byte-slice HKDF-SHA256 helper, same salt/input/info/output | Charon cannot lift HKDF's generic-array associated types under `--preset=aeneas` | `Hkdf::<Sha256>::expand` translates inline |
+| `crypto.rs` `hmac_sha256_parts`; caller `SignalMessage::compute_mac` | One HMAC-SHA256 state fed the same three parts in order | Same associated-type limitation, for incremental `Hmac` | Inline `Hmac::update` calls translate |
+| `pqxdh.rs` `pqxdh_initiate` | `encapsulate(&mut csprng)` → `encapsulate::<R>(&mut *csprng)` | For a `&mut &mut R` argument Aeneas generates an ill-typed RNG state update | The double borrow translates |
+| `double_ratchet.rs` error messages | Four literals moved to named `&str` constants with the same bytes | Aeneas loses a literal returned from a `map_err` closure ("no bottoms in the value") | Inline literals translate |
+| `double_ratchet.rs` `from_pb`/`to_pb` maps | `map(SenderChain::from_pb)` → `map(\|chain\| SenderChain::from_pb(chain))`, same for `to_pb` | Function-item arguments to `Option::map` are not translated | The function-item form translates |
+| `double_ratchet.rs` logging | The four `log!` calls in `consume_message_key` and `find_receiver_chain_index` moved into `log_duplicate_message`, `log_future_message_limit`, `log_jump_ahead` and `log_corrupt_receiver_chain`, same level and message, called at the same point | As for `triple_ratchet.rs` logging | `log!` translates inline |
+| `double_ratchet.rs` `take_skipped_key` | `MessageKeyGenerator::from_pb(key_pb).map(Some).map_err(InvalidSessionError)` moved unchanged into `skipped_key_from_pb` | `from_pb` is opaque and returns a `&'static str` error; moving it into `InvalidSessionError` hits the static-borrow defect described for `DecryptionError` | The expression translates inline |
+| `triple_ratchet.rs` error messages | Five literals (`"version does not fit in u8"`, `"encrypt"`, `"decrypt"`, `"invalid sender/receiver chain message keys"`) moved to named `&str` constants with the same bytes | As in `double_ratchet.rs`, for literals returned from closures and early returns | Inline literals translate |
+| `triple_ratchet.rs` logging | The `log::error!` in `encrypt` and the `log::warn!` in `decrypt` moved into `log_sender_chain_corrupt` / `log_receiver_chain_corrupt`, same level and message, called at the same point; log records now give the helper's line | Aeneas stops with an internal error on `log!` expansions | `log!` translates inline |
+| `triple_ratchet.rs` `address_pair` | `local_address.map(\|addr\| (addr, remote_address))` → a helper whose body is the equivalent `match` | A closure returning two borrows cannot be ended; the same `match` inline fails to join its branches | Either inline form translates |
+| `triple_ratchet.rs` `decrypt`, AES-CBC errors | `Err(BadKeyOrIv)` / `Err(BadCiphertext(msg))` arms → `Err(e) if is_bad_key_or_iv(&e)` / `Err(e)`; the message is built by `decrypt_failure_message(e)`, which matches `BadCiphertext(msg)` and formats as before. Its `BadKeyOrIv` arm is `unreachable!`, because the guard handles that variant first. | `BadCiphertext(&'static str)` comes from an opaque call; Aeneas has no loan for that static borrow, so expanding the variant or copying the field fails | Matching the variants inline translates |
+| `triple_ratchet.rs` `decrypt`, SPQR errors | `match e { StateDecode => …, _ => … }` → `if is_state_decode(&e) { … } else { … }` with the same two results | `spqr::Error` has an `InvalidParams(&'static str)` variant; matching it hits the same static-borrow defect (a crash in Aeneas's translation pass) | Same |
+| `triple_ratchet.rs` both `from_session_state` | Parameter `state` renamed `session_state` | A parameter named like the `state` module shadows it in the generated Lean ([aeneas#1098](https://github.com/AeneasVerif/aeneas/issues/1098)) | Aeneas avoids the clash |
+| `protocol.rs` logging | The two `log::warn!` calls in `SignalMessage::verify_mac_with_addresses` moved into `log_invalid_local_addresses` / `log_address_mismatch`, same level and message, called at the same point | As for `triple_ratchet.rs` logging | `log!` translates inline |
+| `session.rs` `process_prekey_impl` | `kyber_ciphertext` → `kyber_ciphertext.clone()` when building `BobSignalProtocolParameters` | Not an Aeneas limitation: `main`'s patch makes `RecipientParameters` own the Kyber ciphertext, and the refreshed upstream call site passes a borrow | `RecipientParameters` borrows the ciphertext again |
+
+The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
 
 ## Known warnings
 
