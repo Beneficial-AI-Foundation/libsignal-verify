@@ -21,10 +21,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential git curl opam pkg-config libgmp-dev protobuf-compiler
-
-      - name: Initialize opam
-        run: opam init --disable-sandboxing -y -a
+          sudo apt-get install -y build-essential git curl python3 pkg-config libgmp-dev protobuf-compiler
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -34,16 +31,35 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Check installer TypeScript
+        run: npm run typecheck
+
+      - name: Select pinned installation
+        id: installation
+        run: |
+          node --import tsx --input-type=module <<'JS' >> "$GITHUB_OUTPUT"
+          import { loadConfig } from './scripts/lib/config.ts';
+          const { config } = loadConfig();
+          console.log(`mode=${config.aeneas.mode}`);
+          console.log(`identity=${config.aeneas.mode === 'release' ? config.aeneas.release.tag : config.aeneas.commit}`);
+          JS
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache OCaml environment
+      # Source builds need opam. Release mode uses prebuilt Aeneas/Charon tools.
+      - name: Initialize source-build dependencies
+        if: steps.installation.outputs.mode == 'source'
+        run: |
+          sudo apt-get install -y opam
+          opam init --disable-sandboxing -y -a
+
+      - name: Cache OCaml environment (source mode only)
+        if: steps.installation.outputs.mode == 'source'
         uses: actions/cache@v5
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-v1
-          restore-keys: |
-            ${{ runner.os }}-opam-
+          key: ${{ runner.os }}-${{ runner.arch }}-opam-v1-${{ steps.installation.outputs.identity }}
 
       - name: Cache Rust build artifacts
         uses: actions/cache@v5
@@ -57,16 +73,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Cache Aeneas build
+      - name: Cache pinned paired installation
         uses: actions/cache@v5
         with:
-          path: .aeneas
-          key: ${{ runner.os }}-aeneas-${{ hashFiles('rust/aeneas-config.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-aeneas-
+          path: |
+            .aeneas/releases
+            .aeneas/sources
+          key: ${{ runner.os }}-${{ runner.arch }}-aeneas-v1-${{ steps.installation.outputs.mode }}-${{ steps.installation.outputs.identity }}-${{ hashFiles('rust/aeneas-config.yml') }}
 
-      - name: Install Aeneas
-        run: npm run aeneas-install
+      - name: Install Aeneas (explicit selected mode)
+        run: npm run aeneas-install -- --${{ steps.installation.outputs.mode }}
 
       - name: Extract to Lean
         run: npm run aeneas-extract
