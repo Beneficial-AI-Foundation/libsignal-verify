@@ -44,6 +44,9 @@ export function warnUnmatchedTweaks(
   const unmatched: string[] = [];
   for (let i = 0; i < substitutions.length; i++) {
     if (allMatched.has(i)) continue;
+    if (substitutions[i].required) {
+      throw new Error(`Required representation mapping #${i + 1} did not match generated output`);
+    }
     const pattern = substitutions[i].find ?? substitutions[i].regex ?? "";
     const preview = pattern.length > 60 ? pattern.substring(0, 60) + "..." : pattern;
     unmatched.push(`Substitution #${i + 1} not found in any file: "${preview}"`);

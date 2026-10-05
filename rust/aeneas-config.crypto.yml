@@ -42,6 +42,7 @@ charon:
 aeneas_args:
   options:
     - split-files
+    - emit-json
   dest: "rust"
   subdir: "Libsignal/Translated/Crypto"
 
