@@ -19,11 +19,6 @@ name = "VCVio"
 git = "https://github.com/Verified-zkEVM/VCV-io"
 rev = "cbd4144b51d92da00dd50f05e068b2348fa6e529"
 
-[[require]]
-name = "PQXDH"
-git = "https://github.com/Beneficial-AI-Foundation/PQXDH-model.git"
-rev = "f8625935808bff4a85f9a59f751dac81d03384ca"
-
 # The Aeneas translations + their shared externals (Libsignal.Translated.*) and
 # the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.
 [[lean_lib]]
