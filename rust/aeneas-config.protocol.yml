@@ -353,6 +353,12 @@ tweaks:
       replace: "-- rand_core_1.RngCore: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
     - regex: '/-- Trait declaration: \[rand_core#1::CryptoRng\]\n[\s\S]*?\n\n'
       replace: "-- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
+    - find: |
+        @[rust_trait "rand#1::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
+        structure rand_1.rng.Rng (Self : Type) where
+          rand_core_1RngCoreInst : rand_core_1.RngCore Self
+      replace: "abbrev rand_1.rng.Rng := _root_.rand.rng.Rng\n"
+      required: true
     # signal_crypto AES-CBC error types: the crypto-cbc profile owns them, and
     # Protocol reuses its AES-CBC externals. The declaration body is matched
     # exactly, so a change in the generated shape fails the extraction.

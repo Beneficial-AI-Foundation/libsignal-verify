@@ -37,9 +37,7 @@ structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 17:4-17:34
     Name pattern: [derive_more::convert::try_from::TryFromReprError]
     Visibility: public -/
-@[rust_type "derive_more::convert::try_from::TryFromReprError"]
-structure derive_more.convert.try_from.TryFromReprError (T : Type) where
-  input : T
+abbrev derive_more.convert.try_from.TryFromReprError := _root_.derive_more.convert.try_from.TryFromReprError
 
 /-- Trait declaration: [rand_core#1::RngCore]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 130:0-130:17
@@ -51,9 +49,7 @@ abbrev rand_core_1.RngCore := _root_.rand_core_1.RngCore
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
     Name pattern: [rand::rng::Rng]
     Visibility: public -/
-@[rust_trait "rand::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
-structure rand.rng.Rng (Self : Type) where
-  rand_core_1RngCoreInst : rand_core_1.RngCore Self
+abbrev rand.rng.Rng := _root_.rand.rng.Rng
 
 /-- Trait declaration: [rand_core#1::CryptoRng]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 204:0-204:28

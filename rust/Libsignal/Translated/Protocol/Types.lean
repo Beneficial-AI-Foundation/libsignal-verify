@@ -73,9 +73,7 @@ def hkdf.errors.InvalidLength := Unit
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
     Name pattern: [rand#1::rng::Rng]
     Visibility: public -/
-@[rust_trait "rand#1::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
-structure rand_1.rng.Rng (Self : Type) where
-  rand_core_1RngCoreInst : rand_core_1.RngCore Self
+abbrev rand_1.rng.Rng := _root_.rand.rng.Rng
 
 -- libsignal_core.curve.KeyPair: from Libsignal.Translated.Core.
 

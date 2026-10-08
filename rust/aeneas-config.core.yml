@@ -117,6 +117,18 @@ tweaks:
           RngCoreInst : rand_core_1.RngCore Self
       replace: "abbrev rand_core_1.CryptoRng := _root_.rand_core_1.CryptoRng\n"
       required: true
+    - find: |
+        @[rust_trait "rand::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
+        structure rand.rng.Rng (Self : Type) where
+          rand_core_1RngCoreInst : rand_core_1.RngCore Self
+      replace: "abbrev rand.rng.Rng := _root_.rand.rng.Rng\n"
+      required: true
+    - find: |
+        @[rust_type "derive_more::convert::try_from::TryFromReprError"]
+        structure derive_more.convert.try_from.TryFromReprError (T : Type) where
+          input : T
+      replace: "abbrev derive_more.convert.try_from.TryFromReprError := _root_.derive_more.convert.try_from.TryFromReprError\n"
+      required: true
 
     # Duplicate parentClauses name: core::num::nonzero::ZeroablePrimitive gets two
     # `markerCopyInst` fields (Copy Self and Copy Self_NonZeroInner). Rename the 2nd
