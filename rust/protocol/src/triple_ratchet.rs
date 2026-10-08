@@ -24,6 +24,62 @@ use crate::{
     SignalProtocolError,
 };
 
+// Named messages: Aeneas loses a string literal returned from a closure or an
+// early return ("There should be no bottoms in the value").
+const VERSION_DOES_NOT_FIT_IN_U8: &str = "version does not fit in u8";
+const ENCRYPT_OPERATION: &str = "encrypt";
+const DECRYPT_OPERATION: &str = "decrypt";
+const INVALID_SENDER_CHAIN_MESSAGE_KEYS: &str = "invalid sender chain message keys";
+const INVALID_RECEIVER_CHAIN_MESSAGE_KEYS: &str = "invalid receiver chain message keys";
+
+// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
+// these as opaque effects. Level and message are unchanged.
+fn log_sender_chain_corrupt(remote_address: &ProtocolAddress) {
+    log::error!("session state corrupt for {remote_address}");
+}
+
+fn log_receiver_chain_corrupt(
+    current_or_previous: CurrentOrPrevious,
+    sender_address: &ProtocolAddress,
+) {
+    log::warn!("{current_or_previous} session state corrupt for {sender_address}");
+}
+
+// Pair the addresses in a helper: Aeneas cannot end the borrows of a closure
+// returning two references, nor join the branches of an inline match.
+fn address_pair<'a>(
+    local_address: Option<&'a ProtocolAddress>,
+    remote_address: &'a ProtocolAddress,
+) -> Option<(&'a ProtocolAddress, &'a ProtocolAddress)> {
+    match local_address {
+        Some(addr) => Some((addr, remote_address)),
+        None => None,
+    }
+}
+
+// Inspect `DecryptionError` only in helpers: its `BadCiphertext(&'static str)`
+// field comes from an opaque call, and Aeneas has no loan for that static
+// borrow when the variant is expanded or the field copied.
+fn is_bad_key_or_iv(error: &signal_crypto::DecryptionError) -> bool {
+    matches!(error, signal_crypto::DecryptionError::BadKeyOrIv)
+}
+
+// Callers pass only `BadCiphertext` (the other variant is tested first).
+fn decrypt_failure_message(error: signal_crypto::DecryptionError) -> String {
+    match error {
+        signal_crypto::DecryptionError::BadCiphertext(msg) => format!("failed to decrypt: {msg}"),
+        signal_crypto::DecryptionError::BadKeyOrIv => {
+            unreachable!("callers pass only BadCiphertext")
+        }
+    }
+}
+
+// Test the variant in a helper: matching `spqr::Error` expands its
+// `InvalidParams(&'static str)` variant, which Aeneas cannot translate.
+fn is_state_decode(error: &spqr::Error) -> bool {
+    matches!(error, spqr::Error::StateDecode)
+}
+
 /// Sender-side Triple Ratchet session.
 ///
 /// This is intentionally narrower than [`TripleRatchet`]: encrypt only
@@ -49,28 +105,27 @@ pub(crate) struct OutgoingTripleRatchet {
 }
 
 impl OutgoingTripleRatchet {
-    pub(crate) fn from_session_state(state: &mut SessionState) -> Result<Self> {
+    // `session_state`, not `state`: a parameter named like the `state` module
+    // shadows it in the generated Lean (aeneas#1098).
+    pub(crate) fn from_session_state(session_state: &mut SessionState) -> Result<Self> {
         let sender_ratchet_key = KeyPair {
-            public_key: state.sender_ratchet_key()?,
-            private_key: state.sender_ratchet_private_key()?,
+            public_key: session_state.sender_ratchet_key()?,
+            private_key: session_state.sender_ratchet_private_key()?,
         };
-        let sender_chain_key = state.get_sender_chain_key()?;
-        let pqr_state = state.take_pq_ratchet_state();
-        let session_version: u8 = state.session_version()?.try_into().map_err(|_| {
-            SignalProtocolError::InvalidSessionStructure("version does not fit in u8")
+        let sender_chain_key = session_state.get_sender_chain_key()?;
+        let pqr_state = session_state.take_pq_ratchet_state();
+        let session_version: u8 = session_state.session_version()?.try_into().map_err(|_| {
+            SignalProtocolError::InvalidSessionStructure(VERSION_DOES_NOT_FIT_IN_U8)
         })?;
-        let local_identity_key = state.local_identity_key()?;
-        let remote_identity_key =
-            state
-                .remote_identity_key()?
-                .ok_or(SignalProtocolError::InvalidSessionStructure(
-                    "missing remote identity key",
-                ))?;
+        let local_identity_key = session_state.local_identity_key()?;
+        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
+            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
+        )?;
 
         Ok(Self {
             sender_ratchet_key,
             sender_chain_key,
-            previous_counter: state.previous_counter(),
+            previous_counter: session_state.previous_counter(),
             pqr_state,
             session_version,
             local_identity_key,
@@ -96,7 +151,7 @@ impl OutgoingTripleRatchet {
             msg: pqr_msg,
         } = spqr::send(&self.pqr_state, csprng).map_err(|e| {
             SignalProtocolError::InvalidState(
-                "encrypt",
+                ENCRYPT_OPERATION,
                 format!("post-quantum ratchet send error: {e}"),
             )
         })?;
@@ -109,11 +164,11 @@ impl OutgoingTripleRatchet {
             message_keys.iv(),
         )
         .map_err(|_| {
-            log::error!("session state corrupt for {remote_address}");
-            SignalProtocolError::InvalidSessionStructure("invalid sender chain message keys")
+            log_sender_chain_corrupt(remote_address);
+            SignalProtocolError::InvalidSessionStructure(INVALID_SENDER_CHAIN_MESSAGE_KEYS)
         })?;
 
-        let addresses = local_address.map(|addr| (addr, remote_address));
+        let addresses = address_pair(local_address, remote_address);
 
         let message = SignalMessage::new(
             self.session_version,
@@ -173,16 +228,17 @@ impl TripleRatchet {
     /// Fails if the session is missing required fields (root key, identity
     /// keys, etc.). The caller should map the error appropriately for the
     /// context (e.g., "no session available to decrypt").
-    pub(crate) fn from_session_state(state: &mut SessionState, self_session: bool) -> Result<Self> {
-        let ratchet = state.take_ratchet_state(self_session)?;
-        let pqr_state = state.take_pq_ratchet_state();
-        let local_identity_key = state.local_identity_key()?;
-        let remote_identity_key =
-            state
-                .remote_identity_key()?
-                .ok_or(SignalProtocolError::InvalidSessionStructure(
-                    "missing remote identity key",
-                ))?;
+    // `session_state`, not `state`: see `OutgoingTripleRatchet::from_session_state`.
+    pub(crate) fn from_session_state(
+        session_state: &mut SessionState,
+        self_session: bool,
+    ) -> Result<Self> {
+        let ratchet = session_state.take_ratchet_state(self_session)?;
+        let pqr_state = session_state.take_pq_ratchet_state();
+        let local_identity_key = session_state.local_identity_key()?;
+        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
+            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
+        )?;
 
         Ok(Self {
             ratchet,
@@ -239,15 +295,18 @@ impl TripleRatchet {
         let spqr::Recv {
             state: new_pqr_state,
             key: pqr_key,
-        } = spqr::recv(&self.pqr_state, ciphertext.pq_ratchet()).map_err(|e| match e {
-            spqr::Error::StateDecode => SignalProtocolError::InvalidState(
-                "decrypt",
-                format!("post-quantum ratchet error: {e}"),
-            ),
-            _ => SignalProtocolError::InvalidMessage(
-                original_message_type,
-                format!("post-quantum ratchet error: {e}"),
-            ),
+        } = spqr::recv(&self.pqr_state, ciphertext.pq_ratchet()).map_err(|e| {
+            if is_state_decode(&e) {
+                SignalProtocolError::InvalidState(
+                    DECRYPT_OPERATION,
+                    format!("post-quantum ratchet error: {e}"),
+                )
+            } else {
+                SignalProtocolError::InvalidMessage(
+                    original_message_type,
+                    format!("post-quantum ratchet error: {e}"),
+                )
+            }
         })?;
 
         // Derive final message keys by mixing DR chain key with SPQR key
@@ -275,18 +334,17 @@ impl TripleRatchet {
             message_keys.iv(),
         ) {
             Ok(ptext) => ptext,
-            Err(signal_crypto::DecryptionError::BadKeyOrIv) => {
-                log::warn!(
-                    "{current_or_previous_for_logging} session state corrupt for {sender_address}",
-                );
+            // The guard tests the variant without expanding the error here.
+            Err(decryption_error) if is_bad_key_or_iv(&decryption_error) => {
+                log_receiver_chain_corrupt(current_or_previous_for_logging, sender_address);
                 return Err(SignalProtocolError::InvalidSessionStructure(
-                    "invalid receiver chain message keys",
+                    INVALID_RECEIVER_CHAIN_MESSAGE_KEYS,
                 ));
             }
-            Err(signal_crypto::DecryptionError::BadCiphertext(msg)) => {
+            Err(decryption_error) => {
                 return Err(SignalProtocolError::InvalidMessage(
                     original_message_type,
-                    format!("failed to decrypt: {msg}"),
+                    decrypt_failure_message(decryption_error),
                 ));
             }
         };

@@ -30,6 +30,17 @@ pub fn insert_checked<T: Debug + Eq>(dst: &mut BTreeMap<String, T>, k: String, v
     }
 }
 
+pub fn remove_all_checked<T: Debug + Eq>(
+    remove_from: &mut BTreeMap<String, T>,
+    if_in: &BTreeMap<String, T>,
+) {
+    for (k, v) in if_in.iter() {
+        if let Some(v2) = remove_from.remove(k) {
+            assert_eq!(v, &v2, "key={k:?}");
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct Struct<FieldType> {
     pub is_tuple: bool,
@@ -51,6 +62,14 @@ pub type NiceType = String;
 pub enum StructOrEnum<FieldType> {
     Struct(Struct<FieldType>),
     Enum(Enum<FieldType>),
+}
+
+#[derive(From, Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct DerivedType<FieldType> {
+    /// If present, don't actually emit a nice type. Use the provided type instead.
+    pub nice_type: Option<String>,
+    #[serde(flatten)]
+    pub body: StructOrEnum<FieldType>,
 }
 
 #[cfg(feature = "node")]
@@ -93,9 +112,9 @@ pub mod node {
         pub bridge_traits: BTreeMap<String, Vec<BridgeTraitFunction>>,
         pub nice_functions: BTreeMap<String, NiceFunction>,
 
-        pub derived_types: BTreeMap<String, StructOrEnum<NiceType>>,
-        pub derived_return_converters: BTreeMap<String, StructOrEnum<TsReturnConverter>>,
-        pub derived_arg_converters: BTreeMap<String, StructOrEnum<TsArgConverter>>,
+        pub derived_types: BTreeMap<String, DerivedType<NiceType>>,
+        pub derived_return_converters: BTreeMap<String, DerivedType<TsReturnConverter>>,
+        pub derived_arg_converters: BTreeMap<String, DerivedType<TsArgConverter>>,
     }
 
     #[derive(Debug, Clone, Serialize)]
@@ -218,12 +237,14 @@ pub mod jni {
 
     use super::*;
 
-    #[derive(Debug, Clone, Serialize)]
+    #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
     pub struct KtArgConverter {
         /// What's the high-level kotlin type?
         pub nice_type: String,
         /// What's the low-level kotlin type that gets passed to native?
         pub ffi_type: String,
+        /// What's the kotlin spelling of the type that this type erases to (for a field lookup)
+        pub ffi_field_type_erased: String,
         /// What function should be used to convert between the types?
         ///
         /// This will be invoked like `<converter_function>(my_value)`. As a result, instance
@@ -231,7 +252,7 @@ pub mod jni {
         /// like `(Object::toString)(my_value)`.
         pub converter_function: String,
     }
-    #[derive(Debug, Clone, Serialize)]
+    #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
     pub struct KtReturnConverter {
         /// What's the high-level kotlin type?
         pub nice_type: String,
@@ -253,9 +274,23 @@ pub mod jni {
         pub return_type: KtReturnConverter,
     }
 
+    #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+    pub struct JniFunction {
+        pub is_throwing: bool,
+        /// `(argument name, kotlin type)`
+        pub args: Vec<(String, String)>,
+        /// Kotlin result type
+        pub result: String,
+    }
+
     #[derive(Debug, Clone, Serialize, Default)]
     pub struct KtMetadataContext {
+        pub jni_functions: BTreeMap<String, JniFunction>,
         pub nice_functions: BTreeMap<String, NiceFunction>,
+
+        pub derived_types: BTreeMap<String, DerivedType<NiceType>>,
+        pub derived_return_converters: BTreeMap<String, DerivedType<KtReturnConverter>>,
+        pub derived_arg_converters: BTreeMap<String, DerivedType<KtArgConverter>>,
     }
 
     /// These functions should mutate the attached [KtMetadataContext] to register their item.
@@ -300,96 +335,20 @@ pub mod jni {
 }
 
 #[cfg(feature = "ffi")]
-pub mod ffi {
-    use std::collections::BTreeMap;
-
-    use serde::Serialize;
-
-    use super::*;
-
-    #[derive(Debug, Clone, Serialize, PartialEq, PartialOrd, Ord, Eq, Hash)]
-    pub struct SwiftArgConverter {
-        /// What's the high-level swift type?
-        pub nice_type: String,
-        /// What's the type which implements the Swift `ArgConverter` protocol
-        pub converter_type: String,
-    }
-    #[derive(Debug, Clone, Serialize, PartialEq, PartialOrd, Ord, Eq, Hash)]
-    pub struct SwiftReturnConverter {
-        /// What's the high-level swift type?
-        pub nice_type: String,
-        /// What's the type which implements the Swift `ResultConverter` protocol
-        pub converter_type: String,
-    }
-
-    #[derive(Debug, Clone, Serialize)]
-    pub struct NiceFunction {
-        pub is_tokio_async: bool,
-        /// (name, type)
-        pub arguments: Vec<(String, SwiftArgConverter)>,
-        pub return_type: SwiftReturnConverter,
-    }
-
-    #[derive(Debug, Clone, Serialize, Default)]
-    pub struct SwiftMetadataContext {
-        pub nice_functions: BTreeMap<String, NiceFunction>,
-
-        pub derived_types: BTreeMap<String, StructOrEnum<NiceType>>,
-        pub derived_return_converters: BTreeMap<String, StructOrEnum<SwiftReturnConverter>>,
-        pub derived_arg_converters: BTreeMap<String, StructOrEnum<SwiftArgConverter>>,
-    }
-
-    /// These functions should mutate the attached [SwiftMetadataContext] to register their item.
-    #[distributed_slice]
-    pub static FFI_ITEMS: [FnWithModule<SwiftMetadataContext>];
-
-    pub mod result_type_helper {
-        use std::marker::PhantomData;
-
-        use derive_where::derive_where;
-
-        use super::*;
-        use crate::ffi::NiceResultConverter;
-
-        #[derive_where(Default)]
-        pub struct ResultMetadataTransformHelper<T>(PhantomData<T>);
-        impl<T: NiceResultConverter> ResultMetadataTransformHelper<T> {
-            pub fn register_swift_result_converter(
-                &self,
-                ctx: &mut SwiftMetadataContext,
-            ) -> SwiftReturnConverter {
-                T::register_swift_result_converter(ctx)
-            }
-        }
-        pub trait ResultMetadataTransformHelperTraitConverter {
-            fn register_swift_result_converter(
-                &self,
-                ctx: &mut SwiftMetadataContext,
-            ) -> SwiftReturnConverter;
-        }
-        impl<T: NiceResultConverter, E> ResultMetadataTransformHelperTraitConverter
-            for ResultMetadataTransformHelper<Result<T, E>>
-        {
-            fn register_swift_result_converter(
-                &self,
-                ctx: &mut SwiftMetadataContext,
-            ) -> SwiftReturnConverter {
-                T::register_swift_result_converter(ctx)
-            }
-        }
-    }
-    pub mod names {
-        pub fn return_converter(ty: &str) -> String {
-            format!("DerivedReturnConverter{ty}")
-        }
-        pub fn arg_converter(ty: &str) -> String {
-            format!("DerivedArgConverter{ty}")
-        }
-    }
-}
+pub mod ffi;
 
 pub struct FnWithModule<Ctx> {
     /// The module the function is defined in
     pub module_path: &'static str,
     pub apply: fn(&mut Ctx),
+}
+
+pub fn preserve_underscores(
+    inner: impl Fn(&str) -> String + 'static,
+) -> impl Fn(String) -> String + 'static {
+    move |x| {
+        let x_sans_underscore = x.trim_start_matches('_');
+        let core = inner(x_sans_underscore);
+        format!("{}{core}", &x[0..(x.len() - x_sans_underscore.len())])
+    }
 }

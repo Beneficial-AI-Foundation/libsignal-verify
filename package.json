@@ -7,6 +7,9 @@
     "aeneas-extract:protocol": "tsx scripts/aeneas-extract.ts protocol",
     "aeneas-extract:core": "tsx scripts/aeneas-extract.ts core",
     "aeneas-extract:crypto": "tsx scripts/aeneas-extract.ts crypto",
+    "aeneas-extract:crypto-cbc": "tsx scripts/aeneas-extract.ts crypto-cbc",
+    "aeneas-extract:crypto-full": "tsx scripts/aeneas-extract.ts crypto-full",
+    "aeneas-extract:ratchet-state": "tsx scripts/aeneas-extract.ts ratchet-state",
     "aeneas-extract:all": "tsx scripts/aeneas-extract.ts",
     "src-diff": "tsx scripts/src-diff.ts",
     "typecheck": "tsc --noEmit"

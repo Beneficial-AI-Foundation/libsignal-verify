@@ -6,12 +6,38 @@
 # arg to `npm run aeneas-extract`, e.g. `npm run aeneas-extract:protocol`.
 
 aeneas:
-  commit: "8dd8bfb"
+  # The executable and Lake/Lean backend must use the same release revision.
+  mode: release
+  commit: "0855ce1b8ed3958512b6c19de6bf3035b7acb552"
   repo: "https://github.com/AeneasVerif/aeneas.git"
+  release:
+    tag: "nightly-2026.09.30-0855ce1"
+    commit: "0855ce1b8ed3958512b6c19de6bf3035b7acb552"
+    charon_commit: "e435e5f341863a49a7e85d2fee9988bc0c687c82"
+    lean: "leanprover/lean4:v4.31.0"
+    rust_channel: "nightly-2026-09-17"
+    assets:
+      darwin-arm64:
+        name: "aeneas-macos-aarch64.tar.gz"
+        sha256: "b5a53f40691cb30871fe100e7d516c98eca9e8f6b52a288bb87242a259810db6"
+      linux-x64:
+        name: "aeneas-linux-x86_64.tar.gz"
+        sha256: "87ab6015ee15633495e65ccaab4f6a6577eda098599e00419f5d05f1faed5fdd"
+      linux-arm64:
+        name: "aeneas-linux-aarch64.tar.gz"
+        sha256: "17a90fd730332866d0d841cabc74032b2775aef3d3dc39f0f6442c2c30651d31"
 
 upstream:
   repo: "https://github.com/signalapp/libsignal"
-  commit: "65eac5e"
+  commit: "e8cc2dddd578859b4a029c9c94670b24ce2b616a"
+
+charon:
+  # Use the distributed Rust sysroot rather than rebuilding std with full MIR.
+  sysroot: default
+
+aeneas_args:
+  # Match the import format of the maintained external models and specifications.
+  use_lean_modules: false
 
 crate:
   dir: "rust"

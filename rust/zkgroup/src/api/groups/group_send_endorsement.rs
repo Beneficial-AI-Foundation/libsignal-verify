@@ -20,16 +20,14 @@ use rayon::iter::{IndexedParallelIterator as _, ParallelIterator as _};
 use serde::{Deserialize, Serialize};
 use zkcredential::attributes::Attribute as _;
 
+use crate::api::endorsement_expiration;
 use crate::common::array_utils;
 use crate::common::serialization::ReservedByte;
 use crate::crypto::uid_encryption;
 use crate::groups::{GroupSecretParams, UuidCiphertext};
 use crate::{
-    RandomnessBytes, SECONDS_PER_DAY, Timestamp, ZkGroupDeserializationFailure,
-    ZkGroupVerificationFailure, crypto,
+    RandomnessBytes, Timestamp, ZkGroupDeserializationFailure, ZkGroupVerificationFailure, crypto,
 };
-
-const SECONDS_PER_HOUR: u64 = 60 * 60;
 
 /// A key pair used to sign endorsements for a particular expiration.
 ///
@@ -78,15 +76,7 @@ pub struct GroupSendEndorsementsResponse {
 
 impl GroupSendEndorsementsResponse {
     pub fn default_expiration(current_time: Timestamp) -> Timestamp {
-        // Return the end of the next day, unless that's less than 25 hours away.
-        // In that case, return the end of the following day.
-        let current_time_in_seconds = current_time.epoch_seconds();
-        let start_of_day = current_time_in_seconds - (current_time_in_seconds % SECONDS_PER_DAY);
-        let mut expiration = start_of_day + 2 * SECONDS_PER_DAY;
-        if (expiration - current_time_in_seconds) < SECONDS_PER_DAY + SECONDS_PER_HOUR {
-            expiration += SECONDS_PER_DAY;
-        }
-        Timestamp::from_epoch_seconds(expiration)
+        endorsement_expiration::default_expiration(current_time)
     }
 
     /// Sorts `points` in *some* deterministic order based on the contents of each `RistrettoPoint`.
@@ -95,9 +85,9 @@ impl GroupSendEndorsementsResponse {
     /// it.
     ///
     /// The `usize` in each pair must be the original index of the point.
-    fn sort_points(points: &mut [(usize, curve25519_dalek_signal::RistrettoPoint)]) {
+    fn sort_points(points: &mut [(usize, curve25519_dalek::RistrettoPoint)]) {
         debug_assert!(points.iter().enumerate().all(|(i, (j, _))| i == *j));
-        let sort_keys = curve25519_dalek_signal::RistrettoPoint::double_and_compress_batch(
+        let sort_keys = curve25519_dalek::RistrettoPoint::double_and_compress_batch(
             points.iter().map(|(_i, point)| point),
         );
         points.sort_unstable_by_key(|(i, _point)| sort_keys[*i].as_bytes());
@@ -114,12 +104,11 @@ impl GroupSendEndorsementsResponse {
         // Note: we could save some work here by pulling the single point we need out of the
         // serialized bytes, and operating directly on that. However, we'd have to remember to
         // update that if the serialization format ever changes.
-        let mut points_to_sign: Vec<(usize, curve25519_dalek_signal::RistrettoPoint)> =
-            member_ciphertexts
-                .into_iter()
-                .map(|ciphertext| ciphertext.ciphertext.as_points()[0])
-                .enumerate()
-                .collect();
+        let mut points_to_sign: Vec<(usize, curve25519_dalek::RistrettoPoint)> = member_ciphertexts
+            .into_iter()
+            .map(|ciphertext| ciphertext.ciphertext.as_points()[0])
+            .enumerate()
+            .collect();
         Self::sort_points(&mut points_to_sign);
 
         let endorsements = zkcredential::endorsements::EndorsementResponse::issue(
@@ -156,23 +145,7 @@ impl GroupSendEndorsementsResponse {
         root_public_key: impl AsRef<zkcredential::endorsements::ServerRootPublicKey>,
     ) -> Result<zkcredential::endorsements::ServerDerivedPublicKey, ZkGroupVerificationFailure>
     {
-        if !self.expiration.is_day_aligned() {
-            // Reject credentials that don't expire on a day boundary,
-            // because the server might be trying to fingerprint us.
-            return Err(ZkGroupVerificationFailure);
-        }
-        let time_remaining_in_seconds = self.expiration.saturating_seconds_since(now);
-        if time_remaining_in_seconds < 2 * SECONDS_PER_HOUR {
-            // Reject credentials that expire in less than two hours,
-            // including those that might expire in the past.
-            // Two hours allows for clock skew plus incorrect summer time settings (+/- 1 hour).
-            return Err(ZkGroupVerificationFailure);
-        }
-        if time_remaining_in_seconds > 7 * SECONDS_PER_DAY {
-            // Reject credentials with expirations more than 7 days from now,
-            // because the server might be trying to fingerprint us.
-            return Err(ZkGroupVerificationFailure);
-        }
+        endorsement_expiration::validate_expiration(self.expiration, now)?;
 
         Ok(root_public_key
             .as_ref()
@@ -198,7 +171,7 @@ impl GroupSendEndorsementsResponse {
         // would be much more expensive).
         // We zip the results together with a set of indexes so we can un-sort the results later.
         let uid_sho_seed = crypto::uid_struct::UidStruct::seed_M1();
-        let mut member_points: Vec<(usize, curve25519_dalek_signal::RistrettoPoint)> = user_ids
+        let mut member_points: Vec<(usize, curve25519_dalek::RistrettoPoint)> = user_ids
             .into_iter()
             .map(|user_id| {
                 group_params.uid_enc_key_pair.a1
@@ -259,7 +232,7 @@ impl GroupSendEndorsementsResponse {
         // would be much more expensive).
         // We zip the results together with a set of indexes so we can un-sort the results later.
         let uid_sho_seed = crypto::uid_struct::UidStruct::seed_M1();
-        let mut member_points: Vec<(usize, curve25519_dalek_signal::RistrettoPoint)> = user_ids
+        let mut member_points: Vec<(usize, curve25519_dalek::RistrettoPoint)> = user_ids
             .into_par_iter()
             .map(|user_id| {
                 group_params.uid_enc_key_pair.a1
@@ -349,18 +322,18 @@ impl GroupSendEndorsementsResponse {
 
 /// A single endorsement, for one or multiple group members.
 ///
-/// `Storage` is usually [`curve25519_dalek_signal::RistrettoPoint`], but the `receive` APIs on
+/// `Storage` is usually [`curve25519_dalek::RistrettoPoint`], but the `receive` APIs on
 /// [`GroupSendEndorsementsResponse`] produce "compressed" endorsements, since they are usually
 /// immediately serialized.
 #[derive(Serialize, Deserialize, PartialDefault, Clone, Copy)]
-#[partial_default(bound = "Storage: curve25519_dalek_signal::traits::Identity")]
+#[partial_default(bound = "Storage: curve25519_dalek::traits::Identity")]
 #[derive_where(PartialEq; Storage: subtle::ConstantTimeEq)]
-pub struct GroupSendEndorsement<Storage = curve25519_dalek_signal::RistrettoPoint> {
+pub struct GroupSendEndorsement<Storage = curve25519_dalek::RistrettoPoint> {
     reserved: ReservedByte,
     endorsement: zkcredential::endorsements::Endorsement<Storage>,
 }
 
-impl Debug for GroupSendEndorsement<curve25519_dalek_signal::RistrettoPoint> {
+impl Debug for GroupSendEndorsement<curve25519_dalek::RistrettoPoint> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("GroupSendEndorsement")
             .field("reserved", &self.reserved)
@@ -369,7 +342,7 @@ impl Debug for GroupSendEndorsement<curve25519_dalek_signal::RistrettoPoint> {
     }
 }
 
-impl Debug for GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistretto> {
+impl Debug for GroupSendEndorsement<curve25519_dalek::ristretto::CompressedRistretto> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("GroupSendEndorsement")
             .field("reserved", &self.reserved)
@@ -397,11 +370,11 @@ pub struct ReceivedEndorsement {
     // existing memory allocation isn't sufficient anyway, and thus we're better off constructing a
     // single big Vec rather than two smaller ones, especially since we have to un-permute the
     // results. (It's close, though, only a 3-6% difference at the largest group sizes.)
-    pub compressed: GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistretto>,
+    pub compressed: GroupSendEndorsement<curve25519_dalek::ristretto::CompressedRistretto>,
     pub decompressed: GroupSendEndorsement,
 }
 
-impl GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistretto> {
+impl GroupSendEndorsement<curve25519_dalek::ristretto::CompressedRistretto> {
     /// Attempts to decompress the GroupSendEndorsement.
     ///
     /// Produces [`ZkGroupDeserializationFailure`] if the compressed storage isn't a valid
@@ -411,10 +384,8 @@ impl GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistrett
     /// `GroupSendEndorsement<CompressedRistretto>` and then calling `decompress`.
     pub fn decompress(
         self,
-    ) -> Result<
-        GroupSendEndorsement<curve25519_dalek_signal::RistrettoPoint>,
-        ZkGroupDeserializationFailure,
-    > {
+    ) -> Result<GroupSendEndorsement<curve25519_dalek::RistrettoPoint>, ZkGroupDeserializationFailure>
+    {
         Ok(GroupSendEndorsement {
             reserved: self.reserved,
             endorsement: self
@@ -425,14 +396,14 @@ impl GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistrett
     }
 }
 
-impl GroupSendEndorsement<curve25519_dalek_signal::RistrettoPoint> {
+impl GroupSendEndorsement<curve25519_dalek::RistrettoPoint> {
     /// Compresses the GroupSendEndorsement for storage.
     ///
     /// Serializing an `GroupSendEndorsement<RistrettoPoint>` is equivalent to calling `compress` and
     /// serializing the resulting `GroupSendEndorsement<CompressedRistretto>`.
     pub fn compress(
         self,
-    ) -> GroupSendEndorsement<curve25519_dalek_signal::ristretto::CompressedRistretto> {
+    ) -> GroupSendEndorsement<curve25519_dalek::ristretto::CompressedRistretto> {
         GroupSendEndorsement {
             reserved: self.reserved,
             endorsement: self.endorsement.compress(),
@@ -579,7 +550,7 @@ impl GroupSendFullToken {
         );
 
         let uid_sho_seed = crypto::uid_struct::UidStruct::seed_M1();
-        let user_id_sum: curve25519_dalek_signal::RistrettoPoint = user_ids
+        let user_id_sum: curve25519_dalek::RistrettoPoint = user_ids
             .into_iter()
             .map(|user_id| crypto::uid_struct::UidStruct::calc_M1(uid_sho_seed.clone(), user_id))
             .sum();

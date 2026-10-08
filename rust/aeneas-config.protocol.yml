@@ -164,6 +164,8 @@ charon:
     # the libsignal_debug::trace_block! macro. Axiomatic crypto leaves.
     - "libsignal_protocol::crypto::aes_256_ctr_encrypt"
     - "libsignal_protocol::crypto::hmac_sha256"
+    - "libsignal_protocol::crypto::hmac_sha256_parts"      # ordered byte-part primitive boundary
+    - "libsignal_protocol::crypto::hkdf_sha256"            # byte-oriented primitive boundary
     - "libsignal_protocol::crypto::aes256_ctr_hmacsha256_decrypt"
     # libsignal-protocol::ratchet — HKDF chain/message-key derivation (crypto
     # leaves), plus from_pb which returns Result<_, &'static str> (Aeneas
@@ -206,17 +208,19 @@ charon:
     - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
     # state::bundle — PreKeyBundle builder
     - "libsignal_protocol::state::bundle::_::modify"
-    # double_ratchet — protobuf (de)serialization (&str Err / format), pulled by
-    # state::session take/apply_ratchet_state.
-    - "libsignal_protocol::double_ratchet::_::from_pb"
-    - "libsignal_protocol::double_ratchet::_::apply_to_pb"
-    - "libsignal_protocol::double_ratchet::_::consume_message_key"        # log!/&str
-    - "libsignal_protocol::double_ratchet::_::take_skipped_key"           # log!/closure
-    - "libsignal_protocol::double_ratchet::_::find_receiver_chain_index"  # .position() closure w/ deserialize
-    # triple_ratchet — AES-CBC + SPQR + MAC + format!/log!/&str (crypto-heavy)
-    - "libsignal_protocol::triple_ratchet::_::from_session_state"
-    - "libsignal_protocol::triple_ratchet::_::encrypt"
-    - "libsignal_protocol::triple_ratchet::_::decrypt"
+    # double_ratchet — logging helpers only (Aeneas fails on log! expansions).
+    - "libsignal_protocol::double_ratchet::log_duplicate_message"
+    - "libsignal_protocol::double_ratchet::log_future_message_limit"
+    - "libsignal_protocol::double_ratchet::log_jump_ahead"
+    - "libsignal_protocol::double_ratchet::log_corrupt_receiver_chain"
+    - "libsignal_protocol::double_ratchet::skipped_key_from_pb"  # moves a &'static str from an opaque call
+    # triple_ratchet — logging helpers only (Aeneas fails on log! expansions);
+    # encrypt/decrypt and from_session_state are transparent.
+    - "libsignal_protocol::triple_ratchet::log_sender_chain_corrupt"
+    - "libsignal_protocol::triple_ratchet::log_receiver_chain_corrupt"
+    - "libsignal_protocol::triple_ratchet::is_bad_key_or_iv"         # matches DecryptionError (&'static str field)
+    - "libsignal_protocol::triple_ratchet::decrypt_failure_message"  # reads that &'static str field
+    - "libsignal_protocol::triple_ratchet::is_state_decode"          # matches spqr::Error (has a &'static str variant)
     # fingerprint — protobuf decode + Error::ParsingError(&str) + ct_eq + Display
     - "libsignal_protocol::fingerprint::_::deserialize"
     - "libsignal_protocol::fingerprint::_::compare"
@@ -236,16 +240,12 @@ charon:
     - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
     - "libsignal_protocol::sender_keys::_::add_sender_key_state"
     - "libsignal_protocol::sender_keys::_::new"  # slow: Index<RangeFull> trait-proof recursion (charon a535e914)
-    # protocol — message MAC/signature verify (crypto), kyber_ciphertext accessor
+    # protocol — signature verify (crypto), kyber_ciphertext accessor
     # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
     # free fns.
-    # compute_mac: HMAC-SHA256 over a slice built with `&buf[..]` (Index<RangeFull>);
-    # charon's trait-proof recursion on it ran ~50min and crashed the run. Crypto
-    # leaf → opaque. (Same Index<RangeFull> blowup as get_fingerprint.)
-    - "libsignal_protocol::protocol::_::compute_mac"
-    - "libsignal_protocol::protocol::_::verify_mac"
-    - "libsignal_protocol::protocol::_::verify_mac_with_addresses"
     - "libsignal_protocol::protocol::_::verify_signature"
+    - "libsignal_protocol::protocol::log_invalid_local_addresses"  # log::warn!
+    - "libsignal_protocol::protocol::log_address_mismatch"         # log::warn!
     - "libsignal_protocol::protocol::_::kyber_ciphertext"
     - "libsignal_protocol::protocol::_::try_from"
     - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
@@ -326,6 +326,7 @@ charon:
 aeneas_args:
   options:
     - split-files
+    - emit-json
   dest: "rust"
   subdir: "Libsignal/Translated/Protocol"
 
@@ -352,8 +353,21 @@ tweaks:
       replace: "-- rand_core_1.RngCore: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
     - regex: '/-- Trait declaration: \[rand_core#1::CryptoRng\]\n[\s\S]*?\n\n'
       replace: "-- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
-    - regex: '/-- Trait declaration: \[rand::rng::Rng\]\n[\s\S]*?\n\n'
-      replace: "-- rand.rng.Rng: shared root def in Libsignal.Translated.Shared.Rand.\n\n"
+    - find: |
+        @[rust_trait "rand#1::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
+        structure rand_1.rng.Rng (Self : Type) where
+          rand_core_1RngCoreInst : rand_core_1.RngCore Self
+      replace: "abbrev rand_1.rng.Rng := _root_.rand.rng.Rng\n"
+      required: true
+    # signal_crypto AES-CBC error types: the crypto-cbc profile owns them, and
+    # Protocol reuses its AES-CBC externals. The declaration body is matched
+    # exactly, so a change in the generated shape fails the extraction.
+    - regex: '/-- \[signal_crypto::aes_cbc::EncryptionError\]\n(?:    [^\n]*\n)*?@\[discriminant isize, rust_type "signal_crypto::aes_cbc::EncryptionError"\]\ninductive signal_crypto\.aes_cbc\.EncryptionError where\n\| BadKeyOrIv : signal_crypto\.aes_cbc\.EncryptionError\n'
+      replace: "-- signal_crypto.aes_cbc.EncryptionError: from Libsignal.Translated.Crypto.\n"
+      required: true
+    - regex: '/-- \[signal_crypto::aes_cbc::DecryptionError\]\n(?:    [^\n]*\n)*?@\[discriminant isize, rust_type "signal_crypto::aes_cbc::DecryptionError"\]\ninductive signal_crypto\.aes_cbc\.DecryptionError where\n\| BadKeyOrIv : signal_crypto\.aes_cbc\.DecryptionError\n\| BadCiphertext : Str → signal_crypto\.aes_cbc\.DecryptionError\n'
+      replace: "-- signal_crypto.aes_cbc.DecryptionError: from Libsignal.Translated.Crypto.\n"
+      required: true
     - regex: '/-- \[derive_more::convert::try_from::TryFromReprError\]\n[\s\S]*?\n\n'
       replace: "-- derive_more...TryFromReprError: shared root def in Libsignal.Translated.Shared.DeriveMore.\n\n"
     # ProtocolAddress.name/device_id: core models these as struct FIELDS, but protocol's
@@ -374,8 +388,8 @@ tweaks:
         set_option linter.style.whitespace false
         set_option linter.style.nameCheck false
 
-    # Normalize absolute build paths in Source comments so they are reproducible across machines
-    - regex: "Source: '[^']*/target/[^']*/out/"
+    # Normalize generated protobuf source paths across build-cache locations.
+    - regex: "Source: '[^']*/out/"
       replace: "Source: 'target/out/"
 
     # KeyPairSerde has two `KeySerde` parent clauses (one per associated type,
@@ -410,28 +424,6 @@ tweaks:
     - regex: 'KeySerdeInst\.serialize(\s+)(k1|pk1|t1)\b'
       replace: 'PrivateKey.serialize$1$2'
 
-    # Forward-reference (a SECOND, distinct Aeneas bug): the combining `@[reducible]`
-    # GenericSignedPreKey trait instance is emitted AFTER the method defs that
-    # reference it, so projections of its parent-clause / convert fields
-    # (`<Instance>.KeyPairSerdeInst`, `.coreconvert{From,Into}Self_IdU32Inst`) are
-    # "Unknown constant". Fix: replace each forward projection with the field's
-    # DIRECT value (which is defined earlier in the file). NOTE: the bare instance
-    # passed to deserialize's map_err closure can't be substituted this way (it needs
-    # the whole instance, i.e. a reorder) — that one is handled separately.
-    # (No upstream issue found for the instance-after-methods ordering; describe here.)
-    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.KeyPairSerdeInst"
-      replace: "kem.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdeKeyPublicKeySecret"
-    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.KeyPairSerdeInst"
-      replace: "libsignal_core.curve.KeyPair.Insts.Libsignal_protocolStateSigned_prekeyKeyPairSerdePublicKeyPrivateKey"
-    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertFromSelf_IdU32Inst"
-      replace: "state.kyber_prekey.KyberPreKeyId.Insts.CoreConvertFromU32"
-    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertFromSelf_IdU32Inst"
-      replace: "state.signed_prekey.SignedPreKeyId.Insts.CoreConvertFromU32"
-    - find: "state.kyber_prekey.KyberPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairKyberPreKeyIdKeyPublicKeySecret.coreconvertIntoSelf_IdU32Inst"
-      replace: "(core.convert.IntoFrom U32.Insts.CoreConvertFromKyberPreKeyId)"
-    - find: "state.signed_prekey.SignedPreKeyRecord.Insts.Libsignal_protocolStateSigned_prekeyGenericSignedPreKeyKeyPairSignedPreKeyIdPublicKeyPrivateKey.coreconvertIntoSelf_IdU32Inst"
-      replace: "(core.convert.IntoFrom U32.Insts.CoreConvertFromSignedPreKeyId)"
-
     # Namespace/parameter shadowing: a fn parameter named like a module
     # (`identity_key`, `timestamp`, `state`) shadows that module, so Aeneas's
     # fully-qualified `module.Type.method` references parse as field-projection on
@@ -462,24 +454,6 @@ tweaks:
       replace: "_root_.libsignal_protocol.state.session.SessionState.set_pq_ratchet_state state1"
     - find: "state.session.SessionState.apply_ratchet_state state"
       replace: "_root_.libsignal_protocol.state.session.SessionState.apply_ratchet_state state"
-
-    # #961 (call-site manifestation), REVERT WHEN FIXED UPSTREAM. pqxdh_initiate calls
-    # `encapsulate(&mut csprng)`; Aeneas wraps the RNG in `CryptoRng.Blanket (… DerefMut R)`
-    # and destructures a TRIPLE `(r, csprng1, encapsulate_back)` with a spurious `&mut`
-    # writeback — but `kem.KeyPublic.encapsulate` takes `R` by value and returns a PAIR
-    # `(result × R)`, so destructuring 3 from 2 gives "expected a product type, got R" (3059).
-    # Calculated correct form: pass the CryptoRng instance directly, destructure a pair,
-    # and use the returned `csprng1` (which IS the writeback) — dropping `encapsulate_back`.
-    # This rewrites pqxdh_initiate's body (verification target), so REVERT once
-    # https://github.com/AeneasVerif/aeneas/issues/961 lands (regeneration will be correct).
-    - regex: '\(rand_core_1\.CryptoRng\.Blanket\s+\(Mut0T\.Insts\.CoreOpsDerefDerefMut R\) rand_core_1CryptoRngInst\)'
-      replace: 'rand_core_1CryptoRngInst'
-    - find: "(r3, csprng1, encapsulate_back)"
-      replace: "(r3, csprng1)"
-    - find: "(r4, csprng1, encapsulate_back)"
-      replace: "(r4, csprng1)"
-    - find: "encapsulate_back csprng1"
-      replace: "csprng1"
 
     # `core.ops.deref.DerefVec` has an IMPLICIT type param in the Aeneas base
     # (`DerefVec {T : Type} : Deref (Vec T) (Slice T)`), but Aeneas emits the call

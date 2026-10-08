@@ -79,9 +79,7 @@ impl HandshakeKeys {
 
     fn derive_with_label(label: &[u8], secret_input: &[u8]) -> Self {
         let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
-            hkdf::Hkdf::<sha2::Sha256>::new(None, secret_input)
-                .expand(label, bytes)
-                .expect("valid length")
+            crate::crypto::hkdf_sha256(None, secret_input, label, bytes).expect("valid length")
         });
 
         Self {
@@ -196,7 +194,7 @@ impl InitiatorParameters {
 /// to produce keys ready for ratchet initialization.
 pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
     parameters: &InitiatorParameters,
-    mut csprng: &mut R,
+    csprng: &mut R,
 ) -> Result<InitiatorAgreement> {
     let mut secrets = Vec::with_capacity(32 * 6);
 
@@ -227,7 +225,11 @@ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
     }
 
     let kyber_ciphertext = {
-        let (ss, ct) = parameters.their_kyber_pre_key.encapsulate(&mut csprng)?;
+        // Explicit reborrow: for `&mut csprng` (a `&mut &mut R`) Aeneas
+        // generates an ill-typed RNG state update.
+        let (ss, ct) = parameters
+            .their_kyber_pre_key
+            .encapsulate::<R>(&mut *csprng)?;
         secrets.extend_from_slice(ss.as_ref());
         ct
     };

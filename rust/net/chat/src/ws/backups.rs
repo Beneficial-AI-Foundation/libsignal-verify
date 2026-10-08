@@ -59,7 +59,7 @@ impl<T: WsConnection> crate::api::backups::UnauthenticatedChatApi<OverWs> for Un
 
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 "/v1/archives/upload/form",
                 Request {
                     method: http::Method::GET,
@@ -107,7 +107,7 @@ impl<T: WsConnection> crate::api::backups::UnauthenticatedChatApi<OverWs> for Un
         let path = format!("/v1/archives/media/upload/form?uploadLength={upload_size}");
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &path,
                 Request {
                     method: http::Method::GET,
@@ -173,14 +173,14 @@ mod test {
                     (
                         BackupAuthPresentation::AUTH_HEADER_NAME,
                         http::HeaderValue::try_from(
-                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_PRESENTATION),
+                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_TEST_PRESENTATION),
                         )
                         .expect("valid"),
                     ),
                     (
                         BackupAuthPresentation::SIGNATURE_HEADER_NAME,
                         http::HeaderValue::try_from(
-                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_SIGNATURE),
+                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_TEST_SIGNATURE),
                         )
                         .expect("valid"),
                     ),
@@ -231,14 +231,14 @@ mod test {
                     (
                         BackupAuthPresentation::AUTH_HEADER_NAME,
                         http::HeaderValue::try_from(
-                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_PRESENTATION),
+                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_TEST_PRESENTATION),
                         )
                         .expect("valid"),
                     ),
                     (
                         BackupAuthPresentation::SIGNATURE_HEADER_NAME,
                         http::HeaderValue::try_from(
-                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_SIGNATURE),
+                            BASE64_STANDARD.encode(BackupAuth::EXPECTED_TEST_SIGNATURE),
                         )
                         .expect("valid"),
                     ),

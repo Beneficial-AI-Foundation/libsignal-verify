@@ -79,6 +79,7 @@ charon:
 aeneas_args:
   options:
     - split-files
+    - emit-json
   dest: "rust"
   subdir: "Libsignal/Translated/Core"
 
@@ -101,32 +102,42 @@ tweaks:
     - regex: "Source: '[^']*/target/[^']*/out/"
       replace: "Source: 'target/out/"
 
-    # Third-party trait/type decls that Aeneas emits under the local crate namespace
-    # (`libsignal_core.*`). They are defined ONCE at root in Libsignal.Translated.Shared/ and
-    # imported; strip the namespaced duplicate here so relative uses (and function
-    # signatures) resolve to the single root def. Regex matches doc-header → trailing
-    # blank line. See [[per-crate-extraction-plan]] / Libsignal.Translated.Shared.
-    - regex: '/-- Trait declaration: \[rand_core#1::RngCore\]\n[\s\S]*?\n\n'
-      replace: "-- rand_core_1.RngCore: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
-    - regex: '/-- Trait declaration: \[rand_core#1::CryptoRng\]\n[\s\S]*?\n\n'
-      replace: "-- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
-    - regex: '/-- Trait declaration: \[rand::rng::Rng\]\n[\s\S]*?\n\n'
-      replace: "-- rand.rng.Rng: shared root def in Libsignal.Translated.Shared.Rand.\n\n"
-    - regex: '/-- \[derive_more::convert::try_from::TryFromReprError\]\n[\s\S]*?\n\n'
-      replace: "-- derive_more...TryFromReprError: shared root def in Libsignal.Translated.Shared.DeriveMore.\n\n"
-
-    # Scalar Eq generates = (Prop) instead of == (Bool); DeviceId::new validation.
-    # https://github.com/AeneasVerif/aeneas/issues/920
-    - find: "then ok (i = 127#u8)"
-      replace: "then ok (i == 127#u8)"
+    # Identical RNG records share one provider; exact fields must match.
+    - find: |
+        @[rust_trait "rand_core#1::RngCore"]
+        structure rand_core_1.RngCore (Self : Type) where
+          next_u32 : Self → Result (Std.U32 × Self)
+          next_u64 : Self → Result (Std.U64 × Self)
+          fill_bytes : Self → Slice Std.U8 → Result (Self × (Slice Std.U8))
+      replace: "abbrev rand_core_1.RngCore := _root_.rand_core_1.RngCore\n"
+      required: true
+    - find: |
+        @[rust_trait "rand_core#1::CryptoRng" (parentClauses := ["RngCoreInst"])]
+        structure rand_core_1.CryptoRng (Self : Type) where
+          RngCoreInst : rand_core_1.RngCore Self
+      replace: "abbrev rand_core_1.CryptoRng := _root_.rand_core_1.CryptoRng\n"
+      required: true
+    - find: |
+        @[rust_trait "rand::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
+        structure rand.rng.Rng (Self : Type) where
+          rand_core_1RngCoreInst : rand_core_1.RngCore Self
+      replace: "abbrev rand.rng.Rng := _root_.rand.rng.Rng\n"
+      required: true
+    - find: |
+        @[rust_type "derive_more::convert::try_from::TryFromReprError"]
+        structure derive_more.convert.try_from.TryFromReprError (T : Type) where
+          input : T
+      replace: "abbrev derive_more.convert.try_from.TryFromReprError := _root_.derive_more.convert.try_from.TryFromReprError\n"
+      required: true
 
     # Duplicate parentClauses name: core::num::nonzero::ZeroablePrimitive gets two
     # `markerCopyInst` fields (Copy Self and Copy Self_NonZeroInner). Rename the 2nd
     # in the structure decl, its parentClauses attr, and the NonZeroU8/U64Inner
     # instances. No projections reference it, so the rename is sound.
     # https://github.com/AeneasVerif/aeneas/issues/1051
-    - find: '["markerCopyInst", "privateSealedInst", "markerCopyInst"]'
-      replace: '["markerCopyInst", "privateSealedInst", "markerCopyInst1"]'
+    - find: '["markerCopyInst", "markerCopyInst"]'
+      replace: '["markerCopyInst", "markerCopyInst1"]'
+      required: true
     - find: "markerCopyInst : core.marker.Copy Self_NonZeroInner"
       replace: "markerCopyInst1 : core.marker.Copy Self_NonZeroInner"
     - find: "markerCopyInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy"

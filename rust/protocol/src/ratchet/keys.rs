@@ -104,9 +104,13 @@ impl MessageKeys {
     ) -> Self {
         let _trace = libsignal_debug::trace_block!("MessageKeys::derive_keys");
         let (cipher_key, mac_key, iv) = derive_arrays(|okm| {
-            hkdf::Hkdf::<sha2::Sha256>::new(optional_salt, input_key_material)
-                .expand(b"WhisperMessageKeys", okm)
-                .expect("valid output length")
+            crate::crypto::hkdf_sha256(
+                optional_salt,
+                input_key_material,
+                b"WhisperMessageKeys",
+                okm,
+            )
+            .expect("valid output length")
         });
 
         MessageKeys {
@@ -203,8 +207,7 @@ impl RootKey {
     ) -> Result<(RootKey, ChainKey)> {
         let shared_secret = our_ratchet_key.calculate_agreement(their_ratchet_key)?;
         let (root_key, chain_key, []) = derive_arrays(|bytes| {
-            hkdf::Hkdf::<sha2::Sha256>::new(Some(&self.key), &shared_secret)
-                .expand(b"WhisperRatchet", bytes)
+            crate::crypto::hkdf_sha256(Some(&self.key), &shared_secret, b"WhisperRatchet", bytes)
                 .expect("valid output length")
         });
 

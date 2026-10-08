@@ -67,6 +67,8 @@ theorem service_id_binary_spec
       (∀ aci, self = .Aci aci → result.val = aci.uuid.bytes.val) ∧
       (∀ pni, self = .Pni pni → alloc.vec.Vec.index_usize result 0#usize = ok 1#u8) ⦄ := by
   unfold service_id_binary uuid.Uuid.as_bytes
-  step* <;> simp_all [Array.index_usize, alloc.vec.Vec.index_usize]
+  step* <;> simp_all [Array.index_usize, alloc.vec.Vec.index_usize, alloc.vec.Vec.val]
+  simp only [getElem?]
+  simp_all [alloc.vec.Vec.val]
 
 end libsignal_core.address.ServiceId

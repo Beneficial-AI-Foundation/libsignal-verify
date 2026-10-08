@@ -10,6 +10,9 @@ set_option linter.style.longLine false
 set_option linter.style.setOption false
 set_option linter.style.whitespace false
 set_option linter.style.nameCheck false
+set_option linter.style.whitespace false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -19,14 +22,6 @@ set_option maxRecDepth 2048
 
 namespace libsignal_protocol
 
-/-- Trait declaration: [core::convert::AsRef]
-    Source: '/rustc/library/core/src/convert/mod.rs', lines 219:0-219:52
-    Name pattern: [core::convert::AsRef]
-    Visibility: public -/
-@[rust_trait "core::convert::AsRef"]
-structure core.convert.AsRef (Self : Type) (T : Type) where
-  as_ref : Self → Result T
-
 /-- [core::marker::PhantomData]
     Source: '/rustc/library/core/src/marker.rs', lines 811:0-811:39
     Name pattern: [core::marker::PhantomData]
@@ -34,15 +29,8 @@ structure core.convert.AsRef (Self : Type) (T : Type) where
 @[reducible, rust_type "core::marker::PhantomData"]
 def core.marker.PhantomData (T : Type) := Unit
 
-/-- [core::ops::range::RangeFull]
-    Source: '/rustc/library/core/src/ops/range.rs', lines 44:0-44:20
-    Name pattern: [core::ops::range::RangeFull]
-    Visibility: public -/
-@[reducible, rust_type "core::ops::range::RangeFull"]
-def core.ops.range.RangeFull := Unit
-
 /-- Trait declaration: [bytes::buf::buf_impl::Buf]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_impl.rs', lines 117:0-117:13
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_impl.rs', lines 122:0-122:13
     Name pattern: [bytes::buf::buf_impl::Buf]
     Visibility: public -/
 @[rust_trait "bytes::buf::buf_impl::Buf"]
@@ -52,7 +40,7 @@ structure bytes.buf.buf_impl.Buf (Self : Type) where
   advance : Self → Std.Usize → Result Self
 
 /-- Trait declaration: [bytes::buf::buf_mut::BufMut]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/buf/buf_mut.rs', lines 30:0-30:23
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_mut.rs', lines 30:0-30:23
     Name pattern: [bytes::buf::buf_mut::BufMut]
     Visibility: public -/
 @[rust_trait "bytes::buf::buf_mut::BufMut"]
@@ -64,6 +52,13 @@ structure bytes.buf.buf_mut.BufMut (Self : Type) where
 
 -- derive_more...TryFromReprError: shared root def in Libsignal.Translated.Shared.DeriveMore.
 
+/-- [hkdf::errors::InvalidLength]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.13.0/src/errors.rs', lines 17:0-17:24
+    Name pattern: [hkdf::errors::InvalidLength]
+    Visibility: public -/
+@[reducible, rust_type "hkdf::errors::InvalidLength"]
+def hkdf.errors.InvalidLength := Unit
+
 -- libsignal_core.address.ServiceId: from Libsignal.Translated.Core.
 
 -- libsignal_core.curve.KeyType: from Libsignal.Translated.Core.
@@ -74,19 +69,59 @@ structure bytes.buf.buf_mut.BufMut (Self : Type) where
 
 -- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.
 
--- rand.rng.Rng: shared root def in Libsignal.Translated.Shared.Rand.
+/-- Trait declaration: [rand#1::rng::Rng]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 58:0-58:22
+    Name pattern: [rand#1::rng::Rng]
+    Visibility: public -/
+abbrev rand_1.rng.Rng := _root_.rand.rng.Rng
 
 -- libsignal_core.curve.KeyPair: from Libsignal.Translated.Core.
 
+/-- [prost::encoding::wire_type::WireType]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/encoding/wire_type.rs', lines 8:0-8:17
+    Name pattern: [prost::encoding::wire_type::WireType]
+    Visibility: public -/
+@[discriminant u8, rust_type "prost::encoding::wire_type::WireType"]
+inductive prost.encoding.wire_type.WireType where
+| Varint : prost.encoding.wire_type.WireType
+| SixtyFourBit : prost.encoding.wire_type.WireType
+| LengthDelimited : prost.encoding.wire_type.WireType
+| StartGroup : prost.encoding.wire_type.WireType
+| EndGroup : prost.encoding.wire_type.WireType
+| ThirtyTwoBit : prost.encoding.wire_type.WireType
+
+/-- Trait declaration: [prost::message::Message]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prost-0.14.4/src/message.rs', lines 15:0-15:30
+    Name pattern: [prost::message::Message]
+    Visibility: public -/
+@[rust_trait "prost::message::Message"]
+structure prost.message.Message (Self : Type) where
+  encode_raw : forall {T1 : Type} (bytesbufbuf_mutBufMutInst :
+    bytes.buf.buf_mut.BufMut T1), Self → T1 → Result T1
+  merge_field : forall {T1 : Type} (bytesbufbuf_implBufInst :
+    bytes.buf.buf_impl.Buf T1), Self → Std.U32 →
+    prost.encoding.wire_type.WireType → T1 → prost.encoding.DecodeContext
+    → Result ((core.result.Result Unit prost.error.DecodeError) × Self ×
+    T1)
+  encoded_len : Self → Result Std.Usize
+  encode : forall {T1 : Type} (bytesbufbuf_mutBufMutInst :
+    bytes.buf.buf_mut.BufMut T1), Self → T1 → Result ((core.result.Result
+    Unit prost.error.EncodeError) × T1)
+  encode_to_vec : Self → Result (alloc.vec.Vec Std.U8)
+  decode : forall {T1 : Type} (coredefaultDefaultInst : core.default.Default
+    Self) (bytesbufbuf_implBufInst : bytes.buf.buf_impl.Buf T1), T1 → Result
+    (core.result.Result Self prost.error.DecodeError)
+  clear : Self → Result Self
+
 /-- [rand_core#1::UnwrapErr]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 298:0-298:35
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 298:0-298:35
     Name pattern: [rand_core#1::UnwrapErr]
     Visibility: public -/
 @[reducible, rust_type "rand_core#1::UnwrapErr"]
 def rand_core_1.UnwrapErr (R : Type) (Clause0_Error : Type) := R
 
 /-- Trait declaration: [rand_core#1::TryRngCore]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 220:0-220:20
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 220:0-220:20
     Name pattern: [rand_core#1::TryRngCore]
     Visibility: public -/
 @[rust_trait "rand_core#1::TryRngCore"
@@ -103,7 +138,7 @@ structure rand_core_1.TryRngCore (Self : Type) (Self_Error : Type) where
   unwrap_err : Self → Result (rand_core_1.UnwrapErr Self Self_Error)
 
 /-- Trait declaration: [rand_core#1::TryCryptoRng]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/lib.rs', lines 291:0-291:34
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 291:0-291:34
     Name pattern: [rand_core#1::TryCryptoRng]
     Visibility: public -/
 @[rust_trait "rand_core#1::TryCryptoRng" (parentClauses := ["TryRngCoreInst"])]
@@ -112,14 +147,18 @@ structure rand_core_1.TryCryptoRng (Self : Type) (Self_Clause0_Error : Type)
   TryRngCoreInst : rand_core_1.TryRngCore Self Self_Clause0_Error
 
 /-- [rand_core#1::os::OsRng]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.3/src/os.rs', lines 47:0-47:16
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/os.rs', lines 47:0-47:16
     Name pattern: [rand_core#1::os::OsRng]
     Visibility: public -/
 @[reducible, rust_type "rand_core#1::os::OsRng"]
 def rand_core_1.os.OsRng := Unit
 
+-- signal_crypto.aes_cbc.EncryptionError: from Libsignal.Translated.Crypto.
+
+-- signal_crypto.aes_cbc.DecryptionError: from Libsignal.Translated.Crypto.
+
 /-- [spqr::chain::ChainParams]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/chain.rs', lines 17:0-17:22
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 17:0-17:22
     Name pattern: [spqr::chain::ChainParams]
     Visibility: public -/
 @[rust_type "spqr::chain::ChainParams"]
@@ -128,7 +167,7 @@ structure spqr.chain.ChainParams where
   max_ooo_keys : Std.U32
 
 /-- [spqr::encoding::polynomial::PolynomialError]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/encoding/polynomial.rs', lines 13:0-13:24
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/encoding/polynomial.rs', lines 17:0-17:24
     Name pattern: [spqr::encoding::polynomial::PolynomialError]
     Visibility: public -/
 @[discriminant isize, rust_type "spqr::encoding::polynomial::PolynomialError"]
@@ -138,7 +177,7 @@ inductive spqr.encoding.polynomial.PolynomialError where
 | SerializationInvalid : spqr.encoding.polynomial.PolynomialError
 
 /-- [spqr::encoding::EncodingError]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/encoding.rs', lines 9:0-9:22
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/encoding.rs', lines 9:0-9:22
     Name pattern: [spqr::encoding::EncodingError]
     Visibility: public -/
 @[discriminant isize, rust_type "spqr::encoding::EncodingError"]
@@ -168,7 +207,7 @@ inductive spqr.proto.pq_ratchet.Version where
 | V1 : spqr.proto.pq_ratchet.Version
 
 /-- [spqr::Params]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/lib.rs', lines 54:0-54:21
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 55:0-55:21
     Name pattern: [spqr::Params]
     Visibility: public -/
 @[rust_type "spqr::Params"]
@@ -180,7 +219,7 @@ structure spqr.Params where
   chain_params : spqr.chain.ChainParams
 
 /-- [spqr::serialize::Error]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/serialize.rs', lines 7:0-7:14
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/serialize.rs', lines 7:0-7:14
     Name pattern: [spqr::serialize::Error]
     Visibility: public -/
 @[discriminant isize, rust_type "spqr::serialize::Error"]
@@ -189,7 +228,7 @@ inductive spqr.serialize.Error where
 | EncodingDecoding : spqr.serialize.Error
 
 /-- [spqr::Error]
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/f2589fe/src/lib.rs', lines 96:0-96:14
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 97:0-97:14
     Name pattern: [spqr::Error]
     Visibility: public -/
 @[discriminant isize, rust_type "spqr::Error"]
@@ -210,6 +249,33 @@ inductive spqr.Error where
 | SendKeyEpochDecreased : Std.U64 → Std.U64 → spqr.Error
 | InvalidParams : Str → spqr.Error
 | ChainNotAvailable : spqr.Error
+
+/-- [spqr::Send]
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 242:0-242:15
+    Name pattern: [spqr::Send]
+    Visibility: public -/
+@[rust_type "spqr::Send"]
+structure spqr.Send where
+  state : alloc.vec.Vec Std.U8
+  msg : alloc.vec.Vec Std.U8
+  key : Option (alloc.vec.Vec Std.U8)
+
+/-- [spqr::Recv]
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 327:0-327:15
+    Name pattern: [spqr::Recv]
+    Visibility: public -/
+@[rust_type "spqr::Recv"]
+structure spqr.Recv where
+  state : alloc.vec.Vec Std.U8
+  key : Option (alloc.vec.Vec Std.U8)
+
+/-- Trait declaration: [subtle::ConstantTimeEq]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 262:0-262:24
+    Name pattern: [subtle::ConstantTimeEq]
+    Visibility: public -/
+@[rust_trait "subtle::ConstantTimeEq"]
+structure subtle.ConstantTimeEq (Self : Type) where
+  ct_eq : Self → Self → Result subtle.Choice
 
 /-- [libsignal_protocol::proto::fingerprint::LogicalFingerprint]
     Source: 'target/out/signal.proto.fingerprint.rs', lines 3:0-7:1
@@ -422,18 +488,18 @@ inductive crypto.DecryptionError where
 | BadKeyOrIv : crypto.DecryptionError
 | BadCiphertext : Str → crypto.DecryptionError
 
-/-- [libsignal_protocol::crypto::aes_256_ctr_decrypt::closure]
+/-- [libsignal_protocol::crypto::aes_256_ctr_decrypt::{closure}]
     Source: 'rust/protocol/src/crypto.rs', lines 43:44-45:5 -/
 @[reducible]
 def crypto.aes_256_ctr_decrypt.closure := Unit
 
 /-- [libsignal_protocol::ratchet::keys::RootKey]
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 186:0-188:1 -/
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 190:0-192:1 -/
 structure ratchet.keys.RootKey where
   key : Array Std.U8 32#usize
 
 /-- [libsignal_protocol::ratchet::keys::ChainKey]
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 142:0-145:1 -/
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 146:0-149:1 -/
 structure ratchet.keys.ChainKey where
   key : Array Std.U8 32#usize
   index : Std.U32
@@ -458,8 +524,55 @@ structure double_ratchet.RatchetState where
 @[reducible]
 def state.session.InvalidSessionError := Str
 
+/-- [libsignal_protocol::ratchet::keys::MessageKeys]
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 92:0-97:1 -/
+structure ratchet.keys.MessageKeys where
+  cipher_key : Array Std.U8 32#usize
+  mac_key : Array Std.U8 32#usize
+  iv : Array Std.U8 16#usize
+  counter : Std.U32
+
+/-- [libsignal_protocol::ratchet::keys::MessageKeyGenerator]
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 14:0-17:1 -/
+@[discriminant isize]
+inductive ratchet.keys.MessageKeyGenerator where
+| Keys : ratchet.keys.MessageKeys → ratchet.keys.MessageKeyGenerator
+| Seed :
+  ((alloc.vec.Vec Std.U8) × Std.U32) →
+  ratchet.keys.MessageKeyGenerator
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::ratchet::keys::ChainKey}::from_pb::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 210:21-210:63 -/
+@[reducible]
+def double_ratchet.ChainKey.from_pb.closure := Unit
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::SenderChain}::from_pb::{closure#1}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 176:21-176:80 -/
+@[reducible]
+def double_ratchet.SenderChain.from_pb.closure_1 := Unit
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::SenderChain}::from_pb::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 174:21-174:79 -/
+@[reducible]
+def double_ratchet.SenderChain.from_pb.closure := Unit
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 133:17-133:52 -/
+@[reducible]
+def double_ratchet.RatchetState.from_pb.closure_1 := Unit
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 126:21-126:62 -/
+@[reducible]
+def double_ratchet.RatchetState.from_pb.closure := Unit
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 165:56-165:89 -/
+@[reducible]
+def double_ratchet.RatchetState.apply_to_pb.closure := Unit
+
 /-- [libsignal_protocol::protocol::CiphertextMessageType]
-    Source: 'rust/protocol/src/protocol.rs', lines 35:0-40:1
+    Source: 'rust/protocol/src/protocol.rs', lines 33:0-38:1
     Visibility: public -/
 @[discriminant u8 [2,3,7,8]]
 inductive protocol.CiphertextMessageType where
@@ -538,22 +651,21 @@ inductive error.SignalProtocolError where
   Std.Usize →
   error.SignalProtocolError
 
-/-- [libsignal_protocol::ratchet::keys::MessageKeys]
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 92:0-97:1 -/
-structure ratchet.keys.MessageKeys where
-  cipher_key : Array Std.U8 32#usize
-  mac_key : Array Std.U8 32#usize
-  iv : Array Std.U8 16#usize
-  counter : Std.U32
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+@[reducible]
+def double_ratchet.RatchetState.find_receiver_chain_index.closure :=
+  libsignal_core.curve.PublicKey
 
-/-- [libsignal_protocol::ratchet::keys::MessageKeyGenerator]
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 14:0-17:1 -/
-@[discriminant isize]
-inductive ratchet.keys.MessageKeyGenerator where
-| Keys : ratchet.keys.MessageKeys → ratchet.keys.MessageKeyGenerator
-| Seed :
-  ((alloc.vec.Vec Std.U8) × Std.U32) →
-  ratchet.keys.MessageKeyGenerator
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+@[reducible]
+def double_ratchet.RatchetState.take_skipped_key.closure := Std.U32
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::consume_message_key::{closure}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 269:28-272:17 -/
+def double_ratchet.RatchetState.consume_message_key.closure :=
+  Str × Std.U32 × Std.U32
 
 /-- Trait declaration: [libsignal_protocol::fingerprint::_::DisplayToDisplayDoc]
     Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
@@ -609,7 +721,7 @@ structure identity_key.IdentityKeyPair where
   identity_key : identity_key.IdentityKey
   private_key : libsignal_core.curve.PrivateKey
 
-/-- [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::closure]
+/-- [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{closure}]
     Source: 'rust/protocol/src/identity_key.rs', lines 186:21-186:69 -/
 @[reducible]
 def identity_key.TryFromIdentityKeyPairShared0SliceU8SignalProtocolError.try_from.closure
@@ -651,29 +763,29 @@ structure kem.KeyKind (Self : Type) where
   key_length : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::Key]
-    Source: 'rust/protocol/src/kem.rs', lines 304:0-307:1
+    Source: 'rust/protocol/src/kem.rs', lines 315:0-318:1
     Visibility: public -/
 structure kem.Key (T : Type) where
   key_type : kem.KeyType
   key_data : kem.KeyMaterial T
 
 /-- [libsignal_protocol::kem::Ciphertext]
-    Source: 'rust/protocol/src/kem.rs', lines 501:0-504:1 -/
+    Source: 'rust/protocol/src/kem.rs', lines 512:0-515:1 -/
 structure kem.Ciphertext where
   key_type : kem.KeyType
   data : Slice Std.U8
 
-/-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::closure]
-    Source: 'rust/protocol/src/kem.rs', lines 362:21-364:13 -/
+/-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::{closure}]
+    Source: 'rust/protocol/src/kem.rs', lines 373:21-375:13 -/
 @[reducible]
 def kem.KeyPublic.encapsulate.closure (R : Type) := kem.Key kem.Public
 
-/-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>}::decapsulate::closure]
-    Source: 'rust/protocol/src/kem.rs', lines 395:21-402:13 -/
+/-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>}::decapsulate::{closure}]
+    Source: 'rust/protocol/src/kem.rs', lines 406:21-413:13 -/
 def kem.KeySecret.decapsulate.closure := kem.Key kem.Secret × Slice Std.U8
 
 /-- [libsignal_protocol::kem::KeyPair]
-    Source: 'rust/protocol/src/kem.rs', lines 452:0-455:1
+    Source: 'rust/protocol/src/kem.rs', lines 463:0-466:1
     Visibility: public -/
 structure kem.KeyPair where
   public_key : kem.Key kem.Public
@@ -692,13 +804,13 @@ structure pqxdh.HandshakeKeys where
   pqr_key : Array Std.U8 32#usize
 
 /-- [libsignal_protocol::pqxdh::InitiatorAgreement]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 101:0-106:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 99:0-104:1 -/
 structure pqxdh.InitiatorAgreement where
   keys : pqxdh.HandshakeKeys
   kyber_ciphertext : Slice Std.U8
 
 /-- [libsignal_protocol::pqxdh::InitiatorParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 113:0-124:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 111:0-122:1
     Visibility: public -/
 structure pqxdh.InitiatorParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair
@@ -711,7 +823,7 @@ structure pqxdh.InitiatorParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::pqxdh::RecipientParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 248:0-259:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 250:0-261:1
     Visibility: public -/
 structure pqxdh.RecipientParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair
@@ -724,13 +836,13 @@ structure pqxdh.RecipientParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::protocol::PlaintextContent]
-    Source: 'rust/protocol/src/protocol.rs', lines 810:0-812:1
+    Source: 'rust/protocol/src/protocol.rs', lines 807:0-809:1
     Visibility: public -/
 structure protocol.PlaintextContent where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::SenderKeyMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 523:0-530:1
+    Source: 'rust/protocol/src/protocol.rs', lines 520:0-527:1
     Visibility: public -/
 structure protocol.SenderKeyMessage where
   message_version : Std.U8
@@ -747,7 +859,7 @@ structure protocol.SenderKeyMessage where
 def state.signed_prekey.SignedPreKeyId := Std.U32
 
 /-- [libsignal_protocol::state::prekey::PreKeyId]
-    Source: 'rust/protocol/src/state/prekey.rs', lines 17:0-17:25
+    Source: 'rust/protocol/src/state/prekey.rs', lines 18:0-18:25
     Visibility: public -/
 @[reducible]
 def state.prekey.PreKeyId := Std.U32
@@ -759,14 +871,14 @@ def state.prekey.PreKeyId := Std.U32
 def state.kyber_prekey.KyberPreKeyId := Std.U32
 
 /-- [libsignal_protocol::protocol::KyberPayload]
-    Source: 'rust/protocol/src/protocol.rs', lines 322:0-325:1
+    Source: 'rust/protocol/src/protocol.rs', lines 319:0-322:1
     Visibility: public -/
 structure protocol.KyberPayload where
   pre_key_id : state.kyber_prekey.KyberPreKeyId
   ciphertext : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::SignalMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 63:0-73:1
+    Source: 'rust/protocol/src/protocol.rs', lines 82:0-92:1
     Visibility: public -/
 structure protocol.SignalMessage where
   message_version : Std.U8
@@ -779,7 +891,7 @@ structure protocol.SignalMessage where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::PreKeySignalMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 337:0-349:1
+    Source: 'rust/protocol/src/protocol.rs', lines 334:0-346:1
     Visibility: public -/
 structure protocol.PreKeySignalMessage where
   message_version : Std.U8
@@ -793,7 +905,7 @@ structure protocol.PreKeySignalMessage where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::CiphertextMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 25:0-30:1
+    Source: 'rust/protocol/src/protocol.rs', lines 23:0-28:1
     Visibility: public -/
 @[discriminant isize]
 inductive protocol.CiphertextMessage where
@@ -804,33 +916,33 @@ inductive protocol.CiphertextMessage where
 | SenderKeyMessage : protocol.SenderKeyMessage → protocol.CiphertextMessage
 | PlaintextContent : protocol.PlaintextContent → protocol.CiphertextMessage
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::closure]
-    Source: 'rust/protocol/src/protocol.rs', lines 92:31-92:97 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{closure}]
+    Source: 'rust/protocol/src/protocol.rs', lines 111:31-111:97 -/
 @[reducible]
 def protocol.SignalMessage.new.closure := Unit
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::closure#2]
-    Source: 'rust/protocol/src/protocol.rs', lines 369:21-369:54 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#2}]
+    Source: 'rust/protocol/src/protocol.rs', lines 366:21-366:54 -/
 @[reducible]
 def protocol.PreKeySignalMessage.new.closure_2 := Unit
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::closure#1]
-    Source: 'rust/protocol/src/protocol.rs', lines 366:57-366:88 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#1}]
+    Source: 'rust/protocol/src/protocol.rs', lines 363:57-363:88 -/
 @[reducible]
 def protocol.PreKeySignalMessage.new.closure_1 := Unit
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::closure]
-    Source: 'rust/protocol/src/protocol.rs', lines 364:39-364:53 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure}]
+    Source: 'rust/protocol/src/protocol.rs', lines 361:39-361:53 -/
 @[reducible]
 def protocol.PreKeySignalMessage.new.closure := Unit
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::closure]
-    Source: 'rust/protocol/src/protocol.rs', lines 414:40-414:64 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{closure}]
+    Source: 'rust/protocol/src/protocol.rs', lines 411:40-411:64 -/
 @[reducible]
 def protocol.PreKeySignalMessage.kyber_pre_key_id.closure := Unit
 
 /-- [libsignal_protocol::protocol::SenderKeyDistributionMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 664:0-672:1
+    Source: 'rust/protocol/src/protocol.rs', lines 661:0-669:1
     Visibility: public -/
 structure protocol.SenderKeyDistributionMessage where
   message_version : Std.U8
@@ -848,7 +960,7 @@ structure timestamp.Timestamp where
   millis : Std.U64
 
 /-- [libsignal_protocol::protocol::DecryptionErrorMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 874:0-879:1
+    Source: 'rust/protocol/src/protocol.rs', lines 871:0-876:1
     Visibility: public -/
 structure protocol.DecryptionErrorMessage where
   ratchet_key : Option libsignal_core.curve.PublicKey
@@ -856,8 +968,8 @@ structure protocol.DecryptionErrorMessage where
   device_id : Std.U32
   serialized : Slice Std.U8
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::closure]
-    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{closure}]
+    Source: 'rust/protocol/src/protocol.rs', lines 904:41-904:65 -/
 @[reducible]
 def protocol.DecryptionErrorMessage.for_original.closure := Unit
 
@@ -866,12 +978,12 @@ def protocol.DecryptionErrorMessage.for_original.closure := Unit
 structure state.session.SessionState where
   session : proto.storage.SessionStructure
 
-/-- [libsignal_protocol::ratchet::initialize_initiator_session::closure]
+/-- [libsignal_protocol::ratchet::initialize_initiator_session::{closure}]
     Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
 @[reducible]
 def ratchet.initialize_initiator_session.closure (R : Type) := Unit
 
-/-- [libsignal_protocol::ratchet::initialize_recipient_session::closure]
+/-- [libsignal_protocol::ratchet::initialize_recipient_session::{closure}]
     Source: 'rust/protocol/src/ratchet.rs', lines 155:13-161:5 -/
 @[reducible]
 def ratchet.initialize_recipient_session.closure := Unit
@@ -907,7 +1019,7 @@ structure sender_keys.SenderChainKey where
 structure sender_keys.SenderKeyState where
   state : proto.storage.SenderKeyStateStructure
 
-/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::closure]
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}]
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
 @[reducible]
 def sender_keys.SenderKeyState.remove_sender_message_key.closure := Std.U32
@@ -919,7 +1031,7 @@ structure sender_keys.SenderKeyRecord where
   states : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
     Global
 
-/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyRecord}::deserialize::closure]
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyRecord}::deserialize::{closure}]
     Source: 'rust/protocol/src/sender_keys.rs', lines 253:21-253:69 -/
 @[reducible]
 def sender_keys.SenderKeyRecord.deserialize.closure := Unit
@@ -972,7 +1084,7 @@ structure state.bundle.PreKeyBundleContent where
   kyber_pre_key_signature : Option (alloc.vec.Vec Std.U8)
 
 /-- [libsignal_protocol::state::bundle::PreKeyBundle]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 127:0-135:1
+    Source: 'rust/protocol/src/state/bundle.rs', lines 125:0-133:1
     Visibility: public -/
 structure state.bundle.PreKeyBundle where
   registration_id : Std.U32
@@ -983,77 +1095,63 @@ structure state.bundle.PreKeyBundle where
   identity_key : identity_key.IdentityKey
   kyber_pre_key : state.bundle.KyberPreKey
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#9]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 119:44-121:13 -/
-@[reducible]
-def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_9
-  :=
-Unit
-
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#8]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 114:55-118:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#8}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 117:44-119:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_8
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#7]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 111:52-113:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#7}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 112:55-116:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_7
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#6]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 108:48-110:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#6}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 109:52-111:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_6
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#5]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 103:56-107:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#5}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 106:48-108:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_5
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#4]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 98:53-102:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#4}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 101:56-105:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_4
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#3]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 95:49-97:13 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#3}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 96:53-100:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_3
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#2]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 94:26-94:80 -/
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#2}]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 93:49-95:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_2
   :=
-  Option libsignal_core.curve.PublicKey
+Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#2::closure]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 94:58-94:79 -/
-@[reducible]
-def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_2.closure
-  :=
-  state.prekey.PreKeyId
-
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure#1]
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#1}]
     Source: 'rust/protocol/src/state/bundle.rs', lines 89:41-91:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure_1
   :=
 Unit
 
-/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::closure]
+/-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure}]
     Source: 'rust/protocol/src/state/bundle.rs', lines 86:47-88:13 -/
 @[reducible]
 def state.bundle.TryFromPreKeyBundlePreKeyBundleContentSignalProtocolError.try_from.closure
@@ -1116,13 +1214,13 @@ structure state.signed_prekey.GenericSignedPreKey (Self : Type) (Self_KeyPair :
     error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::prekey::PreKeyRecord]
-    Source: 'rust/protocol/src/state/prekey.rs', lines 26:0-28:1
+    Source: 'rust/protocol/src/state/prekey.rs', lines 27:0-29:1
     Visibility: public -/
 structure state.prekey.PreKeyRecord where
   pre_key : proto.storage.PreKeyRecordStructure
 
-/-- [libsignal_protocol::state::prekey::{libsignal_protocol::state::prekey::PreKeyRecord}::deserialize::closure]
-    Source: 'rust/protocol/src/state/prekey.rs', lines 46:25-46:73 -/
+/-- [libsignal_protocol::state::prekey::{libsignal_protocol::state::prekey::PreKeyRecord}::deserialize::{closure}]
+    Source: 'rust/protocol/src/state/prekey.rs', lines 47:25-47:73 -/
 @[reducible]
 def state.prekey.PreKeyRecord.deserialize.closure := Unit
 
@@ -1142,12 +1240,12 @@ structure state.session.UnacknowledgedPreKeyMessageItems where
 @[reducible]
 def state.session.SessionUsabilityRequirements := Std.U32
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::closure]
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{closure}]
     Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 @[reducible]
 def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::closure]
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}]
     Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
@@ -1159,7 +1257,7 @@ structure state.signed_prekey.SignedPreKeyRecord where
   signed_pre_key : proto.storage.SignedPreKeyRecordStructure
 
 /-- [libsignal_protocol::triple_ratchet::OutgoingTripleRatchet]
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 41:0-49:1 -/
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 97:0-105:1 -/
 structure triple_ratchet.OutgoingTripleRatchet where
   sender_ratchet_key : libsignal_core.curve.KeyPair
   sender_chain_key : ratchet.keys.ChainKey
@@ -1169,12 +1267,34 @@ structure triple_ratchet.OutgoingTripleRatchet where
   local_identity_key : identity_key.IdentityKey
   remote_identity_key : identity_key.IdentityKey
 
+/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::from_session_state::{closure}]
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 117:86-119:9 -/
+@[reducible]
+def triple_ratchet.OutgoingTripleRatchet.from_session_state.closure := Unit
+
+/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt::{closure#1}]
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 166:17-169:9 -/
+@[reducible]
+def triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1 (R : Type) :=
+  libsignal_core.address.ProtocolAddress
+
+/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt::{closure}]
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 152:56-157:9 -/
+@[reducible]
+def triple_ratchet.OutgoingTripleRatchet.encrypt.closure (R : Type) := Unit
+
 /-- [libsignal_protocol::triple_ratchet::TripleRatchet]
-    Source: 'rust/protocol/src/triple_ratchet.rs', lines 160:0-165:1 -/
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 215:0-220:1 -/
 structure triple_ratchet.TripleRatchet where
   ratchet : double_ratchet.RatchetState
   pqr_state : alloc.vec.Vec Std.U8
   local_identity_key : identity_key.IdentityKey
   remote_identity_key : identity_key.IdentityKey
+
+/-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::decrypt::{closure}]
+    Source: 'rust/protocol/src/triple_ratchet.rs', lines 298:73-310:9 -/
+@[reducible]
+def triple_ratchet.TripleRatchet.decrypt.closure (R : Type) :=
+  protocol.CiphertextMessageType
 
 end libsignal_protocol

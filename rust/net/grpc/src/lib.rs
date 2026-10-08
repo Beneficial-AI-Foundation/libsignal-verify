@@ -5,51 +5,72 @@
 
 #![warn(clippy::unwrap_used)]
 
-#[cfg(feature = "json")]
-pub mod json;
-
 pub mod proto {
-    pub mod chat {
-        pub mod common {
-            tonic::include_proto!("org.signal.chat.common");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.common.serde");
-        }
-        pub mod errors {
-            tonic::include_proto!("org.signal.chat.errors");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.errors.serde");
-        }
-        pub mod account {
-            tonic::include_proto!("org.signal.chat.account");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.account.serde");
-        }
-        pub mod attachments {
-            tonic::include_proto!("org.signal.chat.attachments");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.attachments.serde");
-        }
-        pub mod backup {
-            tonic::include_proto!("org.signal.chat.backup");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.backup.serde");
-        }
-        pub mod device {
-            tonic::include_proto!("org.signal.chat.device");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.device.serde");
-        }
-        pub mod messages {
-            tonic::include_proto!("org.signal.chat.messages");
-            #[cfg(feature = "json")]
-            tonic::include_proto!("org.signal.chat.messages.serde");
-        }
+    // Mirror the protobuf package structure so relative references work correctly.
+    // We'll export org::signal::chat for a more flat interface elsewhere.
+    mod org {
+        pub(super) mod signal {
+            // The comments in proto files shouldn't be held to strict rustdoc standards.
+            #[allow(rustdoc::bare_urls)]
+            pub mod chat {
+                pub mod common {
+                    tonic::include_proto!("org.signal.chat.common");
+                }
+                pub mod errors {
+                    tonic::include_proto!("org.signal.chat.errors");
+                }
+                pub mod account {
+                    tonic::include_proto!("org.signal.chat.account");
+                }
+                pub mod attachments {
+                    tonic::include_proto!("org.signal.chat.attachments");
+                }
+                pub mod backup {
+                    tonic::include_proto!("org.signal.chat.backup");
+                }
+                pub mod call_quality {
+                    tonic::include_proto!("org.signal.chat.calling.quality");
+                }
+                pub mod credentials {
+                    tonic::include_proto!("org.signal.chat.credentials");
+                }
+                pub mod device {
+                    tonic::include_proto!("org.signal.chat.device");
+                }
+                pub mod keys {
+                    tonic::include_proto!("org.signal.chat.keys");
+                }
+                pub mod login_purchase {
+                    tonic::include_proto!("org.signal.chat.purchase");
+                }
+                pub mod messages {
+                    tonic::include_proto!("org.signal.chat.messages");
+                }
+                pub mod payments {
+                    tonic::include_proto!("org.signal.chat.payments");
+                }
 
-        // Not actually a proto, we just make sure to generate our helper file in the same place.
-        pub mod services {
-            tonic::include_proto!("service_methods");
+                // Not actually a proto, we just make sure to generate our helper file in the same place.
+                pub mod services {
+                    tonic::include_proto!("service_methods");
+                }
+            }
         }
+    }
+
+    pub use org::signal::chat;
+
+    // Key transparency is served by chat, but its protos are in their own top-level
+    // package rather than under org.signal.chat.
+    //
+    // The doc comments in this proto use bulleted lists that aren't valid Markdown.
+    #[expect(clippy::doc_lazy_continuation)]
+    pub mod kt_query {
+        tonic::include_proto!("kt_query");
+    }
+
+    pub mod textsecure {
+        tonic::include_proto!("textsecure");
     }
 
     // These protos come directly from Google and their doc comments aren't necessarily valid Markdown.
@@ -65,11 +86,6 @@ pub mod proto {
         }
     }
 }
-
-#[cfg(not(feature = "json"))]
-pub type Duration = prost_types::Duration;
-#[cfg(feature = "json")]
-pub type Duration = pbjson_types::Duration;
 
 impl From<libsignal_core::ServiceId> for proto::chat::common::ServiceIdentifier {
     fn from(value: libsignal_core::ServiceId) -> Self {
@@ -157,6 +173,24 @@ impl prost::Name for proto::google::rpc::RetryInfo {
             proto::google::rpc::RetryInfo::PACKAGE,
             ".",
             proto::google::rpc::RetryInfo::NAME
+        )
+        .to_owned()
+    }
+}
+
+impl prost::Name for proto::chat::backup::BackupStreamClosed {
+    const NAME: &'static str = "BackupStreamClosed";
+    const PACKAGE: &'static str = "org.signal.chat.backup";
+
+    // Even though this is not a Google protobuf, the server-side library we use still uses
+    // "type.googleapis.com" as a prefix.
+    // See <https://github.com/protocolbuffers/protobuf/blob/bd34c349cd28d262a7b2f7c4ec9a6c6d59730d31/src/google/protobuf/any.proto#L85>.
+    fn type_url() -> String {
+        const_str::concat!(
+            "type.googleapis.com/",
+            proto::chat::backup::BackupStreamClosed::PACKAGE,
+            ".",
+            proto::chat::backup::BackupStreamClosed::NAME
         )
         .to_owned()
     }

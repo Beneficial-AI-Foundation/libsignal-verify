@@ -1,4 +1,3 @@
-v0.96.0
+v0.103.1
 
-- swift: `KeyTransparency.Store` methods are now synchronous and take `StoreContext` as last parameter.
-
+- Swift: BackupJsonExporter is now available

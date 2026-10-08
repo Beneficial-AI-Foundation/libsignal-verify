@@ -1,0 +1,64 @@
+# Default-feature Double Ratchet conversion and pure session-state writeback.
+# Applied after aeneas-config.protocol.yml. No message processing or store roots.
+charon:
+  cargo_args: ["-p", "libsignal-protocol"]
+  start_from_pub: false
+  start_from:
+    - "libsignal_protocol::double_ratchet::_::from_pb"
+    - "libsignal_protocol::double_ratchet::_::apply_to_pb"
+    - "libsignal_protocol::state::session::_::apply_ratchet_state"
+    - "libsignal_protocol::state::session::_::take_pq_ratchet_state"
+    - "libsignal_protocol::state::session::_::set_pq_ratchet_state"
+
+aeneas_args:
+  subdir: "Libsignal/Translated/RatchetState"
+  options: ["split-files", "emit-json"]
+  namespace: "Libsignal.RatchetState"
+
+tweaks:
+  files: ["Types.lean", "Funs.lean"]
+  substitutions:
+    - regex: "Source: '[^']*/out/"
+      replace: "Source: 'target/out/"
+    # A Rust argument named state shadows the emitted state namespace in Lean.
+    # Qualify only the return type; the generated function body is unchanged.
+    - find: "Result state.session.SessionState"
+      replace: "Result _root_.Libsignal.RatchetState.state.session.SessionState"
+      required: true
+    # Core owns the curve representations; Protocol owns the shared key records.
+    - find: |
+        @[discriminant isize, rust_type "libsignal_core::curve::KeyType"]
+        inductive libsignal_core.curve.KeyType where
+        | Djb : libsignal_core.curve.KeyType
+      replace: "abbrev libsignal_core.curve.KeyType := _root_.libsignal_core.curve.KeyType\n"
+      required: true
+    - find: |
+        @[discriminant isize, rust_type "libsignal_core::curve::CurveError"]
+        inductive libsignal_core.curve.CurveError where
+        | NoKeyTypeIdentifier : libsignal_core.curve.CurveError
+        | BadKeyType : Std.U8 → libsignal_core.curve.CurveError
+        | BadKeyLength :
+          libsignal_core.curve.KeyType →
+          Std.Usize →
+          libsignal_core.curve.CurveError
+        | InvalidKeyAgreement : libsignal_core.curve.CurveError
+      replace: "abbrev libsignal_core.curve.CurveError := _root_.libsignal_core.curve.CurveError\n"
+      required: true
+    - find: |
+        @[rust_type "libsignal_core::curve::KeyPair"]
+        structure libsignal_core.curve.KeyPair where
+          public_key : libsignal_core.curve.PublicKey
+          private_key : libsignal_core.curve.PrivateKey
+      replace: "abbrev libsignal_core.curve.KeyPair := _root_.libsignal_core.curve.KeyPair\n"
+      required: true
+    - find: |
+        structure ratchet.keys.RootKey where
+          key : Array Std.U8 32#usize
+      replace: "abbrev ratchet.keys.RootKey := _root_.libsignal_protocol.ratchet.keys.RootKey\n"
+      required: true
+    - find: |
+        structure ratchet.keys.ChainKey where
+          key : Array Std.U8 32#usize
+          index : Std.U32
+      replace: "abbrev ratchet.keys.ChainKey := _root_.libsignal_protocol.ratchet.keys.ChainKey\n"
+      required: true

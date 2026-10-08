@@ -1,0 +1,9 @@
+# AES-CBC provider overlay, applied after aeneas-config.crypto.yml.
+# The rest of signal-crypto is a separate diagnostic profile.
+charon:
+  start_from_pub: false
+  start_from:
+    - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
+    - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
+    - "signal_crypto::aes_cbc::EncryptionError"
+    - "signal_crypto::aes_cbc::DecryptionError"

@@ -11,6 +11,9 @@ set_option linter.style.longLine false
 set_option linter.style.setOption false
 set_option linter.style.whitespace false
 set_option linter.style.nameCheck false
+set_option linter.style.whitespace false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -63,24 +66,8 @@ def core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy : core.marker.Copy
   cloneInst := core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone
 }
 
-/-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::private::Sealed for u64}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 56:12-56:47
-    Name pattern: [core::num::nonzero::private::Sealed<u64>] -/
-@[reducible, rust_trait_impl "core::num::nonzero::private::Sealed<u64>"]
-def U64.Insts.CoreNumNonzeroPrivateSealed : core.num.nonzero.private.Sealed
-  Std.U64 := {
-}
-
-/-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::private::Sealed for u8}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 56:12-56:47
-    Name pattern: [core::num::nonzero::private::Sealed<u8>] -/
-@[reducible, rust_trait_impl "core::num::nonzero::private::Sealed<u8>"]
-def U8.Insts.CoreNumNonzeroPrivateSealed : core.num.nonzero.private.Sealed
-  Std.U8 := {
-}
-
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU64Inner> for u64}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 63:12-63:56
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56
     Name pattern: [core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>] -/
 @[reducible, rust_trait_impl
   "core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>"]
@@ -88,12 +75,11 @@ def U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner :
   core.num.nonzero.ZeroablePrimitive Std.U64
   core.num.niche_types.NonZeroU64Inner := {
   markerCopyInst := core.marker.CopyU64
-  privateSealedInst := U64.Insts.CoreNumNonzeroPrivateSealed
   markerCopyInst1 := core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy
 }
 
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU8Inner> for u8}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 63:12-63:56
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56
     Name pattern: [core::num::nonzero::ZeroablePrimitive<u8, core::num::niche_types::NonZeroU8Inner>] -/
 @[reducible, rust_trait_impl
   "core::num::nonzero::ZeroablePrimitive<u8, core::num::niche_types::NonZeroU8Inner>"]
@@ -101,7 +87,6 @@ def U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner :
   core.num.nonzero.ZeroablePrimitive Std.U8 core.num.niche_types.NonZeroU8Inner
   := {
   markerCopyInst := core.marker.CopyU8
-  privateSealedInst := U8.Insts.CoreNumNonzeroPrivateSealed
   markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy
 }
 
@@ -144,7 +129,7 @@ def U8.Insts.CoreConvertFromServiceIdKind.from
 @[reducible]
 def U8.Insts.CoreConvertFromServiceIdKind : core.convert.From Std.U8
   address.ServiceIdKind := {
-  from_ := U8.Insts.CoreConvertFromServiceIdKind.from
+  «from» := U8.Insts.CoreConvertFromServiceIdKind.from
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::from_uuid]:
@@ -179,7 +164,7 @@ def uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from
 @[reducible]
 def uuid.Uuid.Insts.CoreConvertFromSpecificServiceId (KIND : Std.U8) :
   core.convert.From uuid.Uuid (address.SpecificServiceId KIND) := {
-  from_ := uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from
+  «from» := uuid.Uuid.Insts.CoreConvertFromSpecificServiceId.from
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]:
@@ -251,7 +236,7 @@ def address.SpecificServiceId.service_id_binary
   Clause1_Error) (self : address.SpecificServiceId KIND) :
   Result (alloc.vec.Vec Std.U8)
   := do
-  let si ← coreconvertFromServiceIdSpecificServiceIdInst.from_ self
+  let si ← coreconvertFromServiceIdSpecificServiceIdInst.«from» self
   address.ServiceId.service_id_binary si
 
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::service_id_fixed_width_binary]:
@@ -266,7 +251,7 @@ def address.SpecificServiceId.service_id_fixed_width_binary
   Clause1_Error) (self : address.SpecificServiceId KIND) :
   Result (Array Std.U8 17#usize)
   := do
-  let si ← coreconvertFromServiceIdSpecificServiceIdInst.from_ self
+  let si ← coreconvertFromServiceIdSpecificServiceIdInst.«from» self
   address.ServiceId.service_id_fixed_width_binary si
 
 /-- [libsignal_core::address::{impl core::convert::From<uuid::Uuid> for libsignal_core::address::SpecificServiceId<KIND>}::from]:
@@ -283,7 +268,7 @@ def address.SpecificServiceId.Insts.CoreConvertFromUuid.from
 @[reducible]
 def address.SpecificServiceId.Insts.CoreConvertFromUuid (KIND : Std.U8) :
   core.convert.From (address.SpecificServiceId KIND) uuid.Uuid := {
-  from_ := address.SpecificServiceId.Insts.CoreConvertFromUuid.from KIND
+  «from» := address.SpecificServiceId.Insts.CoreConvertFromUuid.from KIND
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_fixed_width_binary]:
@@ -320,10 +305,10 @@ def address.ServiceId.parse_from_service_id_fixed_width_binary
             (address.SpecificServiceId.Insts.CoreConvertFromUuid 1#u8) val
         ok (some (address.ServiceId.Pni ssi))
     | core.ops.control_flow.ControlFlow.Break residual =>
-      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
         address.ServiceId residual
   | core.ops.control_flow.ControlFlow.Break residual =>
-    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       address.ServiceId residual
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_binary]:
@@ -344,7 +329,7 @@ def address.ServiceId.parse_from_service_id_binary
           (address.SpecificServiceId.Insts.CoreConvertFromUuid 0#u8) val
       ok (some (address.ServiceId.Aci ssi))
     | core.ops.control_flow.ControlFlow.Break residual =>
-      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
         address.ServiceId residual
   | 17 =>
     let r ← core.array.TryFromSharedArraySlice.try_from 17#usize bytes
@@ -363,7 +348,7 @@ def address.ServiceId.parse_from_service_id_binary
       then ok none
       else ok (some val)
     | core.ops.control_flow.ControlFlow.Break residual =>
-      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
         address.ServiceId residual
   | _ => ok none
 
@@ -388,7 +373,7 @@ def address.SpecificServiceId.parse_from_service_id_binary
         coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst val
     core.result.Result.ok r
   | core.ops.control_flow.ControlFlow.Break residual =>
-    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (address.SpecificServiceId KIND) residual
 
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::parse_from_service_id_fixed_width_binary]:
@@ -412,7 +397,7 @@ def address.SpecificServiceId.parse_from_service_id_fixed_width_binary
         coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst val
     core.result.Result.ok r
   | core.ops.control_flow.ControlFlow.Break residual =>
-    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionInfallible.from_residual
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (address.SpecificServiceId KIND) residual
 
 /-- [libsignal_core::address::MAX_VALID_DEVICE_ID]
@@ -451,17 +436,17 @@ def address.DeviceId.new
     Source: 'rust/core/src/address.rs', lines 802:4-804:5
     Visibility: public -/
 def address.ProtocolAddress.new
-  (name1 : String) (device_id : address.DeviceId) :
+  («name» : String) (device_id : address.DeviceId) :
   Result address.ProtocolAddress
   := do
-  ok { «name» := name1, device_id }
+  ok { «name», device_id }
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::name]:
     Source: 'rust/core/src/address.rs', lines 808:4-810:5
     Visibility: public -/
 def address.ProtocolAddress.impl.name
   (self : address.ProtocolAddress) : Result Str := do
-  alloc.string.String.Insts.CoreOpsDerefDerefStr.deref self.«name»
+  alloc.string.String.Insts.CoreOpsDerefDerefStr.deref self.name
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::device_id]:
     Source: 'rust/core/src/address.rs', lines 818:4-820:5
@@ -560,7 +545,7 @@ def curve.PublicKey.scalar_is_in_range
         let b1 ←
           Slice.Insts.CoreCmpPartialEqArray.eq core.cmp.PartialEqU8 s a
         if b1
-        then ok (i == 127#u8)
+        then ok (i = 127#u8)
         else ok false
       else ok false
   ok (¬ b)
@@ -600,21 +585,21 @@ def curve.KeyPair.from_public_and_private
   let r ←
     curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
       public_key
-  let cf ← core.result.Result.Insts.CoreOpsTry_traitTry.branch r
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
   match cf with
   | core.ops.control_flow.ControlFlow.Continue val =>
     let r1 ←
       curve.PrivateKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
         private_key
-    let cf1 ← core.result.Result.Insts.CoreOpsTry_traitTry.branch r1
+    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
     match cf1 with
     | core.ops.control_flow.ControlFlow.Continue val1 =>
       ok (core.result.Result.Ok { public_key := val, private_key := val1 })
     | core.ops.control_flow.ControlFlow.Break residual =>
-      core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
         curve.KeyPair (core.convert.FromSame curve.CurveError) residual
   | core.ops.control_flow.ControlFlow.Break residual =>
-    core.result.Result.Insts.CoreOpsTry_traitFromResidualResultInfallibleE.from_residual
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
       curve.KeyPair (core.convert.FromSame curve.CurveError) residual
 
 /-- [libsignal_core::e164::{libsignal_core::e164::E164}::new]:
@@ -637,7 +622,7 @@ def e164.E164.to_be_bytes
       U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner self.inner
   ok (core.num.U64.to_be_bytes i)
 
-/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure}::call_once]:
+/-- [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{closure}}::call_once]:
     Source: 'rust/core/src/e164.rs', lines 27:55-27:77 -/
 def
   e164.E164.from_be_bytes.closure.Insts.CoreOpsFunctionFnOnceTupleNonZeroU64NonZeroU64InnerE164.call_once
@@ -648,7 +633,7 @@ def
   := do
   ok { inner := tupled_args }
 
-/-- Trait implementation: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::closure}]
+/-- Trait implementation: [libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{impl core::ops::function::FnOnce<(core::num::nonzero::NonZero<u64, core::num::niche_types::NonZeroU64Inner>,), libsignal_core::e164::E164> for libsignal_core::e164::{libsignal_core::e164::E164}::from_be_bytes::{closure}}]
     Source: 'rust/core/src/e164.rs', lines 27:55-27:77 -/
 @[reducible]
 def
@@ -674,7 +659,7 @@ def e164.E164.from_be_bytes
     o ()
 
 /-- [libsignal_core::try_scoped]:
-    Source: 'rust/core/src/lib.rs', lines 30:0-32:1
+    Source: 'rust/core/src/lib.rs', lines 29:0-31:1
     Visibility: public -/
 def try_scoped
   {T : Type} {E : Type} {T2 : Type} (coreopsfunctionFnOnceT2TupleResultInst :
@@ -684,8 +669,8 @@ def try_scoped
   coreopsfunctionFnOnceT2TupleResultInst.call_once f ()
 
 /-- [libsignal_core::version::VERSION]
-    Source: 'rust/core/src/version.rs', lines 8:0-8:35
+    Source: 'rust/core/src/version.rs', lines 8:0-8:36
     Visibility: public -/
-@[global_simps, irreducible] def version.VERSION : Str := toStr "0.96.0"
+@[global_simps, irreducible] def version.VERSION : Str := toStr "0.103.1"
 
 end libsignal_core

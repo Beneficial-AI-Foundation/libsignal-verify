@@ -4,7 +4,7 @@ This file contains the diff between the original upstream source
 and the modified version used in this verification project.
 
 Upstream Repository: https://github.com/signalapp/libsignal
-Upstream Commit: 65eac5e
+Upstream Commit: e8cc2dddd578859b4a029c9c94670b24ce2b616a
 
 ---
 
@@ -243,8 +243,8 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/sr
 +#[cfg_attr(not(feature = "extraction"), derive(Clone))]
 +#[cfg_attr(feature = "extraction", charon::opaque)]
  pub enum CryptographicMac {
-     HmacSha256(Hmac<Sha256>),
-     HmacSha1(Hmac<Sha1>),
+     HmacSha256(HmacReset<Sha256>),
+     HmacSha1(HmacReset<Sha1>),
 @@ -48,7 +49,8 @@
      }
  }
@@ -267,17 +267,6 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/crypto/sr
  
  mod error;
  mod hash;
-diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/net/infra/src/dns/dns_message.rs b/rust/net/infra/src/dns/dns_message.rs
---- a/rust/net/infra/src/dns/dns_message.rs
-+++ b/rust/net/infra/src/dns/dns_message.rs
-@@ -25,6 +25,7 @@
- pub(crate) const MAX_DNS_LABEL_LEN: usize = 63;
- pub(crate) const MAX_DNS_NAME_LEN: usize = 255;
- pub(crate) const MAX_DNS_UDP_MESSAGE_LEN: usize = 512;
-+const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
- 
- const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
- // Maximum number of pointer indirections to follow while parsing names.
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
 --- a/rust/protocol/Cargo.toml
 +++ b/rust/protocol/Cargo.toml
@@ -289,6 +278,206 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  kyber768 = ["libcrux-ml-kem/kyber", "libcrux-ml-kem/mlkem768"]
  # ML-KEM matches the NIST standard version of Kyber. It may still change
  # incompatibly until the final version of the standard is published and
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/crypto.rs b/rust/protocol/src/crypto.rs
+--- a/rust/protocol/src/crypto.rs
++++ b/rust/protocol/src/crypto.rs
+@@ -45,6 +45,17 @@
+     })
+ }
+ 
++// Keep the primitive interface byte-oriented: the extraction toolchain cannot
++// lift the generic array associated types used internally by HKDF-SHA256.
++pub(crate) fn hkdf_sha256(
++    salt: Option<&[u8]>,
++    input_key_material: &[u8],
++    info: &[u8],
++    output: &mut [u8],
++) -> Result<(), hkdf::InvalidLength> {
++    hkdf::Hkdf::<Sha256>::new(salt, input_key_material).expand(info, output)
++}
++
+ pub(crate) fn hmac_sha256(key: &[u8], input: &[u8]) -> [u8; 32] {
+     let _trace = libsignal_debug::trace_block!("hmac_sha256");
+     let mut hmac =
+@@ -53,6 +64,17 @@
+     hmac.finalize().into_bytes().into()
+ }
+ 
++// Feed the parts to one HMAC-SHA256 state in order: the extraction toolchain
++// cannot lift the generic array associated types of an inline incremental HMAC.
++pub(crate) fn hmac_sha256_parts(key: &[u8], parts: &[&[u8]]) -> [u8; 32] {
++    let mut hmac =
++        Hmac::<Sha256>::new_from_slice(key).expect("HMAC-SHA256 should accept any size key");
++    for part in parts {
++        hmac.update(part);
++    }
++    hmac.finalize().into_bytes().into()
++}
++
+ pub(crate) fn aes256_ctr_hmacsha256_encrypt(
+     msg: &[u8],
+     cipher_key: &[u8],
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/double_ratchet.rs b/rust/protocol/src/double_ratchet.rs
+--- a/rust/protocol/src/double_ratchet.rs
++++ b/rust/protocol/src/double_ratchet.rs
+@@ -56,6 +56,52 @@
+ 
+ // ── Serialization bridge ──────────────────────────────────────────────
+ 
++// Named messages: Aeneas loses a string literal returned from a `map_err`
++// closure ("There should be no bottoms in the value").
++const INVALID_ROOT_KEY: &str = "invalid root key";
++const INVALID_SENDER_RATCHET_PUBLIC_KEY: &str = "invalid sender ratchet public key";
++const INVALID_SENDER_RATCHET_PRIVATE_KEY: &str = "invalid sender ratchet private key";
++const INVALID_CHAIN_KEY: &str = "invalid chain key";
++
++// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
++// these as opaque effects. Level and message are unchanged.
++fn log_duplicate_message(remote_address_for_logging: &str, counter: u32) {
++    log::info!("{remote_address_for_logging} Duplicate message for counter: {counter}");
++}
++
++fn log_future_message_limit(
++    remote_address_for_logging: &str,
++    max_forward_jumps: usize,
++    chain_index: u32,
++    counter: u32,
++) {
++    log::error!(
++        "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
++        max_forward_jumps,
++    );
++}
++
++fn log_jump_ahead(remote_address_for_logging: &str, jump: usize, chain_index: u32, counter: u32) {
++    log::info!(
++        "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
++    );
++}
++
++fn log_corrupt_receiver_chain() {
++    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
++}
++
++// Opaque in the extraction: the `&'static str` error of the opaque
++// `MessageKeyGenerator::from_pb` cannot be moved into `InvalidSessionError` in
++// translated code (Aeneas has no loan for the static borrow).
++fn skipped_key_from_pb(
++    key_pb: session_structure::chain::MessageKey,
++) -> std::result::Result<Option<MessageKeyGenerator>, InvalidSessionError> {
++    MessageKeyGenerator::from_pb(key_pb)
++        .map(Some)
++        .map_err(InvalidSessionError)
++}
++
+ impl RatchetState {
+     /// Deserialize the ratchet-relevant fields from a `SessionStructure`.
+     ///
+@@ -77,12 +123,14 @@
+             .root_key
+             .as_slice()
+             .try_into()
+-            .map_err(|_| InvalidSessionError("invalid root key"))?;
++            .map_err(|_| InvalidSessionError(INVALID_ROOT_KEY))?;
+ 
++        // Explicit closure: Aeneas cannot translate the function-item form.
++        #[allow(clippy::redundant_closure)]
+         let sender_chain = session
+             .sender_chain
+             .as_ref()
+-            .map(SenderChain::from_pb)
++            .map(|chain| SenderChain::from_pb(chain))
+             .transpose()?;
+ 
+         Ok(Self {
+@@ -112,7 +160,10 @@
+         } = self;
+         session.root_key = root_key.key().to_vec();
+         session.previous_counter = previous_counter;
+-        session.sender_chain = sender_chain.as_ref().map(SenderChain::to_pb);
++        // Explicit closure: Aeneas cannot translate the function-item form.
++        #[allow(clippy::redundant_closure)]
++        let sender_chain_pb = sender_chain.as_ref().map(|chain| SenderChain::to_pb(chain));
++        session.sender_chain = sender_chain_pb;
+         session.receiver_chains = receiver_chains;
+     }
+ }
+@@ -120,9 +171,9 @@
+ impl SenderChain {
+     fn from_pb(chain: &session_structure::Chain) -> std::result::Result<Self, InvalidSessionError> {
+         let public_key = PublicKey::deserialize(&chain.sender_ratchet_key)
+-            .map_err(|_| InvalidSessionError("invalid sender ratchet public key"))?;
++            .map_err(|_| InvalidSessionError(INVALID_SENDER_RATCHET_PUBLIC_KEY))?;
+         let private_key = PrivateKey::deserialize(&chain.sender_ratchet_key_private)
+-            .map_err(|_| InvalidSessionError("invalid sender ratchet private key"))?;
++            .map_err(|_| InvalidSessionError(INVALID_SENDER_RATCHET_PRIVATE_KEY))?;
+         let chain_key = ChainKey::from_pb(
+             chain
+                 .chain_key
+@@ -156,7 +207,7 @@
+             .key
+             .as_slice()
+             .try_into()
+-            .map_err(|_| InvalidSessionError("invalid chain key"))?;
++            .map_err(|_| InvalidSessionError(INVALID_CHAIN_KEY))?;
+         Ok(Self::new(key, pb.index))
+     }
+ 
+@@ -216,18 +267,18 @@
+             return self
+                 .take_skipped_key(their_ephemeral, counter)?
+                 .ok_or_else(|| {
+-                    log::info!(
+-                        "{remote_address_for_logging} Duplicate message for counter: {counter}"
+-                    );
++                    log_duplicate_message(remote_address_for_logging, counter);
+                     SignalProtocolError::DuplicatedMessage(chain_index, counter)
+                 });
+         }
+ 
+         let jump = (counter - chain_index) as usize;
+         if jump > self.max_forward_jumps {
+-            log::error!(
+-                "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
++            log_future_message_limit(
++                remote_address_for_logging,
+                 self.max_forward_jumps,
++                chain_index,
++                counter,
+             );
+             return Err(SignalProtocolError::InvalidMessage(
+                 original_message_type,
+@@ -235,9 +286,7 @@
+             ));
+         } else if jump > consts::MAX_FORWARD_JUMPS {
+             // This only happens if it is a session with self
+-            log::info!(
+-                "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
+-            );
++            log_jump_ahead(remote_address_for_logging, jump, chain_index, counter);
+         }
+ 
+         // Advance the chain to the target counter, caching skipped keys.
+@@ -338,9 +387,7 @@
+         // and unrecoverable — slightly different from main which preserves it,
+         // but the outcome (error) is the same.
+         let key_pb = keys.remove(pos);
+-        MessageKeyGenerator::from_pb(key_pb)
+-            .map(Some)
+-            .map_err(InvalidSessionError)
++        skipped_key_from_pb(key_pb)
+     }
+ 
+     fn store_skipped_key(&mut self, their_ephemeral: &PublicKey, key: MessageKeyGenerator) {
+@@ -372,7 +419,7 @@
+             match PublicKey::deserialize(&chain.sender_ratchet_key) {
+                 Ok(key) => &key == their_ephemeral,
+                 Err(_) => {
+-                    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
++                    log_corrupt_receiver_chain();
+                     false
+                 }
+             }
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/error.rs b/rust/protocol/src/error.rs
 --- a/rust/protocol/src/error.rs
 +++ b/rust/protocol/src/error.rs
@@ -338,7 +527,35 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  impl<T: Parameters> DynParameters for T {
      fn public_key_length(&self) -> usize {
          Self::PUBLIC_KEY_LENGTH
-@@ -351,15 +353,21 @@
+@@ -269,14 +271,25 @@
+     }
+ }
+ 
+-#[derive(derive_more::Deref)]
++#[cfg_attr(not(feature = "extraction"), derive(derive_more::Deref))]
+ #[derive_where(Clone)]
+ pub(crate) struct KeyMaterial<T: KeyKind> {
+-    #[deref(forward)]
++    #[cfg_attr(not(feature = "extraction"), deref(forward))]
+     data: Box<[u8]>,
+     kind: PhantomData<T>,
+ }
+ 
++// The derived forward dereference triggers an Aeneas type mismatch. This
++// explicit slice coercion borrows the same bytes without changing production code.
++#[cfg(feature = "extraction")]
++impl<T: KeyKind> std::ops::Deref for KeyMaterial<T> {
++    type Target = [u8];
++
++    fn deref(&self) -> &Self::Target {
++        &*self.data
++    }
++}
++
+ impl<T: KeyKind> KeyMaterial<T> {
+     fn new(data: Box<[u8]>) -> Self {
+         KeyMaterial {
+@@ -351,15 +364,21 @@
          &self,
          csprng: &mut R,
      ) -> Result<(SharedSecret, SerializedCiphertext)> {
@@ -365,7 +582,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
              }
              .serialize(),
          ))
-@@ -378,9 +386,21 @@
+@@ -378,9 +397,21 @@
                  self.key_type.value(),
              ));
          }
@@ -390,7 +607,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      }
  }
  
-@@ -478,20 +498,25 @@
+@@ -478,20 +509,25 @@
  }
  
  /// Utility type to handle serialization and deserialization of ciphertext data
@@ -421,7 +638,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
              return Err(SignalProtocolError::BadKEMCiphertextLength(
                  key_type,
                  value.len(),
-@@ -499,7 +524,7 @@
+@@ -499,7 +535,7 @@
          }
          Ok(Ciphertext {
              key_type,
@@ -430,7 +647,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
          })
      }
  
-@@ -507,7 +532,7 @@
+@@ -507,7 +543,7 @@
      pub fn serialize(&self) -> SerializedCiphertext {
          let mut result = Vec::with_capacity(1 + self.data.len());
          result.push(self.key_type.value());
@@ -479,7 +696,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub use group_cipher::{
      create_sender_key_distribution_message, group_decrypt, group_encrypt,
      process_sender_key_distribution_message,
-@@ -74,11 +83,18 @@
+@@ -73,11 +82,18 @@
  pub use sealed_sender::{
      ContentHint, SealedSenderDecryptionResult, SealedSenderV2SentMessage,
      SealedSenderV2SentMessageRecipient, SenderCertificate, ServerCertificate,
@@ -500,7 +717,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub use session_management::{
      message_decrypt, message_decrypt_prekey, message_decrypt_signal, message_encrypt,
  };
-@@ -87,10 +103,13 @@
+@@ -86,10 +102,13 @@
      PreKeyId, PreKeyRecord, SessionRecord, SessionUsabilityRequirements, SignedPreKeyId,
      SignedPreKeyRecord,
  };
@@ -533,7 +750,18 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      type InitiatorMessage = kem::SerializedCiphertext;
      type SessionSecret = HandshakeKeys;
  
-@@ -98,8 +99,10 @@
+@@ -78,9 +79,7 @@
+ 
+     fn derive_with_label(label: &[u8], secret_input: &[u8]) -> Self {
+         let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(None, secret_input)
+-                .expand(label, bytes)
+-                .expect("valid length")
++            crate::crypto::hkdf_sha256(None, secret_input, label, bytes).expect("valid length")
+         });
+ 
+         Self {
+@@ -98,8 +97,10 @@
  /// Contains the derived handshake keys and the KEM ciphertext that the
  /// recipient needs to complete the agreement.
  pub(crate) struct InitiatorAgreement {
@@ -546,7 +774,29 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  }
  
  /// Parameters for the initiator side of a PQXDH key agreement.
-@@ -242,7 +245,7 @@
+@@ -193,7 +194,7 @@
+ /// to produce keys ready for ratchet initialization.
+ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
+     parameters: &InitiatorParameters,
+-    mut csprng: &mut R,
++    csprng: &mut R,
+ ) -> Result<InitiatorAgreement> {
+     let mut secrets = Vec::with_capacity(32 * 6);
+ 
+@@ -224,7 +225,11 @@
+     }
+ 
+     let kyber_ciphertext = {
+-        let (ss, ct) = parameters.their_kyber_pre_key.encapsulate(&mut csprng)?;
++        // Explicit reborrow: for `&mut csprng` (a `&mut &mut R`) Aeneas
++        // generates an ill-typed RNG state update.
++        let (ss, ct) = parameters
++            .their_kyber_pre_key
++            .encapsulate::<R>(&mut *csprng)?;
+         secrets.extend_from_slice(ss.as_ref());
+         ct
+     };
+@@ -242,7 +247,7 @@
  /// The recipient uses their own pre-keys together with the initiator's
  /// identity and base keys (received in the pre-key message) to compute
  /// the same shared secret.
@@ -555,7 +805,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      our_identity_key_pair: IdentityKeyPair,
      our_signed_pre_key_pair: KeyPair,
      our_one_time_pre_key_pair: Option<KeyPair>,
-@@ -250,12 +253,12 @@
+@@ -250,12 +255,12 @@
  
      their_identity_key: IdentityKey,
      their_ephemeral_key: PublicKey,
@@ -570,7 +820,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      pub fn new(
          our_identity_key_pair: IdentityKeyPair,
          our_signed_pre_key_pair: KeyPair,
-@@ -263,7 +266,7 @@
+@@ -263,7 +268,7 @@
          our_kyber_pre_key_pair: kem::KeyPair,
          their_identity_key: IdentityKey,
          their_ephemeral_key: PublicKey,
@@ -579,7 +829,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
          self_session: bool,
      ) -> Self {
          Self {
-@@ -310,7 +313,7 @@
+@@ -310,7 +315,7 @@
  
      #[inline]
      pub fn their_kyber_ciphertext(&self) -> &kem::SerializedCiphertext {
@@ -588,7 +838,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      }
  
      #[inline]
-@@ -369,7 +372,7 @@
+@@ -369,7 +374,7 @@
          &parameters
              .our_kyber_pre_key_pair
              .secret_key
@@ -597,6 +847,131 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      );
  
      Ok(HandshakeKeys::derive(&secrets))
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/protocol.rs b/rust/protocol/src/protocol.rs
+--- a/rust/protocol/src/protocol.rs
++++ b/rust/protocol/src/protocol.rs
+@@ -3,10 +3,8 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ //
+ 
+-use hmac::{Hmac, KeyInit as _, Mac as _};
+ use prost::Message;
+ use rand::{CryptoRng, Rng};
+-use sha2::Sha256;
+ use subtle::ConstantTimeEq;
+ use uuid::Uuid;
+ 
+@@ -59,6 +57,27 @@
+     }
+ }
+ 
++// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
++// these as opaque effects. Level and message are unchanged.
++fn log_invalid_local_addresses(
++    sender_address: &ProtocolAddress,
++    recipient_address: &ProtocolAddress,
++) {
++    log::warn!(
++        "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
++        sender_address,
++        recipient_address,
++    );
++}
++
++fn log_address_mismatch(sender_address: &ProtocolAddress, recipient_address: &ProtocolAddress) {
++    log::warn!(
++        "Address mismatch: sender={}, recipient={}",
++        sender_address,
++        recipient_address,
++    );
++}
++
+ #[derive(Debug, Clone)]
+ pub struct SignalMessage {
+     message_version: u8,
+@@ -191,22 +210,14 @@
+         };
+ 
+         let Some(expected) = Self::serialize_addresses(sender_address, recipient_address) else {
+-            log::warn!(
+-                "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
+-                sender_address,
+-                recipient_address,
+-            );
++            log_invalid_local_addresses(sender_address, recipient_address);
+             return Ok(false);
+         };
+ 
+         if bool::from(expected.ct_eq(encoded_addresses.as_ref())) {
+             Ok(true)
+         } else {
+-            log::warn!(
+-                "Address mismatch: sender={}, recipient={}",
+-                sender_address,
+-                recipient_address,
+-            );
++            log_address_mismatch(sender_address, recipient_address);
+             Ok(false)
+         }
+     }
+@@ -220,18 +231,15 @@
+         if mac_key.len() != 32 {
+             return Err(SignalProtocolError::InvalidMacKeyLength(mac_key.len()));
+         }
+-        let mut mac = Hmac::<Sha256>::new_from_slice(mac_key)
+-            .expect("HMAC-SHA256 should accept any size key");
+-
+-        mac.update(sender_identity_key.public_key().serialize().as_ref());
+-        mac.update(receiver_identity_key.public_key().serialize().as_ref());
+-        mac.update(message);
+-        let result = *mac
+-            .finalize()
+-            .into_bytes()
+-            .first_chunk()
+-            .expect("enough bytes");
+-        Ok(result)
++        let mac = crate::crypto::hmac_sha256_parts(
++            mac_key,
++            &[
++                sender_identity_key.public_key().serialize().as_ref(),
++                receiver_identity_key.public_key().serialize().as_ref(),
++                message,
++            ],
++        );
++        Ok(*mac.first_chunk().expect("enough bytes"))
+     }
+ 
+     /// Serializes sender and recipient addresses into a single byte vector.
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/ratchet/keys.rs b/rust/protocol/src/ratchet/keys.rs
+--- a/rust/protocol/src/ratchet/keys.rs
++++ b/rust/protocol/src/ratchet/keys.rs
+@@ -104,9 +104,13 @@
+     ) -> Self {
+         let _trace = libsignal_debug::trace_block!("MessageKeys::derive_keys");
+         let (cipher_key, mac_key, iv) = derive_arrays(|okm| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(optional_salt, input_key_material)
+-                .expand(b"WhisperMessageKeys", okm)
+-                .expect("valid output length")
++            crate::crypto::hkdf_sha256(
++                optional_salt,
++                input_key_material,
++                b"WhisperMessageKeys",
++                okm,
++            )
++            .expect("valid output length")
+         });
+ 
+         MessageKeys {
+@@ -203,8 +207,7 @@
+     ) -> Result<(RootKey, ChainKey)> {
+         let shared_secret = our_ratchet_key.calculate_agreement(their_ratchet_key)?;
+         let (root_key, chain_key, []) = derive_arrays(|bytes| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(Some(&self.key), &shared_secret)
+-                .expand(b"WhisperRatchet", bytes)
++            crate::crypto::hkdf_sha256(Some(&self.key), &shared_secret, b"WhisperRatchet", bytes)
+                 .expect("valid output length")
+         });
+ 
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs
 --- a/rust/protocol/src/ratchet.rs
 +++ b/rust/protocol/src/ratchet.rs
@@ -656,7 +1031,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/sealed_sender.rs b/rust/protocol/src/sealed_sender.rs
 --- a/rust/protocol/src/sealed_sender.rs
 +++ b/rust/protocol/src/sealed_sender.rs
-@@ -18,13 +18,22 @@
+@@ -19,13 +19,22 @@
  use subtle::{Choice, ConstantTimeEq};
  use zerocopy::{FromBytes, Immutable, KnownLayout};
  
@@ -684,7 +1059,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  };
  
  #[derive(Debug, Clone)]
-@@ -886,6 +895,7 @@
+@@ -887,6 +896,7 @@
  /// This is a simple way to encrypt a message in a 1:1 using [Sealed Sender v1].
  ///
  /// [Sealed Sender v1]: sealed_sender_encrypt_from_usmc
@@ -692,7 +1067,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub async fn sealed_sender_encrypt<R: Rng + CryptoRng>(
      destination: &ProtocolAddress,
      sender_cert: &SenderCertificate,
-@@ -969,6 +979,7 @@
+@@ -970,6 +980,7 @@
  /// `sealed_sender.proto`, prepended with an additional byte to indicate the version of Sealed
  /// Sender in use (see [further documentation on the version
  /// byte](sealed_sender_multi_recipient_encrypt#the-version-byte)).
@@ -700,7 +1075,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub async fn sealed_sender_encrypt_from_usmc<R: Rng + CryptoRng>(
      destination: &ProtocolAddress,
      usmc: &UnidentifiedSenderMessageContent,
-@@ -1359,6 +1370,7 @@
+@@ -1360,6 +1371,7 @@
  /// Fixed-width integers are unaligned and in network byte order (big-endian).
  ///
  /// [varint]: https://developers.google.com/protocol-buffers/docs/encoding#varints
@@ -708,7 +1083,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub async fn sealed_sender_multi_recipient_encrypt<
      R: Rng + CryptoRng,
      X: IntoIterator<Item = ServiceId>,
-@@ -1384,6 +1396,7 @@
+@@ -1385,6 +1397,7 @@
      .await
  }
  
@@ -732,6 +1107,18 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  pub async fn sealed_sender_decrypt(
      ciphertext: &[u8],
      trust_root: &PublicKey,
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
+--- a/rust/protocol/src/session.rs
++++ b/rust/protocol/src/session.rs
+@@ -171,7 +171,7 @@
+         our_kyber_pre_key_pair,
+         *message.identity_key(),
+         *message.base_key(),
+-        kyber_ciphertext,
++        kyber_ciphertext.clone(),
+         our_identity_key_pair.identity_key().is_same_account(
+             local_address,
+             message.identity_key(),
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/session_management.rs b/rust/protocol/src/session_management.rs
 --- a/rust/protocol/src/session_management.rs
 +++ b/rust/protocol/src/session_management.rs
@@ -982,3 +1369,217 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
 +        }
      }
  }
+diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/triple_ratchet.rs b/rust/protocol/src/triple_ratchet.rs
+--- a/rust/protocol/src/triple_ratchet.rs
++++ b/rust/protocol/src/triple_ratchet.rs
+@@ -24,6 +24,62 @@
+     SignalProtocolError,
+ };
+ 
++// Named messages: Aeneas loses a string literal returned from a closure or an
++// early return ("There should be no bottoms in the value").
++const VERSION_DOES_NOT_FIT_IN_U8: &str = "version does not fit in u8";
++const ENCRYPT_OPERATION: &str = "encrypt";
++const DECRYPT_OPERATION: &str = "decrypt";
++const INVALID_SENDER_CHAIN_MESSAGE_KEYS: &str = "invalid sender chain message keys";
++const INVALID_RECEIVER_CHAIN_MESSAGE_KEYS: &str = "invalid receiver chain message keys";
++
++// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
++// these as opaque effects. Level and message are unchanged.
++fn log_sender_chain_corrupt(remote_address: &ProtocolAddress) {
++    log::error!("session state corrupt for {remote_address}");
++}
++
++fn log_receiver_chain_corrupt(
++    current_or_previous: CurrentOrPrevious,
++    sender_address: &ProtocolAddress,
++) {
++    log::warn!("{current_or_previous} session state corrupt for {sender_address}");
++}
++
++// Pair the addresses in a helper: Aeneas cannot end the borrows of a closure
++// returning two references, nor join the branches of an inline match.
++fn address_pair<'a>(
++    local_address: Option<&'a ProtocolAddress>,
++    remote_address: &'a ProtocolAddress,
++) -> Option<(&'a ProtocolAddress, &'a ProtocolAddress)> {
++    match local_address {
++        Some(addr) => Some((addr, remote_address)),
++        None => None,
++    }
++}
++
++// Inspect `DecryptionError` only in helpers: its `BadCiphertext(&'static str)`
++// field comes from an opaque call, and Aeneas has no loan for that static
++// borrow when the variant is expanded or the field copied.
++fn is_bad_key_or_iv(error: &signal_crypto::DecryptionError) -> bool {
++    matches!(error, signal_crypto::DecryptionError::BadKeyOrIv)
++}
++
++// Callers pass only `BadCiphertext` (the other variant is tested first).
++fn decrypt_failure_message(error: signal_crypto::DecryptionError) -> String {
++    match error {
++        signal_crypto::DecryptionError::BadCiphertext(msg) => format!("failed to decrypt: {msg}"),
++        signal_crypto::DecryptionError::BadKeyOrIv => {
++            unreachable!("callers pass only BadCiphertext")
++        }
++    }
++}
++
++// Test the variant in a helper: matching `spqr::Error` expands its
++// `InvalidParams(&'static str)` variant, which Aeneas cannot translate.
++fn is_state_decode(error: &spqr::Error) -> bool {
++    matches!(error, spqr::Error::StateDecode)
++}
++
+ /// Sender-side Triple Ratchet session.
+ ///
+ /// This is intentionally narrower than [`TripleRatchet`]: encrypt only
+@@ -49,28 +105,27 @@
+ }
+ 
+ impl OutgoingTripleRatchet {
+-    pub(crate) fn from_session_state(state: &mut SessionState) -> Result<Self> {
++    // `session_state`, not `state`: a parameter named like the `state` module
++    // shadows it in the generated Lean (aeneas#1098).
++    pub(crate) fn from_session_state(session_state: &mut SessionState) -> Result<Self> {
+         let sender_ratchet_key = KeyPair {
+-            public_key: state.sender_ratchet_key()?,
+-            private_key: state.sender_ratchet_private_key()?,
++            public_key: session_state.sender_ratchet_key()?,
++            private_key: session_state.sender_ratchet_private_key()?,
+         };
+-        let sender_chain_key = state.get_sender_chain_key()?;
+-        let pqr_state = state.take_pq_ratchet_state();
+-        let session_version: u8 = state.session_version()?.try_into().map_err(|_| {
+-            SignalProtocolError::InvalidSessionStructure("version does not fit in u8")
++        let sender_chain_key = session_state.get_sender_chain_key()?;
++        let pqr_state = session_state.take_pq_ratchet_state();
++        let session_version: u8 = session_state.session_version()?.try_into().map_err(|_| {
++            SignalProtocolError::InvalidSessionStructure(VERSION_DOES_NOT_FIT_IN_U8)
+         })?;
+-        let local_identity_key = state.local_identity_key()?;
+-        let remote_identity_key =
+-            state
+-                .remote_identity_key()?
+-                .ok_or(SignalProtocolError::InvalidSessionStructure(
+-                    "missing remote identity key",
+-                ))?;
++        let local_identity_key = session_state.local_identity_key()?;
++        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
++            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
++        )?;
+ 
+         Ok(Self {
+             sender_ratchet_key,
+             sender_chain_key,
+-            previous_counter: state.previous_counter(),
++            previous_counter: session_state.previous_counter(),
+             pqr_state,
+             session_version,
+             local_identity_key,
+@@ -96,7 +151,7 @@
+             msg: pqr_msg,
+         } = spqr::send(&self.pqr_state, csprng).map_err(|e| {
+             SignalProtocolError::InvalidState(
+-                "encrypt",
++                ENCRYPT_OPERATION,
+                 format!("post-quantum ratchet send error: {e}"),
+             )
+         })?;
+@@ -109,11 +164,11 @@
+             message_keys.iv(),
+         )
+         .map_err(|_| {
+-            log::error!("session state corrupt for {remote_address}");
+-            SignalProtocolError::InvalidSessionStructure("invalid sender chain message keys")
++            log_sender_chain_corrupt(remote_address);
++            SignalProtocolError::InvalidSessionStructure(INVALID_SENDER_CHAIN_MESSAGE_KEYS)
+         })?;
+ 
+-        let addresses = local_address.map(|addr| (addr, remote_address));
++        let addresses = address_pair(local_address, remote_address);
+ 
+         let message = SignalMessage::new(
+             self.session_version,
+@@ -173,16 +228,17 @@
+     /// Fails if the session is missing required fields (root key, identity
+     /// keys, etc.). The caller should map the error appropriately for the
+     /// context (e.g., "no session available to decrypt").
+-    pub(crate) fn from_session_state(state: &mut SessionState, self_session: bool) -> Result<Self> {
+-        let ratchet = state.take_ratchet_state(self_session)?;
+-        let pqr_state = state.take_pq_ratchet_state();
+-        let local_identity_key = state.local_identity_key()?;
+-        let remote_identity_key =
+-            state
+-                .remote_identity_key()?
+-                .ok_or(SignalProtocolError::InvalidSessionStructure(
+-                    "missing remote identity key",
+-                ))?;
++    // `session_state`, not `state`: see `OutgoingTripleRatchet::from_session_state`.
++    pub(crate) fn from_session_state(
++        session_state: &mut SessionState,
++        self_session: bool,
++    ) -> Result<Self> {
++        let ratchet = session_state.take_ratchet_state(self_session)?;
++        let pqr_state = session_state.take_pq_ratchet_state();
++        let local_identity_key = session_state.local_identity_key()?;
++        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
++            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
++        )?;
+ 
+         Ok(Self {
+             ratchet,
+@@ -239,15 +295,18 @@
+         let spqr::Recv {
+             state: new_pqr_state,
+             key: pqr_key,
+-        } = spqr::recv(&self.pqr_state, ciphertext.pq_ratchet()).map_err(|e| match e {
+-            spqr::Error::StateDecode => SignalProtocolError::InvalidState(
+-                "decrypt",
+-                format!("post-quantum ratchet error: {e}"),
+-            ),
+-            _ => SignalProtocolError::InvalidMessage(
+-                original_message_type,
+-                format!("post-quantum ratchet error: {e}"),
+-            ),
++        } = spqr::recv(&self.pqr_state, ciphertext.pq_ratchet()).map_err(|e| {
++            if is_state_decode(&e) {
++                SignalProtocolError::InvalidState(
++                    DECRYPT_OPERATION,
++                    format!("post-quantum ratchet error: {e}"),
++                )
++            } else {
++                SignalProtocolError::InvalidMessage(
++                    original_message_type,
++                    format!("post-quantum ratchet error: {e}"),
++                )
++            }
+         })?;
+ 
+         // Derive final message keys by mixing DR chain key with SPQR key
+@@ -275,18 +334,17 @@
+             message_keys.iv(),
+         ) {
+             Ok(ptext) => ptext,
+-            Err(signal_crypto::DecryptionError::BadKeyOrIv) => {
+-                log::warn!(
+-                    "{current_or_previous_for_logging} session state corrupt for {sender_address}",
+-                );
++            // The guard tests the variant without expanding the error here.
++            Err(decryption_error) if is_bad_key_or_iv(&decryption_error) => {
++                log_receiver_chain_corrupt(current_or_previous_for_logging, sender_address);
+                 return Err(SignalProtocolError::InvalidSessionStructure(
+-                    "invalid receiver chain message keys",
++                    INVALID_RECEIVER_CHAIN_MESSAGE_KEYS,
+                 ));
+             }
+-            Err(signal_crypto::DecryptionError::BadCiphertext(msg)) => {
++            Err(decryption_error) => {
+                 return Err(SignalProtocolError::InvalidMessage(
+                     original_message_type,
+-                    format!("failed to decrypt: {msg}"),
++                    decrypt_failure_message(decryption_error),
+                 ));
+             }
+         };

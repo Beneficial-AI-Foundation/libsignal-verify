@@ -5,7 +5,7 @@ import path from "node:path";
 
 export interface RunOptions {
   cwd?: string;
-  env?: Record<string, string>;
+  env?: Record<string, string | undefined>;
   label?: string;
   logFile?: string;
   silent?: boolean;

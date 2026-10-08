@@ -56,6 +56,52 @@ pub(crate) struct SenderChain {
 
 // ── Serialization bridge ──────────────────────────────────────────────
 
+// Named messages: Aeneas loses a string literal returned from a `map_err`
+// closure ("There should be no bottoms in the value").
+const INVALID_ROOT_KEY: &str = "invalid root key";
+const INVALID_SENDER_RATCHET_PUBLIC_KEY: &str = "invalid sender ratchet public key";
+const INVALID_SENDER_RATCHET_PRIVATE_KEY: &str = "invalid sender ratchet private key";
+const INVALID_CHAIN_KEY: &str = "invalid chain key";
+
+// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
+// these as opaque effects. Level and message are unchanged.
+fn log_duplicate_message(remote_address_for_logging: &str, counter: u32) {
+    log::info!("{remote_address_for_logging} Duplicate message for counter: {counter}");
+}
+
+fn log_future_message_limit(
+    remote_address_for_logging: &str,
+    max_forward_jumps: usize,
+    chain_index: u32,
+    counter: u32,
+) {
+    log::error!(
+        "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
+        max_forward_jumps,
+    );
+}
+
+fn log_jump_ahead(remote_address_for_logging: &str, jump: usize, chain_index: u32, counter: u32) {
+    log::info!(
+        "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
+    );
+}
+
+fn log_corrupt_receiver_chain() {
+    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
+}
+
+// Opaque in the extraction: the `&'static str` error of the opaque
+// `MessageKeyGenerator::from_pb` cannot be moved into `InvalidSessionError` in
+// translated code (Aeneas has no loan for the static borrow).
+fn skipped_key_from_pb(
+    key_pb: session_structure::chain::MessageKey,
+) -> std::result::Result<Option<MessageKeyGenerator>, InvalidSessionError> {
+    MessageKeyGenerator::from_pb(key_pb)
+        .map(Some)
+        .map_err(InvalidSessionError)
+}
+
 impl RatchetState {
     /// Deserialize the ratchet-relevant fields from a `SessionStructure`.
     ///
@@ -77,12 +123,14 @@ impl RatchetState {
             .root_key
             .as_slice()
             .try_into()
-            .map_err(|_| InvalidSessionError("invalid root key"))?;
+            .map_err(|_| InvalidSessionError(INVALID_ROOT_KEY))?;
 
+        // Explicit closure: Aeneas cannot translate the function-item form.
+        #[allow(clippy::redundant_closure)]
         let sender_chain = session
             .sender_chain
             .as_ref()
-            .map(SenderChain::from_pb)
+            .map(|chain| SenderChain::from_pb(chain))
             .transpose()?;
 
         Ok(Self {
@@ -112,7 +160,10 @@ impl RatchetState {
         } = self;
         session.root_key = root_key.key().to_vec();
         session.previous_counter = previous_counter;
-        session.sender_chain = sender_chain.as_ref().map(SenderChain::to_pb);
+        // Explicit closure: Aeneas cannot translate the function-item form.
+        #[allow(clippy::redundant_closure)]
+        let sender_chain_pb = sender_chain.as_ref().map(|chain| SenderChain::to_pb(chain));
+        session.sender_chain = sender_chain_pb;
         session.receiver_chains = receiver_chains;
     }
 }
@@ -120,9 +171,9 @@ impl RatchetState {
 impl SenderChain {
     fn from_pb(chain: &session_structure::Chain) -> std::result::Result<Self, InvalidSessionError> {
         let public_key = PublicKey::deserialize(&chain.sender_ratchet_key)
-            .map_err(|_| InvalidSessionError("invalid sender ratchet public key"))?;
+            .map_err(|_| InvalidSessionError(INVALID_SENDER_RATCHET_PUBLIC_KEY))?;
         let private_key = PrivateKey::deserialize(&chain.sender_ratchet_key_private)
-            .map_err(|_| InvalidSessionError("invalid sender ratchet private key"))?;
+            .map_err(|_| InvalidSessionError(INVALID_SENDER_RATCHET_PRIVATE_KEY))?;
         let chain_key = ChainKey::from_pb(
             chain
                 .chain_key
@@ -156,7 +207,7 @@ impl ChainKey {
             .key
             .as_slice()
             .try_into()
-            .map_err(|_| InvalidSessionError("invalid chain key"))?;
+            .map_err(|_| InvalidSessionError(INVALID_CHAIN_KEY))?;
         Ok(Self::new(key, pb.index))
     }
 
@@ -216,18 +267,18 @@ impl RatchetState {
             return self
                 .take_skipped_key(their_ephemeral, counter)?
                 .ok_or_else(|| {
-                    log::info!(
-                        "{remote_address_for_logging} Duplicate message for counter: {counter}"
-                    );
+                    log_duplicate_message(remote_address_for_logging, counter);
                     SignalProtocolError::DuplicatedMessage(chain_index, counter)
                 });
         }
 
         let jump = (counter - chain_index) as usize;
         if jump > self.max_forward_jumps {
-            log::error!(
-                "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
+            log_future_message_limit(
+                remote_address_for_logging,
                 self.max_forward_jumps,
+                chain_index,
+                counter,
             );
             return Err(SignalProtocolError::InvalidMessage(
                 original_message_type,
@@ -235,9 +286,7 @@ impl RatchetState {
             ));
         } else if jump > consts::MAX_FORWARD_JUMPS {
             // This only happens if it is a session with self
-            log::info!(
-                "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
-            );
+            log_jump_ahead(remote_address_for_logging, jump, chain_index, counter);
         }
 
         // Advance the chain to the target counter, caching skipped keys.
@@ -338,9 +387,7 @@ impl RatchetState {
         // and unrecoverable — slightly different from main which preserves it,
         // but the outcome (error) is the same.
         let key_pb = keys.remove(pos);
-        MessageKeyGenerator::from_pb(key_pb)
-            .map(Some)
-            .map_err(InvalidSessionError)
+        skipped_key_from_pb(key_pb)
     }
 
     fn store_skipped_key(&mut self, their_ephemeral: &PublicKey, key: MessageKeyGenerator) {
@@ -372,7 +419,7 @@ impl RatchetState {
             match PublicKey::deserialize(&chain.sender_ratchet_key) {
                 Ok(key) => &key == their_ephemeral,
                 Err(_) => {
-                    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
+                    log_corrupt_receiver_chain();
                     false
                 }
             }

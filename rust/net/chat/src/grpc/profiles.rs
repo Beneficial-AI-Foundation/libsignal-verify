@@ -39,7 +39,7 @@ impl<T: GrpcServiceProvider> crate::api::profiles::UnauthenticatedAccountExisten
         };
         let log_safe_description = Redact(&request).to_string();
         let CheckAccountExistenceResponse { account_exists } =
-            log_and_send("unauth", &log_safe_description, || {
+            log_and_send(Self::LOG_TAG, &log_safe_description, || {
                 account_service.check_account_existence(request)
             })
             .await?

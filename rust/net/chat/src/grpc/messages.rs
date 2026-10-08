@@ -44,7 +44,7 @@ impl From<UserBasedAuthorization> for send_sealed_sender_message_request::Author
                 Self::GroupSendToken(zkgroup::serialize(&token))
             }
             UserBasedAuthorization::UnrestrictedUnauthenticatedAccess => {
-                Self::UnrestrictedAccess(Default::default())
+                Self::UnrestrictedAccess(())
             }
         }
     }
@@ -167,7 +167,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::UnauthenticatedChatApi<OverGr
                 };
 
                 let log_safe_description = Redact(&request).to_string();
-                log_and_send("auth", &log_safe_description, || {
+                log_and_send(Self::LOG_TAG, &log_safe_description, || {
                     service.send_story(request)
                 })
                 .await?
@@ -182,7 +182,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::UnauthenticatedChatApi<OverGr
                     authorization: Some(auth.into()),
                 };
                 let log_safe_description = Redact(&request).to_string();
-                log_and_send("auth", &log_safe_description, || {
+                log_and_send(Self::LOG_TAG, &log_safe_description, || {
                     service.send_single_recipient_message(request)
                 })
                 .await?
@@ -235,7 +235,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::UnauthenticatedChatApi<OverGr
                 assert!(!online_only, "stories should never be sent online-only");
                 let request = SendMultiRecipientStoryRequest { urgent, message };
                 let log_safe_description = Redact(&request).to_string();
-                log_and_send("unauth", &log_safe_description, || {
+                log_and_send(Self::LOG_TAG, &log_safe_description, || {
                     service.send_multi_recipient_story(request)
                 })
                 .await?
@@ -251,7 +251,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::UnauthenticatedChatApi<OverGr
                 };
                 let log_safe_description = Redact(&request).to_string();
 
-                log_and_send("unauth", &log_safe_description, || {
+                log_and_send(Self::LOG_TAG, &log_safe_description, || {
                     service.send_multi_recipient_message(request)
                 })
                 .await?
@@ -347,7 +347,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::AuthenticatedChatApi<OverGrpc
         let log_safe_description = Redact(&request).to_string();
 
         let SendMessageAuthenticatedSenderResponse { response } =
-            log_and_send("auth", &log_safe_description, || {
+            log_and_send(Self::LOG_TAG, &log_safe_description, || {
                 service.send_message(request)
             })
             .await?
@@ -413,7 +413,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::AuthenticatedChatApi<OverGrpc
         let log_safe_description = Redact(&request).to_string();
 
         let SendMessageAuthenticatedSenderResponse { response } =
-            log_and_send("auth", &log_safe_description, || {
+            log_and_send(Self::LOG_TAG, &log_safe_description, || {
                 service.send_sync_message(request)
             })
             .await?
@@ -453,7 +453,7 @@ impl<T: GrpcServiceProvider> crate::api::messages::AuthenticatedChatApi<OverGrpc
         let mut attachments_service = AttachmentsClient::new(self.0.service());
         let request = attachments::GetUploadFormRequest { upload_length };
         let log_safe_description = Redact(&request).to_string();
-        let response = log_and_send("auth", &log_safe_description, || {
+        let response = log_and_send(Self::LOG_TAG, &log_safe_description, || {
             attachments_service.get_upload_form(request)
         })
         .await?
@@ -585,6 +585,7 @@ mod test {
     use const_str::hex;
     use futures_util::FutureExt as _;
     use libsignal_core::{Aci, Pni, ServiceId};
+    use libsignal_net::chat::fake::BodyWithTrailers;
     use libsignal_net::infra::errors::RetryLater;
     use libsignal_net_grpc::proto::chat::attachments::get_upload_form_response;
     use libsignal_net_grpc::proto::chat::messages::ChallengeRequired as ChallengeRequiredProto;
@@ -597,7 +598,7 @@ mod test {
     use super::*;
     use crate::api::messages::{AuthenticatedChatApi, UnauthenticatedChatApi as _};
     use crate::api::testutil::{SERIALIZED_GROUP_SEND_TOKEN, structurally_valid_group_send_token};
-    use crate::api::{ChallengeOption, RateLimitChallenge};
+    use crate::api::{ChallengeOption, DisconnectedError, RateLimitChallenge};
     use crate::grpc::testutil::{
         GrpcOverrideRequestValidator, RequestValidator, TypedRequestValidator,
         UnreachableValidator, err, ok, req, req_typed,
@@ -742,9 +743,9 @@ mod test {
             },
         )),
     }) => matches Err(RequestError::Unexpected { .. }))]
-    #[test_case(err(tonic::Code::Internal) => matches Err(RequestError::Unexpected { .. }))]
+    #[test_case(err(tonic::Code::Internal) => matches Err(RequestError::Disconnected(DisconnectedError::Transport { .. })))]
     fn test_story(
-        response: http::Response<Vec<u8>>,
+        response: http::Response<BodyWithTrailers>,
     ) -> Result<MultiRecipientMessageResponse, RequestError<MultiRecipientSendFailure>> {
         let validator = GrpcOverrideRequestValidator {
             message: services::MessagesAnonymous::SendMultiRecipientMessage.into(),
@@ -833,7 +834,7 @@ mod test {
     }
 
     #[test_case(ok(SendMessageResponse {
-        response: Some(send_message_response::Response::Success(Default::default()))
+        response: Some(send_message_response::Response::Success(()))
     }) => matches Ok(()))]
     #[test_case(ok(SendMessageResponse {
         response: None
@@ -876,7 +877,7 @@ mod test {
         )),
     }) => matches Err(RequestError::Other(SealedSendFailure::Unauthorized)))]
     fn test_sealed_send(
-        response: http::Response<Vec<u8>>,
+        response: http::Response<BodyWithTrailers>,
     ) -> Result<(), RequestError<SealedSendFailure>> {
         let validator = GrpcOverrideRequestValidator {
             message: services::MessagesAnonymous::SendSingleRecipientMessage.into(),
@@ -979,7 +980,7 @@ mod test {
                     },
                 ),
                 response: ok(SendMessageResponse {
-                    response: Some(send_message_response::Response::Success(Default::default())),
+                    response: Some(send_message_response::Response::Success(())),
                 }),
             },
         };
@@ -1020,9 +1021,7 @@ mod test {
                         destination: Some(Aci::from(ACI_UUID).into()),
                         ephemeral: false,
                         urgent: true,
-                        authorization: Some(SealedSenderAuthorization::UnrestrictedAccess(
-                            Default::default(),
-                        )),
+                        authorization: Some(SealedSenderAuthorization::UnrestrictedAccess(())),
                         messages: Some(IndividualRecipientMessageBundle {
                             timestamp: 1700000000000,
                             messages: HashMap::from_iter([
@@ -1047,7 +1046,7 @@ mod test {
                     },
                 ),
                 response: ok(SendMessageResponse {
-                    response: Some(send_message_response::Response::Success(Default::default())),
+                    response: Some(send_message_response::Response::Success(())),
                 }),
             },
         };
@@ -1111,7 +1110,7 @@ mod test {
                     },
                 ),
                 response: ok(SendMessageResponse {
-                    response: Some(send_message_response::Response::Success(Default::default())),
+                    response: Some(send_message_response::Response::Success(())),
                 }),
             },
         };
@@ -1247,7 +1246,7 @@ mod test {
     }
 
     #[test_case(ok(SendMessageAuthenticatedSenderResponse {
-        response: Some(send_message_authenticated_sender_response::Response::Success(Default::default()))
+        response: Some(send_message_authenticated_sender_response::Response::Success(()))
     }) => matches Ok(()))]
     #[test_case(ok(SendMessageAuthenticatedSenderResponse {
         response: None
@@ -1303,7 +1302,7 @@ mod test {
         )),
     }) => matches Err(RequestError::Unexpected { .. }))]
     fn test_unsealed_send(
-        response: http::Response<Vec<u8>>,
+        response: http::Response<BodyWithTrailers>,
     ) -> Result<(), RequestError<UnsealedSendFailure>> {
         let validator = GrpcOverrideRequestValidator {
             message: services::Messages::SendMessage.into(),
@@ -1376,7 +1375,7 @@ mod test {
     }
 
     #[test_case(ok(SendMessageAuthenticatedSenderResponse {
-        response: Some(send_message_authenticated_sender_response::Response::Success(Default::default()))
+        response: Some(send_message_authenticated_sender_response::Response::Success(()))
     }) => matches Ok(()))]
     #[test_case(ok(SendMessageAuthenticatedSenderResponse {
         response: None
@@ -1432,7 +1431,7 @@ mod test {
         )),
     }) => matches Err(RequestError::Unexpected { .. }))]
     fn test_sync_send(
-        response: http::Response<Vec<u8>>,
+        response: http::Response<BodyWithTrailers>,
     ) -> Result<(), RequestError<MismatchedDeviceError>> {
         let validator = GrpcOverrideRequestValidator {
             message: services::Messages::SendMessage.into(),

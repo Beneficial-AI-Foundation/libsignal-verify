@@ -51,12 +51,16 @@ pub enum RecipientError {
     MissingIdentityKey(proto::contact::IdentityState),
     /// Contact.nickname is present but empty
     NicknameIsPresentButEmpty,
+    /// Contact.sharedName is present but empty
+    SharedNameIsPresentButEmpty,
     /// distribution destination has invalid UUID
     InvalidDistributionId,
     /// invalid group: {0}
     InvalidGroup(#[from] GroupError),
     /// contact has neither an ACI, nor a PNI, nor an e164
     ContactHasNoIdentifiers,
+    /// contact has a blockedAtTimestamp but is not blocked
+    BlockedAtWithoutBlocked,
     /// contact has a PNI but no e164
     #[allow(dead_code)] // See the commented-out use site in this file.
     PniWithoutE164,
@@ -298,6 +302,8 @@ pub struct ContactData {
     pub registration: Registration,
     pub e164: Option<E164>,
     pub blocked: bool,
+    // `None` when unblocked, or when the block time is unknown.
+    pub blocked_at: Option<Timestamp>,
     #[serde_as(as = "serialize::EnumAsString")]
     pub visibility: proto::contact::Visibility,
     pub profile_sharing: bool,
@@ -313,6 +319,7 @@ pub struct ContactData {
     pub system_given_name: String,
     pub system_family_name: String,
     pub system_nickname: String,
+    pub shared_name: Option<ContactName>,
     #[serde_as(as = "Option<serialize::EnumAsString>")]
     pub avatar_color: Option<proto::AvatarColor>,
     pub key_transparency_data: Option<Vec<u8>>,
@@ -323,6 +330,29 @@ pub struct ContactData {
 pub struct ContactName {
     pub given_name: String,
     pub family_name: String,
+}
+
+pub struct EmptyContactName;
+
+impl TryFrom<proto::contact::Name> for ContactName {
+    type Error = EmptyContactName;
+
+    fn try_from(value: proto::contact::Name) -> Result<Self, Self::Error> {
+        let proto::contact::Name {
+            given,
+            family,
+            special_fields: _,
+        } = value;
+
+        if given.is_empty() && family.is_empty() {
+            return Err(EmptyContactName);
+        }
+
+        Ok(ContactName {
+            given_name: given,
+            family_name: family,
+        })
+    }
 }
 
 #[serde_as]
@@ -522,6 +552,7 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
             username,
             e164,
             blocked,
+            blockedAtTimestamp,
             visibility,
             keyTransparencyData,
             registration,
@@ -532,6 +563,7 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
             identityKey,
             identityState,
             nickname,
+            sharedName,
             note,
             systemGivenName,
             systemFamilyName,
@@ -602,6 +634,15 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
             .transpose()
             .map_err(|_| RecipientError::InvalidE164)?;
 
+        // A zero value means the block time is unknown (or the contact is not blocked).
+        let blocked_at = NonZeroU64::new(blockedAtTimestamp);
+        if blocked_at.is_some() && !blocked {
+            return Err(RecipientError::BlockedAtWithoutBlocked);
+        }
+        let blocked_at = blocked_at
+            .map(|u| Timestamp::from_millis(u.get(), "Contact.blockedAtTimestamp", context))
+            .transpose()?;
+
         match (&aci, &pni, &e164) {
             (None, None, None) => Err(RecipientError::ContactHasNoIdentifiers),
             // There are a few scenarios where a client can learn of a PNI directly,
@@ -629,22 +670,15 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
 
         let nickname = nickname
             .into_option()
-            .map(
-                |proto::contact::Name {
-                     given,
-                     family,
-                     special_fields: _,
-                 }| {
-                    if given.is_empty() && family.is_empty() {
-                        return Err(RecipientError::NicknameIsPresentButEmpty);
-                    }
-                    Ok(ContactName {
-                        given_name: given,
-                        family_name: family,
-                    })
-                },
-            )
-            .transpose()?;
+            .map(ContactName::try_from)
+            .transpose()
+            .map_err(|_| RecipientError::NicknameIsPresentButEmpty)?;
+
+        let shared_name = sharedName
+            .into_option()
+            .map(ContactName::try_from)
+            .transpose()
+            .map_err(|_| RecipientError::SharedNameIsPresentButEmpty)?;
 
         // The color is allowed to be unset.
         let avatar_color = avatarColor.map(|v| v.enum_value_or_default());
@@ -657,6 +691,7 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
             username,
             e164,
             blocked,
+            blocked_at,
             visibility,
             profile_sharing: profileSharing,
             profile_given_name: profileGivenName,
@@ -669,6 +704,7 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactData, C> for proto::Contact {
             system_given_name: systemGivenName,
             system_family_name: systemFamilyName,
             system_nickname: systemNickname,
+            shared_name,
             avatar_color,
             key_transparency_data: keyTransparencyData,
         })
@@ -858,6 +894,12 @@ mod test {
                     ..Default::default()
                 })
                 .into(),
+                sharedName: Some(proto::contact::Name {
+                    given: "GivenSharedName".to_owned(),
+                    family: "FamilySharedName".to_owned(),
+                    ..Default::default()
+                })
+                .into(),
                 systemGivenName: "GivenSystemName".to_owned(),
                 systemFamilyName: "FamilySystemName".to_owned(),
                 systemNickname: "SystemNickName".to_owned(),
@@ -896,6 +938,7 @@ mod test {
                 username: Some("example.1234".to_owned()),
                 e164: Some(proto::Contact::TEST_E164),
                 blocked: false,
+                blocked_at: None,
                 visibility: proto::contact::Visibility::VISIBLE,
                 profile_sharing: false,
                 profile_given_name: Some("GivenName".to_owned()),
@@ -912,6 +955,10 @@ mod test {
                 system_given_name: "GivenSystemName".to_owned(),
                 system_family_name: "FamilySystemName".to_owned(),
                 system_nickname: "SystemNickName".to_owned(),
+                shared_name: Some(ContactName {
+                    given_name: "GivenSharedName".to_owned(),
+                    family_name: "FamilySharedName".to_owned(),
+                }),
                 note: "nb".into(),
                 avatar_color: None,
                 key_transparency_data: None,
@@ -1000,6 +1047,15 @@ mod test {
     #[test_case(|x| x.nickname.as_mut().unwrap().given = "".into() => Ok(()); "no nickname given name")]
     #[test_case(|x| x.nickname.as_mut().unwrap().family = "".into() => Ok(()); "no nickname family name")]
     #[test_case(|x| x.nickname = Some(Default::default()).into() => Err(RecipientError::NicknameIsPresentButEmpty); "no nickname given or family name")]
+    #[test_case(|x| x.sharedName = None.into() => Ok(()); "no shared name")]
+    #[test_case(|x| x.sharedName.as_mut().unwrap().given = "".into() => Ok(()); "no shared name given name")]
+    #[test_case(|x| x.sharedName.as_mut().unwrap().family = "".into() => Ok(()); "no shared name family name")]
+    #[test_case(|x| x.sharedName = Some(Default::default()).into() => Err(RecipientError::SharedNameIsPresentButEmpty); "no shared name given or family name")]
+    #[test_case(|x| {x.blocked = true; x.blockedAtTimestamp = 1000} => Ok(()); "blocked with blockedAtTimestamp")]
+    #[test_case(|x| x.blocked = true => Ok(()); "blocked without blockedAtTimestamp")]
+    #[test_case(|x| x.blockedAtTimestamp = 1000 => Err(RecipientError::BlockedAtWithoutBlocked); "blockedAtTimestamp without blocked")]
+    // The blocked/blockedAtTimestamp consistency check runs before the timestamp is validated.
+    #[test_case(|x| x.blockedAtTimestamp = MillisecondsSinceEpoch::FAR_FUTURE.0 => Err(RecipientError::BlockedAtWithoutBlocked); "invalid blockedAtTimestamp without blocked")]
     fn destination_contact(modifier: fn(&mut proto::Contact)) -> Result<(), RecipientError> {
         let mut contact = proto::Contact::test_data();
         modifier(&mut contact);
@@ -1027,6 +1083,11 @@ mod test {
 
     #[test_case(|x| x.masterKey = vec![] => Err(RecipientError::InvalidGroup(GroupError::InvalidMasterKey)); "invalid master key")]
     #[test_case(|x| x.storySendMode = Default::default() => Ok(()); "default story send mode")]
+    #[test_case(|x| {x.blocked = true; x.blockedAtTimestamp = 1000} => Ok(()); "blocked with blockedAtTimestamp")]
+    #[test_case(|x| x.blocked = true => Ok(()); "blocked without blockedAtTimestamp")]
+    #[test_case(|x| x.blockedAtTimestamp = 1000 => Err(RecipientError::InvalidGroup(GroupError::BlockedAtWithoutBlocked)); "blockedAtTimestamp without blocked")]
+    // The blocked/blockedAtTimestamp consistency check runs before the timestamp is validated.
+    #[test_case(|x| x.blockedAtTimestamp = MillisecondsSinceEpoch::FAR_FUTURE.0 => Err(RecipientError::InvalidGroup(GroupError::BlockedAtWithoutBlocked)); "invalid blockedAtTimestamp without blocked")]
     fn destination_group(modifier: fn(&mut proto::Group)) -> Result<(), RecipientError> {
         let mut group = proto::Group::test_data();
         modifier(&mut group);
