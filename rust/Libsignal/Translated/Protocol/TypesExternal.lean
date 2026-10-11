@@ -118,16 +118,7 @@ axiom prost.error.EncodeError : Type
 @[rust_type "rand_core#1::os::OsError"]
 axiom rand_core_1.os.OsError : Type
 
-/-- [subtle::Choice]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
-    Name pattern: [subtle::Choice]
-    Visibility: public -/
--- `subtle::Choice` is `struct Choice(u8)`, holding 0 or 1.
-@[rust_type "subtle::Choice"]
-structure subtle.Choice where
-  val : Std.U8
-
--- (dropped axiom uuid.Uuid; provided by an imported sibling lib)
+-- subtle.Choice is provided by Libsignal.Translated.Crypto.TypesExternal.
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::previous_session_states::{closure}]
     Source: 'rust/protocol/src/state/session.rs', lines 818:42-822:9 -/

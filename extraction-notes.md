@@ -1,6 +1,8 @@
 # Extraction notes
 
-Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the AES-CBC part of `signal-crypto`, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
+Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the supported `signal-crypto` operations, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
+
+The crypto profile translates AES-GCM encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Protocol through an exact trait alias.
 
 ## Public functions — signal-crypto
 
@@ -215,14 +217,14 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `FnOnce::call_once` for `Into::into` used as a function value | `fun f x => f x` | The template prints the type without parentheses; calling a function item applies it |
 | `core::num::error::TryFromIntError` (`Shared/Core.lean`) | Alias of the backend's `Aeneas.Std.core.num.error.TryFromIntError` | The backend now defines it, so a separate opaque type made the two incompatible |
 | `u8::try_from(u32)` | `core.num.tryFromUScalar .U8` from the backend | The backend's checked conversion is the same operation |
-| `signal_crypto::aes_cbc::{aes_256_cbc_encrypt, aes_256_cbc_decrypt}` and their error types | Reuse the crypto-cbc profile's externals and types | Protocol and Crypto share one AES-CBC model. Exact-match tweaks remove Protocol's duplicate error types and fail if their generated shape changes. |
+| `signal_crypto::aes_cbc::{aes_256_cbc_encrypt, aes_256_cbc_decrypt}` and their error types | Reuse the crypto profile's externals and types | Protocol and Crypto share one AES-CBC model. Exact-match tweaks remove Protocol's duplicate error types and fail if their generated shape changes. |
 | `spqr::{initial_state, send, recv}` | Externals | The SPQR v1.6.0 interface libsignal consumes; SPQR itself is extracted and verified in SPQR-verify |
 | `triple_ratchet::{is_state_decode, is_bad_key_or_iv}` | `ok (match error with \| .StateDecode => true \| _ => false)` and the same for `BadKeyOrIv` | Exact transcription of the `matches!` bodies; the Lean inductive has no borrow problem |
 | The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol` | `ok ()` | Logging affects neither protocol state nor results |
 | `double_ratchet::skipped_key_from_pb` | `MessageKeyGenerator::from_pb` followed by the same `map` and `map_err` | Transcription; `InvalidSessionError` translates to `Str` |
 | `Iterator::position` for slice iterators | Transcription of the loop in core's `slice/iter/macros.rs`: apply the predicate in order, stop at the first `true`, consume that element | It was an axiom, so nothing fixed which receiver chain or skipped key `find_receiver_chain_index` and `take_skipped_key` select |
-| `subtle::Choice` | Structure with one `U8` field | Rust defines `struct Choice(u8)`, holding 0 or 1 |
-| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
+| `subtle::Choice` | Structure with one `U8` field, owned by Crypto and imported by Protocol | Rust defines `struct Choice(u8)`, holding 0 or 1 |
+| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
 | `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
 | `triple_ratchet::decrypt_failure_message` | External | String formatting, as for `format!` elsewhere |
 

@@ -6,10 +6,6 @@ open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
 set_option linter.unusedVariables false
-set_option linter.style.longLine false
-set_option linter.style.setOption false
-set_option linter.style.whitespace false
-set_option linter.style.nameCheck false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
@@ -273,9 +269,7 @@ structure spqr.Recv where
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 262:0-262:24
     Name pattern: [subtle::ConstantTimeEq]
     Visibility: public -/
-@[rust_trait "subtle::ConstantTimeEq"]
-structure subtle.ConstantTimeEq (Self : Type) where
-  ct_eq : Self → Self → Result subtle.Choice
+abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq
 
 /-- [libsignal_protocol::proto::fingerprint::LogicalFingerprint]
     Source: 'target/out/signal.proto.fingerprint.rs', lines 3:0-7:1

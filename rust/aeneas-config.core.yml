@@ -79,7 +79,6 @@ charon:
 aeneas_args:
   options:
     - split-files
-    - emit-json
   dest: "rust"
   subdir: "Libsignal/Translated/Core"
 
@@ -88,16 +87,6 @@ tweaks:
     - "Types.lean"
     - "Funs.lean"
   substitutions:
-    # Disable style linters for auto-generated files
-    - find: |
-        set_option linter.unusedVariables false
-      replace: |
-        set_option linter.unusedVariables false
-        set_option linter.style.longLine false
-        set_option linter.style.setOption false
-        set_option linter.style.whitespace false
-        set_option linter.style.nameCheck false
-
     # Normalize absolute build paths in Source comments so they are reproducible across machines
     - regex: "Source: '[^']*/target/[^']*/out/"
       replace: "Source: 'target/out/"

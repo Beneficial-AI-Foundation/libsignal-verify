@@ -5,6 +5,17 @@ import { type AeneasConfig, type InstallMode } from "./config.js";
 export const INSTALL_RECORD = ".libsignal-install.json";
 export const platformKey = `${process.platform}-${process.arch}`;
 
+export function releaseAssetName(platform: string): string {
+  const names: Record<string, string> = {
+    "darwin-arm64": "aeneas-macos-aarch64.tar.gz",
+    "linux-x64": "aeneas-linux-x86_64.tar.gz",
+    "linux-arm64": "aeneas-linux-aarch64.tar.gz",
+  };
+  const name = names[platform];
+  if (!name) throw new Error(`No supported executable bundle for ${platform}`);
+  return name;
+}
+
 export interface Installation {
   mode: InstallMode;
   dir: string;

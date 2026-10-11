@@ -326,7 +326,6 @@ charon:
 aeneas_args:
   options:
     - split-files
-    - emit-json
   dest: "rust"
   subdir: "Libsignal/Translated/Protocol"
 
@@ -359,7 +358,14 @@ tweaks:
           rand_core_1RngCoreInst : rand_core_1.RngCore Self
       replace: "abbrev rand_1.rng.Rng := _root_.rand.rng.Rng\n"
       required: true
-    # signal_crypto AES-CBC error types: the crypto-cbc profile owns them, and
+    # Reuse the identical trait and concrete subtle models owned by Crypto.
+    - find: |
+        @[rust_trait "subtle::ConstantTimeEq"]
+        structure subtle.ConstantTimeEq (Self : Type) where
+          ct_eq : Self → Self → Result subtle.Choice
+      replace: "abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq\n"
+      required: true
+    # signal_crypto AES-CBC error types: the crypto profile owns them, and
     # Protocol reuses its AES-CBC externals. The declaration body is matched
     # exactly, so a change in the generated shape fails the extraction.
     - regex: '/-- \[signal_crypto::aes_cbc::EncryptionError\]\n(?:    [^\n]*\n)*?@\[discriminant isize, rust_type "signal_crypto::aes_cbc::EncryptionError"\]\ninductive signal_crypto\.aes_cbc\.EncryptionError where\n\| BadKeyOrIv : signal_crypto\.aes_cbc\.EncryptionError\n'
@@ -377,16 +383,6 @@ tweaks:
       replace: ":=$1"
     - regex: '←(\s*)libsignal_core\.address\.ProtocolAddress\.name (\w+)'
       replace: "←$1alloc.string.String.Insts.CoreOpsDerefDerefStr.deref $2.«name»"
-
-    # Disable linters for auto-generated files
-    - find: |
-        set_option linter.unusedVariables false
-      replace: |
-        set_option linter.unusedVariables false
-        set_option linter.style.longLine false
-        set_option linter.style.setOption false
-        set_option linter.style.whitespace false
-        set_option linter.style.nameCheck false
 
     # Normalize generated protobuf source paths across build-cache locations.
     - regex: "Source: '[^']*/out/"

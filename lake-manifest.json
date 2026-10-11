@@ -18,7 +18,7 @@
    "rev": "0855ce1b8ed3958512b6c19de6bf3035b7acb552",
    "name": "aeneas",
    "manifestFile": "lake-manifest.json",
-   "inputRev": "0855ce1b8ed3958512b6c19de6bf3035b7acb552",
+   "inputRev": "nightly-2026.09.30-0855ce1",
    "inherited": false,
    "configFile": "lakefile.lean"},
   {"url": "https://github.com/Verified-zkEVM/PolyFun.git",

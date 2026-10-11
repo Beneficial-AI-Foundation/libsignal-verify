@@ -1060,43 +1060,11 @@ axiom spqr.recv
   alloc.vec.Vec Std.U8 → alloc.vec.Vec Std.U8 → Result (core.result.Result
     spqr.Recv spqr.Error)
 
-/-- [subtle::{impl core::convert::From<subtle::Choice> for bool}::from]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 153:4-153:35
-    Name pattern: [subtle::{core::convert::From<bool, subtle::Choice>}::from]
-    Visibility: public -/
--- Transcribes `source.0 != 0`; the `debug_assert!` is not modelled.
-@[rust_fun "subtle::{core::convert::From<bool, subtle::Choice>}::from"]
-def Bool.Insts.CoreConvertFromChoice.from (source : subtle.Choice) : Result Bool :=
-  ok (source.val != 0#u8)
+-- The shared subtle model is provided by Libsignal.Translated.Crypto.FunsExternal.
 
-/-- [subtle::{impl subtle::ConstantTimeEq for [T]}::ct_eq]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 313:4-313:41
-    Name pattern: [subtle::{subtle::ConstantTimeEq<[@T]>}::ct_eq]
-    Visibility: public -/
--- Transcribes the loop in `subtle`: 0 when the lengths differ, otherwise the
--- bitwise AND of the elementwise results, starting from 1.
-@[rust_fun "subtle::{subtle::ConstantTimeEq<[@T]>}::ct_eq"]
-def Slice.Insts.SubtleConstantTimeEq.ct_eq
-  {T : Type} (ConstantTimeEqInst : subtle.ConstantTimeEq T) (s rhs : Slice T) :
-  Result subtle.Choice :=
-  if s.length ≠ rhs.length then ok ⟨0#u8⟩
-  else do
-    let x ← (List.zip s.val rhs.val).foldlM
-      (fun (x : Std.U8) (p : T × T) => do
-        let c ← ConstantTimeEqInst.ct_eq p.1 p.2
-        ok (x &&& c.val))
-      1#u8
-    ok ⟨x⟩
+-- The shared subtle model is provided by Libsignal.Translated.Crypto.FunsExternal.
 
-/-- [subtle::{impl subtle::ConstantTimeEq for u8}::ct_eq]:
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 348:12-348:51
-    Name pattern: [subtle::{subtle::ConstantTimeEq<u8>}::ct_eq]
-    Visibility: public -/
--- The value computed by the branch-free comparison in `subtle`: 1 when the
--- bytes are equal, 0 otherwise. Timing is not modelled.
-@[rust_fun "subtle::{subtle::ConstantTimeEq<u8>}::ct_eq"]
-def U8.Insts.SubtleConstantTimeEq.ct_eq (a b : Std.U8) : Result subtle.Choice :=
-  ok ⟨if a = b then 1#u8 else 0#u8⟩
+-- The shared subtle model is provided by Libsignal.Translated.Crypto.FunsExternal.
 
 /-- [uuid::{impl core::clone::Clone for uuid::Uuid}::clone]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/lib.rs', lines 446:9-446:14

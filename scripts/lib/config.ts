@@ -1,6 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
+import { releaseAssetName } from "./paths.js";
+
+/** Read the single Aeneas requirement in the project's supported TOML layout. */
+export function readAeneasRequirement(root: string): { rev: string; git: string; subDir: string } {
+  const blocks = fs.readFileSync(path.join(root, "lakefile.toml"), "utf8")
+    .split(/^\[\[require\]\]\s*$/m).slice(1)
+    .map((block) => block.split(/^\[/m)[0])
+    .filter((block) => /^name\s*=\s*"aeneas"\s*$/m.test(block));
+  if (blocks.length !== 1) throw new Error("Expected exactly one Aeneas requirement in lakefile.toml");
+  const field = (name: string): string => {
+    const matches = [...blocks[0].matchAll(new RegExp(`^${name}\\s*=\\s*"([^"\\n]+)"\\s*$`, "gm"))];
+    if (matches.length !== 1) throw new Error(`Expected one quoted Aeneas ${name} in lakefile.toml`);
+    return matches[0][1];
+  };
+  return { rev: field("rev"), git: field("git"), subDir: field("subDir") };
+}
 
 export interface Substitution {
   find?: string;
@@ -147,8 +163,18 @@ export function loadConfig(root?: string, configFile?: string | string[]): { con
   if (!["source", "release"].includes(config.aeneas.mode)) {
     throw new Error("aeneas.mode must be release or source");
   }
+  const requirement = readAeneasRequirement(projectRoot);
+  if (requirement.git.replace(/\.git$/, "") !== config.aeneas.repo.replace(/\.git$/, "") ||
+      requirement.subDir !== "backends/lean") throw new Error("Aeneas Lake repository/subdirectory mismatch");
+  if (config.aeneas.mode === "source" && /^[a-f0-9]{40}$/.test(requirement.rev)) {
+    config.aeneas.release = undefined;
+  }
   const release = config.aeneas.release;
   if (release) {
+    if (release.tag !== undefined && release.tag !== requirement.rev) {
+      throw new Error("Conflicting release selector: select the tag only in lakefile.toml");
+    }
+    release.tag = requirement.rev;
     if (!/^nightly-[0-9.]+-[a-f0-9]+$/.test(release.tag) ||
         !/^[a-f0-9]{40}$/.test(release.commit) ||
         !/^[a-f0-9]{40}$/.test(release.charon_commit) ||
@@ -157,12 +183,15 @@ export function loadConfig(root?: string, configFile?: string | string[]): { con
         !release.assets || Object.keys(release.assets).length === 0) {
       throw new Error("Incomplete or invalid aeneas.release pins");
     }
-    for (const asset of Object.values(release.assets)) {
-      if (!/^aeneas-(macos|linux)-(aarch64|x86_64)\.tar\.gz$/.test(asset.name) ||
-          !/^[a-f0-9]{64}$/.test(asset.sha256)) {
+    for (const [platform, asset] of Object.entries(release.assets)) {
+      const name = releaseAssetName(platform);
+      if ((asset.name !== undefined && asset.name !== name) || !/^[a-f0-9]{64}$/.test(asset.sha256)) {
         throw new Error("Invalid executable release asset or SHA-256");
       }
+      asset.name = name;
     }
+  } else if (config.aeneas.mode === "release") {
+    throw new Error("Release mode requires pinned release metadata and a Lake release tag");
   }
   if (!config.crate?.dir) throw new Error("Missing required field: crate.dir");
 

@@ -1,7 +1,6 @@
 /**
- * Extract Core, the AES-CBC provider, the protocol crate and default-feature
- * ratchet-state conversion. The broader crypto profile is a diagnostic outside
- * the Lean source tree.
+ * Extract Core, crypto, the protocol crate and default-feature ratchet-state
+ * conversion. Explicit diagnostic profiles leave canonical output unchanged.
  */
 
 import fs from "node:fs";
@@ -15,12 +14,23 @@ import { applyTweaks, warnUnmatchedTweaks } from "./lib/tweaks.js";
 import { checkProjectCompatibility } from "./lib/lean-toolchain.js";
 import { assertRealPath, platformKey } from "./lib/paths.js";
 
-type TargetKey = "core" | "crypto-cbc" | "crypto-full" | "protocol" | "ratchet-state";
+type TargetKey = "core" | "crypto" | "crypto-cbc" | "crypto-full" | "protocol" | "ratchet-state";
 const TARGETS: Record<TargetKey, {
   configs: string[]; diagnostic?: boolean; requiredBodies?: Record<string, number>;
 }> = {
   core: { configs: ["core"] },
-  "crypto-cbc": { configs: ["crypto", "cbc"] },
+  crypto: {
+    configs: ["crypto"],
+    requiredBodies: {
+      "signal_crypto::aes_gcm::clone": 1,
+      "signal_crypto::aes_gcm::encrypt": 1,
+      "signal_crypto::aes_gcm::compute_tag": 1,
+      "signal_crypto::aes_gcm::decrypt": 1,
+      "signal_crypto::aes_gcm::verify_tag": 1,
+      "signal_crypto::hash::update_and_get": 1,
+    },
+  },
+  "crypto-cbc": { configs: ["crypto", "cbc"], diagnostic: true },
   protocol: {
     configs: ["protocol"],
     requiredBodies: {
@@ -50,7 +60,7 @@ const TARGETS: Record<TargetKey, {
   },
   "crypto-full": { configs: ["crypto"], diagnostic: true },
 };
-const DEFAULT_TARGETS: TargetKey[] = ["core", "crypto-cbc", "protocol", "ratchet-state"];
+const DEFAULT_TARGETS: TargetKey[] = ["core", "crypto", "protocol", "ratchet-state"];
 
 interface LlbcFunction {
   item_meta: {
@@ -190,8 +200,8 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
   console.log(chalk.bold("Step 2: Generating Lean files with Aeneas..."));
 
   const aeneasArgs: string[] = [
-    "-backend", "lean",
-    ...config.aeneas_args.options.map((o) => `-${o}`),
+    "-backend", "lean", "-emit-json",
+    ...config.aeneas_args.options.filter((o) => o !== "emit-json").map((o) => `-${o}`),
     "-dest", destDir,
   ];
   if (config.aeneas_args.use_lean_modules !== undefined) {
@@ -211,19 +221,17 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
 
   fs.mkdirSync(outputDir, { recursive: true });
   const jsonPath = path.join(destDir, "translation.json");
-  if (config.aeneas_args.options.includes("emit-json") && fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
+  if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
 
   await runStreaming(aeneasBin, aeneasArgs, {
     cwd: root,
     logFile: path.join(logsDir, "aeneas.log"),
   });
 
-  if (config.aeneas_args.options.includes("emit-json")) {
-    const manifest = JSON.parse(fs.readFileSync(jsonPath, "utf8")) as { crate: string };
-    if (manifest.crate !== config.crate.name) throw new Error(`Translation manifest crate mismatch: ${manifest.crate}`);
-    fs.renameSync(jsonPath, path.join(logsDir, "translation.json"));
-    console.log(chalk.gray(`  Translation manifest: ${path.join(logsDir, "translation.json")}`));
-  }
+  const manifest = JSON.parse(fs.readFileSync(jsonPath, "utf8")) as { crate: string };
+  if (manifest.crate !== config.crate.name) throw new Error(`Translation manifest crate mismatch: ${manifest.crate}`);
+  fs.renameSync(jsonPath, path.join(logsDir, "translation.json"));
+  console.log(chalk.gray(`  Translation manifest: ${path.join(logsDir, "translation.json")}`));
   console.log(chalk.green(`  Lean files generated in ${outputDir}/\n`));
 
   // ── Step 3: Tweaks ──────────────────────────────────────────────────
@@ -268,9 +276,7 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const aliases: Record<string, TargetKey> = { crypto: "crypto-cbc" };
-  const input = process.argv[2];
-  const arg = input ? aliases[input] ?? input : undefined;
+  const arg = process.argv[2];
   if (arg && !Object.hasOwn(TARGETS, arg)) {
     throw new Error(`Unknown target '${arg}'. Expected one of: ${Object.keys(TARGETS).join(", ")}`);
   }

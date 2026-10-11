@@ -8,45 +8,7 @@ import { recordInstallation, rustMetadata, setupRust, sha256, validateCache, val
 import { checkProjectCompatibility } from "./lib/lean-toolchain.js";
 import { run, runStreaming } from "./lib/shell.js";
 
-// Validate every member before writing any: no absolute/traversing paths, links,
-// device files, duplicate files or directory/file collisions. Extract only regular
-// files/directories with bounded permissions, not tar's link/ownership semantics.
-const EXTRACT_ARCHIVE = String.raw`
-import os, pathlib, shutil, sys, tarfile
-archive, dest = sys.argv[1:]
-with tarfile.open(archive, 'r:gz') as tar:
-    members = tar.getmembers()
-    entries = {}
-    for member in members:
-        name = member.name
-        if name.startswith('/') or '\\' in name or any(ord(c) < 32 for c in name):
-            raise ValueError('Unsafe archive path: ' + repr(name))
-        parts = name.split('/')
-        if '..' in parts:
-            raise ValueError('Traversing archive path: ' + name)
-        clean = '/'.join(p for p in parts if p not in ('', '.'))
-        if not clean or clean == '.libsignal-install.json':
-            raise ValueError('Invalid/reserved archive path: ' + name)
-        if not (member.isfile() or member.isdir()):
-            raise ValueError('Archive links/special files are not supported: ' + name)
-        if clean in entries:
-            raise ValueError('Duplicate archive path: ' + name)
-        entries[clean] = member
-    for name, member in entries.items():
-        for parent in pathlib.PurePosixPath(name).parents:
-            if str(parent) in entries and not entries[str(parent)].isdir():
-                raise ValueError('Archive parent is not a directory: ' + name)
-    for name, member in entries.items():
-        target = os.path.join(dest, name)
-        if member.isdir():
-            os.makedirs(target, exist_ok=True)
-        else:
-            os.makedirs(os.path.dirname(target), exist_ok=True)
-            with tar.extractfile(member) as src, open(target, 'xb') as out:
-                shutil.copyfileobj(src, out)
-            os.chmod(target, 0o755 if member.mode & 0o111 else 0o644)
-print('Validated and extracted ' + str(len(entries)) + ' archive members')
-`;
+import { extractArchive } from "./lib/archive.js";
 
 function options(defaultMode: InstallMode): { mode: InstallMode; archive?: string } {
   let mode = defaultMode;
@@ -68,7 +30,7 @@ function options(defaultMode: InstallMode): { mode: InstallMode; archive?: strin
 }
 
 async function checkDependencies(mode: InstallMode): Promise<void> {
-  const deps = mode === "release" ? ["curl", "python3", "rustup"] : ["git", "opam", "make", "rustup"];
+  const deps = mode === "release" ? ["curl", "rustup"] : ["git", "opam", "make", "rustup"];
   for (const dep of deps) await run("which", [dep]);
 }
 
@@ -78,8 +40,9 @@ async function installRelease(root: string, stage: string, config: AeneasConfig,
   if (!release || !asset) {
     throw new Error(`No pinned executable bundle for ${platformKey}. Explicit --source is available; no automatic fallback.`);
   }
-  const bundle = archive ?? path.join(stage, "bundle.tar.gz");
-  if (!archive) {
+  const bundle = path.join(stage, "bundle.tar.gz");
+  if (archive) fs.copyFileSync(archive, bundle, fs.constants.COPYFILE_EXCL);
+  else {
     const url = `${config.aeneas.repo.replace(/\.git$/, "")}/releases/download/${release.tag}/${asset.name}`;
     console.log(`Downloading ${url}`);
     await run("curl", ["--fail", "--location", "--silent", "--show-error", "--output", bundle, url]);
@@ -89,7 +52,7 @@ async function installRelease(root: string, stage: string, config: AeneasConfig,
   console.log(`SHA-256 verified: ${digest}`);
   const extracted = path.join(stage, "installation");
   fs.mkdirSync(extracted);
-  await run("python3", ["-c", EXTRACT_ARCHIVE, bundle, extracted]);
+  await extractArchive(bundle, extracted);
   const installation = installationAt(extracted, "release");
   // Fail on metadata mismatches before installing any Rust components.
   const rust = rustMetadata(installation.rustToolchain);

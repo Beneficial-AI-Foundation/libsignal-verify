@@ -12,7 +12,7 @@ charon:
 
 aeneas_args:
   subdir: "Libsignal/Translated/RatchetState"
-  options: ["split-files", "emit-json"]
+  options: ["split-files"]
   namespace: "Libsignal.RatchetState"
 
 tweaks:

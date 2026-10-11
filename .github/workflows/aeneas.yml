@@ -21,7 +21,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential git curl python3 pkg-config libgmp-dev protobuf-compiler
+          sudo apt-get install -y build-essential git curl pkg-config libgmp-dev protobuf-compiler
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -34,32 +34,17 @@ jobs:
       - name: Check installer TypeScript
         run: npm run typecheck
 
-      - name: Select pinned installation
+      - name: Select pinned release
         id: installation
         run: |
           node --import tsx --input-type=module <<'JS' >> "$GITHUB_OUTPUT"
           import { loadConfig } from './scripts/lib/config.ts';
           const { config } = loadConfig();
-          console.log(`mode=${config.aeneas.mode}`);
-          console.log(`identity=${config.aeneas.mode === 'release' ? config.aeneas.release.tag : config.aeneas.commit}`);
+          if (config.aeneas.mode !== 'release') throw new Error('Extraction CI requires release mode');
+          console.log(`identity=${config.aeneas.release.tag}`);
           JS
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      # Source builds need opam. Release mode uses prebuilt Aeneas/Charon tools.
-      - name: Initialize source-build dependencies
-        if: steps.installation.outputs.mode == 'source'
-        run: |
-          sudo apt-get install -y opam
-          opam init --disable-sandboxing -y -a
-
-      - name: Cache OCaml environment (source mode only)
-        if: steps.installation.outputs.mode == 'source'
-        uses: actions/cache@v5
-        with:
-          path: ~/.opam
-          key: ${{ runner.os }}-${{ runner.arch }}-opam-v1-${{ steps.installation.outputs.identity }}
+          # The hosted Ubuntu runner supplies rustup; the installer selects its exact driver channel.
+          rustup --version
 
       - name: Cache Rust build artifacts
         uses: actions/cache@v5
@@ -78,11 +63,10 @@ jobs:
         with:
           path: |
             .aeneas/releases
-            .aeneas/sources
-          key: ${{ runner.os }}-${{ runner.arch }}-aeneas-v1-${{ steps.installation.outputs.mode }}-${{ steps.installation.outputs.identity }}-${{ hashFiles('rust/aeneas-config.yml') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-aeneas-v1-release-${{ steps.installation.outputs.identity }}-${{ hashFiles('rust/aeneas-config.yml', 'lakefile.toml') }}
 
-      - name: Install Aeneas (explicit selected mode)
-        run: npm run aeneas-install -- --${{ steps.installation.outputs.mode }}
+      - name: Install Aeneas release
+        run: npm run aeneas-install -- --release
 
       - name: Extract to Lean
         run: npm run aeneas-extract
