@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
 use std::future::Future;
 use std::str::FromStr;
 use std::time::Duration;
 
-use libsignal_core::{Aci, Pni, ServiceIdKind};
+use libsignal_core::{Aci, LogSafeDisplay, Pni, ServiceIdKind};
 use libsignal_net::auth::Auth;
 use libsignal_net::chat::LanguageList;
 use libsignal_protocol::{GenericSignedPreKey, PublicKey};
@@ -15,6 +16,7 @@ use serde_with::{
     DurationMilliSeconds, DurationSeconds, FromInto, serde_as, skip_serializing_none,
 };
 use uuid::Uuid;
+use zkgroup::receipts::ReceiptCredentialPresentation;
 
 mod error;
 pub use error::*;
@@ -22,7 +24,7 @@ pub use error::*;
 mod session_id;
 pub use session_id::{InvalidSessionId, SessionId};
 
-use crate::api::ChallengeOption;
+use crate::api::{ChallengeOption, RequestError};
 
 pub type UnidentifiedAccessKey = [u8; zkgroup::ACCESS_KEY_LEN];
 
@@ -57,7 +59,10 @@ pub(crate) trait RegistrationChatApi {
         client: &str,
         languages: LanguageList,
     ) -> impl Future<
-        Output = Result<RegistrationResponse, Self::Error<RequestVerificationCodeError>>,
+        Output = Result<
+            RegistrationResponse,
+            WithRecoveredSession<Self::Error<RequestVerificationCodeError>>,
+        >,
     > + Send;
 
     fn submit_push_challenge(
@@ -70,7 +75,12 @@ pub(crate) trait RegistrationChatApi {
         &self,
         session_id: &SessionId,
         code: &str,
-    ) -> impl Future<Output = Result<RegistrationResponse, Self::Error<SubmitVerificationError>>> + Send;
+    ) -> impl Future<
+        Output = Result<
+            RegistrationResponse,
+            WithRecoveredSession<Self::Error<SubmitVerificationError>>,
+        >,
+    > + Send;
 
     fn check_svr2_credentials(
         &self,
@@ -80,22 +90,83 @@ pub(crate) trait RegistrationChatApi {
         Output = Result<CheckSvr2CredentialsResponse, Self::Error<CheckSvr2CredentialsError>>,
     > + Send;
 
+    #[expect(clippy::too_many_arguments)]
     fn register_account(
         &self,
-        number: &str,
-        session_id: Option<&SessionId>,
+        method: RegisterAccountMethod<'_>,
         message_notification: NewMessageNotification<&str>,
         account_attributes: ProvidedAccountAttributes<'_>,
         device_transfer: Option<SkipDeviceTransfer>,
-        keys: ForServiceIds<AccountKeys<'_>>,
+        one_time_password: Option<u32>,
+        aci_keys: AccountKeys<'_>,
+        pni_material: Option<PniAccountMaterial<'_>>,
         account_password: &str,
     ) -> impl Future<Output = Result<RegisterAccountResponse, Self::Error<RegisterAccountError>>> + Send;
+}
+
+/// How a `/v1/registration` request identifies the account being registered.
+///
+/// The variant determines the `authorization` header's username and which
+/// verification field goes in the request body.
+#[derive(Copy, Clone)]
+pub(crate) enum RegisterAccountMethod<'a> {
+    /// Register a phone number verified by the given session.
+    SessionId {
+        number: &'a str,
+        session_id: &'a SessionId,
+    },
+    /// Re-register a phone number, authenticating with the recovery password
+    /// from the account attributes.
+    PhoneNumberRecoveryPassword { number: &'a str },
+    /// Register an account with no phone number, redeeming the given receipt
+    /// credential presentation.
+    ReceiptCredential {
+        presentation: &'a ReceiptCredentialPresentation,
+    },
+    /// Re-register the account with the given ACI, authenticating with the
+    /// recovery password from the account attributes.
+    AccountRecoveryPassword { aci: Aci },
+}
+
+impl RegisterAccountMethod<'_> {
+    /// Whether the server rejects the request with an empty recovery password.
+    pub(crate) fn requires_recovery_password(&self) -> bool {
+        match self {
+            Self::SessionId { .. } | Self::PhoneNumberRecoveryPassword { .. } => false,
+            Self::ReceiptCredential { .. } | Self::AccountRecoveryPassword { .. } => true,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct RegistrationResponse {
     pub(crate) session_id: SessionId,
     pub(crate) session: RegistrationSession,
+}
+
+/// Request outcome with an extra payload of a session state
+///
+/// Some error results can contain the session state.
+pub(crate) struct WithRecoveredSession<T> {
+    pub(crate) result: T,
+    pub(crate) session: Option<RegistrationSession>,
+}
+
+impl<T> WithRecoveredSession<T> {
+    /// Discards any recovered session, yielding the wrapped value.
+    pub(crate) fn into_inner(self) -> T {
+        self.result
+    }
+}
+
+/// A plain error carries no recovered session.
+impl<E, D> From<RequestError<E, D>> for WithRecoveredSession<RequestError<E, D>> {
+    fn from(result: RequestError<E, D>) -> Self {
+        Self {
+            result,
+            session: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, serde::Serialize)]
@@ -140,6 +211,23 @@ pub struct RegistrationSession {
     pub requested_information: HashSet<ChallengeOption>,
 }
 
+impl Display for RegistrationSession {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // IMPORTANT: If you are adding a new field, consider the implications for the LogSafeDisplay.
+        let Self {
+            allowed_to_request_code: _,
+            verified: _,
+            next_sms: _,
+            next_call: _,
+            next_verification_attempt: _,
+            requested_information: _,
+        } = self;
+        write!(f, "{self:?}")
+    }
+}
+
+impl LogSafeDisplay for RegistrationSession {}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, serde::Serialize, strum::EnumString)]
 #[strum(serialize_all = "camelCase")]
 #[serde(rename_all = "camelCase")]
@@ -158,14 +246,32 @@ pub struct VerificationCodeNotDeliverable {
     pub permanent_failure: bool,
 }
 
+impl Display for VerificationCodeNotDeliverable {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // IMPORTANT: When adding new fields, consider the implications for the
+        // LogSafeDisplay impl below.
+        let Self {
+            // Despite it being a string, it comes from a fixed list of
+            // values on the server.
+            reason: _,
+            permanent_failure: _,
+        } = self;
+        write!(f, "{self:?}")
+    }
+}
+
+impl LogSafeDisplay for VerificationCodeNotDeliverable {}
+
 #[serde_as]
 #[derive(Clone, PartialEq, Eq, serde::Deserialize, derive_more::Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RegistrationLock {
     #[serde_as(as = "DurationMilliSeconds")]
     pub time_remaining: Duration,
-    #[debug("_")]
-    pub svr2_credentials: Auth,
+    /// The server omits these when the stored lock has no SVR2 secret, so this
+    /// is optional. Redacted in `Debug`, but presence still shows.
+    #[debug("{}", svr2_credentials.as_ref().map_or("None", |_| "Some(...)"))]
+    pub svr2_credentials: Option<Auth>,
 }
 
 /// The subset of account attributes that don't need any additional validation.
@@ -178,8 +284,6 @@ pub struct ProvidedAccountAttributes<'a> {
     pub recovery_password: &'a [u8],
     /// Generated ID associated with a user's ACI.
     pub registration_id: u16,
-    /// Generated ID associated with a user's PNI.
-    pub pni_registration_id: u16,
     /// Protobuf-encoded device name.
     #[serde_as(as = "Option<Base64Padded>")]
     pub name: Option<&'a [u8]>,
@@ -201,11 +305,12 @@ pub struct RegisterAccountResponse {
     #[serde_as(as = "FromInto<Uuid>")]
     #[serde(rename = "uuid")]
     pub aci: Aci,
-    /// The phone number associated with this account.
-    pub number: String,
-    /// The account identifier for this account's phone-number identity.
-    #[serde_as(as = "FromInto<Uuid>")]
-    pub pni: Pni,
+    /// The phone number associated with this account, absent if it has none.
+    pub number: Option<String>,
+    /// The account identifier for this account's phone-number identity, absent
+    /// if the account has no phone number.
+    #[serde_as(as = "Option<FromInto<Uuid>>")]
+    pub pni: Option<Pni>,
     /// A hash of this account's username, if set.
     #[serde_as(as = "Option<Base64Padded>")]
     pub username_hash: Option<Box<[u8]>>,
@@ -220,6 +325,10 @@ pub struct RegisterAccountResponse {
     /// If true, there was an existing account registered for this number.
     #[serde(default)]
     pub reregistration: bool,
+    /// Salt for deriving PNI auth credentials, present only for an account with
+    /// no phone number.
+    #[serde_as(as = "Option<Base64Padded>")]
+    pub auth_credential_salt: Option<Box<[u8]>>,
 }
 
 #[serde_as]
@@ -285,6 +394,15 @@ pub struct AccountKeys<'a> {
     pub identity_key: &'a PublicKey,
     pub signed_pre_key: SignedPreKeyBody<&'a [u8]>,
     pub pq_last_resort_pre_key: SignedPreKeyBody<&'a [u8]>,
+}
+
+/// The PNI-associated values for an account with a phone number.
+///
+/// The server requires both or neither.
+pub struct PniAccountMaterial<'a> {
+    /// Generated ID associated with a user's PNI.
+    pub registration_id: u16,
+    pub keys: AccountKeys<'a>,
 }
 
 /// How a device wants to be notified of messages when offline.
@@ -420,5 +538,26 @@ impl TryFrom<String> for VerificationTransport {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         FromStr::from_str(&value)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use test_case::test_case;
+
+    use super::*;
+
+    #[test_case(None, "RegistrationLock { time_remaining: 1s, svr2_credentials: None }"; "absent")]
+    #[test_case(Some(Auth {
+        username: "secret-username".to_owned(),
+        password: "secret-password".to_owned(),
+    }), "RegistrationLock { time_remaining: 1s, svr2_credentials: Some(...) }"; "present")]
+    fn registration_lock_debug_redacts_credentials(creds: Option<Auth>, expected: &'static str) {
+        let reg_lock = RegistrationLock {
+            time_remaining: Duration::from_secs(1),
+            svr2_credentials: creds,
+        };
+        let actual = format!("{reg_lock:?}");
+        assert_eq!(actual, expected);
     }
 }

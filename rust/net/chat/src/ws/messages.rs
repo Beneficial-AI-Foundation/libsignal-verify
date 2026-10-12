@@ -174,7 +174,7 @@ impl<T: WsConnection> UnauthenticatedChatApi<OverWs> for Unauth<T> {
 
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &log_safe_path,
                 Request {
                     method: http::Method::PUT,
@@ -247,7 +247,7 @@ impl<T: WsConnection> UnauthenticatedChatApi<OverWs> for Unauth<T> {
         );
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &log_safe_path,
                 Request {
                     method: http::Method::PUT,
@@ -348,7 +348,7 @@ impl<T: WsConnection> crate::api::messages::AuthenticatedChatApi<OverWs> for Aut
 
         let response = self
             .send(
-                "auth",
+                Self::LOG_TAG,
                 &log_safe_path,
                 Request {
                     method: http::Method::PUT,
@@ -434,7 +434,7 @@ impl<T: WsConnection> crate::api::messages::AuthenticatedChatApi<OverWs> for Aut
         let path = format!("/v4/attachments/form/upload?uploadLength={upload_length}");
         let response = self
             .send(
-                "auth",
+                Self::LOG_TAG,
                 &path,
                 Request {
                     method: http::Method::GET,
@@ -523,14 +523,21 @@ fn parse_single_recipient_mismatched_devices_response<E: From<MismatchedDeviceEr
 ) -> CustomError<E> {
     debug_assert_matches!(response.status.as_u16(), 409 | 410);
 
-    let parsed_devices: ParsedMismatchedDevices = match parse_json_from_body(response) {
-        Ok(parsed) => parsed,
-        Err(e) => {
-            return CustomError::Unexpected {
-                log_safe: e.to_string(),
-            };
-        }
-    };
+    let Response {
+        status: _,
+        message: _,
+        headers,
+        body,
+    } = response;
+    let parsed_devices: ParsedMismatchedDevices =
+        match parse_json_from_body(headers, body.as_deref()) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                return CustomError::Unexpected {
+                    log_safe: e.to_string(),
+                };
+            }
+        };
 
     match parsed_devices.try_into_error(recipient) {
         Ok(converted) => CustomError::Err(converted.into()),
@@ -550,14 +557,22 @@ fn parse_multi_recipient_mismatched_devices_response(
         devices: ParsedMismatchedDevices,
     }
 
-    let parsed_entries: Vec<ParsedMismatchedDevicesEntry> = match parse_json_from_body(response) {
-        Ok(parsed) => parsed,
-        Err(e) => {
-            return CustomError::Unexpected {
-                log_safe: e.to_string(),
-            };
-        }
-    };
+    let Response {
+        status: _,
+        message: _,
+        headers,
+        body,
+    } = response;
+
+    let parsed_entries: Vec<ParsedMismatchedDevicesEntry> =
+        match parse_json_from_body(headers, body.as_deref()) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                return CustomError::Unexpected {
+                    log_safe: e.to_string(),
+                };
+            }
+        };
 
     let per_recipient_errors = parsed_entries
         .into_iter()

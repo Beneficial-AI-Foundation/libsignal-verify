@@ -50,7 +50,18 @@ function extractUpstreamSource(cloneDir: string, commit: string, extractDir: str
   return path.join(extractDir, sourceDir);
 }
 
-function generateDiff(upstreamSrc: string, localSrc: string, sourceDir: string, upstreamRepo: string, upstreamCommit: string): string | null {
+// CI checks the committed file byte for byte against GNU diff output. BSD diff
+// (the macOS default) quotes the -x patterns differently in file headers and
+// chooses other hunk boundaries, so refuse to run with it.
+function gnuDiff(): string {
+  for (const bin of ["gdiff", "diff"]) {
+    const version = exec(`${bin} --version`, { allowFail: true });
+    if (version.includes("GNU diffutils")) return bin;
+  }
+  throw new Error("GNU diff is required (on macOS: brew install diffutils, which provides gdiff)");
+}
+
+function generateDiff(diff: string, upstreamSrc: string, localSrc: string, sourceDir: string, upstreamRepo: string, upstreamCommit: string): string | null {
   console.log(chalk.bold("\nGenerating diff..."));
 
   const escapedUpstream = upstreamSrc.replace(/[/&]/g, "\\$&");
@@ -65,7 +76,7 @@ function generateDiff(upstreamSrc: string, localSrc: string, sourceDir: string, 
 
   // Generate unified diff with normalized paths and no timestamps.
   const diffOutput = exec(
-    `LC_ALL=C diff -Naur --no-dereference ${excludes} "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
+    `LC_ALL=C ${diff} -Naur --no-dereference ${excludes} "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/${sourceDir}|g' -e 's|${escapedLocal}|b/${sourceDir}|g'`,
     { allowFail: true },
   );
 
@@ -145,11 +156,12 @@ function main(): void {
   const cloneDir = path.join(tmpDir, "upstream");
   const extractDir = path.join(tmpDir, "extracted-src");
   const outputPath = path.join(root, "src-modifications.diff");
+  const diffBin = gnuDiff();
 
   try {
     ensureUpstreamRepo(tmpDir, upstreamRepo, cloneDir);
     const upstreamSrc = extractUpstreamSource(cloneDir, upstreamCommit, extractDir, sourceDir);
-    const diff = generateDiff(upstreamSrc, localSrc, sourceDir, upstreamRepo, upstreamCommit);
+    const diff = generateDiff(diffBin, upstreamSrc, localSrc, sourceDir, upstreamRepo, upstreamCommit);
     saveDiff(diff, outputPath, upstreamCommit);
     cleanup(extractDir);
 

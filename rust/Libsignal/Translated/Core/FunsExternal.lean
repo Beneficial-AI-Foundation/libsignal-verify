@@ -101,8 +101,10 @@ axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref
     Visibility: public -/
 @[rust_fun
   "derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<@T>}::new"]
-axiom derive_more.convert.try_from.TryFromReprError.new
-  {T : Type} : T → Result (derive_more.convert.try_from.TryFromReprError T)
+def libsignal_core.derive_more.convert.try_from.TryFromReprError.new
+  {T : Type} (input : T) :
+  Result (libsignal_core.derive_more.convert.try_from.TryFromReprError T) :=
+  ok { input }
 
 /-- [uuid::builder::{uuid::Uuid}::from_slice]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs', lines 287:4-287:54

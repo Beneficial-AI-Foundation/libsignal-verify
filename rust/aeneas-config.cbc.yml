@@ -1,0 +1,9 @@
+# Narrow AES-CBC diagnostic overlay, applied after aeneas-config.crypto.yml.
+# Its output never replaces the broader canonical crypto profile.
+charon:
+  start_from_pub: false
+  start_from:
+    - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
+    - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
+    - "signal_crypto::aes_cbc::EncryptionError"
+    - "signal_crypto::aes_cbc::DecryptionError"

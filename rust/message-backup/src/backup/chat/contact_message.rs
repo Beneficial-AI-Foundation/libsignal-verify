@@ -4,15 +4,17 @@
 
 #[cfg(test)]
 use derive_where::derive_where;
+use libsignal_core::Aci;
+use serde_with::serde_as;
 
-use crate::backup::TryIntoWith;
 use crate::backup::chat::{ChatItemError, ReactionSet};
 use crate::backup::file::{FilePointer, FilePointerError};
 use crate::backup::frame::RecipientId;
 use crate::backup::method::LookupPair;
 use crate::backup::recipient::MinimalRecipientData;
-use crate::backup::serialize::SerializeOrder;
+use crate::backup::serialize::{self, SerializeOrder};
 use crate::backup::time::ReportUnusualTimestamp;
+use crate::backup::{InvalidAci, TryIntoWith, uuid_bytes_to_aci};
 use crate::proto::backup as proto;
 
 /// Validated version of [`proto::ContactMessage`].
@@ -26,6 +28,7 @@ pub struct ContactMessage<Recipient> {
 }
 
 /// Validated version of [`proto::ContactAttachment`].
+#[serde_as]
 #[derive(Debug, serde::Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ContactAttachment {
@@ -35,6 +38,12 @@ pub struct ContactAttachment {
     pub address: Vec<proto::contact_attachment::PostalAddress>,
     pub organization: String,
     pub avatar: Option<FilePointer>,
+    /// `None` if the shared contact isn't known to be a Signal user.
+    #[serde_as(as = "Option<serialize::ServiceIdAsString>")]
+    pub aci: Option<Aci>,
+    /// The sharer's Signal nickname for this contact.
+    pub nickname: Option<proto::contact_attachment::SignalNickname>,
+    pub note: String,
     #[serde(skip)]
     _limit_construction_to_module: (),
 }
@@ -44,10 +53,14 @@ pub struct ContactAttachment {
 pub enum ContactAttachmentError {
     /// contact message without attachment
     Missing,
-    /// {0} type is unknown                                                                                                                                                                                                                                                                                                                                                                                                
+    /// {0} type is unknown
     UnknownType(&'static str),
     /// Name is present but empty
     EmptyName,
+    /// nickname is present but empty
+    EmptyNickname,
+    /// aci is present but invalid
+    InvalidAci,
     /// {0:?} phone number missing value
     PhoneNumberMissingValue(proto::contact_attachment::phone::Type),
     /// {0:?} email missing value
@@ -56,6 +69,12 @@ pub enum ContactAttachmentError {
     EmptyAddress(proto::contact_attachment::postal_address::Type),
     /// avatar: {0}
     Avatar(FilePointerError),
+}
+
+impl From<InvalidAci> for ContactAttachmentError {
+    fn from(_: InvalidAci) -> Self {
+        Self::InvalidAci
+    }
 }
 
 impl<R: Clone, C: LookupPair<RecipientId, MinimalRecipientData, R> + ReportUnusualTimestamp>
@@ -96,6 +115,9 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactAttachment, C> for proto::Con
             address,
             organization,
             avatar,
+            aci,
+            nickname,
+            note,
             special_fields: _,
         } = self;
 
@@ -120,6 +142,24 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactAttachment, C> for proto::Con
                 return Err(ContactAttachmentError::EmptyName);
             }
         }
+
+        let nickname = nickname.into_option();
+        if let Some(proto::contact_attachment::SignalNickname {
+            given,
+            family,
+            special_fields: _,
+        }) = nickname.as_ref()
+        {
+            if given.is_empty() && family.is_empty() {
+                return Err(ContactAttachmentError::EmptyNickname);
+            }
+        }
+
+        let aci = if aci.is_empty() {
+            None
+        } else {
+            Some(uuid_bytes_to_aci(aci)?)
+        };
 
         for proto::contact_attachment::Phone {
             type_,
@@ -195,6 +235,9 @@ impl<C: ReportUnusualTimestamp> TryIntoWith<ContactAttachment, C> for proto::Con
             address,
             organization,
             avatar,
+            aci,
+            nickname,
+            note,
             _limit_construction_to_module: (),
         })
     }
@@ -236,6 +279,9 @@ mod test {
                 address: vec![],
                 organization: "".to_owned(),
                 avatar: None,
+                aci: None,
+                nickname: None,
+                note: "".to_owned(),
                 _limit_construction_to_module: (),
             }
         }
@@ -314,6 +360,37 @@ mod test {
         }) =>
         Err(ChatItemError::ContactAttachment(ContactAttachmentError::EmptyAddress(proto::contact_attachment::postal_address::Type::HOME)));
         "empty postal address"
+    )]
+    #[test_case(
+        |x| x.contact.as_mut().unwrap().nickname = Some(proto::contact_attachment::SignalNickname {
+            given: "GivenNickName".into(),
+            family: "FamilyNickName".into(),
+            ..Default::default()
+        }).into() =>
+        Ok(());
+        "with nickname"
+    )]
+    #[test_case(
+        |x| x.contact.as_mut().unwrap().nickname = Some(proto::contact_attachment::SignalNickname {
+            given: "GivenNickName".into(),
+            ..Default::default()
+        }).into() =>
+        Ok(());
+        "nickname with no family name"
+    )]
+    #[test_case(
+        |x| x.contact.as_mut().unwrap().nickname = Some(Default::default()).into() =>
+        Err(ChatItemError::ContactAttachment(ContactAttachmentError::EmptyNickname));
+        "empty nickname"
+    )]
+    #[test_case(
+        |x| x.contact.as_mut().unwrap().aci = proto::Contact::TEST_ACI.to_vec() => Ok(());
+        "with aci"
+    )]
+    #[test_case(
+        |x| x.contact.as_mut().unwrap().aci = vec![0xaa; 15] =>
+        Err(ChatItemError::ContactAttachment(ContactAttachmentError::InvalidAci));
+        "invalid aci"
     )]
     fn contact_message(modifier: fn(&mut proto::ContactMessage)) -> Result<(), ChatItemError> {
         let mut message = proto::ContactMessage::test_data();

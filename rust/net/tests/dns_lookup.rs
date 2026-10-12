@@ -8,16 +8,10 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::Duration;
 
-use const_str::ip_addr;
 use itertools::Itertools;
 use libsignal_net_infra::dns::build_custom_resolver_cloudflare_doh;
-use libsignal_net_infra::dns::custom_resolver::CustomDnsResolver;
 use libsignal_net_infra::dns::dns_lookup::{DnsLookup, DnsLookupRequest, SystemDnsLookup};
-use libsignal_net_infra::dns::dns_transport_udp::UdpTransportConnectorFactory;
-use libsignal_net_infra::route::UdpRoute;
-use libsignal_net_infra::timeouts::DNS_LATER_RESPONSE_GRACE_PERIOD;
 use libsignal_net_infra::utils::no_network_change_events;
-use nonzero_ext::nonzero;
 
 macro_rules! skip_unless_nonhermetic {
     () => {
@@ -45,33 +39,6 @@ async fn system_dns_lookup() {
             IpAddr::V4(Ipv4Addr::LOCALHOST),
         ]
     );
-}
-
-#[tokio::test]
-async fn udp_dns_lookup() {
-    skip_unless_nonhermetic!();
-    let dns = CustomDnsResolver::new(
-        vec![UdpRoute {
-            address: ip_addr!("1.1.1.1"),
-            port: nonzero!(53u16),
-        }],
-        UdpTransportConnectorFactory,
-        &no_network_change_events(),
-        DNS_LATER_RESPONSE_GRACE_PERIOD,
-    );
-
-    let result = dns
-        .resolve(DnsLookupRequest {
-            hostname: "signal.org".into(),
-            ipv6_enabled: true,
-        })
-        .await
-        .expect("can look up");
-
-    println!("found {result:?}");
-    let (v4, v6): (Vec<_>, Vec<_>) = result.into_iter().partition(IpAddr::is_ipv4);
-    assert!(!v4.is_empty());
-    assert!(!v6.is_empty());
 }
 
 #[tokio::test]

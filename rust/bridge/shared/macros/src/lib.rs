@@ -137,29 +137,26 @@
 //!
 //! # Adding new argument and result types
 //!
-//! If your argument or result type is a Rust value being wrapped in an opaque box, declare it using
-//! the `bridge_as_handle` macro alongside other such types. Otherwise, there are two steps:
+//! - If your argument or result type is a Rust value being wrapped in an opaque box, declare it using
+//!   the `bridge_as_handle` macro alongside other such types.
 //!
-//! 1. Argument and result types for FFI and JNI are determined by macros `ffi_arg_type`,
-//!    `ffi_result_type`, `jni_arg_type`, and `jni_result_type`. You may need to add your new type
-//!    there. JNI types also undergo some additional transformation in the scripts
-//!    `gen_java_decl.py`, which you may need to tweak as well. Node types are generated as Strings
-//!    via the `gen_ts_ffi()` methods on `node::{AsyncArg, Arg, Result}TypeInfo`.
+//! - If your argument or result type is a Rust composite type (struct or enum) that should be passed
+//!   by its fields to a corresponding client-language type, use the [`BridgedAsValue`] derive macro.
 //!
-//! 2. Argument types conform to one or more of the following bridge-specific traits:
+//! - For custom bridging, arguments should implement one or more of the following bridge-specific traits:
 //!
-//!     - `ffi::ArgTypeInfo`
-//!     - `jni::ArgTypeInfo`
-//!     - `node::ArgTypeInfo` and/or `node::AsyncArgTypeInfo`
+//!   - `ffi::ArgTypeInfo`
+//!   - `jni::ArgTypeInfo`
+//!   - `node::ArgTypeInfo` and/or `node::AsyncArgTypeInfo`
 //!
-//!     Similarly, result types conform to one or more of the following:
+//!   Similarly, result types conform to one or more of the following:
 //!
-//!     - `ffi::ResultTypeInfo`
-//!     - `jni::ResultTypeInfo`
-//!     - `node::ResultTypeInfo`
+//!   - `ffi::ResultTypeInfo`
+//!   - `jni::ResultTypeInfo`
+//!   - `node::ResultTypeInfo`
 //!
-//!    These traits define how to convert between the bridge type and the Rust type used in the
-//!    function as written. See each individual trait for more info on how to add a new type.
+//!   These traits define how to convert between the bridge type and the Rust type used in the
+//!   function as written. See each individual trait for more info on how to add a new type.
 //!
 //! # Callbacks
 //!
@@ -608,7 +605,12 @@ pub fn bridge_callbacks(attr: TokenStream, item: TokenStream) -> TokenStream {
 fn derive_bridged_as_value_inner(item: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     let mut node = true;
     let mut ffi = true;
+    let mut jni = true;
+    let mut ffi_nice_type = None;
+    let mut jni_nice_type = None;
+    let mut swift_equatable = false;
     let mut remote: Option<syn::Path> = None;
+    let mut options = util::BridgeAsValueOptions::default();
     for attr in &item.attrs {
         if attr
             .path()
@@ -623,8 +625,32 @@ fn derive_bridged_as_value_inner(item: DeriveInput) -> syn::Result<proc_macro2::
                     let flag: LitBool = meta.value()?.parse()?;
                     ffi = flag.value();
                     Ok(())
+                } else if meta.path.is_ident("ffi_nice_type") {
+                    let name: LitStr = meta.value()?.parse()?;
+                    ffi_nice_type = Some(name.value());
+                    Ok(())
+                } else if meta.path.is_ident("jni") {
+                    let flag: LitBool = meta.value()?.parse()?;
+                    jni = flag.value();
+                    Ok(())
+                } else if meta.path.is_ident("jni_nice_type") {
+                    let name: LitStr = meta.value()?.parse()?;
+                    jni_nice_type = Some(name.value());
+                    Ok(())
                 } else if meta.path.is_ident("remote") {
                     remote = Some(meta.value()?.parse()?);
+                    Ok(())
+                } else if meta.path.is_ident("arg") {
+                    let flag: LitBool = meta.value()?.parse()?;
+                    options.arg = flag.value();
+                    Ok(())
+                } else if meta.path.is_ident("result") {
+                    let flag: LitBool = meta.value()?.parse()?;
+                    options.result = flag.value();
+                    Ok(())
+                } else if meta.path.is_ident("swift_equatable") {
+                    let flag: LitBool = meta.value()?.parse()?;
+                    swift_equatable = flag.value();
                     Ok(())
                 } else {
                     Err(meta.error("unrecognized key"))
@@ -635,25 +661,210 @@ fn derive_bridged_as_value_inner(item: DeriveInput) -> syn::Result<proc_macro2::
     // What type should this impl target?
     let target = remote.unwrap_or_else(|| item.ident.clone().into());
     let node = if node {
-        Some(node::derive_bridged_as_value(&item, &target)?)
+        Some(node::derive_bridged_as_value(&item, &target, &options)?)
     } else {
         None
     };
     let ffi = if ffi {
-        Some(ffi::derive_bridged_as_value(&item, &target)?)
+        Some(ffi::derive_bridged_as_value(
+            &item,
+            &target,
+            ffi_nice_type.as_deref(),
+            &options,
+            swift_equatable,
+        )?)
+    } else {
+        None
+    };
+    let jni = if jni {
+        Some(jni::derive_bridged_as_value(
+            &item,
+            &target,
+            jni_nice_type.as_deref(),
+            &options,
+        )?)
     } else {
         None
     };
     Ok(quote! {
         #node
         #ffi
+        #jni
     })
+}
+
+/// Derive the `IsCType` trait for structs and enums
+///
+/// # Options
+/// ## `opaque`
+/// Export the type as opaque in the C header. It can only be used via pointer.
+/// ### Example
+/// ```ignore
+/// #[derive(IsCType)]
+/// #[capi(opaque)]
+/// #[repr(C)]
+/// pub struct Foo {
+///     x: i32,
+/// }
+/// ```
+///
+/// ## `must_export`
+/// Normally structs are only included in the header files if they're used in a function.
+/// `must_export` requires that the type is always emitted.
+///
+/// ## `export_name`
+/// Specify the name the type should be exported as
+/// ### Example
+/// ```ignore
+/// #[derive(IsCType)]
+/// #[capi(export_name = "Baz")]
+/// #[repr(C)]
+/// // Exported as SignalBaz
+/// pub struct Foo {
+///     x: i32,
+/// }
+/// ```
+///
+/// ## `export_name_override`
+/// Specify a function to provide the export name of the type. The function should take an array
+/// which specifies the `Arc<CType>` of the generic arguments. If it returns `None`, use the
+/// standard export name.
+/// ### Example
+/// ```ignore
+/// #[derive(IsCType)]
+/// #[capi(export_name_override = foo_name)]
+/// #[repr(C)]
+/// pub struct Foo<X, Y> {
+///     x: X,
+///     y: Y,
+/// }
+/// #[cfg(feature = "metadata")]
+/// fn foo_name([x, y]: [Arc<CType>, Arc<CType>]) -> Option<String> {
+///     if x.rust_type == RustType::of::<String>() {
+///         Some("Baz".to_string())
+///     } else {
+///         None
+///     }
+/// }
+/// ```
+///
+/// ## `swift_protocol`
+/// For generic types, emit a swift protocol allowing easy access to the generic.
+#[proc_macro_derive(IsCType, attributes(capi))]
+pub fn derive_is_c_type(item: TokenStream) -> TokenStream {
+    let item = syn::parse_macro_input!(item as DeriveInput);
+    match ffi::capi::derive_is_c_type(&item) {
+        Ok(x) => x.into(),
+        Err(e) => e.into_compile_error().into(),
+    }
+}
+
+/// Export a type alias or a function to the C header.
+///
+/// # Attributes
+/// ## `export_name`
+/// Specify the export name of the type alias.
+/// ### Example
+/// ```ignore
+/// #[c_export]
+/// #[capi(export_name = "MyTypeAlias")]
+/// type Foo = i32;
+/// ```
+#[proc_macro_attribute]
+pub fn c_export(attr: TokenStream, item: TokenStream) -> TokenStream {
+    match ffi::capi::c_export(&attr.into(), &item.into()) {
+        Ok(x) => x.into(),
+        Err(e) => e.into_compile_error().into(),
+    }
 }
 
 #[proc_macro_derive(BridgedAsValue, attributes(bridge))]
 pub fn derive_bridged_as_value(item: TokenStream) -> TokenStream {
     let item = syn::parse_macro_input!(item as DeriveInput);
     match derive_bridged_as_value_inner(item) {
+        Ok(x) => x.into(),
+        Err(e) => e.into_compile_error().into(),
+    }
+}
+
+fn derive_structural_from_inner(item: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+    let mut from: Option<syn::Path> = None;
+    let mut impl_into = false;
+    for attr in &item.attrs {
+        if attr.path().is_ident("structural_from") {
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("into") {
+                    impl_into = true;
+                } else {
+                    from = Some(meta.path);
+                }
+                Ok(())
+            })?;
+        }
+    }
+    let ident = &item.ident;
+    let from = from.ok_or_else(|| syn::Error::new_spanned(&item, "Missing structural_from()"))?;
+    let util::DeriveInputInfo {
+        patterns: to_patterns,
+        field_names,
+        field_types,
+        ..
+    } = util::DeriveInputInfo::new(&item, &item.ident.clone().into());
+    let util::DeriveInputInfo {
+        patterns: from_patterns,
+        ..
+    } = util::DeriveInputInfo::new(&item, &from);
+    let into_impl = if impl_into {
+        Some(quote! {
+            impl From<#ident> for #from {
+                fn from(from_value: #ident) -> Self {
+                    match from_value {
+                        #(#to_patterns => {
+                            #(let #field_names = #field_names.into();)*
+                            #from_patterns
+                        })*
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    };
+    Ok(quote! {
+        impl From<#from> for #ident {
+            fn from(from_value: #from) -> Self {
+                match from_value {
+                    #(#from_patterns => {
+                        #(let #field_names: #field_types = #field_names.into();)*
+                        #to_patterns
+                    })*
+                }
+            }
+        }
+        #into_impl
+    })
+}
+
+/// Derive a `From` for two types (structs or enums) which exactly match.
+///
+/// # Example
+/// ```
+/// # use libsignal_bridge_macros::StructuralFrom;
+/// struct Foo {
+///     a: i32,
+///     b: String,
+/// }
+/// #[derive(StructuralFrom)]
+/// #[structural_from(Foo)]
+/// struct Foo2 {
+///     a: i32,
+///     b: String,
+/// }
+/// ```
+#[proc_macro_derive(StructuralFrom, attributes(structural_from))]
+pub fn derive_structual_from(item: TokenStream) -> TokenStream {
+    let item = syn::parse_macro_input!(item as DeriveInput);
+    match derive_structural_from_inner(item) {
         Ok(x) => x.into(),
         Err(e) => e.into_compile_error().into(),
     }

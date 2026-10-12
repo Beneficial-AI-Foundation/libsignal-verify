@@ -288,6 +288,23 @@ impl serde::Serialize for proto::contact_attachment::Name {
     }
 }
 
+impl serde::Serialize for proto::contact_attachment::SignalNickname {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let Self {
+            given,
+            family,
+            special_fields: _,
+        } = self;
+        let mut ser = serializer.serialize_struct("SignalNickname", 2)?;
+        ser.serialize_field("given", given)?;
+        ser.serialize_field("family", family)?;
+        ser.end()
+    }
+}
+
 impl serde::Serialize for proto::contact_attachment::Phone {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -372,6 +389,12 @@ impl serde::Serialize for proto::learned_profile_chat_update::PreviousName {
                 let mut tv =
                     serializer.serialize_tuple_variant("PreviousName", 1, "Username", 1)?;
                 tv.serialize_field(username)?;
+                tv.end()
+            }
+            proto::learned_profile_chat_update::PreviousName::SharedName(shared_name) => {
+                let mut tv =
+                    serializer.serialize_tuple_variant("PreviousName", 2, "SharedName", 1)?;
+                tv.serialize_field(shared_name)?;
                 tv.end()
             }
         }

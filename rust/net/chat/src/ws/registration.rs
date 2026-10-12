@@ -8,18 +8,17 @@ use libsignal_net::chat::{LanguageList, Request as ChatRequest, Response as Chat
 
 use crate::api::registration::{
     AccountKeys, CheckSvr2CredentialsError, CheckSvr2CredentialsResponse, CreateSession,
-    CreateSessionError, ForServiceIds, InvalidSessionId, NewMessageNotification,
-    ProvidedAccountAttributes, PushToken, RegisterAccountError, RegisterAccountResponse,
-    RegistrationChatApi, RegistrationResponse as RegistrationOutput, RequestVerificationCodeError,
-    ResumeSessionError, SessionId, SkipDeviceTransfer, SubmitVerificationError, UpdateSessionError,
-    VerificationTransport,
+    CreateSessionError, InvalidSessionId, NewMessageNotification, PniAccountMaterial,
+    ProvidedAccountAttributes, PushToken, RegisterAccountError, RegisterAccountMethod,
+    RegisterAccountResponse, RegistrationChatApi, RegistrationResponse as RegistrationOutput,
+    RequestVerificationCodeError, ResumeSessionError, SessionId, SkipDeviceTransfer,
+    SubmitVerificationError, UpdateSessionError, VerificationTransport, WithRecoveredSession,
 };
 use crate::api::{Registration, RequestError};
 use crate::ws::{ResponseError, TryIntoResponse, WsConnection};
 
 mod error;
 mod request;
-
 #[cfg(test)]
 pub(crate) use request::RegistrationResponse;
 use request::*;
@@ -89,7 +88,7 @@ where
         // This request's path is always static, so it's safe to log.
         let response = self
             .0
-            .send("reg", &request.path.to_string(), request)
+            .send(Self::LOG_TAG, &request.path.to_string(), request)
             .await
             .map_err(SendError::into_request_error)?;
         let response: crate::ws::registration::request::RegistrationResponse =
@@ -110,6 +109,7 @@ where
             },
         )
         .await
+        .map_err(WithRecoveredSession::into_inner)
     }
 
     async fn submit_captcha(
@@ -128,6 +128,7 @@ where
             },
         )
         .await
+        .map_err(WithRecoveredSession::into_inner)
     }
 
     async fn request_push_challenge(
@@ -146,6 +147,7 @@ where
             },
         )
         .await
+        .map_err(WithRecoveredSession::into_inner)
     }
 
     async fn request_verification_code(
@@ -154,7 +156,8 @@ where
         transport: VerificationTransport,
         client: &str,
         language_list: LanguageList,
-    ) -> Result<RegistrationOutput, Self::Error<RequestVerificationCodeError>> {
+    ) -> Result<RegistrationOutput, WithRecoveredSession<Self::Error<RequestVerificationCodeError>>>
+    {
         submit_request(
             &self.0,
             RegistrationRequest {
@@ -185,13 +188,15 @@ where
             },
         )
         .await
+        .map_err(WithRecoveredSession::into_inner)
     }
 
     async fn submit_verification_code(
         &self,
         session_id: &SessionId,
         code: &str,
-    ) -> Result<RegistrationOutput, Self::Error<SubmitVerificationError>> {
+    ) -> Result<RegistrationOutput, WithRecoveredSession<Self::Error<SubmitVerificationError>>>
+    {
         submit_request(
             &self.0,
             RegistrationRequest {
@@ -214,7 +219,7 @@ where
         // This request's path is always static, so it's safe to log.
         let response = self
             .0
-            .send("reg", &request.path.to_string(), request)
+            .send(Self::LOG_TAG, &request.path.to_string(), request)
             .await
             .map_err(SendError::into_request_error)?;
         response.try_into_response().map_err(Into::into)
@@ -222,56 +227,73 @@ where
 
     async fn register_account(
         &self,
-        number: &str,
-        session_id: Option<&SessionId>,
+        method: RegisterAccountMethod<'_>,
         message_notification: NewMessageNotification<&str>,
         account_attributes: ProvidedAccountAttributes<'_>,
         device_transfer: Option<SkipDeviceTransfer>,
-        keys: ForServiceIds<AccountKeys<'_>>,
+        one_time_password: Option<u32>,
+        aci_keys: AccountKeys<'_>,
+        pni_material: Option<PniAccountMaterial<'_>>,
         account_password: &str,
     ) -> Result<RegisterAccountResponse, Self::Error<RegisterAccountError>> {
         let request = ChatRequest::register_account(
-            number,
-            session_id,
+            method,
             message_notification,
             account_attributes,
             device_transfer,
-            keys,
+            one_time_password,
+            aci_keys,
+            pni_material,
             account_password,
         );
 
         // This request's path is always static, so it's safe to log.
         let response = self
             .0
-            .send("reg", &request.path.to_string(), request)
+            .send(Self::LOG_TAG, &request.path.to_string(), request)
             .await
             .map_err(SendError::into_request_error)?;
 
-        response.try_into_response().map_err(Into::into)
+        response
+            .try_into_response()
+            .map_err(|e: ResponseError| e.into_register_account_error(method))
     }
 }
 
 /// Sends a request for an established session.
 ///
-/// On success, the state of the session as reported by the server is saved (and accessible via
-/// [`session_state`](crate::registration::RegistrationService::session_state)). This method will
+/// On success the state of the session as reported by the server is returned and
+/// saved (accessible via
+/// [`session_state`](crate::registration::RegistrationService::session_state)).
+/// Some errors (such as a 429) also carry session state in their body, which is
+/// recovered alongside the error; see [`WithRecoveredSession`]. This method will
 /// retry internally if transient errors are encountered.
+#[expect(
+    clippy::result_large_err,
+    reason = "errors carry recovered session state (see WithRecoveredSession)"
+)]
 async fn submit_request<R, E, C>(
     connection: &C,
     request: RegistrationRequest<'_, R>,
-) -> Result<RegistrationOutput, RequestError<E, <C::SendError as SendError>::DisconnectError>>
+) -> Result<
+    RegistrationOutput,
+    WithRecoveredSession<RequestError<E, <C::SendError as SendError>::DisconnectError>>,
+>
 where
     R: Request + Send,
-    RequestError<E, <C::SendError as SendError>::DisconnectError>:
-        From<InvalidSessionId> + From<ResponseError>,
+    RequestError<E, <C::SendError as SendError>::DisconnectError>: From<InvalidSessionId>,
+    WithRecoveredSession<RequestError<E, <C::SendError as SendError>::DisconnectError>>:
+        From<ResponseError>,
     C: WsClient<SendError: SendError> + Sync,
 {
     let response = connection
-        .send("reg", &request.log_safe_path(), request.into())
+        .send(
+            Registration::<()>::LOG_TAG,
+            &request.log_safe_path(),
+            request.into(),
+        )
         .await
         .map_err(SendError::into_request_error)?;
-    let response: crate::ws::registration::request::RegistrationResponse =
-        response.try_into_response()?;
-
-    response.try_into().map_err(Into::into)
+    let response: RegistrationResponse = response.try_into_response()?;
+    Ok(response.try_into().map_err(RequestError::from)?)
 }

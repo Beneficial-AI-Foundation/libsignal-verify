@@ -5,7 +5,7 @@
 
 use std::cmp;
 
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, HmacReset, KeyInit as _, Mac as _};
 use sha2::Sha256;
 
 use crate::shoapi::ShoApi;
@@ -22,7 +22,7 @@ enum Mode {
 
 #[derive(Clone)]
 pub struct ShoHmacSha256 {
-    hasher: Hmac<Sha256>,
+    hasher: HmacReset<Sha256>,
     cv: [u8; HASH_LEN],
     mode: Mode,
 }
@@ -30,7 +30,7 @@ pub struct ShoHmacSha256 {
 impl ShoApi for ShoHmacSha256 {
     fn new(label: &[u8]) -> ShoHmacSha256 {
         let mut sho = ShoHmacSha256 {
-            hasher: Hmac::<Sha256>::new_from_slice(&[0; HASH_LEN])
+            hasher: HmacReset::<Sha256>::new_from_slice(&[0; HASH_LEN])
                 .expect("HMAC accepts 256-bit keys"),
             cv: [0; HASH_LEN],
             mode: Mode::RATCHETED,
@@ -42,7 +42,7 @@ impl ShoApi for ShoHmacSha256 {
     fn absorb(&mut self, input: &[u8]) {
         if let Mode::RATCHETED = self.mode {
             self.hasher =
-                Hmac::<Sha256>::new_from_slice(&self.cv).expect("HMAC accepts 256-bit keys");
+                HmacReset::<Sha256>::new_from_slice(&self.cv).expect("HMAC accepts 256-bit keys");
             self.mode = Mode::ABSORBING;
         }
         self.hasher.update(input);
@@ -65,13 +65,13 @@ impl ShoApi for ShoHmacSha256 {
         let outlen = target.len();
         let output_hasher_prefix =
             Hmac::<Sha256>::new_from_slice(&self.cv).expect("HMAC accepts 256-bit keys");
-        let mut i = 0;
-        while i * HASH_LEN < outlen {
+        let mut i = 0u64;
+        while !target.is_empty() {
             let mut output_hasher = output_hasher_prefix.clone();
-            output_hasher.update(&(i as u64).to_be_bytes());
+            output_hasher.update(&i.to_be_bytes());
             output_hasher.update(&[0x01]);
             let digest = output_hasher.finalize().into_bytes();
-            let num_bytes = cmp::min(HASH_LEN, outlen - i * HASH_LEN);
+            let num_bytes = cmp::min(HASH_LEN, target.len());
             let (output, tail) = target.split_at_mut(num_bytes);
             output.copy_from_slice(&digest[..num_bytes]);
             target = tail;

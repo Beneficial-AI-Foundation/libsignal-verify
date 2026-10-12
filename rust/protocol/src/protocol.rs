@@ -3,10 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-use hmac::{Hmac, Mac};
 use prost::Message;
 use rand::{CryptoRng, Rng};
-use sha2::Sha256;
 use subtle::ConstantTimeEq;
 use uuid::Uuid;
 
@@ -57,6 +55,27 @@ impl CiphertextMessage {
             CiphertextMessage::PlaintextContent(x) => x.serialized(),
         }
     }
+}
+
+// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
+// these as opaque effects. Level and message are unchanged.
+fn log_invalid_local_addresses(
+    sender_address: &ProtocolAddress,
+    recipient_address: &ProtocolAddress,
+) {
+    log::warn!(
+        "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
+        sender_address,
+        recipient_address,
+    );
+}
+
+fn log_address_mismatch(sender_address: &ProtocolAddress, recipient_address: &ProtocolAddress) {
+    log::warn!(
+        "Address mismatch: sender={}, recipient={}",
+        sender_address,
+        recipient_address,
+    );
 }
 
 #[derive(Debug, Clone)]
@@ -169,18 +188,7 @@ impl SignalMessage {
             .expect("length checked at construction");
         let our_mac =
             Self::compute_mac(sender_identity_key, receiver_identity_key, mac_key, content)?;
-        let result: bool = our_mac.ct_eq(their_mac).into();
-        if !result {
-            // A warning instead of an error because we try multiple sessions.
-            log::warn!(
-                "Bad Mac! Their Mac: {} Our Mac: {}",
-                hex::encode(their_mac),
-                hex::encode(our_mac)
-            );
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(our_mac.ct_eq(their_mac).into())
     }
 
     pub fn verify_mac_with_addresses(
@@ -202,22 +210,14 @@ impl SignalMessage {
         };
 
         let Some(expected) = Self::serialize_addresses(sender_address, recipient_address) else {
-            log::warn!(
-                "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
-                sender_address,
-                recipient_address,
-            );
+            log_invalid_local_addresses(sender_address, recipient_address);
             return Ok(false);
         };
 
         if bool::from(expected.ct_eq(encoded_addresses.as_ref())) {
             Ok(true)
         } else {
-            log::warn!(
-                "Address mismatch: sender={}, recipient={}",
-                sender_address,
-                recipient_address,
-            );
+            log_address_mismatch(sender_address, recipient_address);
             Ok(false)
         }
     }
@@ -231,18 +231,15 @@ impl SignalMessage {
         if mac_key.len() != 32 {
             return Err(SignalProtocolError::InvalidMacKeyLength(mac_key.len()));
         }
-        let mut mac = Hmac::<Sha256>::new_from_slice(mac_key)
-            .expect("HMAC-SHA256 should accept any size key");
-
-        mac.update(sender_identity_key.public_key().serialize().as_ref());
-        mac.update(receiver_identity_key.public_key().serialize().as_ref());
-        mac.update(message);
-        let result = *mac
-            .finalize()
-            .into_bytes()
-            .first_chunk()
-            .expect("enough bytes");
-        Ok(result)
+        let mac = crate::crypto::hmac_sha256_parts(
+            mac_key,
+            &[
+                sender_identity_key.public_key().serialize().as_ref(),
+                receiver_identity_key.public_key().serialize().as_ref(),
+                message,
+            ],
+        );
+        Ok(*mac.first_chunk().expect("enough bytes"))
     }
 
     /// Serializes sender and recipient addresses into a single byte vector.
@@ -982,39 +979,6 @@ pub fn extract_decryption_error_message_from_serialized_content(
         .and_then(DecryptionErrorMessage::try_from)
 }
 
-/// A consistent way to determine, given a session that is not PQ
-/// and a ratio of sessions which if not PQ should be archived,
-/// which sessions to use (returning true) and which to archive
-/// (returning false).  The session key's first 4 bytes are used as
-/// a uniformly random big-endian integer as part of this calculation,
-/// which works well for a session's `alice_base_key()`.
-pub fn should_use_nonpq_session(require_pq_ratio: f64, session_key: &[u8]) -> bool {
-    assert!(session_key.len() >= 4);
-    if require_pq_ratio >= 1.0 {
-        return false;
-    } else if require_pq_ratio <= 0.0 {
-        return true;
-    }
-    // We have a chain, but it's not a PQ chain.
-    // We want to deterministically decide whether a session should be used
-    // based on a ratio between 0 and 1.  We also want the decision as to
-    // whether to use the session to be the same for Alice and Bob.
-    // The session key is a x25519 key, from which we pull out 4 bytes
-    // we expect to be relatively uniform.
-    let sess_u32 = u32::from_be_bytes(
-        (&session_key[..4])
-            .try_into()
-            .expect("should have 32 bytes"),
-    );
-    // We then convert the require_pq_ratio to a u32 that is 0xFF... for 1,
-    // 0x00... for 0, and uniform in between for other values.
-    #[allow(clippy::cast_possible_truncation)]
-    let ratio_u32 = ((u32::MAX as f64) * require_pq_ratio) as u32;
-    // Finally, we compare the two, and we only expire the existing session if
-    // its key is smaller than the ratio key.
-    ratio_u32 <= sess_u32
-}
-
 #[cfg(test)]
 mod tests {
     use rand::rngs::OsRng;
@@ -1393,24 +1357,5 @@ mod tests {
             ),
             Err(SignalProtocolError::InvalidArgument(_))
         ));
-    }
-
-    #[test]
-    fn test_should_use_nonpq_session() {
-        let max = b"\xff\xff\xff\xff";
-        let min = b"\x00\x00\x00\x00";
-        let mid = b"\x7f\xff\xff\xff";
-        assert!(!should_use_nonpq_session(1.0, max));
-        assert!(!should_use_nonpq_session(1.0, min));
-        assert!(should_use_nonpq_session(0.0, max));
-        assert!(should_use_nonpq_session(0.0, min));
-
-        assert!(!should_use_nonpq_session(0.75, min));
-        assert!(!should_use_nonpq_session(0.75, mid));
-        assert!(should_use_nonpq_session(0.75, max));
-
-        assert!(!should_use_nonpq_session(0.25, min));
-        assert!(should_use_nonpq_session(0.25, mid));
-        assert!(should_use_nonpq_session(0.25, max));
     }
 }

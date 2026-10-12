@@ -4,15 +4,20 @@
 //
 
 use std::ffi::CString;
+use std::mem::MaybeUninit;
 
 use derive_where::derive_where;
+use libsignal_bridge_macros::c_export;
 use libsignal_protocol::*;
 
+use crate::ffi::capi::IsCType;
 use crate::support::describe_panic;
 
 #[macro_use]
 mod convert;
 pub use convert::*;
+
+pub mod capi;
 
 mod chat;
 pub use chat::*;
@@ -23,23 +28,33 @@ pub use error::*;
 mod futures;
 pub use futures::*;
 
-// TODO: These re-exports are because of the ffi_arg_type macro expecting all bridging structs to be
-// under the ffi module; eventually we should be able to remove it.
-pub use crate::io::FfiSyncInputStreamStruct;
-pub use crate::protocol::storage::{
-    FfiIdentityKeyStoreStruct, FfiKyberPreKeyStoreStruct, FfiPreKeyStoreStruct,
-    FfiSenderKeyStoreStruct, FfiSessionStoreStruct, FfiSignedPreKeyStoreStruct,
-};
-
-pub type FfiInputStreamStruct = FfiSyncInputStreamStruct;
+#[c_export]
+pub type FfiInputStreamStruct = crate::io::FfiSyncInputStreamStruct;
+#[c_export]
+type ConstPointerFfiInputStreamStruct = ConstPointer<FfiInputStreamStruct>;
 
 #[derive(Debug)]
 pub struct NullPointerError;
 
 #[repr(C)]
-pub struct BorrowedSliceOf<T> {
-    base: *const T,
+#[derive(IsCType)]
+#[capi(export_name_override = borrowed_slice_of_name_override, swift_protocol)]
+pub struct BorrowedSliceOf<Element> {
+    base: *const Element,
     length: usize,
+}
+#[cfg(feature = "metadata")]
+fn borrowed_slice_of_name_override(
+    [t]: [std::sync::Arc<crate::metadata::ffi::capi::CType>; 1],
+) -> Option<String> {
+    use crate::metadata::ffi::capi::RustType;
+    if t.rust_type == RustType::of::<u8>() {
+        Some("BorrowedBuffer".to_string())
+    } else if t.rust_type == RustType::of::<BorrowedSliceOf<u8>>() {
+        Some("BorrowedSliceOfBuffers".to_string())
+    } else {
+        None
+    }
 }
 
 impl<T> BorrowedSliceOf<T> {
@@ -60,9 +75,22 @@ unsafe impl<T> Send for BorrowedSliceOf<T> where for<'a> &'a [T]: Send {}
 unsafe impl<T> Sync for BorrowedSliceOf<T> where for<'a> &'a [T]: Sync {}
 
 #[repr(C)]
+#[derive(IsCType)]
+#[capi(export_name_override = borrowed_mutable_slice_of_name_override)]
 pub struct BorrowedMutableSliceOf<T> {
     base: *mut T,
     length: usize,
+}
+#[cfg(feature = "metadata")]
+fn borrowed_mutable_slice_of_name_override(
+    [t]: [std::sync::Arc<crate::metadata::ffi::capi::CType>; 1],
+) -> Option<String> {
+    use crate::metadata::ffi::capi::RustType;
+    if t.rust_type == RustType::of::<u8>() {
+        Some("BorrowedMutableBuffer".to_string())
+    } else {
+        None
+    }
 }
 
 impl<T> BorrowedMutableSliceOf<T> {
@@ -79,13 +107,75 @@ impl<T> BorrowedMutableSliceOf<T> {
     }
 }
 
+/// A buffer of `length` elements of type `T`, allocated with a fixed alignment.
+///
+/// The number of bytes allocated is stored in `size_bytes`.
+///
+/// `base` should be allocated via Rust's global alloc (i.e. via [`std::alloc::alloc`])
+///
+/// # Motivation
+/// Rust's global allocator takes a size and alignment for _both_ allocation and deallocation. As a
+/// result, if we want to have a general "free this buffer" function, that function needs to be
+/// able to know the total size of the allocation and its alignment. Having a fixed (constant)
+/// alignment means we don't need to store the alignment in this struct (or have a separate free
+/// function for each type).
+#[repr(C)]
+#[derive(IsCType)]
+#[capi(swift_protocol)]
+pub struct OwnedBufferOfMaxAligned<Element> {
+    pub base: *mut Element,
+    pub length: usize,
+    pub size_bytes: usize,
+}
+
+#[repr(C)]
+#[derive(IsCType)]
+pub struct OwnedBufferOfMaxAlignedErased {
+    pub base: *mut std::ffi::c_void,
+    pub length: usize,
+    pub size_bytes: usize,
+}
+
+impl<T> OwnedBufferOfMaxAligned<T> {
+    // A reasonable max alignment for most types we use. (We aren't using SIMD types here.)
+    // A const-time assertion will trip if this alignment isn't sufficient.
+    pub const ALIGNMENT: usize = 16;
+    pub fn layout_for_count(count: usize) -> std::alloc::Layout {
+        const {
+            assert!(std::mem::align_of::<T>() <= Self::ALIGNMENT);
+        }
+        std::alloc::Layout::array::<T>(count)
+            .expect("valid layout")
+            .align_to(Self::ALIGNMENT)
+            .expect("valid layout")
+    }
+    pub fn layout_for_size_bytes(size_bytes: usize) -> std::alloc::Layout {
+        std::alloc::Layout::from_size_align(size_bytes, Self::ALIGNMENT).expect("valid layout")
+    }
+}
+
 /// A representation of a array allocated on the Rust heap for use in C code.
 #[repr(C)]
 #[derive_where(Debug)]
+#[derive(IsCType)]
+#[capi(export_name_override = owned_buffer_of_name_override)]
 pub struct OwnedBufferOf<T> {
     base: *mut T,
     /// The number of elements in the buffer (not necessarily the number of bytes).
     length: usize,
+}
+#[cfg(feature = "metadata")]
+fn owned_buffer_of_name_override(
+    [t]: [std::sync::Arc<crate::metadata::ffi::capi::CType>; 1],
+) -> Option<String> {
+    use crate::metadata::ffi::capi::RustType;
+    if t.rust_type == RustType::of::<u8>() {
+        Some("OwnedBuffer".to_string())
+    } else if t.rust_type == RustType::of::<FfiCdsiLookupResponseEntry>() {
+        Some("OwnedLookupResponseEntryList".to_string())
+    } else {
+        None
+    }
 }
 
 impl<T> OwnedBufferOf<T> {
@@ -143,17 +233,20 @@ impl<T: FfiDestroyable> Drop for OwnedCallbackStruct<T> {
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct BytestringArray {
     bytes: OwnedBufferOf<std::ffi::c_uchar>,
     lengths: OwnedBufferOf<usize>,
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct BorrowedBytestringArray {
     bytes: BorrowedSliceOf<std::ffi::c_uchar>,
     lengths: BorrowedSliceOf<usize>,
 }
 
+#[c_export]
 pub type StringArray = BytestringArray;
 
 impl BytestringArray {
@@ -206,6 +299,7 @@ impl BorrowedBytestringArray {
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct OptionalBorrowedSliceOf<T> {
     pub present: bool,
     pub value: BorrowedSliceOf<T>,
@@ -213,25 +307,49 @@ pub struct OptionalBorrowedSliceOf<T> {
 
 /// A wrapper type for raw UUIDs, because C treats arrays specially in argument position.
 #[repr(C)]
+#[derive(IsCType)]
 pub struct Uuid {
     pub bytes: [u8; 16],
 }
 
 #[derive(Default)]
 #[repr(C)]
+#[derive(IsCType)]
 pub struct OptionalUuid {
     pub present: bool,
     pub bytes: [u8; 16],
 }
 
 #[repr(C)]
-pub struct PairOf<A, B> {
-    pub first: A,
-    pub second: B,
+#[derive(IsCType)]
+#[capi(swift_protocol)]
+pub struct PairOf<First, Second> {
+    pub first: First,
+    pub second: Second,
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(IsCType)]
+#[capi(swift_protocol)]
+pub struct OptionalOf<Contents> {
+    pub present: bool,
+    pub value: MaybeUninit<Contents>,
+}
+impl<T> OptionalOf<T> {
+    pub const NONE: Self = OptionalOf {
+        present: false,
+        value: MaybeUninit::uninit(),
+    };
+    pub const fn some(t: T) -> Self {
+        OptionalOf {
+            present: true,
+            value: MaybeUninit::new(t),
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Default, IsCType)]
 pub struct OptionalPairOf<A, B> {
     pub present: bool,
     pub first: A,
@@ -239,23 +357,25 @@ pub struct OptionalPairOf<A, B> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
-/// cbindgen:field-names=[e164, rawAciUuid, rawPniUuid]
+#[derive(Debug, IsCType)]
 pub struct FfiCdsiLookupResponseEntry {
     /// Telephone number, as an unformatted e164.
     pub e164: u64,
+    #[capi(rename = "rawAciUuid")]
     pub aci: [u8; 16],
+    #[capi(rename = "rawPniUuid")]
     pub pni: [u8; 16],
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, IsCType)]
 pub struct FfiCdsiLookupResponse {
     entries: OwnedBufferOf<FfiCdsiLookupResponseEntry>,
     debug_permits_used: i32,
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiCheckSvr2CredentialsResponse {
     /// Bridged as a string of bytes, but each entry is a UTF-8 `String` key
     /// concatenated with a byte for the value.
@@ -267,7 +387,7 @@ pub struct FfiCheckSvr2CredentialsResponse {
 pub type CStringPtr = *const std::ffi::c_char;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, IsCType)]
 pub struct FfiChatResponse {
     status: u16,
     message: *const std::ffi::c_char,
@@ -276,7 +396,7 @@ pub struct FfiChatResponse {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(IsCType, Debug)]
 pub struct FfiChatServiceDebugInfo {
     raw_ip_type: u8,
     duration_secs: f64,
@@ -284,13 +404,14 @@ pub struct FfiChatServiceDebugInfo {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(IsCType, Debug)]
 pub struct FfiResponseAndDebugInfo {
     response: FfiChatResponse,
     debug_info: FfiChatServiceDebugInfo,
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiRegistrationCreateSessionRequest {
     number: *const std::ffi::c_char,
     push_token: *const std::ffi::c_char,
@@ -299,6 +420,7 @@ pub struct FfiRegistrationCreateSessionRequest {
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiRegisterResponseBadge {
     /// The badge ID.
     pub id: *const std::ffi::c_char,
@@ -309,6 +431,7 @@ pub struct FfiRegisterResponseBadge {
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiSignedPublicPreKey {
     pub key_id: u32,
     pub public_key_type: FfiPublicKeyType,
@@ -317,12 +440,14 @@ pub struct FfiSignedPublicPreKey {
 }
 
 #[repr(u8)]
+#[derive(IsCType)]
 pub enum FfiPublicKeyType {
     ECC,
     Kyber,
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiMismatchedDevicesError {
     pub account: ServiceIdFixedWidthBinaryBytes,
     pub missing_devices: OwnedBufferOf<u32>,
@@ -339,12 +464,14 @@ impl FfiMismatchedDevicesError {
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiPreKeysResponse {
     identity_key: MutPointer<PublicKey>,
     pre_key_bundles: OwnedBufferOf<MutPointer<PreKeyBundle>>,
 }
 
 #[repr(C)]
+#[derive(IsCType)]
 pub struct FfiUploadForm {
     cdn: u32,
     key: CStringPtr,
@@ -364,12 +491,11 @@ impl std::fmt::Debug for UnexpectedPanic {
     }
 }
 
-// Wrapper for a `*mut T` that gets translated by cbindgen into a named struct
-// type in the generated C header file. This is useful because the consuming
-// Swift code considers all opaque pointers to be the same type, but
-// differentiates between the generated named struct types.
+// Wrapper for a `*mut T` that gets translated into a named struct type in the generated C header
+// file. This is useful because the consuming Swift code considers all opaque pointers to be the
+// same type, but differentiates between the generated named struct types.
 #[repr(C)]
-#[derive(derive_more::From, zerocopy::FromZeros)]
+#[derive(derive_more::From, zerocopy::FromZeros, IsCType)]
 #[derive_where(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct MutPointer<T> {
     raw: *mut T,
@@ -395,6 +521,7 @@ impl<T> Default for MutPointer<T> {
 
 // Wrapped `*const T`. This type exists for the same reason `MutPointer` does.
 #[repr(C)]
+#[derive(IsCType)]
 #[derive_where(Copy, Clone, Debug, PartialEq)]
 pub struct ConstPointer<T> {
     raw: *const T,
@@ -427,14 +554,6 @@ pub fn run_ffi_safe<F: FnOnce() -> Result<(), SignalFfiError> + std::panic::Unwi
         Err(e) => e.into_raw_box_for_ffi(),
     }
 }
-
-/// Like [`std::panic::AssertUnwindSafe`], but FFI-compatible.
-#[derive(derive_more::Deref)]
-#[repr(transparent)]
-pub struct UnwindSafeArg<T>(pub T);
-
-impl<T> std::panic::UnwindSafe for UnwindSafeArg<T> {}
-impl<T> std::panic::RefUnwindSafe for UnwindSafeArg<T> {}
 
 pub unsafe fn native_handle_cast<T>(handle: *const T) -> Result<&'static T, SignalFfiError> {
     if handle.is_null() {
@@ -479,6 +598,7 @@ macro_rules! ffi_bridge_handle_destroy {
                 "_destroy",
             ))]
             #[allow(non_snake_case)]
+            #[$crate::ffi::capi::c_export]
             pub unsafe extern "C" fn [<__bridge_handle_ffi_ $ffi_name _destroy>](
                 p: $crate::ffi::MutPointer<$typ>
             ) -> *mut ffi::SignalFfiError {
@@ -497,4 +617,107 @@ macro_rules! ffi_bridge_handle_destroy {
             }
         }
     };
+}
+
+mod type_aliases {
+    use libsignal_bridge_macros::c_export;
+    use static_assertions::const_assert_eq;
+
+    use crate::ffi::capi::IsCType;
+
+    #[c_export]
+    type AesKeyBytes = zkgroup::AesKeyBytes;
+    #[c_export]
+    type GroupMasterKeyBytes = zkgroup::GroupMasterKeyBytes;
+    #[c_export]
+    type UidBytes = zkgroup::UidBytes;
+    #[c_export]
+    type ProfileKeyBytes = zkgroup::ProfileKeyBytes;
+    #[c_export]
+    type RandomnessBytes = zkgroup::RandomnessBytes;
+    #[c_export]
+    type SignatureBytes = zkgroup::SignatureBytes;
+    #[c_export]
+    type NotarySignatureBytes = zkgroup::NotarySignatureBytes;
+    #[c_export]
+    type GroupIdentifierBytes = zkgroup::GroupIdentifierBytes;
+    #[c_export]
+    type ProfileKeyVersionBytes = zkgroup::ProfileKeyVersionBytes;
+    #[c_export]
+    type ProfileKeyVersionEncodedBytes = zkgroup::ProfileKeyVersionEncodedBytes;
+    #[c_export]
+    type ReceiptSerialBytes = zkgroup::ReceiptSerialBytes;
+    #[c_export]
+    type UnidentifiedAccessKey = [u8; zkgroup::ACCESS_KEY_LEN];
+    #[c_export]
+    type ServiceIdFixedWidthBinaryBytes = libsignal_core::ServiceIdFixedWidthBinaryBytes;
+    #[c_export]
+    type IdentityKeyStore = crate::protocol::storage::FfiIdentityKeyStoreStruct;
+    #[c_export]
+    type KyberPreKeyStore = crate::protocol::storage::FfiKyberPreKeyStoreStruct;
+    #[c_export]
+    type PreKeyStore = crate::protocol::storage::FfiPreKeyStoreStruct;
+    #[c_export]
+    type SenderKeyStore = crate::protocol::storage::FfiSenderKeyStoreStruct;
+    #[c_export]
+    type SessionStore = crate::protocol::storage::FfiSessionStoreStruct;
+    #[c_export]
+    type SignedPreKeyStore = crate::protocol::storage::FfiSignedPreKeyStoreStruct;
+    #[c_export]
+    type InputStream = super::FfiInputStreamStruct;
+    #[c_export]
+    type SyncInputStream = crate::io::FfiSyncInputStreamStruct;
+
+    #[repr(C)]
+    #[derive(IsCType)]
+    #[capi(must_export)]
+    enum IdentityChange {
+        NewOrUnchanged,
+        ReplacedExisting,
+    }
+    const_assert_eq!(
+        IdentityChange::NewOrUnchanged as i128,
+        libsignal_protocol::IdentityChange::NewOrUnchanged as i128
+    );
+    const_assert_eq!(
+        IdentityChange::ReplacedExisting as i128,
+        libsignal_protocol::IdentityChange::ReplacedExisting as i128
+    );
+
+    #[repr(C)]
+    #[derive(IsCType)]
+    #[capi(must_export)]
+    enum ChallengeOption {
+        PushChallenge,
+        Captcha,
+    }
+    const_assert_eq!(
+        ChallengeOption::PushChallenge as i128,
+        libsignal_net_chat::api::ChallengeOption::PushChallenge as i128
+    );
+    const_assert_eq!(
+        ChallengeOption::Captcha as i128,
+        libsignal_net_chat::api::ChallengeOption::Captcha as i128
+    );
+
+    #[derive(IsCType)]
+    #[repr(u8)]
+    #[capi(must_export)]
+    enum Svr2CredentialsResult {
+        Match,
+        NoMatch,
+        Invalid,
+    }
+    const_assert_eq!(
+        Svr2CredentialsResult::Match as i128,
+        libsignal_net_chat::api::registration::Svr2CredentialsResult::Match as i128
+    );
+    const_assert_eq!(
+        Svr2CredentialsResult::NoMatch as i128,
+        libsignal_net_chat::api::registration::Svr2CredentialsResult::NoMatch as i128
+    );
+    const_assert_eq!(
+        Svr2CredentialsResult::Invalid as i128,
+        libsignal_net_chat::api::registration::Svr2CredentialsResult::Invalid as i128
+    );
 }

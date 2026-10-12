@@ -24,8 +24,6 @@ const POINTER_MASK: u8 = 0xC0;
 // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
 pub(crate) const MAX_DNS_LABEL_LEN: usize = 63;
 pub(crate) const MAX_DNS_NAME_LEN: usize = 255;
-pub(crate) const MAX_DNS_UDP_MESSAGE_LEN: usize = 512;
-const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
 
 const MAX_DNS_ANSWERS_TO_PARSE: u16 = 1024;
 // Maximum number of pointer indirections to follow while parsing names.
@@ -64,20 +62,22 @@ impl From<io::Error> for Error {
 
 type Result<T> = std::result::Result<T, Error>;
 
-/// Creates a DNS request for the given request id, domain name, and resource type.
+/// Creates a DNS request for the given domain name and resource type.
 ///
 /// In this simple case, we only have one question and it's always recursive.
 /// This way, a big portion of the message is filled with a predefined data.
 ///
+/// The message ID is always 0. Our only transport is DNS-over-HTTPS, where
+/// responses are correlated with requests by the HTTP layer rather than by the
+/// DNS message ID, and RFC 8484 says clients SHOULD send an ID of 0 so that
+/// identical queries are cache-friendly.
+///
+/// [DoH message ID](https://datatracker.ietf.org/doc/html/rfc8484#section-4.1)
 /// [Header section](https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.1)
 /// [Question section](https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2)
 /// [UDP usage](https://datatracker.ietf.org/doc/html/rfc1035#section-4.2.1)
 /// [TCP usage](https://datatracker.ietf.org/doc/html/rfc1035#section-4.2.2)
-pub fn create_request_with_id(
-    request_id: u16,
-    domain: &str,
-    resource_type: ResourceType,
-) -> Result<Vec<u8>> {
+pub fn create_request(domain: &str, resource_type: ResourceType) -> Result<Vec<u8>> {
     // the information hardcoded in this section is that the message is a request
     // and that the request is recursive
     const RECURSIVE_REQUEST_WITH_ONE_QUESTION: [u8; 10] = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0];
@@ -91,8 +91,8 @@ pub fn create_request_with_id(
 
     // Header section
 
-    // request ID
-    writer.write_from(request_id)?;
+    // request ID, always 0 for DoH (see above)
+    writer.write_from(0u16)?;
     // the rest of the header
     writer.write_bytes(RECURSIVE_REQUEST_WITH_ONE_QUESTION.as_slice())?;
 
@@ -105,13 +105,6 @@ pub fn create_request_with_id(
     writer.write_from(QCLASS_IN)?;
 
     Ok(writer.into_writer())
-}
-
-pub fn get_id(message: &[u8]) -> Result<u16> {
-    match message {
-        [a, b, ..] => Ok(((*a as u16) << 8) | *b as u16),
-        _ => Err(Error::ProtocolErrorInvalidMessage),
-    }
 }
 
 pub fn parse_a_record(bytes_vec: &[u8]) -> Result<Ipv4Addr> {
@@ -312,7 +305,7 @@ mod test {
     #[test]
     fn valid_requests_identical() {
         // build a query using a 3rd-party crate
-        let mut hickory_message = Message::new(REQUEST_ID, MessageType::Query, OpCode::Query);
+        let mut hickory_message = Message::new(0, MessageType::Query, OpCode::Query);
         hickory_message.metadata.recursion_desired = true;
         let mut query = hickory_proto::op::Query::new();
         query
@@ -322,8 +315,7 @@ mod test {
         let hickory_message = hickory_message.to_bytes().expect("valid message");
 
         // build our own query
-        let query = create_request_with_id(REQUEST_ID, VALID_DOMAIN, ResourceType::A)
-            .expect("valid request");
+        let query = create_request(VALID_DOMAIN, ResourceType::A).expect("valid request");
 
         assert_eq!(hickory_message, query);
     }
@@ -331,12 +323,10 @@ mod test {
     #[test]
     fn request_allows_dot_at_the_end() {
         // build our own query
-        let query1 = create_request_with_id(REQUEST_ID, VALID_DOMAIN, ResourceType::A)
-            .expect("valid request");
+        let query1 = create_request(VALID_DOMAIN, ResourceType::A).expect("valid request");
 
         let with_dot = format!("{VALID_DOMAIN}.");
-        let query2 =
-            create_request_with_id(REQUEST_ID, &with_dot, ResourceType::A).expect("valid request");
+        let query2 = create_request(&with_dot, ResourceType::A).expect("valid request");
 
         assert_eq!(query1, query2);
     }
@@ -346,14 +336,11 @@ mod test {
         // 127 labels produces a domain name of length 254,
         // which, with a '.' suffix, is exactly the maximum allowed name length
         let mut long_name = iter::repeat_n('a', 127).join(".");
-        assert_matches!(
-            create_request_with_id(REQUEST_ID, &long_name, ResourceType::A),
-            Ok(_)
-        );
+        assert_matches!(create_request(&long_name, ResourceType::A), Ok(_));
         // with one more character the name becomes too long
         long_name.push('a');
         assert_matches!(
-            create_request_with_id(REQUEST_ID, &long_name, ResourceType::A),
+            create_request(&long_name, ResourceType::A),
             Err(Error::ProtocolErrorNameTooLong)
         );
     }
@@ -362,7 +349,7 @@ mod test {
     fn invalid_name_empty_label() {
         for name in ["", ".", "chat..signal.org", ".chat.signal.org"] {
             assert_matches!(
-                create_request_with_id(REQUEST_ID, name, ResourceType::A),
+                create_request(name, ResourceType::A),
                 Err(Error::ProtocolErrorLabelEmpty)
             );
         }
@@ -372,15 +359,12 @@ mod test {
     fn invalid_name_label_too_long() {
         let mut long_label = iter::repeat_n('a', MAX_DNS_LABEL_LEN).join("");
         let name = format!("{long_label}.signal.org");
-        assert_matches!(
-            create_request_with_id(REQUEST_ID, &name, ResourceType::A),
-            Ok(_)
-        );
+        assert_matches!(create_request(&name, ResourceType::A), Ok(_));
 
         long_label.push('a');
         let name = format!("{long_label}.signal.org");
         assert_matches!(
-            create_request_with_id(REQUEST_ID, &name, ResourceType::A),
+            create_request(&name, ResourceType::A),
             Err(Error::ProtocolErrorLabelTooLong)
         );
     }
@@ -411,18 +395,11 @@ mod test {
         let response = parse_response(response_message.as_slice(), ResourceType::A, parse_a_record)
             .expect("parsed result");
 
-        assert_matches!(get_id(response_message.as_slice()), Ok(REQUEST_ID));
         assert_eq!(
             &expected_ips_and_ttls.map(|p| p.0),
             response.data.as_slice()
         );
         assert_eq!(Instant::now() + shorter_ttl, response.expiration);
-    }
-
-    #[test]
-    fn invalid_message_error_parsing_id() {
-        assert_matches!(get_id(&[]), Err(Error::ProtocolErrorInvalidMessage));
-        assert_matches!(get_id(&[0]), Err(Error::ProtocolErrorInvalidMessage));
     }
 
     #[test]
@@ -519,7 +496,6 @@ mod test {
         let response = parse_response(response_message.as_slice(), ResourceType::A, parse_a_record)
             .expect("parsed result");
 
-        assert_matches!(get_id(response_message.as_slice()), Ok(REQUEST_ID));
         assert_eq!(&[expected_ip], response.data.as_slice());
     }
 
@@ -562,7 +538,6 @@ mod test {
         )
         .expect("parsed result");
 
-        assert_matches!(get_id(response_message.as_slice()), Ok(REQUEST_ID));
         assert_eq!(&[EXPECTED_IP], response.data.as_slice());
     }
 

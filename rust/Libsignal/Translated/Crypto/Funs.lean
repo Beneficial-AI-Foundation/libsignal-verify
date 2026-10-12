@@ -7,10 +7,9 @@ open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
 set_option linter.unusedVariables false
-set_option linter.style.longLine false
-set_option linter.style.setOption false
 set_option linter.style.whitespace false
-set_option linter.style.nameCheck false
+set_option linter.style.setOption false
+set_option linter.style.longLine false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -23,20 +22,192 @@ noncomputable section
 
 namespace signal_crypto
 
-/-- Trait implementation: [typenum::uint::{impl core::default::Default for typenum::uint::UInt<U, B>}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 146:67-146:74
-    Name pattern: [core::default::Default<typenum::uint::UInt<@U, @B>>] -/
+/-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36
+    Name pattern: [subtle::ConstantTimeEq<u8>] -/
+@[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
+def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
+  ct_eq := U8.Insts.SubtleConstantTimeEq.ct_eq
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::clone::Clone for typenum::bit::B0}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 18:41-18:46
+    Name pattern: [core::clone::Clone<typenum::bit::B0>] -/
+@[reducible, rust_trait_impl "core::clone::Clone<typenum::bit::B0>"]
+def typenum.bit.B0.Insts.CoreCloneClone : core.clone.Clone typenum.bit.B0 := {
+  clone := typenum.bit.B0.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::marker::Copy for typenum::bit::B0}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 18:48-18:52
+    Name pattern: [core::marker::Copy<typenum::bit::B0>] -/
+@[reducible, rust_trait_impl "core::marker::Copy<typenum::bit::B0>"]
+def typenum.bit.B0.Insts.CoreMarkerCopy : core.marker.Copy typenum.bit.B0 := {
+  cloneInst := typenum.bit.B0.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::default::Default for typenum::bit::B0}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 18:67-18:74
+    Name pattern: [core::default::Default<typenum::bit::B0>] -/
+@[reducible, rust_trait_impl "core::default::Default<typenum::bit::B0>"]
+def typenum.bit.B0.Insts.CoreDefaultDefault : core.default.Default
+  typenum.bit.B0 := {
+  default := typenum.bit.B0.Insts.CoreDefaultDefault.default
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::clone::Clone for typenum::bit::B1}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 31:41-31:46
+    Name pattern: [core::clone::Clone<typenum::bit::B1>] -/
+@[reducible, rust_trait_impl "core::clone::Clone<typenum::bit::B1>"]
+def typenum.bit.B1.Insts.CoreCloneClone : core.clone.Clone typenum.bit.B1 := {
+  clone := typenum.bit.B1.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::marker::Copy for typenum::bit::B1}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 31:48-31:52
+    Name pattern: [core::marker::Copy<typenum::bit::B1>] -/
+@[reducible, rust_trait_impl "core::marker::Copy<typenum::bit::B1>"]
+def typenum.bit.B1.Insts.CoreMarkerCopy : core.marker.Copy typenum.bit.B1 := {
+  cloneInst := typenum.bit.B1.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [typenum::bit::{impl core::default::Default for typenum::bit::B1}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 31:67-31:74
+    Name pattern: [core::default::Default<typenum::bit::B1>] -/
+@[reducible, rust_trait_impl "core::default::Default<typenum::bit::B1>"]
+def typenum.bit.B1.Insts.CoreDefaultDefault : core.default.Default
+  typenum.bit.B1 := {
+  default := typenum.bit.B1.Insts.CoreDefaultDefault.default
+}
+
+/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::bit::B0}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/lib.rs', lines 157:4-157:22
+    Name pattern: [typenum::sealed::Sealed<typenum::bit::B0>] -/
+@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::bit::B0>"]
+def typenum.bit.B0.Insts.TypenumSealedSealed : typenum.sealed.Sealed
+  typenum.bit.B0 := {
+}
+
+/-- Trait implementation: [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 43:0-43:15
+    Name pattern: [typenum::marker_traits::Bit<typenum::bit::B0>] -/
+@[reducible, rust_trait_impl "typenum::marker_traits::Bit<typenum::bit::B0>"]
+def typenum.bit.B0.Insts.TypenumMarker_traitsBit : typenum.marker_traits.Bit
+  typenum.bit.B0 := {
+  U8 := typenum.bit.B0.Insts.TypenumMarker_traitsBit.U8
+  BOOL := typenum.bit.B0.Insts.TypenumMarker_traitsBit.BOOL
+  sealedSealedInst := typenum.bit.B0.Insts.TypenumSealedSealed
+  coremarkerCopyInst := typenum.bit.B0.Insts.CoreMarkerCopy
+  coredefaultDefaultInst := typenum.bit.B0.Insts.CoreDefaultDefault
+  new := typenum.bit.B0.Insts.TypenumMarker_traitsBit.new
+  to_u8 := typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_u8
+  to_bool := typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_bool
+}
+
+/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::bit::B1}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/lib.rs', lines 158:4-158:22
+    Name pattern: [typenum::sealed::Sealed<typenum::bit::B1>] -/
+@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::bit::B1>"]
+def typenum.bit.B1.Insts.TypenumSealedSealed : typenum.sealed.Sealed
+  typenum.bit.B1 := {
+}
+
+/-- Trait implementation: [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/bit.rs', lines 61:0-61:15
+    Name pattern: [typenum::marker_traits::Bit<typenum::bit::B1>] -/
+@[reducible, rust_trait_impl "typenum::marker_traits::Bit<typenum::bit::B1>"]
+def typenum.bit.B1.Insts.TypenumMarker_traitsBit : typenum.marker_traits.Bit
+  typenum.bit.B1 := {
+  U8 := typenum.bit.B1.Insts.TypenumMarker_traitsBit.U8
+  BOOL := typenum.bit.B1.Insts.TypenumMarker_traitsBit.BOOL
+  sealedSealedInst := typenum.bit.B1.Insts.TypenumSealedSealed
+  coremarkerCopyInst := typenum.bit.B1.Insts.CoreMarkerCopy
+  coredefaultDefaultInst := typenum.bit.B1.Insts.CoreDefaultDefault
+  new := typenum.bit.B1.Insts.TypenumMarker_traitsBit.new
+  to_u8 := typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_u8
+  to_bool := typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_bool
+}
+
+/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::uint::UTerm}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/lib.rs', lines 160:4-160:25
+    Name pattern: [typenum::sealed::Sealed<typenum::uint::UTerm>] -/
+@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::uint::UTerm>"]
+def typenum.uint.UTerm.Insts.TypenumSealedSealed : typenum.sealed.Sealed
+  typenum.uint.UTerm := {
+}
+
+/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::uint::UInt<U, B>}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/lib.rs', lines 161:4-161:51
+    Name pattern: [typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
-  "core::default::Default<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.CoreDefaultDefault {U : Type} {B : Type}
-  (coredefaultDefaultInst : core.default.Default U) (coredefaultDefaultInst1 :
-  core.default.Default B) : core.default.Default (typenum.uint.UInt U B) := {
-  default := typenum.uint.UInt.Insts.CoreDefaultDefault.default
-    coredefaultDefaultInst coredefaultDefaultInst1
+  "typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>"]
+def typenum.uint.UInt.Insts.TypenumSealedSealed {U : Type} {B : Type}
+  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
+  (marker_traitsBitInst : typenum.marker_traits.Bit B) : typenum.sealed.Sealed
+  (typenum.uint.UInt U B) := {
+}
+
+/-- Trait implementation: [typenum::uint::{impl core::clone::Clone for typenum::uint::UTerm}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 48:41-48:46
+    Name pattern: [core::clone::Clone<typenum::uint::UTerm>] -/
+@[reducible, rust_trait_impl "core::clone::Clone<typenum::uint::UTerm>"]
+def typenum.uint.UTerm.Insts.CoreCloneClone : core.clone.Clone
+  typenum.uint.UTerm := {
+  clone := typenum.uint.UTerm.Insts.CoreCloneClone.clone
+}
+
+/-- Trait implementation: [typenum::uint::{impl core::marker::Copy for typenum::uint::UTerm}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 48:48-48:52
+    Name pattern: [core::marker::Copy<typenum::uint::UTerm>] -/
+@[reducible, rust_trait_impl "core::marker::Copy<typenum::uint::UTerm>"]
+def typenum.uint.UTerm.Insts.CoreMarkerCopy : core.marker.Copy
+  typenum.uint.UTerm := {
+  cloneInst := typenum.uint.UTerm.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [typenum::uint::{impl core::default::Default for typenum::uint::UTerm}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 48:67-48:74
+    Name pattern: [core::default::Default<typenum::uint::UTerm>] -/
+@[reducible, rust_trait_impl "core::default::Default<typenum::uint::UTerm>"]
+def typenum.uint.UTerm.Insts.CoreDefaultDefault : core.default.Default
+  typenum.uint.UTerm := {
+  default := typenum.uint.UTerm.Insts.CoreDefaultDefault.default
+}
+
+/-- Trait implementation: [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 60:0-60:23
+    Name pattern: [typenum::marker_traits::Unsigned<typenum::uint::UTerm>] -/
+@[reducible, rust_trait_impl
+  "typenum::marker_traits::Unsigned<typenum::uint::UTerm>"]
+def typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned :
+  typenum.marker_traits.Unsigned typenum.uint.UTerm := {
+  U8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U8
+  U16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U16
+  U32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U32
+  U64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U64
+  USIZE := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.USIZE
+  I8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I8
+  I16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I16
+  I32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I32
+  I64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I64
+  ISIZE := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.ISIZE
+  sealedSealedInst := typenum.uint.UTerm.Insts.TypenumSealedSealed
+  coremarkerCopyInst := typenum.uint.UTerm.Insts.CoreMarkerCopy
+  coredefaultDefaultInst := typenum.uint.UTerm.Insts.CoreDefaultDefault
+  to_u8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u8
+  to_u16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u16
+  to_u32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u32
+  to_u64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u64
+  to_usize := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_usize
+  to_i8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i8
+  to_i16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i16
+  to_i32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i32
+  to_i64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i64
+  to_isize := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_isize
 }
 
 /-- Trait implementation: [typenum::uint::{impl core::clone::Clone for typenum::uint::UInt<U, B>}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 146:41-146:46
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 146:41-146:46
     Name pattern: [core::clone::Clone<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl "core::clone::Clone<typenum::uint::UInt<@U, @B>>"]
 def typenum.uint.UInt.Insts.CoreCloneClone {U : Type} {B : Type}
@@ -47,7 +218,7 @@ def typenum.uint.UInt.Insts.CoreCloneClone {U : Type} {B : Type}
 }
 
 /-- Trait implementation: [typenum::uint::{impl core::marker::Copy for typenum::uint::UInt<U, B>}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 146:48-146:52
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 146:48-146:52
     Name pattern: [core::marker::Copy<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl "core::marker::Copy<typenum::uint::UInt<@U, @B>>"]
 def typenum.uint.UInt.Insts.CoreMarkerCopy {U : Type} {B : Type}
@@ -57,19 +228,20 @@ def typenum.uint.UInt.Insts.CoreMarkerCopy {U : Type} {B : Type}
     coremarkerCopyInst.cloneInst coremarkerCopyInst1.cloneInst
 }
 
-/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::uint::UInt<U, B>}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 160:4-160:51
-    Name pattern: [typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>] -/
+/-- Trait implementation: [typenum::uint::{impl core::default::Default for typenum::uint::UInt<U, B>}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 146:67-146:74
+    Name pattern: [core::default::Default<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
-  "typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.TypenumSealedSealed {U : Type} {B : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
-  (marker_traitsBitInst : typenum.marker_traits.Bit B) : typenum.sealed.Sealed
-  (typenum.uint.UInt U B) := {
+  "core::default::Default<typenum::uint::UInt<@U, @B>>"]
+def typenum.uint.UInt.Insts.CoreDefaultDefault {U : Type} {B : Type}
+  (coredefaultDefaultInst : core.default.Default U) (coredefaultDefaultInst1 :
+  core.default.Default B) : core.default.Default (typenum.uint.UInt U B) := {
+  default := typenum.uint.UInt.Insts.CoreDefaultDefault.default
+    coredefaultDefaultInst coredefaultDefaultInst1
 }
 
 /-- Trait implementation: [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UInt<U, B>}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 163:0-163:49
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 163:0-163:49
     Name pattern: [typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
   "typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>"]
@@ -127,179 +299,6 @@ def typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned {U : Type} {B : Type}
     marker_traitsUnsignedInst marker_traitsBitInst
 }
 
-/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::bit::B1}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 157:4-157:22
-    Name pattern: [typenum::sealed::Sealed<typenum::bit::B1>] -/
-@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::bit::B1>"]
-def typenum.bit.B1.Insts.TypenumSealedSealed : typenum.sealed.Sealed
-  typenum.bit.B1 := {
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::default::Default for typenum::bit::B1}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 31:67-31:74
-    Name pattern: [core::default::Default<typenum::bit::B1>] -/
-@[reducible, rust_trait_impl "core::default::Default<typenum::bit::B1>"]
-def typenum.bit.B1.Insts.CoreDefaultDefault : core.default.Default
-  typenum.bit.B1 := {
-  default := typenum.bit.B1.Insts.CoreDefaultDefault.default
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::clone::Clone for typenum::bit::B1}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 31:41-31:46
-    Name pattern: [core::clone::Clone<typenum::bit::B1>] -/
-@[reducible, rust_trait_impl "core::clone::Clone<typenum::bit::B1>"]
-def typenum.bit.B1.Insts.CoreCloneClone : core.clone.Clone typenum.bit.B1 := {
-  clone := typenum.bit.B1.Insts.CoreCloneClone.clone
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::marker::Copy for typenum::bit::B1}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 31:48-31:52
-    Name pattern: [core::marker::Copy<typenum::bit::B1>] -/
-@[reducible, rust_trait_impl "core::marker::Copy<typenum::bit::B1>"]
-def typenum.bit.B1.Insts.CoreMarkerCopy : core.marker.Copy typenum.bit.B1 := {
-  cloneInst := typenum.bit.B1.Insts.CoreCloneClone
-}
-
-/-- Trait implementation: [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B1}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 61:0-61:15
-    Name pattern: [typenum::marker_traits::Bit<typenum::bit::B1>] -/
-@[reducible, rust_trait_impl "typenum::marker_traits::Bit<typenum::bit::B1>"]
-def typenum.bit.B1.Insts.TypenumMarker_traitsBit : typenum.marker_traits.Bit
-  typenum.bit.B1 := {
-  U8 := typenum.bit.B1.Insts.TypenumMarker_traitsBit.U8
-  BOOL := typenum.bit.B1.Insts.TypenumMarker_traitsBit.BOOL
-  sealedSealedInst := typenum.bit.B1.Insts.TypenumSealedSealed
-  coremarkerCopyInst := typenum.bit.B1.Insts.CoreMarkerCopy
-  coredefaultDefaultInst := typenum.bit.B1.Insts.CoreDefaultDefault
-  new := typenum.bit.B1.Insts.TypenumMarker_traitsBit.new
-  to_u8 := typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_u8
-  to_bool := typenum.bit.B1.Insts.TypenumMarker_traitsBit.to_bool
-}
-
-/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::bit::B0}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 156:4-156:22
-    Name pattern: [typenum::sealed::Sealed<typenum::bit::B0>] -/
-@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::bit::B0>"]
-def typenum.bit.B0.Insts.TypenumSealedSealed : typenum.sealed.Sealed
-  typenum.bit.B0 := {
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::default::Default for typenum::bit::B0}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 18:67-18:74
-    Name pattern: [core::default::Default<typenum::bit::B0>] -/
-@[reducible, rust_trait_impl "core::default::Default<typenum::bit::B0>"]
-def typenum.bit.B0.Insts.CoreDefaultDefault : core.default.Default
-  typenum.bit.B0 := {
-  default := typenum.bit.B0.Insts.CoreDefaultDefault.default
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::clone::Clone for typenum::bit::B0}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 18:41-18:46
-    Name pattern: [core::clone::Clone<typenum::bit::B0>] -/
-@[reducible, rust_trait_impl "core::clone::Clone<typenum::bit::B0>"]
-def typenum.bit.B0.Insts.CoreCloneClone : core.clone.Clone typenum.bit.B0 := {
-  clone := typenum.bit.B0.Insts.CoreCloneClone.clone
-}
-
-/-- Trait implementation: [typenum::bit::{impl core::marker::Copy for typenum::bit::B0}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 18:48-18:52
-    Name pattern: [core::marker::Copy<typenum::bit::B0>] -/
-@[reducible, rust_trait_impl "core::marker::Copy<typenum::bit::B0>"]
-def typenum.bit.B0.Insts.CoreMarkerCopy : core.marker.Copy typenum.bit.B0 := {
-  cloneInst := typenum.bit.B0.Insts.CoreCloneClone
-}
-
-/-- Trait implementation: [typenum::bit::{impl typenum::marker_traits::Bit for typenum::bit::B0}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/bit.rs', lines 43:0-43:15
-    Name pattern: [typenum::marker_traits::Bit<typenum::bit::B0>] -/
-@[reducible, rust_trait_impl "typenum::marker_traits::Bit<typenum::bit::B0>"]
-def typenum.bit.B0.Insts.TypenumMarker_traitsBit : typenum.marker_traits.Bit
-  typenum.bit.B0 := {
-  U8 := typenum.bit.B0.Insts.TypenumMarker_traitsBit.U8
-  BOOL := typenum.bit.B0.Insts.TypenumMarker_traitsBit.BOOL
-  sealedSealedInst := typenum.bit.B0.Insts.TypenumSealedSealed
-  coremarkerCopyInst := typenum.bit.B0.Insts.CoreMarkerCopy
-  coredefaultDefaultInst := typenum.bit.B0.Insts.CoreDefaultDefault
-  new := typenum.bit.B0.Insts.TypenumMarker_traitsBit.new
-  to_u8 := typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_u8
-  to_bool := typenum.bit.B0.Insts.TypenumMarker_traitsBit.to_bool
-}
-
-/-- Trait implementation: [typenum::uint::{impl core::default::Default for typenum::uint::UTerm}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 48:67-48:74
-    Name pattern: [core::default::Default<typenum::uint::UTerm>] -/
-@[reducible, rust_trait_impl "core::default::Default<typenum::uint::UTerm>"]
-def typenum.uint.UTerm.Insts.CoreDefaultDefault : core.default.Default
-  typenum.uint.UTerm := {
-  default := typenum.uint.UTerm.Insts.CoreDefaultDefault.default
-}
-
-/-- Trait implementation: [typenum::uint::{impl core::clone::Clone for typenum::uint::UTerm}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 48:41-48:46
-    Name pattern: [core::clone::Clone<typenum::uint::UTerm>] -/
-@[reducible, rust_trait_impl "core::clone::Clone<typenum::uint::UTerm>"]
-def typenum.uint.UTerm.Insts.CoreCloneClone : core.clone.Clone
-  typenum.uint.UTerm := {
-  clone := typenum.uint.UTerm.Insts.CoreCloneClone.clone
-}
-
-/-- Trait implementation: [typenum::uint::{impl core::marker::Copy for typenum::uint::UTerm}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 48:48-48:52
-    Name pattern: [core::marker::Copy<typenum::uint::UTerm>] -/
-@[reducible, rust_trait_impl "core::marker::Copy<typenum::uint::UTerm>"]
-def typenum.uint.UTerm.Insts.CoreMarkerCopy : core.marker.Copy
-  typenum.uint.UTerm := {
-  cloneInst := typenum.uint.UTerm.Insts.CoreCloneClone
-}
-
-/-- Trait implementation: [typenum::sealed::{impl typenum::sealed::Sealed for typenum::uint::UTerm}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/lib.rs', lines 159:4-159:25
-    Name pattern: [typenum::sealed::Sealed<typenum::uint::UTerm>] -/
-@[reducible, rust_trait_impl "typenum::sealed::Sealed<typenum::uint::UTerm>"]
-def typenum.uint.UTerm.Insts.TypenumSealedSealed : typenum.sealed.Sealed
-  typenum.uint.UTerm := {
-}
-
-/-- Trait implementation: [typenum::uint::{impl typenum::marker_traits::Unsigned for typenum::uint::UTerm}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.19.0/src/uint.rs', lines 60:0-60:23
-    Name pattern: [typenum::marker_traits::Unsigned<typenum::uint::UTerm>] -/
-@[reducible, rust_trait_impl
-  "typenum::marker_traits::Unsigned<typenum::uint::UTerm>"]
-def typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned :
-  typenum.marker_traits.Unsigned typenum.uint.UTerm := {
-  U8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U8
-  U16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U16
-  U32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U32
-  U64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.U64
-  USIZE := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.USIZE
-  I8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I8
-  I16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I16
-  I32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I32
-  I64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.I64
-  ISIZE := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.ISIZE
-  sealedSealedInst := typenum.uint.UTerm.Insts.TypenumSealedSealed
-  coremarkerCopyInst := typenum.uint.UTerm.Insts.CoreMarkerCopy
-  coredefaultDefaultInst := typenum.uint.UTerm.Insts.CoreDefaultDefault
-  to_u8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u8
-  to_u16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u16
-  to_u32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u32
-  to_u64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_u64
-  to_usize := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_usize
-  to_i8 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i8
-  to_i16 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i16
-  to_i32 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i32
-  to_i64 := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_i64
-  to_isize := typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned.to_isize
-}
-
-/-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36
-    Name pattern: [subtle::ConstantTimeEq<u8>] -/
-@[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
-def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
-  ct_eq := U8.Insts.SubtleConstantTimeEq.ct_eq
-}
-
 /-- [signal_crypto::aes_ctr::{signal_crypto::aes_ctr::Aes256Ctr32}::NONCE_SIZE]
     Source: 'rust/crypto/src/aes_ctr.rs', lines 21:4-21:95
     Visibility: public -/
@@ -320,17 +319,17 @@ def aes_ctr.Aes256Ctr32.NONCE_SIZE : Result Std.Usize := do
   i - 4#usize
 
 /-- [signal_crypto::aes_gcm::TAG_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 15:0-15:31
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 14:0-14:31
     Visibility: public -/
 @[global_simps, irreducible] def aes_gcm.TAG_SIZE : Std.Usize := 16#usize
 
 /-- [signal_crypto::aes_gcm::NONCE_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 16:0-16:33
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 15:0-15:33
     Visibility: public -/
 @[global_simps, irreducible] def aes_gcm.NONCE_SIZE : Std.Usize := 12#usize
 
 /-- [signal_crypto::aes_gcm::{impl core::clone::Clone for signal_crypto::aes_gcm::GcmGhash}::clone]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 18:9-18:14
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 17:9-17:14
     Visibility: public -/
 def aes_gcm.GcmGhash.Insts.CoreCloneClone.clone
   (self : aes_gcm.GcmGhash) : Result aes_gcm.GcmGhash := do
@@ -351,19 +350,37 @@ def aes_gcm.GcmGhash.Insts.CoreCloneClone.clone
     }
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::TAG_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 139:4-139:41
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 138:4-138:41
     Visibility: public -/
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmEncryption.TAG_SIZE : Std.Usize := aes_gcm.TAG_SIZE
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::NONCE_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 140:4-140:45
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 139:4-139:45
     Visibility: public -/
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmEncryption.NONCE_SIZE : Std.Usize := aes_gcm.NONCE_SIZE
 
+/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new]:
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 141:4-144:5
+    Visibility: public -/
+def aes_gcm.Aes256GcmEncryption.new
+  (key : Slice Std.U8) (nonce : Slice Std.U8) (associated_data : Slice Std.U8)
+  :
+  Result (core.result.Result aes_gcm.Aes256GcmEncryption error.Error)
+  := do
+  let r ← aes_gcm.setup_gcm key nonce associated_data
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let (ctr, ghash) := val
+    ok (core.result.Result.Ok { ctr, ghash })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      aes_gcm.Aes256GcmEncryption (core.convert.FromSame error.Error) residual
+
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::encrypt]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 147:4-150:5
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 146:4-149:5
     Visibility: public -/
 def aes_gcm.Aes256GcmEncryption.encrypt
   (self : aes_gcm.Aes256GcmEncryption) (buf : Slice Std.U8) :
@@ -374,26 +391,44 @@ def aes_gcm.Aes256GcmEncryption.encrypt
   ok ({ ctr := ac, ghash := gg }, buf1)
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::compute_tag]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 152:4-154:5
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 151:4-153:5
     Visibility: public -/
 def aes_gcm.Aes256GcmEncryption.compute_tag
   (self : aes_gcm.Aes256GcmEncryption) : Result (Array Std.U8 16#usize) := do
   aes_gcm.GcmGhash.finalize self.ghash
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::TAG_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 163:4-163:41
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 162:4-162:41
     Visibility: public -/
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmDecryption.TAG_SIZE : Std.Usize := aes_gcm.TAG_SIZE
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::NONCE_SIZE]
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 164:4-164:45
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 163:4-163:45
     Visibility: public -/
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmDecryption.NONCE_SIZE : Std.Usize := aes_gcm.NONCE_SIZE
 
+/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new]:
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 165:4-168:5
+    Visibility: public -/
+def aes_gcm.Aes256GcmDecryption.new
+  (key : Slice Std.U8) (nonce : Slice Std.U8) (associated_data : Slice Std.U8)
+  :
+  Result (core.result.Result aes_gcm.Aes256GcmDecryption error.Error)
+  := do
+  let r ← aes_gcm.setup_gcm key nonce associated_data
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let (ctr, ghash) := val
+    ok (core.result.Result.Ok { ctr, ghash })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      aes_gcm.Aes256GcmDecryption (core.convert.FromSame error.Error) residual
+
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::decrypt]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 171:4-174:5
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 170:4-173:5
     Visibility: public -/
 def aes_gcm.Aes256GcmDecryption.decrypt
   (self : aes_gcm.Aes256GcmDecryption) (buf : Slice Std.U8) :
@@ -404,7 +439,7 @@ def aes_gcm.Aes256GcmDecryption.decrypt
   ok ({ ctr := ac, ghash := gg }, buf1)
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::verify_tag]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 176:4-190:5
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 175:4-189:5
     Visibility: public -/
 def aes_gcm.Aes256GcmDecryption.verify_tag
   (self : aes_gcm.Aes256GcmDecryption) (tag : Slice Std.U8) :

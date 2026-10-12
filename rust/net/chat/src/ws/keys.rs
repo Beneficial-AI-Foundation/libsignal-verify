@@ -115,7 +115,7 @@ impl<T: WsConnection> crate::api::keys::UnauthenticatedChatApi<OverWs> for Unaut
 
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &log_safe_path,
                 Request {
                     method: Method::GET,

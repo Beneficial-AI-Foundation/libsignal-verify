@@ -718,7 +718,7 @@ pub(crate) mod test {
     async fn returns_error_if_both_results_fail() {
         let resolver = TestDnsTransportWithTwoResponses::custom_dns_resolver(|_, _, txs| {
             let [tx_1, tx_2] = txs;
-            let res_1 = Err(Error::UnexpectedMessageId);
+            let res_1 = Err(Error::LookupFailed);
             let res_2 = Err(Error::RequestedIpTypeNotFound);
             respond_after_timeout(Duration::ZERO, tx_1, res_1);
             respond_after_timeout(Duration::ZERO, tx_2, res_2);

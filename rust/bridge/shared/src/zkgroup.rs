@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+use std::num::NonZeroUsize;
+use std::ops::Deref;
+
 use ::zkgroup;
 use backups::BackupCredentialType;
 use libsignal_bridge_macros::*;
@@ -17,6 +20,7 @@ use zkgroup::backups::{
     BackupAuthCredentialRequestContext, BackupAuthCredentialResponse, BackupLevel,
 };
 use zkgroup::call_links::*;
+use zkgroup::donations::*;
 use zkgroup::generic_server_params::*;
 use zkgroup::groups::*;
 use zkgroup::profiles::*;
@@ -201,6 +205,24 @@ fn ServerPublicParams_ReceiveAuthCredentialWithPniAsServiceId(
 }
 
 #[bridge_fn]
+fn ServerPublicParams_ReceiveAuthCredentialZkcWithoutPni(
+    params: &ServerPublicParams,
+    aci: Aci,
+    salt: &[u8],
+    redemption_time: Timestamp,
+    auth_credential_with_pni_response_bytes: &[u8],
+) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
+    let response = AuthCredentialWithPniResponse::new(auth_credential_with_pni_response_bytes)
+        .expect("previously validated");
+    Ok(zkgroup::serialize(&response.receive_without_pni(
+        params,
+        aci,
+        salt,
+        redemption_time,
+    )?))
+}
+
+#[bridge_fn]
 fn ServerPublicParams_CreateAuthCredentialWithPniPresentationDeterministic(
     server_public_params: &ServerPublicParams,
     randomness: &[u8; RANDOMNESS_LEN],
@@ -260,7 +282,7 @@ fn ServerPublicParams_CreateExpiringProfileKeyCredentialPresentationDeterministi
             *randomness,
             group_secret_params.into_inner(),
             profile_key_credential.into_inner(),
-        ) as &zkgroup::profiles::ExpiringProfileKeyCredentialPresentationV2,
+        ),
     )
 }
 
@@ -312,6 +334,25 @@ fn ServerSecretParams_IssueAuthCredentialWithPniZkcDeterministic(
         server_secret_params,
         *randomness,
     ))
+}
+
+#[bridge_fn]
+fn ServerSecretParams_IssueAuthCredentialZkcWithoutPniDeterministic(
+    server_secret_params: &ServerSecretParams,
+    randomness: &[u8; RANDOMNESS_LEN],
+    aci: Aci,
+    salt: &[u8],
+    redemption_time: Timestamp,
+) -> Vec<u8> {
+    zkgroup::serialize(
+        &AuthCredentialWithPniZkcResponse::issue_credential_without_pni(
+            aci,
+            salt,
+            redemption_time,
+            server_secret_params,
+            *randomness,
+        ),
+    )
 }
 
 #[bridge_fn]
@@ -558,18 +599,19 @@ fn ReceiptCredentialPresentation_GetReceiptSerial(
 fn GenericServerSecretParams_CheckValidContents(
     params_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
-    validate_serialization::<GenericServerSecretParams>(params_bytes)
+    GenericServerSecretParams::try_from(params_bytes).map(|_| ())
 }
 
 #[bridge_fn]
 fn GenericServerSecretParams_GenerateDeterministic(randomness: &[u8; RANDOMNESS_LEN]) -> Vec<u8> {
-    let params = GenericServerSecretParams::generate(*randomness);
+    let params: GenericServerSecretParams =
+        GenericServerSecretParamsLegacy::generate(*randomness).into();
     zkgroup::serialize(&params)
 }
 
 #[bridge_fn]
 fn GenericServerSecretParams_GetPublicParams(params_bytes: &[u8]) -> Vec<u8> {
-    let params = zkgroup::deserialize::<GenericServerSecretParams>(params_bytes)
+    let params = GenericServerSecretParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let public_params = params.get_public_params();
@@ -580,7 +622,7 @@ fn GenericServerSecretParams_GetPublicParams(params_bytes: &[u8]) -> Vec<u8> {
 fn GenericServerPublicParams_CheckValidContents(
     params_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
-    validate_serialization::<GenericServerPublicParams>(params_bytes)
+    GenericServerPublicParams::try_from(params_bytes).map(|_| ())
 }
 
 #[bridge_fn]
@@ -677,7 +719,7 @@ fn CreateCallLinkCredentialRequest_IssueDeterministic(
 ) -> Vec<u8> {
     let request = zkgroup::deserialize::<CreateCallLinkCredentialRequest>(request_bytes)
         .expect("should have been parsed previously");
-    let params = zkgroup::deserialize::<GenericServerSecretParams>(params_bytes)
+    let params = GenericServerSecretParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let response = request.issue(user_id, timestamp, &params, *randomness);
@@ -702,7 +744,7 @@ fn CreateCallLinkCredentialRequestContext_ReceiveResponse(
         .expect("should have been parsed previously");
     let response = zkgroup::deserialize::<CreateCallLinkCredentialResponse>(response_bytes)
         .expect("should have been parsed previously");
-    let params = zkgroup::deserialize::<GenericServerPublicParams>(params_bytes)
+    let params = GenericServerPublicParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let credential = context.receive(response, user_id, &params)?;
@@ -727,7 +769,7 @@ fn CreateCallLinkCredential_PresentDeterministic(
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
     let credential = zkgroup::deserialize::<CreateCallLinkCredential>(credential_bytes)
         .expect("should have been parsed previously");
-    let server_params = zkgroup::deserialize::<GenericServerPublicParams>(server_params_bytes)
+    let server_params = GenericServerPublicParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     let call_link_params = zkgroup::deserialize::<CallLinkSecretParams>(call_link_params_bytes)
         .expect("should have been parsed previously");
@@ -760,7 +802,7 @@ fn CreateCallLinkCredentialPresentation_Verify(
     let presentation =
         zkgroup::deserialize::<CreateCallLinkCredentialPresentation>(presentation_bytes)
             .expect("should have been parsed previously");
-    let server_params = zkgroup::deserialize::<GenericServerSecretParams>(server_params_bytes)
+    let server_params = GenericServerSecretParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     let call_link_params = zkgroup::deserialize::<CallLinkPublicParams>(call_link_params_bytes)
         .expect("should have been parsed previously");
@@ -782,7 +824,7 @@ fn CallLinkAuthCredentialResponse_IssueDeterministic(
     params_bytes: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Vec<u8> {
-    let params = zkgroup::deserialize::<GenericServerSecretParams>(params_bytes)
+    let params = GenericServerSecretParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let response = CallLinkAuthCredentialResponse::issue_credential(
@@ -803,7 +845,7 @@ fn CallLinkAuthCredentialResponse_Receive(
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
     let response = zkgroup::deserialize::<CallLinkAuthCredentialResponse>(response_bytes)
         .expect("should have been parsed previously");
-    let params = zkgroup::deserialize::<GenericServerPublicParams>(params_bytes)
+    let params = GenericServerPublicParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let credential = response.receive(user_id, redemption_time, &params)?;
@@ -828,7 +870,7 @@ fn CallLinkAuthCredential_PresentDeterministic(
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
     let credential = zkgroup::deserialize::<CallLinkAuthCredential>(credential_bytes)
         .expect("should have been parsed previously");
-    let server_params = zkgroup::deserialize::<GenericServerPublicParams>(server_params_bytes)
+    let server_params = GenericServerPublicParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     let call_link_params = zkgroup::deserialize::<CallLinkSecretParams>(call_link_params_bytes)
         .expect("should have been parsed previously");
@@ -860,7 +902,7 @@ fn CallLinkAuthCredentialPresentation_Verify(
     let presentation =
         zkgroup::deserialize::<CallLinkAuthCredentialPresentation>(presentation_bytes)
             .expect("should have been parsed previously");
-    let server_params = zkgroup::deserialize::<GenericServerSecretParams>(server_params_bytes)
+    let server_params = GenericServerSecretParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     let call_link_params = zkgroup::deserialize::<CallLinkPublicParams>(call_link_params_bytes)
         .expect("should have been parsed previously");
@@ -896,7 +938,7 @@ fn BackupAuthCredentialRequestContext_CheckValidContents(
 
 #[bridge_fn]
 fn BackupAuthCredentialRequestContext_GetRequest(context_bytes: &[u8]) -> Vec<u8> {
-    let context = bincode::deserialize::<BackupAuthCredentialRequestContext>(context_bytes)
+    let context = zkgroup::deserialize::<BackupAuthCredentialRequestContext>(context_bytes)
         .expect("should have been parsed previously");
 
     let request = context.get_request();
@@ -919,9 +961,9 @@ fn BackupAuthCredentialRequest_IssueDeterministic(
     params_bytes: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Vec<u8> {
-    let request = bincode::deserialize::<BackupAuthCredentialRequest>(request_bytes)
+    let request = zkgroup::deserialize::<BackupAuthCredentialRequest>(request_bytes)
         .expect("should have been parsed previously");
-    let params = bincode::deserialize::<GenericServerSecretParams>(params_bytes)
+    let params = GenericServerSecretParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let response = request.issue(
@@ -948,11 +990,11 @@ fn BackupAuthCredentialRequestContext_ReceiveResponse(
     expected_redemption_time: Timestamp,
     params_bytes: &[u8],
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
-    let context = bincode::deserialize::<BackupAuthCredentialRequestContext>(context_bytes)
+    let context = zkgroup::deserialize::<BackupAuthCredentialRequestContext>(context_bytes)
         .expect("should have been parsed previously");
-    let response = bincode::deserialize::<BackupAuthCredentialResponse>(response_bytes)
+    let response = zkgroup::deserialize::<BackupAuthCredentialResponse>(response_bytes)
         .expect("should have been parsed previously");
-    let params = bincode::deserialize::<GenericServerPublicParams>(params_bytes)
+    let params = GenericServerPublicParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let credential = context.receive(response, &params, expected_redemption_time)?;
@@ -968,21 +1010,21 @@ fn BackupAuthCredential_CheckValidContents(
 
 #[bridge_fn]
 fn BackupAuthCredential_GetBackupId(credential_bytes: &[u8]) -> [u8; 16] {
-    let credential = bincode::deserialize::<BackupAuthCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<BackupAuthCredential>(credential_bytes)
         .expect("should have been parsed previously");
     credential.backup_id().0
 }
 
 #[bridge_fn]
 fn BackupAuthCredential_GetBackupLevel(credential_bytes: &[u8]) -> u8 {
-    let credential = bincode::deserialize::<BackupAuthCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<BackupAuthCredential>(credential_bytes)
         .expect("should have been parsed previously");
     credential.backup_level() as u8
 }
 
 #[bridge_fn]
 fn BackupAuthCredential_GetType(credential_bytes: &[u8]) -> u8 {
-    let credential = bincode::deserialize::<BackupAuthCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<BackupAuthCredential>(credential_bytes)
         .expect("should have been parsed previously");
     credential.credential_type() as u8
 }
@@ -993,9 +1035,9 @@ fn BackupAuthCredential_PresentDeterministic(
     server_params_bytes: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
-    let credential = bincode::deserialize::<BackupAuthCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<BackupAuthCredential>(credential_bytes)
         .expect("should have been parsed previously");
-    let server_params = bincode::deserialize::<GenericServerPublicParams>(server_params_bytes)
+    let server_params = GenericServerPublicParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
 
     let presentation = credential.present(&server_params, *randomness);
@@ -1015,9 +1057,9 @@ fn BackupAuthCredentialPresentation_Verify(
     now: Timestamp,
     server_params_bytes: &[u8],
 ) -> Result<(), ZkGroupVerificationFailure> {
-    let presentation = bincode::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
+    let presentation = zkgroup::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
         .expect("should have been parsed previously");
-    let server_params = bincode::deserialize::<GenericServerSecretParams>(server_params_bytes)
+    let server_params = GenericServerSecretParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
 
     presentation.verify(now, &server_params)
@@ -1025,21 +1067,21 @@ fn BackupAuthCredentialPresentation_Verify(
 
 #[bridge_fn(ffi = false)]
 fn BackupAuthCredentialPresentation_GetBackupId(presentation_bytes: &[u8]) -> [u8; 16] {
-    let presentation = bincode::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
+    let presentation = zkgroup::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
         .expect("should have been parsed previously");
     presentation.backup_id().0
 }
 
 #[bridge_fn(ffi = false)]
 fn BackupAuthCredentialPresentation_GetBackupLevel(presentation_bytes: &[u8]) -> u8 {
-    let presentation = bincode::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
+    let presentation = zkgroup::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
         .expect("should have been parsed previously");
     presentation.backup_level() as u8
 }
 
 #[bridge_fn(ffi = false)]
 fn BackupAuthCredentialPresentation_GetType(presentation_bytes: &[u8]) -> u8 {
-    let presentation = bincode::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
+    let presentation = zkgroup::deserialize::<BackupAuthCredentialPresentation>(presentation_bytes)
         .expect("should have been parsed previously");
     presentation.credential_type() as u8
 }
@@ -1075,17 +1117,13 @@ fn GroupSendEndorsementsResponse_IssueDeterministic(
     key_pair: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Vec<u8> {
-    assert!(
-        concatenated_group_member_ciphertexts
-            .len()
-            .is_multiple_of(UUID_CIPHERTEXT_LEN)
-    );
-    let user_id_ciphertexts = concatenated_group_member_ciphertexts
-        .chunks_exact(UUID_CIPHERTEXT_LEN)
-        .map(|serialized| {
-            zkgroup::deserialize::<UuidCiphertext>(serialized)
-                .expect("should have been parsed previously")
-        });
+    let (ciphertext_chunks, remainder) =
+        concatenated_group_member_ciphertexts.as_chunks::<UUID_CIPHERTEXT_LEN>();
+    assert!(remainder.is_empty());
+    let user_id_ciphertexts = ciphertext_chunks.iter().map(|serialized| {
+        zkgroup::deserialize::<UuidCiphertext>(serialized)
+            .expect("should have been parsed previously")
+    });
 
     let key_pair = zkgroup::deserialize::<GroupSendDerivedKeyPair>(key_pair)
         .expect("should have been parsed previously");
@@ -1148,22 +1186,18 @@ fn GroupSendEndorsementsResponse_ReceiveAndCombineWithCiphertexts(
     let response = zkgroup::deserialize::<GroupSendEndorsementsResponse>(response_bytes)
         .expect("should have been parsed previously");
 
-    assert!(
-        concatenated_group_member_ciphertexts
-            .len()
-            .is_multiple_of(UUID_CIPHERTEXT_LEN)
-    );
-    let local_user_index = concatenated_group_member_ciphertexts
-        .chunks_exact(UUID_CIPHERTEXT_LEN)
-        .position(|serialized| serialized == local_user_ciphertext)
+    let (ciphertext_chunks, remainder) =
+        concatenated_group_member_ciphertexts.as_chunks::<UUID_CIPHERTEXT_LEN>();
+    assert!(remainder.is_empty());
+    let local_user_index = ciphertext_chunks
+        .iter()
+        .position(|serialized| serialized.as_slice() == local_user_ciphertext)
         .expect("local user not included in member list");
 
-    let user_id_ciphertexts = concatenated_group_member_ciphertexts
-        .chunks_exact(UUID_CIPHERTEXT_LEN)
-        .map(|serialized| {
-            zkgroup::deserialize::<UuidCiphertext>(serialized)
-                .expect("should have been parsed previously")
-        });
+    let user_id_ciphertexts = ciphertext_chunks.iter().map(|serialized| {
+        zkgroup::deserialize::<UuidCiphertext>(serialized)
+            .expect("should have been parsed previously")
+    });
 
     let endorsements =
         response.receive_with_ciphertexts(user_id_ciphertexts, now, server_params)?;
@@ -1189,11 +1223,11 @@ fn GroupSendEndorsement_CheckValidContents(
 }
 
 #[bridge_fn]
-fn GroupSendEndorsement_Combine(endorsements: Vec<&[u8]>) -> Vec<u8> {
+fn GroupSendEndorsement_Combine(endorsements: &[&[u8]]) -> Vec<u8> {
     let combined = GroupSendEndorsement::combine(
         endorsements
-            .into_iter()
-            .map(|next| zkgroup::deserialize(next).expect("should have been parsed previously")),
+            .iter()
+            .map(|&next| zkgroup::deserialize(next).expect("should have been parsed previously")),
     );
     zkgroup::serialize(&combined)
 }
@@ -1273,27 +1307,27 @@ fn GroupSendFullToken_Verify(
 
 // ZK credential key
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn ZkCredentialKeyPair_CheckValidContents(
     key_pair_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<ZkCredentialKeyPair>(key_pair_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn ZkCredentialKeyPair_GenerateDeterministic(randomness: &[u8; RANDOMNESS_LEN]) -> Vec<u8> {
     let key_pair = ZkCredentialKeyPair::generate(*randomness);
     zkgroup::serialize(&key_pair)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn ZkCredentialKeyPair_GetPublicKey(key_pair_bytes: &[u8]) -> Vec<u8> {
-    let key_pair = bincode::deserialize::<ZkCredentialKeyPair>(key_pair_bytes)
+    let key_pair = zkgroup::deserialize::<ZkCredentialKeyPair>(key_pair_bytes)
         .expect("should have been parsed previously");
     zkgroup::serialize(&key_pair.public_key())
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn ZkCredentialPublicKey_CheckValidContents(
     public_key_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
@@ -1302,7 +1336,7 @@ fn ZkCredentialPublicKey_CheckValidContents(
 
 // AvatarUploadCredential
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequestContext_New(
     aci: Aci,
     zk_credential_key_pair_bytes: &[u8],
@@ -1310,7 +1344,7 @@ fn AvatarUploadCredentialRequestContext_New(
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Vec<u8> {
     let zk_credential_key_pair =
-        bincode::deserialize::<ZkCredentialKeyPair>(zk_credential_key_pair_bytes)
+        zkgroup::deserialize::<ZkCredentialKeyPair>(zk_credential_key_pair_bytes)
             .expect("should have been parsed previously");
     let context = AvatarUploadCredentialRequestContext::new(
         aci,
@@ -1321,28 +1355,28 @@ fn AvatarUploadCredentialRequestContext_New(
     zkgroup::serialize(&context)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequestContext_CheckValidContents(
     context_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<AvatarUploadCredentialRequestContext>(context_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequestContext_GetRequest(context_bytes: &[u8]) -> Vec<u8> {
-    let context = bincode::deserialize::<AvatarUploadCredentialRequestContext>(context_bytes)
+    let context = zkgroup::deserialize::<AvatarUploadCredentialRequestContext>(context_bytes)
         .expect("should have been parsed previously");
     zkgroup::serialize(&context.get_request())
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequest_CheckValidContents(
     request_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<AvatarUploadCredentialRequest>(request_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequest_IssueDeterministic(
     request_bytes: &[u8],
     aci: Aci,
@@ -1352,15 +1386,15 @@ fn AvatarUploadCredentialRequest_IssueDeterministic(
     params_bytes: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
-    let request = bincode::deserialize::<AvatarUploadCredentialRequest>(request_bytes)
+    let request = zkgroup::deserialize::<AvatarUploadCredentialRequest>(request_bytes)
         .expect("should have been parsed previously");
-    let params = bincode::deserialize::<GenericServerSecretParams>(params_bytes)
+    let params = GenericServerSecretParams::try_from(params_bytes)
         .expect("should have been parsed previously");
     // The serialized ZK credential public key comes from the server's store; the
     // request's well-formedness proof binds the blinded commitment to it, so a
     // wrong key here will fail issuance.
     let zk_credential_key_pub =
-        bincode::deserialize::<ZkCredentialPublicKey>(zk_credential_key_pub_bytes)
+        zkgroup::deserialize::<ZkCredentialPublicKey>(zk_credential_key_pub_bytes)
             .expect("should have been parsed previously");
 
     let response = request.issue(
@@ -1374,98 +1408,235 @@ fn AvatarUploadCredentialRequest_IssueDeterministic(
     Ok(zkgroup::serialize(&response))
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialResponse_CheckValidContents(
     response_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<AvatarUploadCredentialResponse>(response_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialRequestContext_ReceiveResponse(
     context_bytes: &[u8],
     response_bytes: &[u8],
     current_time: Timestamp,
     params_bytes: &[u8],
 ) -> Result<Vec<u8>, ZkGroupVerificationFailure> {
-    let context = bincode::deserialize::<AvatarUploadCredentialRequestContext>(context_bytes)
+    let context = zkgroup::deserialize::<AvatarUploadCredentialRequestContext>(context_bytes)
         .expect("should have been parsed previously");
-    let response = bincode::deserialize::<AvatarUploadCredentialResponse>(response_bytes)
+    let response = zkgroup::deserialize::<AvatarUploadCredentialResponse>(response_bytes)
         .expect("should have been parsed previously");
-    let params = bincode::deserialize::<GenericServerPublicParams>(params_bytes)
+    let params = GenericServerPublicParams::try_from(params_bytes)
         .expect("should have been parsed previously");
 
     let credential = context.receive(response, &params, current_time)?;
     Ok(zkgroup::serialize(&credential))
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredential_CheckValidContents(
     credential_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<AvatarUploadCredential>(credential_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredential_PresentDeterministic(
     credential_bytes: &[u8],
     server_params_bytes: &[u8],
     randomness: &[u8; RANDOMNESS_LEN],
 ) -> Vec<u8> {
-    let credential = bincode::deserialize::<AvatarUploadCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<AvatarUploadCredential>(credential_bytes)
         .expect("should have been parsed previously");
-    let server_params = bincode::deserialize::<GenericServerPublicParams>(server_params_bytes)
+    let server_params = GenericServerPublicParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     zkgroup::serialize(&credential.present(&server_params, *randomness))
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredential_GetRedemptionTime(credential_bytes: &[u8]) -> Timestamp {
-    let credential = bincode::deserialize::<AvatarUploadCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<AvatarUploadCredential>(credential_bytes)
         .expect("should have been parsed previously");
     credential.redemption_time()
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredential_GetCm(credential_bytes: &[u8]) -> [u8; 32] {
-    let credential = bincode::deserialize::<AvatarUploadCredential>(credential_bytes)
+    let credential = zkgroup::deserialize::<AvatarUploadCredential>(credential_bytes)
         .expect("should have been parsed previously");
     credential.cm_bytes()
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialPresentation_CheckValidContents(
     presentation_bytes: &[u8],
 ) -> Result<(), ZkGroupDeserializationFailure> {
     validate_serialization::<AvatarUploadCredentialPresentation>(presentation_bytes)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialPresentation_Verify(
     presentation_bytes: &[u8],
     current_time: Timestamp,
     server_params_bytes: &[u8],
 ) -> Result<(), ZkGroupVerificationFailure> {
     let presentation =
-        bincode::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
+        zkgroup::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
             .expect("should have been parsed previously");
-    let server_params = bincode::deserialize::<GenericServerSecretParams>(server_params_bytes)
+    let server_params = GenericServerSecretParams::try_from(server_params_bytes)
         .expect("should have been parsed previously");
     presentation.verify(current_time, &server_params)
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialPresentation_GetCm(presentation_bytes: &[u8]) -> [u8; 32] {
     let presentation =
-        bincode::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
+        zkgroup::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
             .expect("should have been parsed previously");
     presentation.cm_bytes()
 }
 
-#[bridge_fn(node = false)]
+#[bridge_fn]
 fn AvatarUploadCredentialPresentation_GetRedemptionTime(presentation_bytes: &[u8]) -> Timestamp {
     let presentation =
-        bincode::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
+        zkgroup::deserialize::<AvatarUploadCredentialPresentation>(presentation_bytes)
             .expect("should have been parsed previously");
     presentation.redemption_time()
+}
+
+#[bridge_fn]
+fn DonationPermit_CheckValidContents(buffer: &[u8]) -> Result<(), ZkGroupDeserializationFailure> {
+    libsignal_bridge_types::zkgroup::validate_serialization::<DonationPermit>(buffer)
+}
+#[bridge_fn]
+fn DonationPermitDerivedKeyPair_CheckValidContents(
+    buffer: &[u8],
+) -> Result<(), ZkGroupDeserializationFailure> {
+    libsignal_bridge_types::zkgroup::validate_serialization::<DonationPermitDerivedKeyPair>(buffer)
+}
+#[bridge_fn]
+fn DonationPermitRequest_CheckValidContents(
+    buffer: &[u8],
+) -> Result<(), ZkGroupDeserializationFailure> {
+    libsignal_bridge_types::zkgroup::validate_serialization::<DonationPermitRequest>(buffer)
+}
+#[bridge_fn]
+fn DonationPermitRequestContext_CheckValidContents(
+    buffer: &[u8],
+) -> Result<(), ZkGroupDeserializationFailure> {
+    libsignal_bridge_types::zkgroup::validate_serialization::<DonationPermitRequestContext>(buffer)
+}
+#[bridge_fn]
+fn DonationPermitResponse_CheckValidContents(
+    buffer: &[u8],
+) -> Result<(), ZkGroupDeserializationFailure> {
+    libsignal_bridge_types::zkgroup::validate_serialization::<DonationPermitResponse>(buffer)
+}
+
+#[bridge_fn]
+fn DonationPermitRequestContext_NewDeterministic(
+    count: i32,
+    randomness: &[u8; RANDOMNESS_LEN],
+) -> Vec<u8> /*DonationPermitRequestContext*/
+{
+    let count = usize::try_from(count)
+        .ok()
+        .and_then(NonZeroUsize::new)
+        .expect("invalid permit count");
+    zkgroup::serialize(&DonationPermitRequestContext::new(count, *randomness))
+}
+
+#[bridge_fn]
+fn DonationPermitRequestContext_Request(ctx: Vec<u8>, // DonationPermitRequestContext
+) -> Vec<u8> /* DonationPermitRequest*/ {
+    zkgroup::serialize(
+        &zkgroup::deserialize::<DonationPermitRequestContext>(&ctx)
+            .expect("valid serialization")
+            .request(),
+    )
+}
+
+#[bridge_fn]
+fn DonationPermitDerivedKeyPair_ForExpiration(
+    timestamp: Timestamp,
+    root: BridgeHandleRef<'_, ServerSecretParams>,
+) -> Vec<u8> /*DonationPermitDerivedKeyPair*/ {
+    zkgroup::serialize(&DonationPermitDerivedKeyPair::for_expiration(
+        timestamp,
+        root.deref(),
+    ))
+}
+
+#[bridge_fn]
+fn DonationPermitResponse_IssueDeterministic(
+    request: Vec<u8>,  // DonationPermitRequest
+    key_pair: Vec<u8>, // DonationPermitDerivedKeyPair
+    seed: &[u8; RANDOMNESS_LEN],
+) -> Vec<u8> /* DonationPermitResponse */ {
+    let request: DonationPermitRequest =
+        zkgroup::deserialize(&request).expect("valid serialization");
+    let key_pair: DonationPermitDerivedKeyPair =
+        zkgroup::deserialize(&key_pair).expect("valid serializaton");
+    zkgroup::serialize(&DonationPermitResponse::issue(request, &key_pair, *seed))
+}
+
+#[bridge_fn]
+fn DonationPermitResponse_GetExpiration(response: Vec<u8>, // DonationPermitResponse
+) -> Timestamp {
+    let response: DonationPermitResponse =
+        zkgroup::deserialize(&response).expect("valid serialization");
+    response.expiration()
+}
+
+#[bridge_fn]
+fn DonationPermitRequestContext_Receive(
+    context: Vec<u8>,  // DonationPermitRequestContext
+    response: Vec<u8>, // DonationPermitResponse
+    public_params: BridgeHandleRef<'_, ServerPublicParams>,
+    now: Timestamp,
+) -> Result<Box<[Vec<u8>]>, ZkGroupVerificationFailure> {
+    let context: DonationPermitRequestContext =
+        zkgroup::deserialize(&context).expect("valid serialization");
+    let response: DonationPermitResponse =
+        zkgroup::deserialize(&response).expect("valid serialization");
+    let permits = context.receive(response, *public_params, now)?;
+    Ok(permits.iter().map(zkgroup::serialize).collect())
+}
+
+#[bridge_fn]
+fn DonationPermit_Verify(
+    permit: Vec<u8>, // DonationPermit
+    now: Timestamp,
+    key_pair: Vec<u8>, // DonationPermitDerivedKeyPair
+) -> Result<(), ZkGroupVerificationFailure> {
+    let permit: DonationPermit = zkgroup::deserialize(&permit).expect("valid serialization");
+    let key_pair: DonationPermitDerivedKeyPair =
+        zkgroup::deserialize(&key_pair).expect("valid serialization");
+    permit.verify(now, &key_pair)
+}
+
+#[bridge_fn]
+fn DonationPermitResponse_DefaultExpiration(current_time: Timestamp) -> Timestamp {
+    DonationPermitResponse::default_expiration(current_time)
+}
+
+#[bridge_fn]
+fn DonationPermit_SpendId(donation_permit: Vec<u8> /*DonationPermit*/) -> Vec<u8> {
+    let donation_permit: DonationPermit =
+        zkgroup::deserialize(&donation_permit).expect("valid serialization");
+    donation_permit.spend_id().to_vec()
+}
+
+#[bridge_fn]
+fn DonationPermitRequest_Len(donation_permit_request: Vec<u8>, /* DonationPermitRequest */) -> i32 {
+    let donation_permit_request: DonationPermitRequest =
+        zkgroup::deserialize(&donation_permit_request).expect("valid serialization");
+    donation_permit_request.len().try_into().unwrap_or(i32::MAX)
+}
+
+#[bridge_fn]
+fn DonationPermit_Expiration(donation_permit: Vec<u8> /* DonationPermit */) -> Timestamp {
+    let donation_permit: DonationPermit =
+        zkgroup::deserialize(&donation_permit).expect("valid serialization");
+    donation_permit.expiration()
 }

@@ -8,6 +8,7 @@ pub mod storage;
 // Will be unused when building for Node only.
 #[allow(unused_imports)]
 use futures_util::FutureExt;
+use libsignal_bridge_macros::IsCType;
 use libsignal_protocol::*;
 use static_assertions::const_assert_eq;
 
@@ -32,7 +33,13 @@ bridge_as_handle!(
     jni_class = "org.signal.libsignal.protocol.ecc.ECPrivateKey"
 );
 bridge_as_handle!(ProtocolAddress, ffi = address);
-bridge_as_handle!(PublicKey, ffi = publickey, jni = ECPublicKey);
+bridge_as_handle!(
+    PublicKey,
+    ffi = publickey,
+    swift_type = "PublicKey",
+    jni = ECPublicKey,
+    jni_class = "org.signal.libsignal.protocol.ecc.ECPublicKey"
+);
 bridge_as_handle!(SenderCertificate);
 bridge_as_handle!(SenderKeyDistributionMessage);
 bridge_as_handle!(SenderKeyMessage);
@@ -45,13 +52,18 @@ bridge_as_handle!(KyberPreKeyRecord);
 bridge_as_handle!(UnidentifiedSenderMessageContent);
 bridge_as_handle!(SealedSenderDecryptionResult, ffi = false, jni = false);
 bridge_as_handle!(KyberKeyPair);
-bridge_as_handle!(KyberPublicKey);
+bridge_as_handle!(
+    KyberPublicKey,
+    swift_type = "KEMPublicKey",
+    jni_class = "org.signal.libsignal.protocol.kem.KEMPublicKey"
+);
 bridge_as_handle!(KyberSecretKey);
 
 pub use libsignal_protocol::Timestamp;
 
-#[derive(Debug)]
+#[derive(Debug, IsCType)]
 #[repr(C)]
+#[capi(must_export, export_name = "ContentHint")]
 pub enum FfiContentHint {
     Default = 0,
     Resendable = 1,
@@ -71,8 +83,9 @@ const_assert_eq!(
     ContentHint::Implicit.to_u32()
 );
 
-#[derive(Debug)]
+#[derive(Debug, IsCType)]
 #[repr(C)]
+#[capi(must_export, export_name = "CiphertextMessageType")]
 pub enum FfiCiphertextMessageType {
     Whisper = 2,
     PreKey = 3,
@@ -96,3 +109,45 @@ const_assert_eq!(
     FfiCiphertextMessageType::Plaintext as u8,
     CiphertextMessageType::Plaintext as u8
 );
+
+/// Like [`libsignal_protocol::PreKeyId`], but enforces a stricter range of `[0, 1 << 31)`.
+///
+/// This matches what the modern chat-server enforces for key uploads, and the way the JNI bridge
+/// has been implemented, but hasn't been enforced for local operations in the FFI and Node bridges.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(transparent)]
+pub struct StrictPreKeyId<T>(T);
+
+impl<T> StrictPreKeyId<T> {
+    // Unfortunately this conflicts with the blanket `TryInto`.
+    pub fn new(value: T) -> Result<Self, PreKeyIdOutOfRange>
+    where
+        T: From<u32> + Into<u32>,
+    {
+        value.into().try_into()
+    }
+
+    // Unfortunately this (naively) conflicts with `T: From<T>`.
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
+#[derive(Debug, displaydoc::Display)]
+/// pre-key ID must be in the range [0, 1 << 31)
+pub struct PreKeyIdOutOfRange;
+
+impl<T> TryFrom<u32> for StrictPreKeyId<T>
+where
+    T: From<u32>,
+{
+    type Error = PreKeyIdOutOfRange;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value >= (1u32 << 31) {
+            Err(PreKeyIdOutOfRange)
+        } else {
+            Ok(Self(T::from(value)))
+        }
+    }
+}

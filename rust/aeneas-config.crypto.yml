@@ -24,14 +24,29 @@ charon:
     - "rand::distr::uniform"              # mutually recursive traits
     - "zerocopy"                          # raw pointer ops, GATs
     - "log"
+    # Layout metadata of the existing opaque primitive types reaches these
+    # backend declarations. Their GATs are unsupported by the Aeneas preset;
+    # none is called by the translated signal-crypto bodies below.
+    - "hybrid_array"
+    - "cipher"
+    - "crypto_common"
+    - "ctr"
+    - "digest"
+    - "block_buffer"
+    - "hmac"
+    - "sha1"
+    - "sha2"
+    - "aes"
   opaque:
+    # Retain the existing AES type in Aes256Ctr32::new's interface. This more
+    # precise rule overrides the backend crate exclusion, without its impls.
+    - "aes::autodetect::Aes256"
     # Functions calling external crypto primitives (aes/ctr/gcm/sha backends)
     - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
     - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
     - "signal_crypto::aes_ctr::_::new"
     - "signal_crypto::aes_ctr::_::from_key"
     - "signal_crypto::aes_ctr::_::process"
-    - "signal_crypto::aes_gcm::_::new"
     - "signal_crypto::aes_gcm::_::update"
     - "signal_crypto::aes_gcm::_::finalize"
     - "signal_crypto::aes_gcm::setup_gcm"
@@ -50,16 +65,6 @@ tweaks:
     - "Types.lean"
     - "Funs.lean"
   substitutions:
-    # Disable style linters for auto-generated files
-    - find: |
-        set_option linter.unusedVariables false
-      replace: |
-        set_option linter.unusedVariables false
-        set_option linter.style.longLine false
-        set_option linter.style.setOption false
-        set_option linter.style.whitespace false
-        set_option linter.style.nameCheck false
-
     # Normalize absolute build paths in Source comments so they are reproducible across machines
     - regex: "Source: '[^']*/target/[^']*/out/"
       replace: "Source: 'target/out/"

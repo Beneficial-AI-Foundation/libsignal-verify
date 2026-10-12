@@ -90,9 +90,10 @@ theorem service_id_fixed_width_binary_spec
   step*
   constructor
   all_goals
-    simp only [Array.index_usize, Array.getElem?_Usize_eq, UScalar.ofNatCore_val_eq, Nat.ofNat_pos,
-      getElem?_pos, List.Vector.length_val]
+    simp only [Array.index_usize, Array.getElem?_Usize_eq, UScalar.ofNatCore_val_eq]
     simp_all only [Aci.injEq, Pni.injEq]
     simp_lists
+    intros
+    simp_all [Array.repeat]
 
 end libsignal_core.address.ServiceId

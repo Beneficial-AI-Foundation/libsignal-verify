@@ -3,3 +3,4 @@ import Libsignal.Spec.Core.Address.Kind
 import Libsignal.Spec.Core.Address.RawUuid
 import Libsignal.Spec.Core.Address.ServiceIdBinary
 import Libsignal.Spec.Core.Address.ServiceIdFixedWidthBinary
+import Libsignal.Spec.Core.SharedTypes

@@ -21,10 +21,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential git curl opam pkg-config libgmp-dev protobuf-compiler
-
-      - name: Initialize opam
-        run: opam init --disable-sandboxing -y -a
+          sudo apt-get install -y build-essential git curl pkg-config libgmp-dev protobuf-compiler
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -34,16 +31,20 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Check installer TypeScript
+        run: npm run typecheck
 
-      - name: Cache OCaml environment
-        uses: actions/cache@v5
-        with:
-          path: ~/.opam
-          key: ${{ runner.os }}-opam-v1
-          restore-keys: |
-            ${{ runner.os }}-opam-
+      - name: Select pinned release
+        id: installation
+        run: |
+          node --import tsx --input-type=module <<'JS' >> "$GITHUB_OUTPUT"
+          import { loadConfig } from './scripts/lib/config.ts';
+          const { config } = loadConfig();
+          if (config.aeneas.mode !== 'release') throw new Error('Extraction CI requires release mode');
+          console.log(`identity=${config.aeneas.release.tag}`);
+          JS
+          # The hosted Ubuntu runner supplies rustup; the installer selects its exact driver channel.
+          rustup --version
 
       - name: Cache Rust build artifacts
         uses: actions/cache@v5
@@ -57,16 +58,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Cache Aeneas build
+      - name: Cache pinned paired installation
         uses: actions/cache@v5
         with:
-          path: .aeneas
-          key: ${{ runner.os }}-aeneas-${{ hashFiles('rust/aeneas-config.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-aeneas-
+          path: |
+            .aeneas/releases
+          key: ${{ runner.os }}-${{ runner.arch }}-aeneas-v1-release-${{ steps.installation.outputs.identity }}-${{ hashFiles('rust/aeneas-config.yml', 'lakefile.toml') }}
 
-      - name: Install Aeneas
-        run: npm run aeneas-install
+      - name: Install Aeneas release
+        run: npm run aeneas-install -- --release
 
       - name: Extract to Lean
         run: npm run aeneas-extract

@@ -4,7 +4,15 @@
 //
 
 pub use webpsan::parse::ParseError;
-pub use webpsan::sanitize;
+
+pub fn sanitize<R: std::io::Read + webpsan::Skip>(input: R) -> Result<(), Error> {
+    Ok(webpsan::sanitize_with_config(
+        input,
+        webpsan::Config {
+            allow_unknown_chunks: true,
+        },
+    )?)
+}
 
 /// Error type returned by [`sanitize`].
 pub type Error = super::error::SanitizerError<ParseError>;

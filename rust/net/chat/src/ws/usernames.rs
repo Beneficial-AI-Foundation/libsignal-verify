@@ -35,7 +35,7 @@ impl<T: WsConnection> crate::api::usernames::UnauthenticatedChatApi<OverWs> for 
         let encoded_hash = BASE64_URL_SAFE_NO_PAD.encode(hash);
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &format!("/v1/accounts/username_hash/{}", RedactBase64(&encoded_hash)),
                 Request {
                     method: http::Method::GET,
@@ -91,7 +91,7 @@ impl<T: WsConnection> crate::api::usernames::UnauthenticatedChatApi<OverWs> for 
 
         let response = self
             .send(
-                "unauth",
+                Self::LOG_TAG,
                 &format!("/v1/accounts/username_link/{}", Redact(&uuid)),
                 Request {
                     method: http::Method::GET,
