@@ -661,16 +661,6 @@ def double_ratchet.RatchetState.take_skipped_key.closure := Std.U32
 def double_ratchet.RatchetState.consume_message_key.closure :=
   Str × Std.U32 × Std.U32
 
-/-- Trait declaration: [libsignal_protocol::fingerprint::_::DisplayToDisplayDoc]
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-structure fingerprint._.DisplayToDisplayDoc (Self : Type) where
-  __displaydoc_display : Self → Result Self
-
-/-- Trait declaration: [libsignal_protocol::fingerprint::_::PathToDisplayDoc]
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-structure fingerprint._.PathToDisplayDoc (Self : Type) where
-  __displaydoc_display : Self → Result std.path.Display
-
 /-- [libsignal_protocol::fingerprint::Error]
     Source: 'rust/protocol/src/fingerprint.rs', lines 17:0-24:1
     Visibility: public -/
@@ -1036,16 +1026,6 @@ def sender_keys.SenderKeyRecord.deserialize.closure := Unit
 inductive session_management.CurrentOrPrevious where
 | Current : session_management.CurrentOrPrevious
 | Previous : session_management.CurrentOrPrevious
-
-/-- Trait declaration: [libsignal_protocol::session_management::_::DisplayToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-structure session_management._.DisplayToDisplayDoc (Self : Type) where
-  __displaydoc_display : Self → Result Self
-
-/-- Trait declaration: [libsignal_protocol::session_management::_::PathToDisplayDoc]
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-structure session_management._.PathToDisplayDoc (Self : Type) where
-  __displaydoc_display : Self → Result std.path.Display
 
 /-- [libsignal_protocol::state::bundle::SignedPreKey]
     Source: 'rust/protocol/src/state/bundle.rs', lines 12:0-16:1 -/

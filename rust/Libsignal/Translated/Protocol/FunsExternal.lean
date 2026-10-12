@@ -304,22 +304,6 @@ axiom core.time.Duration.as_secs : core.time.Duration → Result Std.U64
 @[rust_fun "core::time::{core::time::Duration}::as_millis"]
 axiom core.time.Duration.as_millis : core.time.Duration → Result Std.U128
 
-/-- [std::path::{impl core::ops::deref::Deref<std::path::Path> for std::path::PathBuf}::deref]:
-    Source: '/rustc/library/std/src/path.rs', lines 2095:4-2095:28
-    Name pattern: [std::path::{core::ops::deref::Deref<std::path::PathBuf, std::path::Path>}::deref]
-    Visibility: public -/
-@[rust_fun
-  "std::path::{core::ops::deref::Deref<std::path::PathBuf, std::path::Path>}::deref"]
-axiom std.path.PathBuf.Insts.CoreOpsDerefDerefPath.deref
-  : std.path.PathBuf → Result std.path.Path
-
-/-- [std::path::{std::path::Path}::display]:
-    Source: '/rustc/library/std/src/path.rs', lines 3306:4-3306:40
-    Name pattern: [std::path::{std::path::Path}::display]
-    Visibility: public -/
-@[rust_fun "std::path::{std::path::Path}::display"]
-axiom std.path.Path.display : std.path.Path → Result std.path.Display
-
 /-- [std::time::{impl core::clone::Clone for std::time::SystemTime}::clone]:
     Source: '/rustc/library/std/src/time.rs', lines 246:15-246:20
     Name pattern: [std::time::{core::clone::Clone<std::time::SystemTime>}::clone]

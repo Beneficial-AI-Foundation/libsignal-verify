@@ -2257,59 +2257,6 @@ def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
   «from» := error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
 }
 
-/-- [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::DisplayToDisplayDoc for &'_0 T}::__displaydoc_display]:
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-def
-  Shared0T.Insts.Libsignal_protocolFingerprint_DisplayToDisplayDoc.__displaydoc_display
-  {T : Type} (corefmtDisplayInst : core.fmt.Display T) (self : T) :
-  Result T
-  := do
-  ok self
-
-/-- Trait implementation: [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::DisplayToDisplayDoc for &'_0 T}]
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-@[reducible]
-def Shared0T.Insts.Libsignal_protocolFingerprint_DisplayToDisplayDoc {T : Type}
-  (corefmtDisplayInst : core.fmt.Display T) : fingerprint._.DisplayToDisplayDoc
-  T := {
-  __displaydoc_display :=
-    Shared0T.Insts.Libsignal_protocolFingerprint_DisplayToDisplayDoc.__displaydoc_display
-    corefmtDisplayInst
-}
-
-/-- [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::PathToDisplayDoc for std::path::Path}::__displaydoc_display]:
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-def
-  std.path.Path.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc.__displaydoc_display
-  (self : std.path.Path) : Result std.path.Display := do
-  std.path.Path.display self
-
-/-- Trait implementation: [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::PathToDisplayDoc for std::path::Path}]
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-@[reducible]
-def std.path.Path.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc :
-  fingerprint._.PathToDisplayDoc std.path.Path := {
-  __displaydoc_display :=
-    std.path.Path.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc.__displaydoc_display
-}
-
-/-- [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::PathToDisplayDoc for std::path::PathBuf}::__displaydoc_display]:
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-def
-  std.path.PathBuf.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc.__displaydoc_display
-  (self : std.path.PathBuf) : Result std.path.Display := do
-  let p ← std.path.PathBuf.Insts.CoreOpsDerefDerefPath.deref self
-  std.path.Path.display p
-
-/-- Trait implementation: [libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::PathToDisplayDoc for std::path::PathBuf}]
-    Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
-@[reducible]
-def std.path.PathBuf.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc :
-  fingerprint._.PathToDisplayDoc std.path.PathBuf := {
-  __displaydoc_display :=
-    std.path.PathBuf.Insts.Libsignal_protocolFingerprint_PathToDisplayDoc.__displaydoc_display
-}
-
 /-- [libsignal_protocol::fingerprint::_]
     Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
 @[global_simps, irreducible] def fingerprint._ : Unit := ()
@@ -6537,60 +6484,6 @@ def session_management.CurrentOrPrevious.Insts.CoreCloneClone :
 def session_management.CurrentOrPrevious.Insts.CoreMarkerCopy :
   core.marker.Copy session_management.CurrentOrPrevious := {
   cloneInst := session_management.CurrentOrPrevious.Insts.CoreCloneClone
-}
-
-/-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::DisplayToDisplayDoc for &'_0 T}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-def
-  Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc.__displaydoc_display
-  {T : Type} (corefmtDisplayInst : core.fmt.Display T) (self : T) :
-  Result T
-  := do
-  ok self
-
-/-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::DisplayToDisplayDoc for &'_0 T}]
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-@[reducible]
-def Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc {T
-  : Type} (corefmtDisplayInst : core.fmt.Display T) :
-  session_management._.DisplayToDisplayDoc T := {
-  __displaydoc_display :=
-    Shared0T.Insts.Libsignal_protocolSession_management_DisplayToDisplayDoc.__displaydoc_display
-    corefmtDisplayInst
-}
-
-/-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::Path}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-def
-  std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
-  (self : std.path.Path) : Result std.path.Display := do
-  std.path.Path.display self
-
-/-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::Path}]
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-@[reducible]
-def std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc :
-  session_management._.PathToDisplayDoc std.path.Path := {
-  __displaydoc_display :=
-    std.path.Path.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
-}
-
-/-- [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::PathBuf}::__displaydoc_display]:
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-def
-  std.path.PathBuf.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
-  (self : std.path.PathBuf) : Result std.path.Display := do
-  let p ← std.path.PathBuf.Insts.CoreOpsDerefDerefPath.deref self
-  std.path.Path.display p
-
-/-- Trait implementation: [libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for std::path::PathBuf}]
-    Source: 'rust/protocol/src/session_management.rs', lines 711:22-711:29 -/
-@[reducible]
-def
-  std.path.PathBuf.Insts.Libsignal_protocolSession_management_PathToDisplayDoc
-  : session_management._.PathToDisplayDoc std.path.PathBuf := {
-  __displaydoc_display :=
-    std.path.PathBuf.Insts.Libsignal_protocolSession_management_PathToDisplayDoc.__displaydoc_display
 }
 
 /-- [libsignal_protocol::session_management::_]

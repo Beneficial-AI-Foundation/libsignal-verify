@@ -24,27 +24,6 @@ set_option maxRecDepth 2048
 @[rust_type "core::time::Duration"]
 axiom core.time.Duration : Type
 
-/-- [std::path::PathBuf]
-    Source: '/rustc/library/std/src/path.rs', lines 1214:0-1214:18
-    Name pattern: [std::path::PathBuf]
-    Visibility: public -/
-@[rust_type "std::path::PathBuf"]
-axiom std.path.PathBuf : Type
-
-/-- [std::path::Path]
-    Source: '/rustc/library/std/src/path.rs', lines 2356:0-2356:15
-    Name pattern: [std::path::Path]
-    Visibility: public -/
-@[rust_type "std::path::Path"]
-axiom std.path.Path : Type
-
-/-- [std::path::Display]
-    Source: '/rustc/library/std/src/path.rs', lines 3739:0-3739:22
-    Name pattern: [std::path::Display]
-    Visibility: public -/
-@[rust_type "std::path::Display"]
-axiom std.path.Display : Type
-
 /-- [std::time::SystemTime]
     Source: '/rustc/library/std/src/time.rs', lines 248:0-248:21
     Name pattern: [std::time::SystemTime]

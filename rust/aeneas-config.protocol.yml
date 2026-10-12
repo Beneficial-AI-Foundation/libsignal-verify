@@ -39,6 +39,16 @@ charon:
   include:
     - "hkdf::errors::_::fmt"
   exclude:
+    # displaydoc helper traits are formatting-only scaffolding. Exclude their
+    # implementations too, avoiding dangling references to excluded traits.
+    - "libsignal_protocol::fingerprint::_::DisplayToDisplayDoc"
+    - "libsignal_protocol::fingerprint::_::PathToDisplayDoc"
+    - "libsignal_protocol::session_management::_::DisplayToDisplayDoc"
+    - "libsignal_protocol::session_management::_::PathToDisplayDoc"
+    - "libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::DisplayToDisplayDoc for _}"
+    - "libsignal_protocol::fingerprint::_::{impl libsignal_protocol::fingerprint::_::PathToDisplayDoc for _}"
+    - "libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::DisplayToDisplayDoc for _}"
+    - "libsignal_protocol::session_management::_::{impl libsignal_protocol::session_management::_::PathToDisplayDoc for _}"
     # Formatting and error trait impls (not needed for verification)
     - "libsignal_protocol::{impl core::fmt::Debug for _}"
     - "libsignal_protocol::{impl core::fmt::Display for _}"
