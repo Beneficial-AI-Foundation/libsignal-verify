@@ -659,21 +659,12 @@ axiom aes_gcm.GcmGhash.update
 axiom aes_gcm.GcmGhash.finalize
   : aes_gcm.GcmGhash → Result (Array Std.U8 16#usize)
 
-/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 141:4-144:5
-    Visibility: public -/
-axiom aes_gcm.Aes256GcmEncryption.new
+/-- [signal_crypto::aes_gcm::setup_gcm]:
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 110:0-130:1 -/
+axiom aes_gcm.setup_gcm
   :
   Slice Std.U8 → Slice Std.U8 → Slice Std.U8 → Result (core.result.Result
-    aes_gcm.Aes256GcmEncryption error.Error)
-
-/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new]:
-    Source: 'rust/crypto/src/aes_gcm.rs', lines 165:4-168:5
-    Visibility: public -/
-axiom aes_gcm.Aes256GcmDecryption.new
-  :
-  Slice Std.U8 → Slice Std.U8 → Slice Std.U8 → Result (core.result.Result
-    aes_gcm.Aes256GcmDecryption error.Error)
+    (aes_ctr.Aes256Ctr32 × aes_gcm.GcmGhash) error.Error)
 
 /-- [signal_crypto::hash::{signal_crypto::hash::CryptographicMac}::new]:
     Source: 'rust/crypto/src/hash.rs', lines 20:4-30:5

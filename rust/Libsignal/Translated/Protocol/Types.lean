@@ -786,25 +786,25 @@ structure kem.KeyPair where
   secret_key : kem.Key kem.Secret
 
 /-- [libsignal_protocol::pqxdh::Pqxdh]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 36:0-36:24 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 35:0-35:24 -/
 @[reducible]
 def pqxdh.Pqxdh := Unit
 
 /-- [libsignal_protocol::pqxdh::HandshakeKeys]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 65:0-69:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 64:0-68:1 -/
 structure pqxdh.HandshakeKeys where
   root_key : ratchet.keys.RootKey
   chain_key : ratchet.keys.ChainKey
   pqr_key : Array Std.U8 32#usize
 
 /-- [libsignal_protocol::pqxdh::InitiatorAgreement]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 99:0-104:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 105:0-110:1 -/
 structure pqxdh.InitiatorAgreement where
   keys : pqxdh.HandshakeKeys
   kyber_ciphertext : Slice Std.U8
 
 /-- [libsignal_protocol::pqxdh::InitiatorParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 111:0-122:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 117:0-128:1
     Visibility: public -/
 structure pqxdh.InitiatorParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair
@@ -817,7 +817,7 @@ structure pqxdh.InitiatorParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::pqxdh::RecipientParameters]
-    Source: 'rust/protocol/src/pqxdh.rs', lines 250:0-261:1
+    Source: 'rust/protocol/src/pqxdh.rs', lines 256:0-267:1
     Visibility: public -/
 structure pqxdh.RecipientParameters where
   our_identity_key_pair : identity_key.IdentityKeyPair

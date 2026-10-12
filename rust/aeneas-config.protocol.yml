@@ -34,9 +34,10 @@ charon:
     # DEFERRED: session_cipher_legacy triggers a charon-driver (hax) panic on the
     # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods 
     # - "libsignal_protocol::session_cipher_legacy"
-  # No `include:` — libsignal_core / signal_crypto are left opaque (the default for
-  # foreign crates). Protocol no longer emits their defs; their items become external
-  # axioms here and will later be imported from the sibling translation libs.
+  # Translate the reached HKDF error formatter used by expect. Primitive bodies
+  # remain external; shared Core/Crypto definitions are imported from their owners.
+  include:
+    - "hkdf::errors::_::fmt"
   exclude:
     # Formatting and error trait impls (not needed for verification)
     - "libsignal_protocol::{impl core::fmt::Debug for _}"
@@ -139,14 +140,6 @@ charon:
     - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
-    # libsignal-protocol::pqxdh — bodies Aeneas can't model:
-    # HKDF closures and Option<&T> accessors. (The Handshake trait + its
-    # impl are excluded at source level via #[charon::exclude] —
-    # see rust/protocol/src/{handshake.rs, pqxdh.rs}.)
-    - "libsignal_protocol::pqxdh::_::derive"                 # HKDF closure
-    - "libsignal_protocol::pqxdh::_::derive_with_label"      # HKDF closure
-    - "libsignal_protocol::pqxdh::_::their_one_time_pre_key" # Option<&PublicKey>
-    - "libsignal_protocol::pqxdh::_::our_one_time_pre_key_pair" # Option<&KeyPair>
     # libsignal-protocol::kem — Plan A scope:
     # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
     # TRANSPARENT (their bodies are extracted; the libcrux ML-KEM primitive is
@@ -332,6 +325,14 @@ aeneas_args:
 tweaks:
   files: ["Types.lean", "Funs.lean"]
   substitutions:
+    # Explicit kernel-checked literal bounds avoid toStr's native_decide default.
+    # These substitutions change only proof arguments, not strings or operations.
+    - find: 'toStr "valid length"'
+      replace: 'toStr "valid length" (by rw [U32.max_eq]; decide)'
+      required: true
+    - find: 'toStr "InvalidLength"'
+      replace: 'toStr "InvalidLength" (by rw [U32.max_eq]; decide)'
+      required: true
     # ── Cross-crate dedup (see [[per-crate-extraction-plan]]) ──────────────────
     # Aeneas re-emits foreign decls under the local `libsignal_protocol.` namespace.
     # Strip the duplicates so protocol uses the sibling libs' versions instead:

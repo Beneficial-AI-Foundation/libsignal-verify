@@ -2,7 +2,9 @@
 
 Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the supported `signal-crypto` operations, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
 
-The crypto profile translates AES-GCM encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Protocol through an exact trait alias.
+The crypto profile translates AES-GCM constructors, encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. The constructors propagate errors and assemble their state; `setup_gcm`, including its key/nonce validation and primitive initialization, remains external. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Protocol through an exact trait alias.
+
+PQXDH's optional-prekey accessors, `HandshakeKeys::derive` and `derive_with_label` are translated. The generated code supplies the domain-separation label, calls HKDF-SHA256 for 96 bytes, and copies bytes 0–31, 32–63 and 64–95 into the root, chain and initial PQR keys. HKDF remains the primitive boundary; splitting and key construction are generated.
 
 ## Public functions — signal-crypto
 
@@ -183,13 +185,14 @@ Contains:
 
 ### libsignal-protocol (`rust/protocol/`)
 
-`src-modifications.diff` has the full diff, including the earlier `extraction` feature gates. The changes below work around limitations of the pinned Charon/Aeneas, except the `session.rs` row, which adapts a patch carried from `main` to the refreshed upstream code. Each extraction workaround has a comment naming the limitation. None changes inputs, outputs, call order or error values. To revert one, restore the upstream form in a scratch copy and require clean Charon LLBC, Aeneas generation of the same roots, `lake build Libsignal` and the production Rust build.
+`src-modifications.diff` has the full diff, including the earlier `extraction` feature gates. The changes below work around limitations of the pinned Charon/Aeneas, except the `session.rs` row, which adapts a patch carried from `main` to the refreshed upstream code. Each extraction workaround has a comment naming the limitation. The correspondence claims concern protocol values and cryptographic operation order, not identical memory layout or logging locations. To revert one, restore the upstream form in a scratch copy and require clean Charon LLBC, Aeneas generation of the same roots, `lake build Libsignal` and the production Rust build.
 
 | Site | Change | Limitation | Revert when |
 | --- | --- | --- | --- |
 | `kem.rs` `KeyMaterial` | Under `extraction`, explicit `Deref` to `[u8]` instead of `derive_more::Deref` with `forward` | Forwarding dereference gives an Aeneas type mismatch | The derived `Deref` translates |
 | `crypto.rs` `hkdf_sha256`; callers in `pqxdh.rs`, `ratchet/keys.rs` | Byte-slice HKDF-SHA256 helper, same salt/input/info/output | Charon cannot lift HKDF's generic-array associated types under `--preset=aeneas` | `Hkdf::<Sha256>::expand` translates inline |
 | `crypto.rs` `hmac_sha256_parts`; caller `SignalMessage::compute_mac` | One HMAC-SHA256 state fed the same three parts in order | Same associated-type limitation, for incremental `Hmac` | Inline `Hmac::update` calls translate |
+| `pqxdh.rs` `HandshakeKeys::derive_with_label` | Replace `derive_arrays` with a zeroed 96-byte buffer and three fixed 32-byte copies; retain the same HKDF call, label, error expectation and chain counter zero | Excluded zerocopy traits leave impls that trigger an Aeneas prepass error; retaining them exposes unsupported pointer operations | The original array helper translates with concrete splitting and no added assumptions |
 | `pqxdh.rs` `pqxdh_initiate` | `encapsulate(&mut csprng)` → `encapsulate::<R>(&mut *csprng)` | For a `&mut &mut R` argument Aeneas generates an ill-typed RNG state update | The double borrow translates |
 | `double_ratchet.rs` error messages | Four literals moved to named `&str` constants with the same bytes | Aeneas loses a literal returned from a `map_err` closure ("no bottoms in the value") | Inline literals translate |
 | `double_ratchet.rs` `from_pb`/`to_pb` maps | `map(SenderChain::from_pb)` → `map(\|chain\| SenderChain::from_pb(chain))`, same for `to_pb` | Function-item arguments to `Option::map` are not translated | The function-item form translates |

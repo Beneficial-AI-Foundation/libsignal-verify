@@ -165,6 +165,27 @@ def alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut : bytes.buf.buf_mut.BufMut
   chunk_mut := alloc.vec.VecU8.Insts.BytesBufBuf_mutBufMut.chunk_mut
 }
 
+/-- [hkdf::errors::{impl core::fmt::Debug for hkdf::errors::InvalidLength}::fmt]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.13.0/src/errors.rs', lines 16:22-16:27
+    Name pattern: [hkdf::errors::{core::fmt::Debug<hkdf::errors::InvalidLength>}::fmt]
+    Visibility: public -/
+@[rust_fun
+  "hkdf::errors::{core::fmt::Debug<hkdf::errors::InvalidLength>}::fmt"]
+def hkdf.errors.InvalidLength.Insts.CoreFmtDebug.fmt
+  (self : hkdf.errors.InvalidLength) (f : core.fmt.Formatter) :
+  Result ((core.result.Result Unit core.fmt.Error) × core.fmt.Formatter)
+  := do
+  core.fmt.Formatter.write_str f (toStr "InvalidLength" (by rw [U32.max_eq]; decide))
+
+/-- Trait implementation: [hkdf::errors::{impl core::fmt::Debug for hkdf::errors::InvalidLength}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hkdf-0.13.0/src/errors.rs', lines 16:22-16:27
+    Name pattern: [core::fmt::Debug<hkdf::errors::InvalidLength>] -/
+@[reducible, rust_trait_impl "core::fmt::Debug<hkdf::errors::InvalidLength>"]
+def hkdf.errors.InvalidLength.Insts.CoreFmtDebug : core.fmt.Debug
+  hkdf.errors.InvalidLength := {
+  fmt := hkdf.errors.InvalidLength.Insts.CoreFmtDebug.fmt
+}
+
 /-- Trait implementation: [libsignal_core::address::{impl core::convert::From<libsignal_core::address::DeviceId> for u8}]
     Source: 'rust/core/src/address.rs', lines 727:0-727:26
     Name pattern: [core::convert::From<u8, libsignal_core::address::DeviceId>] -/
@@ -3396,8 +3417,63 @@ def kem.KeyPair.from_public_and_private
     core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
       kem.KeyPair (core.convert.FromSame error.SignalProtocolError) residual
 
+/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive_with_label]:
+    Source: 'rust/protocol/src/pqxdh.rs', lines 79:4-96:5 -/
+def pqxdh.HandshakeKeys.derive_with_label
+  (label : Slice Std.U8) (secret_input : Slice Std.U8) :
+  Result pqxdh.HandshakeKeys
+  := do
+  let bytes := Array.repeat 96#usize 0#u8
+  let (s, to_slice_mut_back) ← lift (Array.to_slice_mut bytes)
+  let (r, s1) ← crypto.hkdf_sha256 none secret_input label s
+  core.result.Result.expect hkdf.errors.InvalidLength.Insts.CoreFmtDebug r
+    (toStr "valid length" (by rw [U32.max_eq]; decide))
+  let root_key_bytes := Array.repeat 32#usize 0#u8
+  let chain_key_bytes := Array.repeat 32#usize 0#u8
+  let pqr_bytes := Array.repeat 32#usize 0#u8
+  let (s2, to_slice_mut_back1) ← lift (Array.to_slice_mut root_key_bytes)
+  let bytes1 := to_slice_mut_back s1
+  let s3 ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.slice.index.SliceIndexRangeToUsizeSlice Std.U8)) bytes1
+      { «end» := 32#usize }
+  let s4 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s2 s3
+  let (s5, to_slice_mut_back2) ← lift (Array.to_slice_mut chain_key_bytes)
+  let s6 ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.slice.index.SliceIndexRangeUsizeSlice Std.U8)) bytes1
+      { start := 32#usize, «end» := 64#usize }
+  let s7 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s5 s6
+  let (s8, to_slice_mut_back3) ← lift (Array.to_slice_mut pqr_bytes)
+  let s9 ←
+    core.array.Array.index (core.ops.index.IndexSlice
+      (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) bytes1
+      { start := 64#usize }
+  let s10 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s8 s9
+  let root_key_bytes1 := to_slice_mut_back1 s4
+  let rk ← ratchet.keys.RootKey.new root_key_bytes1
+  let chain_key_bytes1 := to_slice_mut_back2 s7
+  let ck ← ratchet.keys.ChainKey.new chain_key_bytes1 0#u32
+  let pqr_bytes1 := to_slice_mut_back3 s10
+  ok { root_key := rk, chain_key := ck, pqr_key := pqr_bytes1 }
+
+/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive]:
+    Source: 'rust/protocol/src/pqxdh.rs', lines 72:4-77:5 -/
+def pqxdh.HandshakeKeys.derive
+  (secret_input : Slice Std.U8) : Result pqxdh.HandshakeKeys := do
+  let s ←
+    lift (Array.to_slice
+      (Array.make 46#usize [
+        87#u8, 104#u8, 105#u8, 115#u8, 112#u8, 101#u8, 114#u8, 84#u8, 101#u8,
+        120#u8, 116#u8, 95#u8, 88#u8, 50#u8, 53#u8, 53#u8, 49#u8, 57#u8, 95#u8,
+        83#u8, 72#u8, 65#u8, 45#u8, 50#u8, 53#u8, 54#u8, 95#u8, 67#u8, 82#u8,
+        89#u8, 83#u8, 84#u8, 65#u8, 76#u8, 83#u8, 45#u8, 75#u8, 89#u8, 66#u8,
+        69#u8, 82#u8, 45#u8, 49#u8, 48#u8, 50#u8, 52#u8
+        ]))
+  pqxdh.HandshakeKeys.derive_with_label s secret_input
+
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::new]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 125:4-144:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 131:4-150:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.new
   (our_identity_key_pair : identity_key.IdentityKeyPair)
@@ -3421,7 +3497,7 @@ def pqxdh.InitiatorParameters.new
     }
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::set_their_one_time_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 146:4-148:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 152:4-154:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.set_their_one_time_pre_key
   (self : pqxdh.InitiatorParameters)
@@ -3431,7 +3507,7 @@ def pqxdh.InitiatorParameters.set_their_one_time_pre_key
   ok { self with their_one_time_pre_key := (some ec_public) }
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::our_identity_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 151:4-153:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 157:4-159:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.our_identity_key_pair
   (self : pqxdh.InitiatorParameters) :
@@ -3440,7 +3516,7 @@ def pqxdh.InitiatorParameters.impl.our_identity_key_pair
   ok self.our_identity_key_pair
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::our_ephemeral_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 156:4-158:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 162:4-164:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.our_ephemeral_key_pair
   (self : pqxdh.InitiatorParameters) :
@@ -3449,14 +3525,14 @@ def pqxdh.InitiatorParameters.impl.our_ephemeral_key_pair
   ok self.our_ephemeral_key_pair
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_identity_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 161:4-163:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 167:4-169:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.their_identity_key
   (self : pqxdh.InitiatorParameters) : Result identity_key.IdentityKey := do
   ok self.their_identity_key
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_signed_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 166:4-168:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 172:4-174:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.their_signed_pre_key
   (self : pqxdh.InitiatorParameters) :
@@ -3464,15 +3540,24 @@ def pqxdh.InitiatorParameters.impl.their_signed_pre_key
   := do
   ok self.their_signed_pre_key
 
+/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_one_time_pre_key]:
+    Source: 'rust/protocol/src/pqxdh.rs', lines 177:4-179:5
+    Visibility: public -/
+def pqxdh.InitiatorParameters.impl.their_one_time_pre_key
+  (self : pqxdh.InitiatorParameters) :
+  Result (Option libsignal_core.curve.PublicKey)
+  := do
+  core.option.Option.as_ref self.their_one_time_pre_key
+
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_kyber_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 176:4-178:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 182:4-184:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.their_kyber_pre_key
   (self : pqxdh.InitiatorParameters) : Result (kem.Key kem.Public) := do
   ok self.their_kyber_pre_key
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_ratchet_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 181:4-183:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 187:4-189:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.their_ratchet_key
   (self : pqxdh.InitiatorParameters) :
@@ -3481,14 +3566,14 @@ def pqxdh.InitiatorParameters.impl.their_ratchet_key
   ok self.their_ratchet_key
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::self_session]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 186:4-188:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 192:4-194:5
     Visibility: public -/
 def pqxdh.InitiatorParameters.impl.self_session
   (self : pqxdh.InitiatorParameters) : Result Bool := do
   ok self.self_session
 
 /-- [libsignal_protocol::pqxdh::pqxdh_initiate]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 195:0-241:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 201:0-247:1 -/
 def pqxdh.pqxdh_initiate
   {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
   rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
@@ -3610,7 +3695,7 @@ def pqxdh.pqxdh_initiate
     ok (r1, csprng)
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::new]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 264:4-284:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 270:4-290:5
     Visibility: public -/
 def pqxdh.RecipientParameters.new
   (our_identity_key_pair : identity_key.IdentityKeyPair)
@@ -3635,7 +3720,7 @@ def pqxdh.RecipientParameters.new
     }
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_identity_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 287:4-289:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 293:4-295:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.our_identity_key_pair
   (self : pqxdh.RecipientParameters) :
@@ -3644,7 +3729,7 @@ def pqxdh.RecipientParameters.impl.our_identity_key_pair
   ok self.our_identity_key_pair
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_signed_pre_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 292:4-294:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 298:4-300:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.our_signed_pre_key_pair
   (self : pqxdh.RecipientParameters) :
@@ -3652,22 +3737,31 @@ def pqxdh.RecipientParameters.impl.our_signed_pre_key_pair
   := do
   ok self.our_signed_pre_key_pair
 
+/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_one_time_pre_key_pair]:
+    Source: 'rust/protocol/src/pqxdh.rs', lines 303:4-305:5
+    Visibility: public -/
+def pqxdh.RecipientParameters.impl.our_one_time_pre_key_pair
+  (self : pqxdh.RecipientParameters) :
+  Result (Option libsignal_core.curve.KeyPair)
+  := do
+  core.option.Option.as_ref self.our_one_time_pre_key_pair
+
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_kyber_pre_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 302:4-304:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 308:4-310:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.our_kyber_pre_key_pair
   (self : pqxdh.RecipientParameters) : Result kem.KeyPair := do
   ok self.our_kyber_pre_key_pair
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::their_identity_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 307:4-309:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 313:4-315:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.their_identity_key
   (self : pqxdh.RecipientParameters) : Result identity_key.IdentityKey := do
   ok self.their_identity_key
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::their_ephemeral_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 312:4-314:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 318:4-320:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.their_ephemeral_key
   (self : pqxdh.RecipientParameters) :
@@ -3676,21 +3770,21 @@ def pqxdh.RecipientParameters.impl.their_ephemeral_key
   ok self.their_ephemeral_key
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::their_kyber_ciphertext]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 317:4-319:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 323:4-325:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.their_kyber_ciphertext
   (self : pqxdh.RecipientParameters) : Result (Slice Std.U8) := do
   ok self.their_kyber_ciphertext
 
 /-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::self_session]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 322:4-324:5
+    Source: 'rust/protocol/src/pqxdh.rs', lines 328:4-330:5
     Visibility: public -/
 def pqxdh.RecipientParameters.impl.self_session
   (self : pqxdh.RecipientParameters) : Result Bool := do
   ok self.self_session
 
 /-- [libsignal_protocol::pqxdh::pqxdh_accept]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 331:0-381:1 -/
+    Source: 'rust/protocol/src/pqxdh.rs', lines 337:0-387:1 -/
 def pqxdh.pqxdh_accept
   (parameters : pqxdh.RecipientParameters) :
   Result (core.result.Result pqxdh.HandshakeKeys error.SignalProtocolError)

@@ -27,11 +27,11 @@ lake build Libsignal
 | Profile | Configuration | Lean output |
 | --- | --- | --- |
 | `core` | `aeneas-config.core.yml` | `Libsignal/Translated/Core` |
-| `crypto` | `aeneas-config.crypto.yml` | `Libsignal/Translated/Crypto`: AES-GCM encrypt/decrypt/tag control flow, GCM state cloning, MAC update-and-return, and existing primitive interfaces |
+| `crypto` | `aeneas-config.crypto.yml` | `Libsignal/Translated/Crypto`: AES-GCM constructors and encrypt/decrypt/tag control flow, GCM state cloning, MAC update-and-return, and existing primitive interfaces |
 | `protocol` | `aeneas-config.protocol.yml` | `Libsignal/Translated/Protocol`: PQXDH, Double and Triple Ratchet, messages, session and prekey state, sender keys, fingerprints |
 | `ratchet-state` | `aeneas-config.protocol.yml` + `ratchet-state.yml` | `Libsignal/Translated/RatchetState`: ratchet state ↔ session protobuf fields, default features |
 
-The `crypto` profile retains its existing opaque AES/CTR/GHASH/hash primitive boundaries and excludes HPKE. It translates the surrounding AES-GCM and MAC operations; it is not a verification of the underlying primitives. The narrower `crypto-cbc` profile adds `cbc.yml` for diagnosis only.
+The `crypto` profile retains opaque AES/CTR/GHASH/hash boundaries and excludes HPKE. Its two GCM constructors are translated around the shared external `setup_gcm` operation. It translates the surrounding AES-GCM and MAC operations; it is not a verification of the underlying primitives. The narrower `crypto-cbc` profile adds `cbc.yml` for diagnosis only.
 
 The `protocol` profile builds with the crate's `extraction` feature. Every Rust change made for extraction is listed in [`extraction-notes.md`](../extraction-notes.md) and [`src-modifications.diff`](../src-modifications.diff); each profile's YAML lists its opaque and excluded items with the reason.
 

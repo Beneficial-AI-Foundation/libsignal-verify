@@ -19,7 +19,6 @@
 //! derive whatever it needs from that. This requires a protocol version bump
 //! and should be done alongside a future handshake protocol revision.
 
-use libsignal_core::derive_arrays;
 use rand::{CryptoRng, Rng};
 
 use crate::handshake::Handshake;
@@ -78,9 +77,16 @@ impl HandshakeKeys {
     }
 
     fn derive_with_label(label: &[u8], secret_input: &[u8]) -> Self {
-        let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
-            crate::crypto::hkdf_sha256(None, secret_input, label, bytes).expect("valid length")
-        });
+        // Keep the byte splitting explicit: the extraction backend cannot translate
+        // the zerocopy-derived layout implementations used by derive_arrays.
+        let mut bytes = [0u8; 96];
+        crate::crypto::hkdf_sha256(None, secret_input, label, &mut bytes).expect("valid length");
+        let mut root_key_bytes = [0u8; 32];
+        let mut chain_key_bytes = [0u8; 32];
+        let mut pqr_bytes = [0u8; 32];
+        root_key_bytes.copy_from_slice(&bytes[..32]);
+        chain_key_bytes.copy_from_slice(&bytes[32..64]);
+        pqr_bytes.copy_from_slice(&bytes[64..]);
 
         Self {
             root_key: RootKey::new(root_key_bytes),

@@ -47,7 +47,6 @@ charon:
     - "signal_crypto::aes_ctr::_::new"
     - "signal_crypto::aes_ctr::_::from_key"
     - "signal_crypto::aes_ctr::_::process"
-    - "signal_crypto::aes_gcm::_::new"
     - "signal_crypto::aes_gcm::_::update"
     - "signal_crypto::aes_gcm::_::finalize"
     - "signal_crypto::aes_gcm::setup_gcm"

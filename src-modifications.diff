@@ -738,7 +738,15 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
 diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
 --- a/rust/protocol/src/pqxdh.rs
 +++ b/rust/protocol/src/pqxdh.rs
-@@ -35,9 +35,10 @@
+@@ -19,7 +19,6 @@
+ //! derive whatever it needs from that. This requires a protocol version bump
+ //! and should be done alongside a future handshake protocol revision.
+ 
+-use libsignal_core::derive_arrays;
+ use rand::{CryptoRng, Rng};
+ 
+ use crate::handshake::Handshake;
+@@ -35,9 +34,10 @@
  /// protocol (4 EC DH + 1 ML-KEM encapsulation/decapsulation).
  pub(crate) struct Pqxdh;
  
@@ -750,18 +758,29 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      type InitiatorMessage = kem::SerializedCiphertext;
      type SessionSecret = HandshakeKeys;
  
-@@ -78,9 +79,7 @@
+@@ -77,11 +77,16 @@
+     }
  
      fn derive_with_label(label: &[u8], secret_input: &[u8]) -> Self {
-         let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
+-        let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
 -            hkdf::Hkdf::<sha2::Sha256>::new(None, secret_input)
 -                .expand(label, bytes)
 -                .expect("valid length")
-+            crate::crypto::hkdf_sha256(None, secret_input, label, bytes).expect("valid length")
-         });
+-        });
++        // Keep the byte splitting explicit: the extraction backend cannot translate
++        // the zerocopy-derived layout implementations used by derive_arrays.
++        let mut bytes = [0u8; 96];
++        crate::crypto::hkdf_sha256(None, secret_input, label, &mut bytes).expect("valid length");
++        let mut root_key_bytes = [0u8; 32];
++        let mut chain_key_bytes = [0u8; 32];
++        let mut pqr_bytes = [0u8; 32];
++        root_key_bytes.copy_from_slice(&bytes[..32]);
++        chain_key_bytes.copy_from_slice(&bytes[32..64]);
++        pqr_bytes.copy_from_slice(&bytes[64..]);
  
          Self {
-@@ -98,8 +97,10 @@
+             root_key: RootKey::new(root_key_bytes),
+@@ -98,8 +103,10 @@
  /// Contains the derived handshake keys and the KEM ciphertext that the
  /// recipient needs to complete the agreement.
  pub(crate) struct InitiatorAgreement {
@@ -774,7 +793,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  }
  
  /// Parameters for the initiator side of a PQXDH key agreement.
-@@ -193,7 +194,7 @@
+@@ -193,7 +200,7 @@
  /// to produce keys ready for ratchet initialization.
  pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
      parameters: &InitiatorParameters,
@@ -783,7 +802,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
  ) -> Result<InitiatorAgreement> {
      let mut secrets = Vec::with_capacity(32 * 6);
  
-@@ -224,7 +225,11 @@
+@@ -224,7 +231,11 @@
      }
  
      let kyber_ciphertext = {
@@ -796,7 +815,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
          secrets.extend_from_slice(ss.as_ref());
          ct
      };
-@@ -242,7 +247,7 @@
+@@ -242,7 +253,7 @@
  /// The recipient uses their own pre-keys together with the initiator's
  /// identity and base keys (received in the pre-key message) to compute
  /// the same shared secret.
@@ -805,7 +824,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      our_identity_key_pair: IdentityKeyPair,
      our_signed_pre_key_pair: KeyPair,
      our_one_time_pre_key_pair: Option<KeyPair>,
-@@ -250,12 +255,12 @@
+@@ -250,12 +261,12 @@
  
      their_identity_key: IdentityKey,
      their_ephemeral_key: PublicKey,
@@ -820,7 +839,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      pub fn new(
          our_identity_key_pair: IdentityKeyPair,
          our_signed_pre_key_pair: KeyPair,
-@@ -263,7 +268,7 @@
+@@ -263,7 +274,7 @@
          our_kyber_pre_key_pair: kem::KeyPair,
          their_identity_key: IdentityKey,
          their_ephemeral_key: PublicKey,
@@ -829,7 +848,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
          self_session: bool,
      ) -> Self {
          Self {
-@@ -310,7 +315,7 @@
+@@ -310,7 +321,7 @@
  
      #[inline]
      pub fn their_kyber_ciphertext(&self) -> &kem::SerializedCiphertext {
@@ -838,7 +857,7 @@ diff -Naur --no-dereference -x '*.lean' -x '*.yml' -x Libsignal a/rust/protocol/
      }
  
      #[inline]
-@@ -369,7 +374,7 @@
+@@ -369,7 +380,7 @@
          &parameters
              .our_kyber_pre_key_pair
              .secret_key

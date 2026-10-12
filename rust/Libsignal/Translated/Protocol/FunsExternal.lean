@@ -1599,28 +1599,6 @@ axiom kem.KeyPair.generate
   rand_core_1.CryptoRng R) :
   kem.KeyType → R → Result (kem.KeyPair × R)
 
-/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 73:4-78:5 -/
-axiom pqxdh.HandshakeKeys.derive : Slice Std.U8 → Result pqxdh.HandshakeKeys
-
-/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::HandshakeKeys}::derive_with_label]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 80:4-90:5 -/
-axiom pqxdh.HandshakeKeys.derive_with_label
-  : Slice Std.U8 → Slice Std.U8 → Result pqxdh.HandshakeKeys
-
-/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::InitiatorParameters}::their_one_time_pre_key]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 171:4-173:5
-    Visibility: public -/
-axiom pqxdh.InitiatorParameters.impl.their_one_time_pre_key
-  :
-  pqxdh.InitiatorParameters → Result (Option libsignal_core.curve.PublicKey)
-
-/-- [libsignal_protocol::pqxdh::{libsignal_protocol::pqxdh::RecipientParameters}::our_one_time_pre_key_pair]:
-    Source: 'rust/protocol/src/pqxdh.rs', lines 297:4-299:5
-    Visibility: public -/
-axiom pqxdh.RecipientParameters.impl.our_one_time_pre_key_pair
-  : pqxdh.RecipientParameters → Result (Option libsignal_core.curve.KeyPair)
-
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<u8, derive_more::convert::try_from::TryFromReprError<u8>> for libsignal_protocol::protocol::CiphertextMessageType}::try_from]:
     Source: 'rust/protocol/src/protocol.rs', lines 30:44-30:64
     Visibility: public -/

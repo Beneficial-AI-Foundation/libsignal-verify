@@ -361,6 +361,24 @@ def aes_gcm.Aes256GcmEncryption.TAG_SIZE : Std.Usize := aes_gcm.TAG_SIZE
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmEncryption.NONCE_SIZE : Std.Usize := aes_gcm.NONCE_SIZE
 
+/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::new]:
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 141:4-144:5
+    Visibility: public -/
+def aes_gcm.Aes256GcmEncryption.new
+  (key : Slice Std.U8) (nonce : Slice Std.U8) (associated_data : Slice Std.U8)
+  :
+  Result (core.result.Result aes_gcm.Aes256GcmEncryption error.Error)
+  := do
+  let r ← aes_gcm.setup_gcm key nonce associated_data
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let (ctr, ghash) := val
+    ok (core.result.Result.Ok { ctr, ghash })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      aes_gcm.Aes256GcmEncryption (core.convert.FromSame error.Error) residual
+
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmEncryption}::encrypt]:
     Source: 'rust/crypto/src/aes_gcm.rs', lines 146:4-149:5
     Visibility: public -/
@@ -390,6 +408,24 @@ def aes_gcm.Aes256GcmDecryption.TAG_SIZE : Std.Usize := aes_gcm.TAG_SIZE
     Visibility: public -/
 @[global_simps, irreducible]
 def aes_gcm.Aes256GcmDecryption.NONCE_SIZE : Std.Usize := aes_gcm.NONCE_SIZE
+
+/-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::new]:
+    Source: 'rust/crypto/src/aes_gcm.rs', lines 165:4-168:5
+    Visibility: public -/
+def aes_gcm.Aes256GcmDecryption.new
+  (key : Slice Std.U8) (nonce : Slice Std.U8) (associated_data : Slice Std.U8)
+  :
+  Result (core.result.Result aes_gcm.Aes256GcmDecryption error.Error)
+  := do
+  let r ← aes_gcm.setup_gcm key nonce associated_data
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let (ctr, ghash) := val
+    ok (core.result.Result.Ok { ctr, ghash })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      aes_gcm.Aes256GcmDecryption (core.convert.FromSame error.Error) residual
 
 /-- [signal_crypto::aes_gcm::{signal_crypto::aes_gcm::Aes256GcmDecryption}::decrypt]:
     Source: 'rust/crypto/src/aes_gcm.rs', lines 170:4-173:5

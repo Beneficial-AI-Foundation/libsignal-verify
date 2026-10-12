@@ -23,6 +23,7 @@ const TARGETS: Record<TargetKey, {
     configs: ["crypto"],
     requiredBodies: {
       "signal_crypto::aes_gcm::clone": 1,
+      "signal_crypto::aes_gcm::new": 2,
       "signal_crypto::aes_gcm::encrypt": 1,
       "signal_crypto::aes_gcm::compute_tag": 1,
       "signal_crypto::aes_gcm::decrypt": 1,
@@ -36,6 +37,10 @@ const TARGETS: Record<TargetKey, {
     requiredBodies: {
       "libsignal_protocol::pqxdh::pqxdh_initiate": 1,
       "libsignal_protocol::pqxdh::pqxdh_accept": 1,
+      "libsignal_protocol::pqxdh::derive": 1,
+      "libsignal_protocol::pqxdh::derive_with_label": 1,
+      "libsignal_protocol::pqxdh::their_one_time_pre_key": 1,
+      "libsignal_protocol::pqxdh::our_one_time_pre_key_pair": 1,
       "libsignal_protocol::triple_ratchet::from_session_state": 2,
       "libsignal_protocol::triple_ratchet::apply_to_session_state": 2,
       "libsignal_protocol::triple_ratchet::encrypt": 1,
