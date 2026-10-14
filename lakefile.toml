@@ -6,6 +6,8 @@ defaultTargets = ["Libsignal", "Protocols"]
 autoImplicit = false
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
+# The repository is AGPL 3.0; Mathlib's header linter accepts only its Apache sentence.
+weak.linter.style.header = false
 maxRecDepth = 10000
 
 [[require]]
