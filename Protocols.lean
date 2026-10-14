@@ -5,6 +5,7 @@ Authors: Jin Xing Lim
 -/
 
 import Protocols.ToMathlib
+import Protocols.ToVCVio
 
 /-! # Protocol security
 
