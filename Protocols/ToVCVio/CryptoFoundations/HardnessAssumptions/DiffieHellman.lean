@@ -15,7 +15,7 @@ import VCVio.OracleComp.SimSemantics.SimulateQ
 
 open OracleSpec OracleComp ENNReal
 
-namespace Protocols.PQXDH.DiffieHellman
+namespace DiffieHellman
 
 def NominalDDHAdversary (PK : Type) := PK → PK → PK → ProbComp Bool
 
@@ -97,4 +97,4 @@ noncomputable def gapDHAdvantage (g : G) (adversary : GapDHAdversary F G) : ℝ 
 
 end Gap
 
-end Protocols.PQXDH.DiffieHellman
+end DiffieHellman

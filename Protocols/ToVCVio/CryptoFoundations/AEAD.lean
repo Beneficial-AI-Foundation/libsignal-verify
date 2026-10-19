@@ -130,8 +130,8 @@ noncomputable def INT_CTXT_D_Advantage (aead : Scheme ProbComp Msg Key AD C)
 
 omit [DecidableEq Msg] in
 /-- Plain INT-CTXT is no harder than the verification-oracle variant: `B` runs `A` and submits
-its forgery to the verification oracle. Admitted in PQXDH-model at f862593; no PQXDH theorem
-uses it. Discharged by constructing `B` and comparing the two games under `simulateQ`. -/
+its forgery to the verification oracle. No PQXDH theorem uses this lemma. A proof constructs `B`
+and compares the two games under `simulateQ`. -/
 theorem INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (A : INT_CTXT_Adversary aead) :
     ∃ B : INT_CTXT_VF_Adversary aead,
@@ -139,9 +139,9 @@ theorem INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage
   sorry
 
 /-- The verification-oracle variant loses at most the query bound `v`: `A` guesses which of
-`B`'s verification queries is the first fresh valid one and outputs it. Admitted in PQXDH-model
-at f862593; no PQXDH theorem uses it. Discharged by a hybrid over the `v` verification queries,
-using `hcorrect` to answer the honest ones. -/
+`B`'s verification queries is the first fresh valid one and outputs it. No PQXDH theorem uses
+this lemma. A proof is a hybrid over the `v` verification queries, using `hcorrect` to answer the
+honest ones. -/
 theorem INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (hcorrect : PerfectlyCorrect aead)
     (B : INT_CTXT_VF_Adversary aead) (v : ℕ)
@@ -152,18 +152,17 @@ theorem INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage
 
 omit [DecidableEq Msg] in
 /-- Plain INT-CTXT is no harder than the decryption-oracle variant: `B` runs `A` and submits
-its forgery to the decryption oracle. Admitted in PQXDH-model at f862593; no PQXDH theorem
-uses it (the PQXDH security theorems assume a bound on `INT_CTXT_D_Advantage` directly).
-Discharged as for `INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage`. -/
+its forgery to the decryption oracle. No PQXDH theorem uses this lemma. The PQXDH security
+theorems assume a bound on `INT_CTXT_D_Advantage` directly. A proof follows
+`INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage`. -/
 theorem INT_CTXT_Advantage_le_INT_CTXT_D_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (A : INT_CTXT_Adversary aead) :
     ∃ B : INT_CTXT_D_Adversary aead,
       INT_CTXT_Advantage aead A ≤ INT_CTXT_D_Advantage aead B := by
   sorry
 
-/-- The decryption-oracle variant loses at most the query bound `v`. Admitted in PQXDH-model at
-f862593; no PQXDH theorem uses it. Discharged as for
-`INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`. -/
+/-- The decryption-oracle variant loses at most the query bound `v`. No PQXDH theorem uses this
+lemma. A proof follows `INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`. -/
 theorem INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (hcorrect : PerfectlyCorrect aead)
     (B : INT_CTXT_D_Adversary aead) (v : ℕ)
