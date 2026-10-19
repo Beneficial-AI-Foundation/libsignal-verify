@@ -1,6 +1,6 @@
 name = "Libsignal"
 version = "0.1.0"
-defaultTargets = ["Libsignal", "Protocols"]
+defaultTargets = ["Libsignal", "Protocols", "ProtocolsTest"]
 
 [leanOptions]
 autoImplicit = false
@@ -28,3 +28,7 @@ srcDir = "rust"
 
 [[lean_lib]]
 name = "Protocols"
+
+# Fixtures and tests for the Protocols library, kept out of the library itself.
+[[lean_lib]]
+name = "ProtocolsTest"

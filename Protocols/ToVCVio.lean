@@ -8,7 +8,6 @@ import Protocols.ToVCVio.CryptoFoundations.AEAD
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Party
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transcript
-import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
