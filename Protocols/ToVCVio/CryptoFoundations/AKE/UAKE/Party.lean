@@ -1,7 +1,9 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
-Released under the Apache License 2.0, as in the PQXDH-model repository.
+Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
 Authors: Ben Hamlin
+Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
+Protocols/ATTRIBUTION.md.
 -/
 import VCVio.CryptoFoundations.SecExp
 import VCVio.OracleComp.SimSemantics.Append
