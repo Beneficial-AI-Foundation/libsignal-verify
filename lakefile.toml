@@ -6,6 +6,7 @@ defaultTargets = ["Libsignal", "Protocols"]
 autoImplicit = false
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
+weak.linter.style.header = false
 maxRecDepth = 10000
 
 [[require]]

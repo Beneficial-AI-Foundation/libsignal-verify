@@ -10,4 +10,14 @@ Upstream `rust/bridge/` contains language bindings for C/Swift, Java/Kotlin and 
 
 ## File placement
 
-Place abstract theory under `Protocols/Models/`, protocol correspondence under named siblings such as `Protocols/PQXDH/`, and specifications of extracted functions under `rust/Libsignal/Spec/`.
+Each protocol gets one folder under `Protocols/`, named after the protocol, holding both the abstract model and its realisation on the extracted code. Material staged for upstream libraries sits beside it.
+
+| Path | Content |
+| --- | --- |
+| `Protocols/PQXDH/Model/` | abstract PQXDH model over generic primitives |
+| `Protocols/PQXDH/` | the model at libsignal's primitives and the results on the extracted code |
+| `Protocols/ToVCVio/` | definitions and lemmas staged for VCVio |
+| `Protocols/ToMathlib.lean` | lemmas staged for Mathlib |
+| `rust/Libsignal/Spec/` | functional-correctness specifications of extracted functions |
+
+Files ported from other projects keep their own licence and are listed in `Protocols/ATTRIBUTION.md`.
