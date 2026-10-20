@@ -5,9 +5,10 @@ Authors: Jin Xing Lim
 -/
 
 import Protocols.PQXDH.Model.Basic
+import Protocols.PQXDH.Model.UAKE.Defs
 
 /-! # The PQXDH model
 
 Paper-level model of PQXDH over abstract primitives, ported from PQXDH-model at f862593 with
 the namespace `PQXDH` renamed `Protocols.PQXDH`: the protocol procedures and their parameters
-in `Basic`. -/
+in `Basic`, and the two UAKE schemes `uakeInitiator` and `uakeRecipient` in `UAKE.Defs`. -/
