@@ -13,6 +13,7 @@ project root. The files listed here were ported from other projects and keep the
 
 | File here | File there | Changes made here |
 | --- | --- | --- |
+| `Protocols/PQXDH/Model/Basic.lean` | `PQXDH/Spec/Basic.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side |
 | `Protocols/ToMathlib.lean` | `PQXDH/ToMathlib.lean` | header rewritten, module docstring added |
 | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | `ToVCVio/CryptoFoundations/AEAD.lean` | header rewritten, docstrings added to the four admitted lemmas |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | header rewritten, import paths |

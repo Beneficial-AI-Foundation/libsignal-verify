@@ -2,7 +2,7 @@
 
 ## Project layout
 
-A single root Lake project and `lean-toolchain` govern all libraries. `Libsignal` uses `srcDir = "rust"`; its root `rust/Libsignal.lean` imports the extracted code and functional-correctness specifications. `Protocols.lean` is the separate root for local protocol models and correspondence. It has no model imports.
+A single root Lake project and `lean-toolchain` govern all libraries. `Libsignal` uses `srcDir = "rust"`; its root `rust/Libsignal.lean` imports the extracted code and functional-correctness specifications. `Protocols.lean` is the separate root for local protocol models and correspondence.
 
 `lake build Libsignal` builds the functional-correctness library independently of the `Protocols` target. Plain `lake build` builds all default targets.
 
