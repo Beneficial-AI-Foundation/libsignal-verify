@@ -67,6 +67,45 @@ the key T outputs in the honest run. -/
 example : ((simulateQ (opImpl finishing ()) relayProbe).run' finishingEnv : Id _)
     = (.inl 2, .inr (), some 1) := rfl
 
+/-! ## Outputs are pure
+
+The parties share a Boolean flag through `StateT Bool Id`. U's output reads it as the key,
+and T's output sets it and returns the key `true`. Only the outputs matter here. -/
+
+private def flagU : Party (StateT Bool Id) Unit ℕ (Option Bool) where
+  State := Unit
+  init := fun _ => pure (.speakFirst () 1)
+  step := fun _ _ => pure (.complete ())
+  output := fun _ => do return some (some (← get))
+
+private def flagT : Party (StateT Bool Id) Unit ℕ (Option Bool) where
+  State := Unit
+  init := fun _ => pure (.waitForMsg ())
+  step := fun _ _ => pure (.complete ())
+  output := fun _ => do set true; return some (some true)
+
+/-- Read before T's output, as in `runHonest`, U's key is `false`. -/
+example :
+    Id.run (((do let u ← flagU.output (); let _ ← flagT.output (); pure u) :
+        StateT Bool Id _).run' false) = some (some false) := rfl
+
+/-- Read after T's output, as in the security experiment, U's key is `true`. -/
+example :
+    Id.run (((do let _ ← flagT.output (); flagU.output ()) : StateT Bool Id _).run' false)
+      = some (some true) := rfl
+
+/-- `Party.PureOutput`, required by `Scheme.WellFormed`, rules out U's output. -/
+example : ¬ flagU.PureOutput := fun h => by
+  obtain ⟨out, hout⟩ := h ()
+  have h₁ : Id.run ((flagU.output ()).run' false) = some (some false) := rfl
+  have h₂ : Id.run ((flagU.output ()).run' true) = some (some true) := rfl
+  rw [hout] at h₁ h₂
+  exact absurd (h₁.symm.trans h₂) (by decide)
+
+/-- The parties of the first section have pure outputs. -/
+example : finishingU.PureOutput ∧ finishingT.PureOutput :=
+  ⟨fun _ => ⟨_, rfl⟩, fun _ => ⟨_, rfl⟩⟩
+
 end ExperimentFixtures
 
 end AKE.UAKE

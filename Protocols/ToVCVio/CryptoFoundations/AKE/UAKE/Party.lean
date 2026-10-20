@@ -75,6 +75,14 @@ def OutputsOnlyAtCompletion [MonadLiftT m SetM] (P : Party m In W Out) : Prop :=
       ∀ out ∈ support (P.output st'), out ≠ none ↔ done;
   init_output ∧ complete_output ∧ accept_output
 
+/-- True if the output function has no effect in `m`, i.e., on every state it
+  returns a fixed value. The correctness experiment reads both outputs after the
+  honest run, while the security experiment reads T's output when its session
+  completes and U's after the adversary's challenge phase. Pure outputs make
+  these readings agree. -/
+def PureOutput [Pure m] (P : Party m In W Out) : Prop :=
+  ∀ st, ∃ out, P.output st = pure out
+
 /-- Helper function for runHonest. Run the two parties against each other. The
   messages sent are returned in chronological order, along with P's and Q's
   states.

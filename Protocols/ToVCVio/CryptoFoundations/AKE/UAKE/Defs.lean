@@ -23,7 +23,9 @@ NOTE: The UAKE security game assumes that a scheme is well-formed: namely that
 when run honestly, it transfers exactly `Scheme.rounds` messages, that both
 parties produce outputs only once the protocol is complete, and that party T
 speaks last. We capture the round-count and output constraints via the
-`Scheme.WellFormed` predicate, but not the T-speaks-last convention.
+`Scheme.WellFormed` predicate, but not the T-speaks-last convention. The same
+predicate requires pure output functions, since the two experiments read the
+outputs at different points of the execution.
 
 Model simplifications
 * **Rejected protocol messages:** DF'17 does not talk about what happens when a
@@ -86,12 +88,14 @@ def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
   Pr[= true | runtime.evalDist (CorrectExp proto)] = 1
 
 /-- True if
-  1. both parties output iff the protocol run is complete, and
-  2. an honest run of the protocol transfers exactly `rounds` messages.
+  1. both parties output iff the protocol run is complete,
+  2. both parties' output functions are pure, and
+  3. an honest run of the protocol transfers exactly `rounds` messages.
 
   This does *not* enforce the WLOG T-speaks-last convention from DF'17. -/
 def Scheme.WellFormed [Monad m] [MonadLiftT m SetM] (proto : Scheme m K UK TK W) : Prop :=
   proto.U.OutputsOnlyAtCompletion ∧ proto.T.OutputsOnlyAtCompletion ∧
+    proto.U.PureOutput ∧ proto.T.PureOutput ∧
     ∀ uk tk, (uk, tk) ∈ support proto.setup →
       ∀ uOut tOut ms, (uOut, tOut, ms) ∈
           support (proto.U.runHonest proto.T uk tk (proto.rounds + 1)) →
