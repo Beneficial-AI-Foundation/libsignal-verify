@@ -106,6 +106,25 @@ example : ¬ flagU.PureOutput := fun h => by
 example : finishingU.PureOutput ∧ finishingT.PureOutput :=
   ⟨fun _ => ⟨_, rfl⟩, fun _ => ⟨_, rfl⟩⟩
 
+/-! ## Runtimes are coherent
+
+`constRuntime` observes `ProbComp` through its native distribution but lifts public
+randomness by answering every uniform query with `0`. Its lift is a monad morphism, so
+`ProbCompRuntime` alone does not exclude it. -/
+
+private noncomputable def constRuntime : ProbCompRuntime ProbComp where
+  toSPMFSemantics := SPMFSemantics.ofMonadLift ProbComp
+  toProbCompLift := ⟨simulateQ' fun n => (pure 0 : ProbComp (Fin (n + 1)))⟩
+
+/-- Lifted through `constRuntime`, a fair coin lands on `0` with probability one, so the
+runtime is not coherent. -/
+example : ¬ RuntimeCoherent constRuntime := fun h => by
+  have h₀ : Pr[= 0 | constRuntime.liftProbComp (query (spec := unifSpec) 1)]
+      = Pr[= 0 | (query (spec := unifSpec) 1 : ProbComp (Fin 2))] := by
+    rw [probOutput_def, probOutput_def, h.lift_evalDist_eq]
+  simp [constRuntime, ProbCompRuntime.liftProbComp] at h₀
+  exact absurd h₀.symm (by rw [ENNReal.inv_eq_one]; norm_num)
+
 end ExperimentFixtures
 
 end AKE.UAKE
