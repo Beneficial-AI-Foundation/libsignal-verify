@@ -17,6 +17,7 @@ project root. The files listed here were ported from other projects and keep the
 | `Protocols/PQXDH/Model/UAKE/Correctness.lean` | `PQXDH/Spec/UAKE/Correctness.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side |
 | `Protocols/PQXDH/Model/UAKE/CorrectnessLemmas.lean` | `PQXDH/Spec/UAKE/CorrectnessLemmas.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, module docstring says "model" |
 | `Protocols/PQXDH/Model/UAKE/Defs.lean` | `PQXDH/Spec/UAKE/Defs.lean` | header rewritten, import paths, namespace `PQXDH` renamed `Protocols.PQXDH`, docstring path and paper link updated |
+| `Protocols/PQXDH/Model/UAKE/SecurityLemmas/Games.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/Games.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, the replay example in the docstring of `pqpkGuessed` qualified by the one-time key |
 | `Protocols/PQXDH/Model/UAKE/WellFormed.lean` | `PQXDH/Spec/UAKE/WellFormed.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side, two theorem docstrings that said "extracted" corrected |
 | `Protocols/PQXDH/Model/UAKE/WellFormedLemmas.lean` | `PQXDH/Spec/UAKE/WellFormedLemmas.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side |
 | `Protocols/ToMathlib.lean` | `PQXDH/ToMathlib.lean` | header rewritten, module docstring added |
