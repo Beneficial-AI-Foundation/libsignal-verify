@@ -19,6 +19,7 @@ Each protocol gets one folder under `Protocols/`, named after the protocol, hold
 | `Protocols/ToVCVio/` | definitions and lemmas staged for VCVio |
 | `Protocols/ToMathlib.lean` | lemmas staged for Mathlib |
 | `ProtocolsTest/` | fixtures and tests for the `Protocols` library, built by default but not part of it |
+| `Protocols/LEDGER.md` | axiom closures of the endpoint declarations and the list of admitted lemmas, with the commands that regenerate them |
 | `rust/Libsignal/Spec/` | functional-correctness specifications of extracted functions |
 
 Files ported from other projects keep their own licence and are listed in `Protocols/ATTRIBUTION.md`.
