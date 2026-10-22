@@ -4,6 +4,7 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Jin Xing Lim
 -/
 
+import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.ExperimentFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
 
 /-! # Tests for the protocol-security library

@@ -75,29 +75,44 @@ def OutputsOnlyAtCompletion [MonadLiftT m SetM] (P : Party m In W Out) : Prop :=
       ∀ out ∈ support (P.output st'), out ≠ none ↔ done;
   init_output ∧ complete_output ∧ accept_output
 
+/-- True if the output function has no effect in `m`, i.e., on every state it
+  returns a fixed value. The correctness experiment reads both outputs after the
+  honest run, while the security experiment reads T's output when its session
+  completes and U's after the adversary's challenge phase. Pure outputs make
+  these readings agree. -/
+def PureOutput [Pure m] (P : Party m In W Out) : Prop :=
+  ∀ st, ∃ out, P.output st = pure out
+
 /-- Helper function for runHonest. Run the two parties against each other. The
   messages sent are returned in chronological order, along with P's and Q's
   states.
   * The `fuel` argument is an upper bound on the number of party step functions
     that may be run before the protocol completes.
-  * The Boolean indicates whether this is Q's (true) or P's (false) turn.
+  * The first Boolean indicates whether this is Q's (true) or P's (false) turn.
+  * The second Boolean records whether the sender of the message `w` finished
+    when it sent it, i.e. its step returned `done = true`. The receiver of `w`
+    then takes the last step of the run: the sender is never stepped again,
+    just as `opImpl` refuses every message to a T session whose key is set.
   * The `sent` list contains the messages sent in the protocol so far. Note
     that the `sent` list must be passed to this function in *reverse*
     chronological order. This is to support easy cons-ing of new messages. -/
 def runHonestLoop [Monad m] {InP OutP InQ OutQ : Type}
     (P : Party m InP W OutP) (Q : Party m InQ W OutQ) :
-    ℕ → P.State → Q.State → W → Bool → List W → m (P.State × Q.State × List W)
-  | 0, pState, qState, _, _, sent => pure (pState, qState, sent.reverse)
-  | fuel + 1, pState, qState, w, true, sent => do
+    ℕ → P.State → Q.State → W → Bool → Bool → List W →
+      m (P.State × Q.State × List W)
+  | 0, pState, qState, _, _, _, sent => pure (pState, qState, sent.reverse)
+  | fuel + 1, pState, qState, w, true, senderDone, sent => do
       match ← Q.step qState w with
-      | .acceptAndSend qState' w' _ =>
-          runHonestLoop P Q fuel pState qState' w' false (w' :: sent)
+      | .acceptAndSend qState' w' done =>
+          if senderDone then pure (pState, qState', (w' :: sent).reverse)
+          else runHonestLoop P Q fuel pState qState' w' false done (w' :: sent)
       | .complete qState' => pure (pState, qState', sent.reverse)
       | .reject => pure (pState, qState, sent.reverse)
-  | fuel + 1, pState, qState, w, false, sent => do
+  | fuel + 1, pState, qState, w, false, senderDone, sent => do
       match ← P.step pState w with
-      | .acceptAndSend pState' w' _ =>
-          runHonestLoop P Q fuel pState' qState w' true (w' :: sent)
+      | .acceptAndSend pState' w' done =>
+          if senderDone then pure (pState', qState, (w' :: sent).reverse)
+          else runHonestLoop P Q fuel pState' qState w' true done (w' :: sent)
       | .complete pState' => pure (pState', qState, sent.reverse)
       | .reject => pure (pState, qState, sent.reverse)
 
@@ -108,8 +123,8 @@ def runHonestStart [Monad m] {InP OutP InQ OutQ : Type}
     (pInit : InitResult P.State W) (qInit : InitResult Q.State W) :
     m (P.State × Q.State × List W) :=
   match pInit.opening, qInit.opening with
-  | some w, _ => runHonestLoop P Q fuel pInit.state qInit.state w true [w]
-  | none, some w => runHonestLoop P Q fuel pInit.state qInit.state w false [w]
+  | some w, _ => runHonestLoop P Q fuel pInit.state qInit.state w true false [w]
+  | none, some w => runHonestLoop P Q fuel pInit.state qInit.state w false false [w]
   | none, none => pure (pInit.state, qInit.state, [])
 
 /-- Execute an honest run of the protocol. The result is a triple of P's

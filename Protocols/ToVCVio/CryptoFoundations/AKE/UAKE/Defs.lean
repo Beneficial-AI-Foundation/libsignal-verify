@@ -6,6 +6,7 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Party
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Runtime
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transcript
 import VCVio.OracleComp.ProbCompLift
 
@@ -23,7 +24,17 @@ NOTE: The UAKE security game assumes that a scheme is well-formed: namely that
 when run honestly, it transfers exactly `Scheme.rounds` messages, that both
 parties produce outputs only once the protocol is complete, and that party T
 speaks last. We capture the round-count and output constraints via the
-`Scheme.WellFormed` predicate, but not the T-speaks-last convention.
+`Scheme.WellFormed` predicate, but not the T-speaks-last convention. The same
+predicate requires pure output functions, since the two experiments read the
+outputs at different points of the execution.
+
+`Scheme.Admissible` collects the conditions under which the security experiment
+is to be read: a coherent runtime (`RuntimeCoherent`), a well-formed scheme,
+perfect correctness, and honest runs that end with a key at both parties. The
+last condition is needed because `CorrectExp` accepts any run in which a party
+outputs ⊥, so a scheme whose parties always reject is perfectly correct. The
+experiment and `advantage` stay defined for every scheme and runtime, so that
+inadmissible examples can still be evaluated.
 
 Model simplifications
 * **Rejected protocol messages:** DF'17 does not talk about what happens when a
@@ -86,16 +97,36 @@ def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
   Pr[= true | runtime.evalDist (CorrectExp proto)] = 1
 
 /-- True if
-  1. both parties output iff the protocol run is complete, and
-  2. an honest run of the protocol transfers exactly `rounds` messages.
+  1. both parties output iff the protocol run is complete,
+  2. both parties' output functions are pure, and
+  3. an honest run of the protocol transfers exactly `rounds` messages.
 
   This does *not* enforce the WLOG T-speaks-last convention from DF'17. -/
 def Scheme.WellFormed [Monad m] [MonadLiftT m SetM] (proto : Scheme m K UK TK W) : Prop :=
   proto.U.OutputsOnlyAtCompletion ∧ proto.T.OutputsOnlyAtCompletion ∧
+    proto.U.PureOutput ∧ proto.T.PureOutput ∧
     ∀ uk tk, (uk, tk) ∈ support proto.setup →
       ∀ uOut tOut ms, (uOut, tOut, ms) ∈
           support (proto.U.runHonest proto.T uk tk (proto.rounds + 1)) →
         ms.length = proto.rounds
+
+/-- Run the parties honestly and test whether both output a key. -/
+def HonestCompletionExp [Monad m] (proto : Scheme m K UK TK W) : m Bool := do
+  let (uk, tk) ← proto.setup
+  let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
+  return uOut.join.isSome && tOut.join.isSome
+
+/-- True if an honest run ends with a key at both parties with probability one. -/
+def Scheme.HonestlyCompletes [Monad m] (proto : Scheme m K UK TK W)
+    (runtime : ProbCompRuntime m) : Prop :=
+  Pr[= true | runtime.evalDist (HonestCompletionExp proto)] = 1
+
+/-- True if the runtime is coherent and the scheme is well formed, perfectly correct and
+  honestly completing. Security statements about `advantage` assume this. -/
+def Scheme.Admissible [DecidableEq K] [Monad m] [MonadLiftT m SetM] [MonadLiftT m SPMF]
+    (proto : Scheme m K UK TK W) (runtime : ProbCompRuntime m) : Prop :=
+  RuntimeCoherent runtime ∧ proto.WellFormed ∧ PerfectlyCorrect proto runtime ∧
+    proto.HonestlyCompletes runtime
 
 /-- The state of a single copy of the T oracle state in the UAKE security
   experiment. -/
@@ -306,7 +337,8 @@ def Exp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLift m)
 
 /-- The adversary's advantage in the UAKE security game. This is a
   "bool-biased" advantage, i.e., the amount by which its probability of winning
-  differs from a fair coin flip. -/
+  differs from a fair coin flip. The value measures security only for a runtime
+  satisfying `RuntimeCoherent`, which `Scheme.Admissible` includes. -/
 noncomputable def advantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m)
     (A : Adversary proto) : ℝ :=
