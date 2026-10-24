@@ -4,6 +4,7 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Jin Xing Lim
 -/
 
+import Protocols.PQXDH.Model
 import Protocols.ToMathlib
 import Protocols.ToVCVio
 

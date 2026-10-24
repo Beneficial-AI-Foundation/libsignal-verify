@@ -2,7 +2,7 @@
 
 ## Project layout
 
-A single root Lake project and `lean-toolchain` govern all libraries. `Libsignal` uses `srcDir = "rust"`; its root `rust/Libsignal.lean` imports the extracted code and functional-correctness specifications. `Protocols.lean` is the separate root for local protocol models and correspondence. It has no model imports.
+A single root Lake project and `lean-toolchain` govern all libraries. `Libsignal` uses `srcDir = "rust"`; its root `rust/Libsignal.lean` imports the extracted code and functional-correctness specifications. `Protocols.lean` is the separate root for local protocol models and correspondence.
 
 `lake build Libsignal` builds the functional-correctness library independently of the `Protocols` target. Plain `lake build` builds all default targets.
 
@@ -19,6 +19,7 @@ Each protocol gets one folder under `Protocols/`, named after the protocol, hold
 | `Protocols/ToVCVio/` | definitions and lemmas staged for VCVio |
 | `Protocols/ToMathlib.lean` | lemmas staged for Mathlib |
 | `ProtocolsTest/` | fixtures and tests for the `Protocols` library, built by default but not part of it |
+| `Protocols/LEDGER.md` | axiom closures of the endpoint declarations and the list of admitted lemmas, with the commands that regenerate them |
 | `rust/Libsignal/Spec/` | functional-correctness specifications of extracted functions |
 
 Files ported from other projects keep their own licence and are listed in `Protocols/ATTRIBUTION.md`.
