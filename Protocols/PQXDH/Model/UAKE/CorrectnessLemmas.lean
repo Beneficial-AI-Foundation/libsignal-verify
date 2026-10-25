@@ -251,7 +251,7 @@ lemma run_support_initiator
         rw [dh_comm (hopkB opk rfl) hekA]
   rw [hmap] at hctxt hy
   have hdecA := aead_decrypt_encrypt_of_perfectlyCorrect P haead _ _ _ hctxt
-  simp only [mem_support_bind_iff] at hy
+  simp only [Bool.false_eq_true, ↓reduceIte, mem_support_bind_iff] at hy
   obtain ⟨sr, ⟨ar, har, hsr⟩, hy⟩ := hy
   have hbob := mem_support_accept P rfl rfl (by cases opkB <;> rfl)
     (fun o ho => decaps_eq_some_of_perfectlyCorrect P hkem hpqpkB hcs ho)
@@ -327,7 +327,7 @@ lemma run_support_recipient
         rw [dh_comm (hopkB opk rfl) hekA]
   rw [hmap] at hctxt hy
   have hdecA := aead_decrypt_encrypt_of_perfectlyCorrect P haead _ _ _ hctxt
-  simp only [mem_support_bind_iff] at hy
+  simp only [Bool.false_eq_true, ↓reduceIte, mem_support_bind_iff] at hy
   obtain ⟨sr, ⟨ar, har, hsr⟩, hy⟩ := hy
   have hbob := mem_support_accept P rfl rfl (by cases opkB <;> rfl)
     (fun o ho => decaps_eq_some_of_perfectlyCorrect P hkem hpqpkB hcs ho)
