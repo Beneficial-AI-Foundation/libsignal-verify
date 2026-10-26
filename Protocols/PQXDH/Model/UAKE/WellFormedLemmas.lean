@@ -11,8 +11,9 @@ import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
 # Well-formedness Lemmas for the PQXDH model
 
 Supporting lemmas for `WellFormed.lean`: unconditional
-outputs-only-at-completion facts for the four model parties, and
-transcript-length characterizations of honest runs started from `setup`.
+outputs-only-at-completion facts for the four model parties, unconditional
+facts that their output functions are pure, and transcript-length
+characterizations of honest runs started from `setup`.
 The length lemmas are also used by the Aeneas instantiations'
 well-formedness proofs. The proofs in this file are AI-written.
 -/
@@ -76,6 +77,15 @@ lemma initiator_outputsOnlyAtCompletion
     · rcases w with b | im | conf <;>
         exact absurd (eq_of_mem_support_pure hst') (by simp)
 
+/-- The model initiator's output function has no effect: on every state it
+  returns a fixed value. -/
+lemma initiator_pureOutput
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    [DecidableEq G] [DecidableEq Msg]
+    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (initiator P).PureOutput := by
+  rintro (p | ctx | k) <;> exact ⟨_, rfl⟩
+
 /-- The model recipient outputs a key exactly on the states reached by a
   completed run: `none` before accepting, `some` on the state installed by
   a successful `accept`. -/
@@ -120,6 +130,15 @@ lemma recipient_outputsOnlyAtCompletion
     · rcases w with b | im | conf <;>
         exact absurd (eq_of_mem_support_pure hst') (by simp)
 
+/-- The model recipient's output function has no effect: on every state it
+  returns a fixed value. -/
+lemma recipient_pureOutput
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    [DecidableEq IdC] [DecidableEq IdK]
+    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (recipient P hasOPK).PureOutput := by
+  rintro (p | k) <;> exact ⟨_, rfl⟩
+
 /-- The model 2-round initiator outputs a key exactly on the state installed
   by a successful `initiate`. -/
 lemma initiatorNoConfirm_outputsOnlyAtCompletion
@@ -155,6 +174,14 @@ lemma initiatorNoConfirm_outputsOnlyAtCompletion
       · exact absurd (eq_of_mem_support_pure hst') (by simp)
     · rcases w with b | im | conf <;>
         exact absurd (eq_of_mem_support_pure hst') (by simp)
+
+/-- The model 2-round initiator's output function has no effect: on every state
+  it returns a fixed value. -/
+lemma initiatorNoConfirm_pureOutput
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
+    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (initiatorNoConfirm P).PureOutput := by
+  rintro (p | k) <;> exact ⟨_, rfl⟩
 
 /-- The model 2-round recipient outputs a key exactly on the state installed
   by a successful `accept`. -/
@@ -194,6 +221,15 @@ lemma recipientNoConfirm_outputsOnlyAtCompletion
       · exact absurd (eq_of_mem_support_pure hst') (by simp)
     · rcases w with b | im | conf <;>
         exact absurd (eq_of_mem_support_pure hst') (by simp)
+
+/-- The model 2-round recipient's output function has no effect: on every state
+  it returns a fixed value. -/
+lemma recipientNoConfirm_pureOutput
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    [DecidableEq IdC] [DecidableEq IdK]
+    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (recipientNoConfirm P hasOPK).PureOutput := by
+  rintro (p | k) <;> exact ⟨_, rfl⟩
 
 /-- Under the correctness hypotheses, an honest run of the T=Bob parties on
   keys drawn from `setup` transfers exactly the scheme's 3 messages. -/

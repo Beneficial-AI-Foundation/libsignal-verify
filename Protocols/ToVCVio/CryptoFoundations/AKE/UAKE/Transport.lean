@@ -53,21 +53,23 @@ variable {m : Type → Type} [Monad m] [LawfulMonad m] {W : Type}
   {fQ : InQ₁ → InQ₂} {σQ : Q₁.State → Q₂.State}
 
 lemma runHonestLoop_transport (hP : Sim P₁ P₂ fP σP) (hQ : Sim Q₁ Q₂ fQ σQ)
-    (fuel : ℕ) (pSt : P₁.State) (qSt : Q₁.State) (w : W) (turn : Bool) (sent : List W) :
-    runHonestLoop P₂ Q₂ fuel (σP pSt) (σQ qSt) w turn sent
-      = Prod.map σP (Prod.map σQ id) <$> runHonestLoop P₁ Q₁ fuel pSt qSt w turn sent := by
-  induction fuel generalizing pSt qSt w turn sent with
+    (fuel : ℕ) (pSt : P₁.State) (qSt : Q₁.State) (w : W) (turn senderDone : Bool)
+    (sent : List W) :
+    runHonestLoop P₂ Q₂ fuel (σP pSt) (σQ qSt) w turn senderDone sent
+      = Prod.map σP (Prod.map σQ id) <$>
+          runHonestLoop P₁ Q₁ fuel pSt qSt w turn senderDone sent := by
+  induction fuel generalizing pSt qSt w turn senderDone sent with
   | zero => simp [runHonestLoop]
   | succ n ih =>
       cases turn with
       | true =>
           simp only [runHonestLoop, hQ.step_eq, bind_map_left, map_bind]
           refine bind_congr fun r => ?_
-          cases r <;> simp [StepResult.map, ih]
+          cases r <;> cases senderDone <;> simp [StepResult.map, ih]
       | false =>
           simp only [runHonestLoop, hP.step_eq, bind_map_left, map_bind]
           refine bind_congr fun r => ?_
-          cases r <;> simp [StepResult.map, ih]
+          cases r <;> cases senderDone <;> simp [StepResult.map, ih]
 
 lemma runHonestStart_transport (hP : Sim P₁ P₂ fP σP) (hQ : Sim Q₁ Q₂ fQ σQ)
     (fuel : ℕ) (pInit : InitResult P₁.State W) (qInit : InitResult Q₁.State W) :

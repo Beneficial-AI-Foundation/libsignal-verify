@@ -7,7 +7,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-10-20 |
+| Date | 2026-10-25 |
 | Lean | v4.31.0 |
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
