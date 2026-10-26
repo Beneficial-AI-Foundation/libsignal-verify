@@ -111,8 +111,8 @@ def HkdfSha256Contract (H : HmacSha256) : Prop :=
 
 /-- The call specification provided by `HkdfSha256Contract`, in the form used by `step`.
 
-It is not tagged `@[step]`: the MAC interface `H` does not occur in the call, so it must be
-supplied explicitly, as in `step with hkdf_sha256_okm96_spec h …`. -/
+This lemma is deliberately untagged and invoked explicitly, as in
+`step with hkdf_sha256_okm96_spec h …`. -/
 theorem hkdf_sha256_okm96_spec {H : HmacSha256} (h : HkdfSha256Contract H)
     (ikm info out : Slice Std.U8) (h_len : out.length = 96) :
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
