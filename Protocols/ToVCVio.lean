@@ -20,9 +20,12 @@ Definitions and lemmas written for the PQXDH model that belong in VCVio rather t
 the UAKE notion of Dodis and Fiore 2017 with its transport along party simulations, AEAD
 games, strong unforgeability for signatures, nominal and gap Diffie-Hellman, and a query-log
 helper. The files keep the module paths and namespaces of PQXDH-model at f862593, minus its
-`ToVCVio` root. VCVio's open PR #476 carries the UAKE files on the Lean module system and the
-measure-only probability API, neither available at the pinned VCVio; re-sync when the pin
-advances. `UAKE/Runtime.lean` and `Scheme.Admissible` restate that PR's admissibility
-conditions on the pinned API. The honest run and `Scheme.WellFormed` also contain fixes
+`ToVCVio` root. VCVio's PR #476 (merged 2026-10-20, merge commit `abed2e31`) carries the UAKE
+files on the Lean module system and the measure-only probability API, neither available at the
+pinned VCVio. The UAKE source files are unchanged between the captured PR head `17b53734` and
+the merge. The pin remains `cbd4144b`; advancing it requires a separate API migration.
+`UAKE/Runtime.lean` and `Scheme.Admissible` restate runtime coherence and honest-path admission
+on the pinned API; they do not ensure losslessness of adversarial executions in a monad with
+failure. The honest run and `Scheme.WellFormed` also contain fixes
 that the PR does not have: a party is never stepped after it finishes, and outputs are
 pure. -/

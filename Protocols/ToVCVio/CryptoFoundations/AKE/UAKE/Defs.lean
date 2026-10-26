@@ -28,13 +28,18 @@ speaks last. We capture the round-count and output constraints via the
 predicate requires pure output functions, since the two experiments read the
 outputs at different points of the execution.
 
-`Scheme.Admissible` collects the conditions under which the security experiment
-is to be read: a coherent runtime (`RuntimeCoherent`), a well-formed scheme,
-perfect correctness, and honest runs that end with a key at both parties. The
-last condition is needed because `CorrectExp` accepts any run in which a party
-outputs ⊥, so a scheme whose parties always reject is perfectly correct. The
-experiment and `advantage` stay defined for every scheme and runtime, so that
-inadmissible examples can still be evaluated.
+`Scheme.Admissible` collects conditions on the honest path: a coherent runtime
+(`RuntimeCoherent`), a well-formed scheme, perfect correctness, and honest runs
+that end with a key at both parties. It places no condition on adversarial
+executions. If `m` can lose probability mass (failure or abort), a party that
+fails on adversarial input makes `Exp` lose mass, and `advantage`, which is the
+paper's Def. 8 for a total game, can then misstate security: it can read 1/2
+with no attack, or hide a successful forgery. The canonical
+`ProbCompRuntime.probComp` cannot fail. The last condition is needed because
+`CorrectExp` accepts any run in which a party outputs ⊥, so a scheme whose
+parties always reject is perfectly correct. The experiment and `advantage` stay
+defined for every scheme and runtime, so that inadmissible examples can still be
+evaluated.
 
 Model simplifications
 * **Rejected protocol messages:** DF'17 does not talk about what happens when a
@@ -122,7 +127,9 @@ def Scheme.HonestlyCompletes [Monad m] (proto : Scheme m K UK TK W)
   Pr[= true | runtime.evalDist (HonestCompletionExp proto)] = 1
 
 /-- True if the runtime is coherent and the scheme is well formed, perfectly correct and
-  honestly completing. Security statements about `advantage` assume this. -/
+  honestly completing. Honest-path admission only. It does not imply that the security
+  experiment loses no mass against every adversary, which a security statement about
+  `advantage` also needs. -/
 def Scheme.Admissible [DecidableEq K] [Monad m] [MonadLiftT m SetM] [MonadLiftT m SPMF]
     (proto : Scheme m K UK TK W) (runtime : ProbCompRuntime m) : Prop :=
   RuntimeCoherent runtime ∧ proto.WellFormed ∧ PerfectlyCorrect proto runtime ∧
@@ -337,8 +344,9 @@ def Exp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLift m)
 
 /-- The adversary's advantage in the UAKE security game. This is a
   "bool-biased" advantage, i.e., the amount by which its probability of winning
-  differs from a fair coin flip. The value measures security only for a runtime
-  satisfying `RuntimeCoherent`, which `Scheme.Admissible` includes. -/
+  differs from a fair coin flip. The paper's game is total: for a coherent runtime,
+  this value measures security only when the experiment loses no mass against the adversary.
+  `Scheme.Admissible` does not imply that. -/
 noncomputable def advantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m)
     (A : Adversary proto) : ℝ :=
