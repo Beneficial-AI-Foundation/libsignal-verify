@@ -5,6 +5,7 @@ import Libsignal.Spec.Core.Address.RawUuid
 import Libsignal.Spec.Core.Address.ServiceIdBinary
 import Libsignal.Spec.Core.Address.ServiceIdFixedWidthBinary
 import Libsignal.Spec.Core.SharedTypes
+import Libsignal.Spec.Protocol.Boxed.AsRef
 import Libsignal.Spec.Protocol.Crypto.HkdfSha256
 import Libsignal.Spec.Protocol.Pqxdh.HandshakeKeys.Derive
 import Libsignal.Spec.Protocol.Pqxdh.HandshakeKeys.DeriveWithLabel

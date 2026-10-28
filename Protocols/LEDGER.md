@@ -7,7 +7,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-10-25 |
+| Date | 2026-10-27 |
 | Lean | v4.31.0 |
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
@@ -42,7 +42,7 @@ axiom that the extraction of `pqxdh_accept` introduces.
 `libsignal_protocol.pqxdh.pqxdh_initiate`:
 
 ```
-propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, Box.Insts.CoreConvertAsRef.as_ref, alloc.vec.Vec.into_boxed_slice, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
+propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, alloc.vec.Vec.into_boxed_slice, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
 ```
 
 `libsignal_protocol.pqxdh.pqxdh_accept`:
