@@ -60,10 +60,9 @@ natural language specs:
 -/
 
 /-- **Spec and proof concerning `pqxdh.HandshakeKeys.derive_with_label`**:
-for any MAC interface `H` and under `HkdfSha256Contract H`, the function succeeds and splits
-the 96-byte RFC 5869 output computed from `H`,
-`okm` into root key `okm[0..32)`, chain key `okm[32..64)` with index `0`, and PQR key
-`okm[64..96)`. -/
+for any MAC interface `H` and under `HkdfSha256Contract H`, write `okm` for the 96-byte
+RFC 5869 output computed from `H`. The function succeeds and splits `okm` into root key
+`okm[0..32)`, chain key `okm[32..64)` with index `0`, and PQR key `okm[64..96)`. -/
 @[step]
 theorem derive_with_label_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
     (label secret_input : Slice Std.U8) :

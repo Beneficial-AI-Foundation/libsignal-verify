@@ -41,7 +41,8 @@ project root. The files listed here were ported from other projects and keep the
 ## Verified-zkEVM, VCVio pull request #476
 
 - Source: <https://github.com/Verified-zkEVM/VCVio/pull/476>, head commit
-  `17b53734961eca3c8b74caed864d92f8ce40e9aa`.
+  `17b53734961eca3c8b74caed864d92f8ce40e9aa`. The pull request merged on 2026-10-20 as
+  `abed2e31190f6bb0104338351f52aca15407f0ef`.
 - Copyright (c) 2026 Galois Inc. Author Ben Hamlin (`Defs.lean`). Copyright (c) 2026 Devon
   Tuma (`Runtime.lean`).
 - Licence: Apache License 2.0, text in `LICENSES/Apache-2.0.txt`.
