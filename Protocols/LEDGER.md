@@ -7,7 +7,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-10-27 |
+| Date | 2026-10-28 |
 | Lean | v4.31.0 |
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
@@ -31,7 +31,7 @@ Model theorems, all in `Protocols/PQXDH/Model/UAKE/`.
 
 The `sorryAx` of the two security theorems comes from the six admitted hops below. Their closures contain no
 axiom beyond `propext`, `Classical.choice`, `Quot.sound` and `sorryAx`, and the hops are the only admitted
-declarations they import.
+declarations they depend on. Their imports also reach the four AEAD admissions, which no theorem uses.
 
 Extracted functions, in `rust/Libsignal/Translated/Protocol/Funs.lean`. These are the current axiom
 dependencies of the two function declarations. Each theorem about them needs its own audit of its closure and
@@ -50,6 +50,31 @@ propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calc
 ```
 propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, curve.PublicKey.is_torsion_free, BoxSlice.Insts.CoreConvertFromShared0Slice.from, Slice.Insts.CoreCmpPartialEqArray.eq, Str.Insts.AllocBorrowToOwnedString.to_owned, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate, libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1
 ```
+
+## Realization closures
+
+Declarations in `Protocols/PQXDH/Realization/`, which mirror the key derivation of the extracted code. They are
+not endpoints of the abstract model above, and `scripts/Ledger.lean` does not print them. The closures below come
+from `#print axioms` on each declaration after `lake build`.
+
+| Declaration | File | Axioms |
+| --- | --- | --- |
+| `Protocols.PQXDH.Realization.deriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
+| `Protocols.PQXDH.Realization.deriveHK`, `deriveKeys`, `DeriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
+| `Protocols.PQXDH.Realization.kdfInput`, `pubSlice`, `sliceOfKey`, `pubBytes` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound` |
+| `Protocols.PQXDH.Realization.ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes` | `Defs.lean` | `propext`, `Classical.choice`, `Quot.sound` |
+| `Protocols.PQXDH.Realization.Bytes` | `Defs.lean` | none |
+
+The only explicit premise of `deriveKeysTotal` is `HkdfSha256Contract H`, for a MAC interface `H`. Under it,
+`deriveHK` succeeds on all public keys `dh1 dh2 dh3`, with or without the fourth DH output `dh4`, and on every
+32-byte shared secret `ss`. The theorem proves totality of the Lean mirror of the KDF step, through
+`HandshakeKeys.derive_spec` and `extend_from_slice_spec`. It does not prove that the mirror agrees with the KDF
+input that the extracted `pqxdh_initiate` and `pqxdh_accept` build, and it says nothing about the values of the
+derived keys.
+
+`crypto.hkdf_sha256` and `Aeneas.Std.core.fmt.Formatter` are opaque primitives of the extraction on which
+`HandshakeKeys.derive_spec` already depends; the theorem adds no axiom of its own. The closures contain no
+`sorryAx`, no native-decision axiom, and no curve, KEM or randomness constant.
 
 ## Admitted lemmas
 
