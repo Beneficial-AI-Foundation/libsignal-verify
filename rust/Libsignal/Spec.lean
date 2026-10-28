@@ -1,3 +1,4 @@
+import Libsignal.Spec.Aeneas.VecExtendFromSlice
 import Libsignal.Spec.Core.Address.From
 import Libsignal.Spec.Core.Address.Kind
 import Libsignal.Spec.Core.Address.RawUuid
