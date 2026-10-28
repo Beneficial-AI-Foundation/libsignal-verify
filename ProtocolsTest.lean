@@ -6,6 +6,7 @@ Authors: Jin Xing Lim
 
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.ExperimentFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
+import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TransportFixtures
 
 /-! # Tests for the protocol-security library
 
