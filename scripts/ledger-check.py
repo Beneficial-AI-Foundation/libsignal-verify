@@ -23,6 +23,13 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Callable
+
+
+def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:
+    """Count `rg -n` lines `file:line:text` for which `pred(file, text)` holds."""
+    return sum(1 for l in lines if pred(l.split(':', 2)[0], l.split(':', 2)[2]))
+
 
 root = Path(__file__).resolve().parent.parent
 probe = Path(sys.argv[1]).read_text()
@@ -30,11 +37,11 @@ admissions = [l for l in Path(sys.argv[2]).read_text().splitlines() if l.strip()
 ledger = (root / 'Protocols/LEDGER.md').read_text()
 
 # `#print axioms` output: name -> axioms in printed order.
-regen = {}
+regen: dict[str, list[str]] = {}
 for m in re.finditer(r"'([^']+)' (?:depends on axioms: \[([^\]]*)\]|does not depend on any axioms)", probe):
     regen[m.group(1)] = [a.strip() for a in (m.group(2) or '').split(',') if a.strip()]
 
-recorded = {}  # name -> (axioms, compared in order?)
+recorded: dict[str, tuple[list[str], bool]] = {}  # name -> (axioms, compared in order?)
 for line in ledger.splitlines():
     cells = [c.strip() for c in line.strip().strip('|').split('|')]
     if len(cells) != 3 or not cells[0].startswith('`'):
@@ -65,16 +72,14 @@ for name in recorded.keys() - regen.keys():
     print(f'MISSING-IN-PROBE {name}')
 
 print('== State table ==')
-def count(pred):
-    return sum(1 for l in admissions if pred(l.split(':', 2)[0], l.split(':', 2)[2]))
 pkgs = {p['name']: p for p in json.loads((root / 'lake-manifest.json').read_text())['packages']}
 toolchain = (root / 'lean-toolchain').read_text().strip()
 state = dict(re.findall(r'^\| (.+?) \| (.+?) \|$', ledger, re.M))
 observed = {
-    '`sorry` under `Protocols/`': count(lambda f, t: f.startswith('Protocols/') and 'sorry' in t),
-    '`sorry` under `ProtocolsTest/`': count(lambda f, t: f.startswith('ProtocolsTest/') and 'sorry' in t),
+    '`sorry` under `Protocols/`': count(admissions, lambda f, t: f.startswith('Protocols/') and 'sorry' in t),
+    '`sorry` under `ProtocolsTest/`': count(admissions, lambda f, t: f.startswith('ProtocolsTest/') and 'sorry' in t),
     '`axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/`':
-        count(lambda f, t: re.search(r'axiom|native_decide|set_option', t) is not None),
+        count(admissions, lambda f, t: re.search(r'axiom|native_decide|set_option', t) is not None),
     'Lean': toolchain.split(':')[1],
     'Mathlib': f"{pkgs['mathlib']['rev'][:8]} ({pkgs['mathlib']['inputRev']})",
     'VCVio': pkgs['VCVio']['rev'][:8],
