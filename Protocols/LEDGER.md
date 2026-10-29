@@ -54,8 +54,8 @@ propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calc
 ## Realization closures
 
 Declarations in `Protocols/PQXDH/Realization/`, which mirror the key derivation of the extracted code. They are
-not endpoints of the abstract model above, and `scripts/Ledger.lean` does not print them. The closures below come
-from `#print axioms` on each declaration after `lake build`.
+not endpoints of the abstract model above. `scripts/Ledger.lean` prints their closures after the endpoint
+closures.
 
 | Declaration | File | Axioms |
 | --- | --- | --- |
@@ -103,4 +103,4 @@ rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' Protocols Protocols.lea
 lake env lean scripts/Ledger.lean
 ```
 
-The first command lists the admissions, the second prints the closures.
+The first command lists the admissions, the second prints the endpoint and Realization closures.

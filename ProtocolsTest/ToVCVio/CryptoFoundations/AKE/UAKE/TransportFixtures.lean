@@ -31,13 +31,19 @@ example {W InP OutP InQ OutQ : Type} (P : Party m InP W OutP) (Q : Party m InQ W
   Party.runHonest_transport (Party.Sim.refl P) (Party.Sim.refl Q) p q fuel
 
 /-- `Exp_transport` at the identity simulation of both parties. The setup hypothesis is
-discharged by `Prod.map_id` and `id_map`. By `Adversary.transport_id` the transported
-adversary on the right is `A` itself. -/
+discharged by `Prod.map_id` and `id_map`. The transported adversary on the right is `A`
+itself, by `Adversary.transport_id` (next example). -/
 example {K UK TK W : Type} [SampleableType K] [DecidableEq W] (lift : ProbCompLift m)
     (proto : Scheme m K UK TK W) (A : Adversary proto) :
     Exp lift A = Exp lift (Adversary.transport (proto₁ := proto) (proto₂ := proto) id A) :=
   Exp_transport lift (Party.Sim.refl proto.U) (Party.Sim.refl proto.T) rfl
     (by rw [Prod.map_id, id_map]) A
+
+/-- `Adversary.transport_id`: transporting along the identity on initiator keys returns the
+adversary unchanged. -/
+example {K UK TK W : Type} (proto : Scheme m K UK TK W) (A : Adversary proto) :
+    Adversary.transport (proto₁ := proto) (proto₂ := proto) id A = A :=
+  Adversary.transport_id A
 
 end TransportFixtures
 
