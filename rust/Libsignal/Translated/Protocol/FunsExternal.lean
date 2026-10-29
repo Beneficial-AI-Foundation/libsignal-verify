@@ -387,8 +387,10 @@ axiom BoxSlice.Insts.CoreCloneClone.clone
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2429:4-2429:26
     Name pattern: [alloc::boxed::{core::convert::AsRef<Box<@T>, @T>}::as_ref]
     Visibility: public -/
+-- alloc returns `self`, a deref-coerced borrow; Aeneas models `Box<T, A>` and `&T` as `T`.
 @[rust_fun "alloc::boxed::{core::convert::AsRef<Box<@T>, @T>}::as_ref"]
-axiom Box.Insts.CoreConvertAsRef.as_ref {T : Type} (A : Type) : T → Result T
+def Box.Insts.CoreConvertAsRef.as_ref {T : Type} (A : Type) : T → Result T :=
+  fun x => ok x
 
 /-- [alloc::collections::vec_deque::iter::{impl core::iter::traits::iterator::Iterator<&'a T> for alloc::collections::vec_deque::iter::Iter<'a, T>}::next]:
     Source: '/rustc/library/alloc/src/collections/vec_deque/iter.rs', lines 92:4-92:39

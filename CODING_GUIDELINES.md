@@ -126,6 +126,15 @@ These should usually be prioritized in that order, but adjust the trade-off as n
 [@signalapp/mock-server]: https://github.com/signalapp/Mock-Signal-Server
 
 
+# Lean specifications
+
+- **Spec files mirror the Rust source path**: crate, then module, then item. A spec for `libsignal_protocol::pqxdh::HandshakeKeys::derive` lives in `rust/Libsignal/Spec/Protocol/Pqxdh/HandshakeKeys/Derive.lean`. This holds even when the extraction places a declaration in another crate's namespace.
+
+- **Standard-library items go under `rust/Libsignal/Spec/Std/<crate>/...`**, apart from libsignal's own crates. For example, `alloc::vec::Vec::extend_from_slice` lives in `Spec/Std/Alloc/Vec/ExtendFromSlice.lean`.
+
+- **No folder is named after a tool** such as Aeneas or Charon.
+
+
 # Other useful documents
 
 We don't adhere to these exactly but they're often useful tiebreakers or points of reference:

@@ -30,11 +30,21 @@ def InitResult.map {St₁ St₂ W : Type} (σ : St₁ → St₂) :
     (r : InitResult St₁ W) : (InitResult.map σ r).opening = r.opening := by
   cases r <;> rfl
 
+@[simp] lemma InitResult.map_id {St W : Type} :
+    InitResult.map (id : St → St) = (id : InitResult St W → InitResult St W) := by
+  funext r
+  cases r <;> rfl
+
 def StepResult.map {St₁ St₂ W : Type} (σ : St₁ → St₂) :
     StepResult St₁ W → StepResult St₂ W
   | .acceptAndSend st w done => .acceptAndSend (σ st) w done
   | .complete st => .complete (σ st)
   | .reject => .reject
+
+@[simp] lemma StepResult.map_id {St W : Type} :
+    StepResult.map (id : St → St) = (id : StepResult St W → StepResult St W) := by
+  funext r
+  cases r <;> rfl
 
 structure Sim {m : Type → Type} [Functor m] {In₁ In₂ W Out : Type}
     (P₁ : Party m In₁ W Out) (P₂ : Party m In₂ W Out)
@@ -42,6 +52,14 @@ structure Sim {m : Type → Type} [Functor m] {In₁ In₂ W Out : Type}
   init_eq : ∀ i, P₂.init (fIn i) = InitResult.map σ <$> P₁.init i
   step_eq : ∀ st w, P₂.step (σ st) w = StepResult.map σ <$> P₁.step st w
   output_eq : ∀ st, P₂.output (σ st) = P₁.output st
+
+/-- Every party simulates itself through the identity maps on inputs and states. The
+lawfulness of the functor `m` supplies `id <$> x = x`. -/
+lemma Sim.refl {m : Type → Type} [Functor m] [LawfulFunctor m] {In W Out : Type}
+    (P : Party m In W Out) : Sim P P id id where
+  init_eq i := by simp
+  step_eq st w := by simp
+  output_eq _ := rfl
 
 section RunHonest
 
@@ -120,6 +138,12 @@ omit [Monad m] [LawfulMonad m] in
   State := A.State
   challenge := fun uk w => A.challenge (fU uk) w
   post := A.post
+
+omit [Monad m] [LawfulMonad m] in
+/-- Transporting an adversary along the identity map on initiator keys returns it unchanged. -/
+@[simp] lemma Adversary.transport_id (A : Adversary proto₁) :
+    Adversary.transport (proto₁ := proto₁) (proto₂ := proto₁) id A = A :=
+  rfl
 
 variable {fU : UK₁ → UK₂} {fT : TK₁ → TK₂}
   {σU : proto₁.U.State → proto₂.U.State} {σT : proto₁.T.State → proto₂.T.State}

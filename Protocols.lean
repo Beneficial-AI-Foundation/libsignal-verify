@@ -5,6 +5,7 @@ Authors: Jin Xing Lim
 -/
 
 import Protocols.PQXDH.Model
+import Protocols.PQXDH.Realization.Kdf
 import Protocols.ToMathlib
 import Protocols.ToVCVio
 

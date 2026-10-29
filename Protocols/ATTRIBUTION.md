@@ -25,13 +25,15 @@ project root. The files listed here were ported from other projects and keep the
 | `Protocols/PQXDH/Model/UAKE/SecurityLemmas/SharedHops.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/SharedHops.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings of the two admitted lemmas extended |
 | `Protocols/PQXDH/Model/UAKE/WellFormed.lean` | `PQXDH/Spec/UAKE/WellFormed.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side, two theorem docstrings that said "extracted" corrected, both proofs also discharge the pure-output conditions of `Scheme.WellFormed`, module and theorem docstrings name them |
 | `Protocols/PQXDH/Model/UAKE/WellFormedLemmas.lean` | `PQXDH/Spec/UAKE/WellFormedLemmas.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side, four lemmas added stating that the model parties' output functions are pure, module docstring names them |
+| `Protocols/PQXDH/Realization/Defs.lean` | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`Bytes`, `ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes`, lines 68-71, 99-102, 220-227) | header rewritten, import paths, namespace `PQXDH.Aeneas.Full` renamed `Protocols.PQXDH.Realization`, module docstring added, only the seven declarations the KDF mirror uses are taken |
+| `Protocols/PQXDH/Realization/Kdf.lean` | `PQXDH/Aeneas/Full/UAKE/SecurityDefs.lean` (`pubBytes`, `sliceOfKey`, `pubSlice`, `kdfInput`, `deriveHK`, `deriveKeys`, `DeriveKeysTotal`, lines 44-110) | header rewritten, import paths, namespace `PQXDH.Aeneas.Full` renamed `Protocols.PQXDH.Realization`, module docstring added, the source's `noncomputable section` replaced by `noncomputable` on `deriveHK` and `deriveKeys` only; theorem `deriveKeysTotal` is new here (not in the source): it proves `DeriveKeysTotal` from `HkdfSha256Contract` |
 | `Protocols/ToMathlib.lean` | `PQXDH/ToMathlib.lean` | header rewritten, module docstring added |
 | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | `ToVCVio/CryptoFoundations/AEAD.lean` | header rewritten, docstrings added to the four admitted lemmas |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | header rewritten, import paths, `Scheme.WellFormed` requires pure outputs, admissibility definitions from VCVio PR #476 added (see below) |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Party.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Party.lean` | header rewritten, `runHonestLoop` never steps a party after it reports `done = true`, `Party.PureOutput` added |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Transcript.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Transcript.lean` | header rewritten |
 | `ProtocolsTest/ToVCVio/CryptoFoundations/AKE/UAKE/TranscriptFixtures.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/TranscriptFixtures.lean` | header rewritten, import path |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Transport.lean` | `PQXDH/AKE/UAKE/Transport.lean` | header rewritten, import path, one `beta_reduce` that does nothing on Lean 4.31 removed, `runHonestLoop_transport` generalised over the finished-sender flag |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Transport.lean` | `PQXDH/AKE/UAKE/Transport.lean` | header rewritten, import path, one `beta_reduce` that does nothing on Lean 4.31 removed, `runHonestLoop_transport` generalised over the finished-sender flag, identity lemmas `InitResult.map_id`, `StepResult.map_id`, `Sim.refl` and `Adversary.transport_id` added (not in the source) |
 | `Protocols/ToVCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean` | `ToVCVio/CryptoFoundations/HardnessAssumptions/DiffieHellman.lean` | header rewritten, namespace `PQXDH.DiffieHellman` renamed `DiffieHellman` |
 | `Protocols/ToVCVio/CryptoFoundations/SignatureAlg.lean` | `ToVCVio/CryptoFoundations/SignatureAlg.lean` | header rewritten, import path |
 | `Protocols/ToVCVio/OracleComp/QueryTracking/Structures.lean` | `ToVCVio/OracleComp/QueryTracking/Structures.lean` | header rewritten |
@@ -39,7 +41,8 @@ project root. The files listed here were ported from other projects and keep the
 ## Verified-zkEVM, VCVio pull request #476
 
 - Source: <https://github.com/Verified-zkEVM/VCVio/pull/476>, head commit
-  `17b53734961eca3c8b74caed864d92f8ce40e9aa`.
+  `17b53734961eca3c8b74caed864d92f8ce40e9aa`. The pull request merged on 2026-10-20 as
+  `abed2e31190f6bb0104338351f52aca15407f0ef`.
 - Copyright (c) 2026 Galois Inc. Author Ben Hamlin (`Defs.lean`). Copyright (c) 2026 Devon
   Tuma (`Runtime.lean`).
 - Licence: Apache License 2.0, text in `LICENSES/Apache-2.0.txt`.
