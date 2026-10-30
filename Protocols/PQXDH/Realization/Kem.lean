@@ -1,7 +1,10 @@
 /-
+Copyright (c) 2026 Galois Inc. All rights reserved.
 Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
-Released under the terms of the LICENSE file in the project root.
-Authors: Alessandro D'Angelo
+Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
+Authors: Ben Hamlin, Alessandro D'Angelo
+Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
+Protocols/ATTRIBUTION.md.
 -/
 import Protocols.PQXDH.Realization.Params
 import Protocols.Realization.RustOracleComp
