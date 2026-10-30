@@ -3,13 +3,10 @@
 
 Usage, from the repository root after `lake build`:
 
-    rg -n -g '*.lean' "$PATTERN" \
+    rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
         Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
     lake env lean scripts/Ledger.lean > closures.log
     python3 scripts/ledger-check.py closures.log admissions.log
-
-where `$PATTERN` is the pattern in the "How to regenerate" section of LEDGER.md and in the `rg`
-step of `.github/workflows/lean.yml`, the same as `SORRY|TRUST` below.
 
 Exits 0 iff every closure, count and pin that the LEDGER records matches the regenerated output.
 It reads three shapes from LEDGER.md:
@@ -20,9 +17,12 @@ It reads three shapes from LEDGER.md:
 - the two-column State table: the three admission counts and the Lean, Mathlib, VCVio and Aeneas
   pins, checked against the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
-The counts match whole tokens: `sorry` as a word, so that `sorryAx` in a recorded axiom list does
-not count, and `axiom` only as a declaration keyword at the start of a line, after optional
-attributes and modifiers, so that `#print axioms` in a spec summary does not count.
+The `rg` pattern only selects candidate lines. A listed line counts as an admission when its
+executable text, what is left of it once `code_lines` blanks the comments of its file, contains
+`sorry` or `sorryAx` as a word, `axiom` as the declaration keyword at the start of the line (after
+optional attributes and modifiers), or `native_decide` or `set_option` as a word. An explicit
+`sorryAx` term therefore counts, while the `sorryAx` in an axiom list recorded as the expected
+output of `#guard_msgs`, which is a doc comment, does not, and `#print axioms` is no declaration.
 
 Every declaration printed by `scripts/Ledger.lean` must be recorded, and every recorded one printed.
 """
@@ -33,18 +33,86 @@ from pathlib import Path
 from typing import Callable
 
 
-SORRY = re.compile(r'\bsorry\b')
-TRUST = re.compile(r'^\s*(?:@\[[^\]]*\]\s*)*'
+SORRY = re.compile(r'\bsorry(?:Ax)?\b')
+TRUST = re.compile(r'^\s*(?:@\[(?:[^\[\]]|\[[^\]]*\])*\]\s*)*'
                    r'(?:(?:private|protected|noncomputable|unsafe|partial|nonrec|scoped|local)\s+)*'
-                   r'axiom\b|native_decide|set_option')
+                   r'axiom\b|\bnative_decide\b|\bset_option\b')
+COMMENT_MARK = re.compile(r'/-|-/')
+RAW = re.compile(r'r(#*)"')
+CHAR = re.compile(r"'(?:\\(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)|[^\\'\n])'")
 
 
-def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:
-    """Count `rg -n` lines `file:line:text` for which `pred(file, text)` holds."""
-    return sum(1 for l in lines if pred(l.split(':', 2)[0], l.split(':', 2)[2]))
+def ident_char(c: str) -> bool:
+    """Whether `c` can end a Lean identifier, so that a `'` or `r` after it belongs to the name."""
+    return c.isalnum() or c in "_'!?"
+
+
+def code_lines(src: str) -> list[str]:
+    """The lines of the Lean source `src` with every comment blanked.
+
+    Line comments and nested block comments, which include docstrings and the expected output of
+    `#guard_msgs`, become spaces, and line breaks stay, so line numbers do not move. String, raw
+    string and character literals are kept: a comment marker inside one opens no comment, and a
+    token inside one still counts, which errs towards counting.
+    """
+    out: list[str] = []
+    i, n, depth = 0, len(src), 0
+    while i < n:
+        c, prev = src[i], (src[i - 1] if i else ' ')
+        keep = True
+        if depth:
+            keep = False
+            mark = COMMENT_MARK.search(src, i)
+            if mark is None:
+                j = n
+            elif mark.start() > i:
+                j = mark.start()
+            else:
+                depth += 1 if c == '/' else -1
+                j = i + 2
+        elif src.startswith('/-', i):
+            depth, j, keep = 1, i + 2, False
+        elif src.startswith('--', i):
+            j, keep = src.find('\n', i), False
+            if j < 0:
+                j = n
+        elif c == '"':
+            j = i + 1
+            while j < n and src[j] != '"':
+                j += 2 if src[j] == '\\' else 1
+            j = min(j + 1, n)
+        else:
+            raw = RAW.match(src, i) if c == 'r' and not ident_char(prev) else None
+            char = CHAR.match(src, i) if c == "'" and not ident_char(prev) else None
+            if raw is not None:
+                end = src.find('"' + raw.group(1), raw.end())
+                j = n if end < 0 else end + 1 + len(raw.group(1))
+            elif char is not None:
+                j = char.end()
+            else:
+                j = i + 1
+        out.append(src[i:j] if keep else re.sub(r'[^\n]', ' ', src[i:j]))
+        i = j
+    return ''.join(out).split('\n')
 
 
 root = Path(__file__).resolve().parent.parent
+code_of: dict[str, list[str]] = {}
+
+
+def code(entry: str) -> tuple[str, str]:
+    """The file of an `rg -n` line `file:line:text` and the executable text of that line."""
+    file, line, _ = entry.split(':', 2)
+    if file not in code_of:
+        code_of[file] = code_lines((root / file).read_text())
+    return file, code_of[file][int(line) - 1]
+
+
+def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:
+    """Count the listed lines whose file and executable text satisfy `pred`."""
+    return sum(1 for l in lines if pred(*code(l)))
+
+
 probe = Path(sys.argv[1]).read_text()
 admissions = [l for l in Path(sys.argv[2]).read_text().splitlines() if l.strip()]
 ledger = (root / 'Protocols/LEDGER.md').read_text()
@@ -89,9 +157,9 @@ pkgs = {p['name']: p for p in json.loads((root / 'lake-manifest.json').read_text
 toolchain = (root / 'lean-toolchain').read_text().strip()
 state = dict(re.findall(r'^\| (.+?) \| (.+?) \|$', ledger, re.M))
 observed = {
-    '`sorry` under `Protocols/`':
+    '`sorry` or `sorryAx` under `Protocols/`':
         count(admissions, lambda f, t: f.startswith('Protocols/') and SORRY.search(t) is not None),
-    '`sorry` under `ProtocolsTest/`':
+    '`sorry` or `sorryAx` under `ProtocolsTest/`':
         count(admissions, lambda f, t: f.startswith('ProtocolsTest/') and SORRY.search(t) is not None),
     '`axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/`':
         count(admissions, lambda f, t: TRUST.search(t) is not None),

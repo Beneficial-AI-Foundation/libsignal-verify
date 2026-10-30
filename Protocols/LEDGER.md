@@ -12,8 +12,8 @@ library, regenerated whenever the library changes. The commands are at the end.
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
 | Aeneas | nightly-2026.09.30-0855ce1 |
-| `sorry` under `Protocols/` | 19 |
-| `sorry` under `ProtocolsTest/` | 0 |
+| `sorry` or `sorryAx` under `Protocols/` | 19 |
+| `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
 ## Endpoint closures
@@ -170,11 +170,13 @@ choice describes something outside the extracted code. The contracts are in
 From the repository root, after `lake build`:
 
 ```
-rg -n -g '*.lean' '\bsorry\b|^\s*(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|noncomputable|unsafe|partial|nonrec|scoped|local)\s+)*axiom\b|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean
+rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean
 lake env lean scripts/Ledger.lean
 ```
 
 The first command lists the admissions, the second prints the endpoint, Realization and Full realization
-closures. The pattern matches `sorry` as a word and `axiom` only as a declaration keyword, after optional
-attributes and modifiers, so the `sorryAx` in a recorded axiom list and the `#print axioms` commands of the
-spec summaries are not counted.
+closures. The first command only selects candidate lines; `scripts/ledger-check.py` counts an admission on a
+listed line when the line's executable text, with the comments of its file blanked, contains `sorry` or
+`sorryAx` as a word, `axiom` as a declaration keyword (after optional attributes and modifiers), or
+`native_decide` or `set_option`. An explicit `sorryAx` term counts; the `sorryAx` in an axiom list recorded by
+`#guard_msgs`, which is a doc comment, and the `#print axioms` commands of the spec summaries do not.
