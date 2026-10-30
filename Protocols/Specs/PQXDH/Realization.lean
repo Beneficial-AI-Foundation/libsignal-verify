@@ -42,14 +42,12 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
-    (hq : A.OpensAtMostPerPhase q) (εsig εgap εaead εkdf εpk : ℝ)
+    (hq : A.OpensAtMostPerPhase q) (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
-    (hgap : ∀ (D : FullGapDHAdversary), fullGapDHAdvantage P D ≤ εgap)
+    (hodh : ∀ (D : PqxdhODHAdversary), pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ (D : PRFScheme.PRFAdversary (Key × Key × Option Key × Key) (Key × Key × Key)),
-      (kdfPRFDH H P).prfAdvantage D ≤ εkdf)
     (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εgap + 2 * εaead + εkdf) + 3 * ↑q ^ 2 * εpk
+    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
       + Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)].toReal
 
 /--
@@ -92,14 +90,12 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
-    (εsig εgap εaead εkdf εpk : ℝ)
+    (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
-    (hgap : ∀ (D : FullGapDHAdversary), fullGapDHAdvantage P D ≤ εgap)
+    (hodh : ∀ (D : PqxdhODHAdversary), pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ (D : PRFScheme.PRFAdversary (Key × Key × Option Key × Key) (Key × Key × Key)),
-      (kdfPRFDH H P).prfAdvantage D ≤ εkdf)
     (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εgap + 2 * εaead + εkdf) + 3 * ↑q ^ 2 * εpk
+    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
 
 /--
 info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total' depends on axioms:
@@ -883,24 +879,14 @@ info: 'Protocols.PQXDH.Realization.jointSigAdvantage' depends on axioms:
 #print axioms Protocols.PQXDH.Realization.jointSigAdvantage
 
 /--
-info: 'Protocols.PQXDH.Realization.fullGapDHAdvantage' depends on axioms:
+info: 'Protocols.PQXDH.Realization.pqxdhODHAdvantage' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key]
+ curve.PrivateKey.calculate_agreement]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.fullGapDHAdvantage
-
-/--
-info: 'Protocols.PQXDH.Realization.kdfPRFDH' depends on axioms:
- [propext,
- Classical.choice,
- Quot.sound]
--/
-#guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.kdfPRFDH
+#print axioms Protocols.PQXDH.Realization.pqxdhODHAdvantage
 
 /--
 info: 'Protocols.PQXDH.Realization.kdfPRF' depends on axioms:

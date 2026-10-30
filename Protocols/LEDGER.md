@@ -119,7 +119,7 @@ outside the count of admitted hops above. All are in `Protocols/PQXDH/Realizatio
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
-| `Protocols.PQXDH.Realization.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εgap + 2εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | joint unforgeability of the identity key, gap Diffie-Hellman for the extracted X25519, AEAD integrity, KDF as a PRF keyed by a Diffie-Hellman value, Kyber public-key guessing | stub |
+| `Protocols.PQXDH.Realization.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint unforgeability of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (random-oracle model, strong Diffie-Hellman), AEAD integrity, Kyber public-key guessing | stub |
 | `Protocols.PQXDH.Realization.uakeInitiator_secure_pq` | advantage ≤ `εsig + 2q(εkem + εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | as above without Diffie-Hellman, with IND-CCA of an abstract KEM and the Kyber bridge contract, KDF as a PRF keyed by the Kyber secret | stub |
 | `Protocols.PQXDH.Realization.fullExp_noLostMass` | the Full experiment faults with probability 0 | the total contracts, RNG totality on the coin domain, Kyber1024-shaped honest Kyber pairs, an adversary sending only messages that fit in memory | stub |
 

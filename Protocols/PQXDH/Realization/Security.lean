@@ -10,7 +10,8 @@ import Protocols.PQXDH.Realization.SecurityDefs
 
 Two statements bound the advantage of every adversary against the Full realization
 `uakeInitiator` on the extracted entry points, in which Bob is the authenticated party:
-`uakeInitiator_secure_dh` in the classical setting, from gap Diffie-Hellman, and
+`uakeInitiator_secure_dh` in the classical setting, from an oracle Diffie-Hellman assumption on
+the protocol's own Diffie-Hellman values and key derivation, and
 `uakeInitiator_secure_pq` in a post-quantum setting, from the security of Kyber with no
 Diffie-Hellman assumption.
 
@@ -52,16 +53,23 @@ into a bound without the `Pr[⊥]` term.
 * the fault-or-value contracts, for an HMAC interface `H` that the key derivation is built from;
 * valid curve25519 pairs and Kyber1024-shaped pairs from the ideal generators (policies);
 * joint unforgeability of the single identity key (`jointSigAdvantage`);
-* gap Diffie-Hellman for the extracted X25519 (`fullGapDHAdvantage`), DH statement only;
-* IND-CCA security of an abstract KEM `K` with the Kyber bridge contract, PQ statement only;
+* the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and the key derivation
+  (`pqxdhODHAdvantage`), DH statement only. It replaces both gap Diffie-Hellman and the key
+  derivation as a pseudorandom function keyed by a fresh public key, which PQXDH-model assumed
+  and which say nothing about the Diffie-Hellman values the protocol actually uses. It is the
+  mmPRF-ODH notion of Brendel, Fischlin, Günther and Janson (CRYPTO 2017), adapted to the PQXDH
+  input layout; it holds in the random-oracle model under the strong Diffie-Hellman assumption,
+  and no standard-model proof is to be expected;
+* IND-CCA security of an abstract KEM `K` with the Kyber bridge contract, and the key derivation
+  as a pseudorandom function keyed by the Kyber secret (`kdfPRF`), PQ statement only;
 * integrity of the synthetic AEAD (`AEAD.INT_CTXT_D_Advantage`);
-* the key derivation as a pseudorandom function (`kdfPRFDH`, `kdfPRF`);
 * a bound on guessing a Kyber public key drawn from `P.pqKeygen`.
 
 The PQ statement assumes neither perfect Kyber correctness nor any bound on Kyber's correctness
 error: a decapsulation mismatch gives the two parties different keys, and the adversary profits
-from that only through the AEAD and key-derivation terms. Both bounds keep the shape of
-PQXDH-model's statements.
+from that only through the AEAD and key-derivation terms. The PQ bound keeps the shape of
+PQXDH-model's statement; in the DH bound the oracle Diffie-Hellman term takes the place of
+PQXDH-model's gap Diffie-Hellman and key-derivation terms.
 
 ## Limits
 
@@ -105,26 +113,27 @@ abbrev fullAdvantage (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
 
 /-- **Security of the Full realization, classical setting.** For every adversary that opens at
 most `q` sessions of Bob in each stage, its advantage is at most
-`εsig + 2q (εgap + 2 εaead + εkdf) + 3 q² εpk` plus the probability that the experiment
-faults. Premises: the fault-or-value contracts for the HMAC interface `H`; valid curve25519 pairs
-and Kyber1024-shaped pairs from the ideal generators; joint unforgeability of the identity key
-(`εsig`); gap Diffie-Hellman for the extracted X25519 (`εgap`); AEAD integrity (`εaead`); the key
-derivation as a pseudorandom function keyed by a Diffie-Hellman value (`εkdf`); and Kyber
-public-key guessing (`εpk`). Stub: a placeholder for the security milestone. -/
+`εsig + 2q (εodh + 2 εaead) + 3 q² εpk` plus the probability that the experiment faults.
+Premises: the fault-or-value contracts for the HMAC interface `H`; valid curve25519 pairs and
+Kyber1024-shaped pairs from the ideal generators; joint unforgeability of the identity key
+(`εsig`); the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and the key
+derivation (`εodh`), which holds in the random-oracle model under the strong Diffie-Hellman
+assumption with no standard-model proof expected; AEAD integrity (`εaead`); and Kyber public-key
+guessing (`εpk`). Like every premise here, the oracle Diffie-Hellman bound is over adversaries
+without a resource bound (#41). Stub: a placeholder for the security milestone. -/
 theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
     (hq : A.OpensAtMostPerPhase q)
-    (εsig εgap εaead εkdf εpk : ℝ)
+    (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
-    (hgap : ∀ D : FullGapDHAdversary, fullGapDHAdvantage P D ≤ εgap)
+    (hodh : ∀ D : PqxdhODHAdversary, pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ D, (kdfPRFDH H P).prfAdvantage D ≤ εkdf)
     (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
-      εsig + 2 * q * (εgap + 2 * εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk +
+      εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk +
         (Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)]).toReal := by
   sorry
 
@@ -184,16 +193,15 @@ theorem uakeInitiator_secure_dh_total (P : Params Rand Msg C IdC IdK) (msg : Msg
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
-    (εsig εgap εaead εkdf εpk : ℝ)
+    (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
-    (hgap : ∀ D : FullGapDHAdversary, fullGapDHAdvantage P D ≤ εgap)
+    (hodh : ∀ D : PqxdhODHAdversary, pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ D, (kdfPRFDH H P).prfAdvantage D ≤ εkdf)
     (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
-      εsig + 2 * q * (εgap + 2 * εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk := by
-  have h := uakeInitiator_secure_dh P msg hasOPK H hC hEC hPQ A q hq εsig εgap εaead εkdf εpk
-    hsig hgap haead hkdf hpk
+      εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk := by
+  have h := uakeInitiator_secure_dh P msg hasOPK H hC hEC hPQ A q hq εsig εodh εaead εpk
+    hsig hodh haead hpk
   rwa [fullExp_noLostMass P msg hasOPK hCt hS H hH hPQ Dom hRng hSigRng hCoins A hA,
     ENNReal.toReal_zero, add_zero] at h
 

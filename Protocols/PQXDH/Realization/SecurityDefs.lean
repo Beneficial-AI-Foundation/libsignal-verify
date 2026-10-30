@@ -24,15 +24,22 @@ extracted code or on the interfaces that its contracts name, and the remaining p
   whenever it accepts `(R, s)` (`rust/core/src/curve/curve25519.rs:134-155`), so it is false. The
   game is defined here because VCVio's unforgeability games are typed over `OracleComp` only. It
   scores a winning probability, so a fault only lowers it.
-* **Diffie-Hellman** (`fullGapDHAdvantage`). Gap computational Diffie-Hellman for the extracted
-  X25519 and the Full key generator: given two public keys from `P.ecKeygen`, compute their
-  agreement, with an oracle that decides whether `Z` is the agreement of some private key of `X`
-  with `Y`. No uniform-exponent law is involved: the keys are those of the Full generator.
-* **Key derivation** (`kdfPRFDH`, `kdfPRF`). The key derivation is the RFC 5869 HKDF of the MAC
-  interface `H` that `HkdfSha256Contract H` names, on the PQXDH input layout and label. As in
-  PQXDH-model, it is assumed to be a pseudorandom function keyed by the third Diffie-Hellman value
-  (a public key from `P.ecKeygen` in that slot, for the DH statement) or by the Kyber secret (a
-  uniform 32-byte key, for the PQ statement).
+* **Diffie-Hellman and key derivation, DH statement** (`pqxdhODHAdvantage`). One premise of the
+  oracle Diffie-Hellman kind covers both. It speaks about the protocol's actual Diffie-Hellman
+  values and the actual key derivation, which is the RFC 5869 HKDF of the MAC interface `H` that
+  `HkdfSha256Contract H` names, on the PQXDH input layout and label.
+  - Two key pairs `a` and `b` come from `P.ecKeygen`, and the adversary sees both public keys.
+  - It must tell the derived keys of a challenge input, whose third slot is `agree(a, B)` and whose
+    fourth slot is `agree(a, Y4)`, from random keys.
+  - Meanwhile it may ask for the derived keys of any input whose slots are literals or agreements
+    of `a` or `b` with points of its choice.
+  - The slot structure is what a reduction needs. Bob's long-term signed prekey enters every one of
+    his sessions twice (DH1 and DH3) against points the adversary chooses. Alice's ephemeral key
+    meets an unsigned one-time prekey in DH4.
+  - The uniform-exponent law of the abstract model is not involved: the keys are those of the Full
+    generator.
+* **Key derivation, PQ statement** (`kdfPRF`). The key derivation is a pseudorandom function keyed
+  by the Kyber secret, a uniform 32-byte key.
 * **Kyber** (`KyberBridge`). The PQ statement assumes IND-CCA security of an abstract total KEM
   `K`, VCVio's notion, as the model's PQ theorem does. The bridge contract ties `K` to the
   extracted calls: `P.pqKeygen` is `K`'s key generation, `K`'s encapsulation is a function of the
@@ -108,43 +115,6 @@ def jointSigAdvantage (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) : 
 
 end Signature
 
-section DiffieHellman
-
-/-- `Z` is the agreement of some private key whose public half is `X` with the public key `Y`. -/
-def IsAgreement (X Y : ECPub) (Z : Slice U8) : Prop :=
-  ∃ x : ECPriv, curve.PrivateKey.public_key x = .ok (.Ok X) ∧
-    curve.PrivateKey.calculate_agreement x Y = .ok (.Ok Z)
-
-/-- The oracles of the gap Diffie-Hellman game: uniform sampling and a decision oracle for
-`IsAgreement`. -/
-abbrev FullDDHOracleSpec := unifSpec + ((ECPub × ECPub × Slice U8) →ₒ Bool)
-
-/-- An adversary against gap Diffie-Hellman: from two public keys, with the decision oracle, it
-outputs a candidate agreement. -/
-def FullGapDHAdversary : Type := ECPub → ECPub → OracleComp FullDDHOracleSpec (Slice U8)
-
-open Classical in
-/-- The oracles of the gap Diffie-Hellman game. -/
-def fullDDHImpl : QueryImpl FullDDHOracleSpec ProbComp :=
-  (HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)) +
-    fun q : ECPub × ECPub × Slice U8 =>
-      (pure (decide (IsAgreement q.1 q.2.1 q.2.2)) : ProbComp Bool)
-
-open Classical in
-/-- **Gap Diffie-Hellman for the extracted X25519.** Draw two key pairs from `P.ecKeygen`; the
-adversary wins when it outputs their agreement. -/
-def fullGapDHExp (P : Params Rand Msg C IdC IdK) (A : FullGapDHAdversary) : ProbComp Bool := do
-  let a ← P.ecKeygen
-  let b ← P.ecKeygen
-  let z ← simulateQ fullDDHImpl (A a.public_key b.public_key)
-  pure (decide (curve.PrivateKey.calculate_agreement a.private_key b.public_key = .ok (.Ok z)))
-
-/-- The adversary's success probability in the gap Diffie-Hellman game. -/
-def fullGapDHAdvantage (P : Params Rand Msg C IdC IdK) (A : FullGapDHAdversary) : ℝ :=
-  (Pr[= true | fullGapDHExp P A]).toReal
-
-end DiffieHellman
-
 section Kdf
 
 /-- The label of the PQXDH key derivation, `WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`
@@ -161,23 +131,20 @@ def kdfInputBytes (d1 d2 d3 : Key) (d4 : Option Key) (ss : Key) : List U8 :=
   List.replicate 32 255#u8 ++ d1.val ++ d2.val ++ d3.val ++
     (match d4 with | some d => d.val | none => []) ++ ss.val
 
-/-- The three 32-byte keys of the RFC 5869 output of `H` on the PQXDH input layout and label: the
-root key, the chain key and the post-quantum ratchet key, as `HandshakeKeys::derive` cuts them. -/
-def kdfSpec (H : crypto.HmacSha256) (d1 d2 d3 : Key) (d4 : Option Key) (ss : Key) :
-    Key × Key × Key :=
-  let okm := crypto.hkdfSha256Okm96 H none (kdfInputBytes d1 d2 d3 d4 ss) kdfLabel
+/-- The three 32-byte keys of the RFC 5869 output of `H` on the key-derivation input `ikm` and the
+PQXDH label: the root key, the chain key and the post-quantum ratchet key, as
+`HandshakeKeys::derive` cuts them. -/
+def kdfOfBytes (H : crypto.HmacSha256) (ikm : List U8) : Key × Key × Key :=
+  let okm := crypto.hkdfSha256Okm96 H none ikm kdfLabel
   have h : okm.length = 96 := crypto.hkdfExpand96_length _ _ _
   (Aeneas.Std.Array.from (okm.take 32) (by simp [h]),
     Aeneas.Std.Array.from ((okm.drop 32).take 32) (by simp [h]),
     Aeneas.Std.Array.from (okm.drop 64) (by simp [h]))
 
-/-- The key derivation as a pseudorandom function keyed by the third Diffie-Hellman value, for the
-DH statement: the key is a public key drawn from `P.ecKeygen`, which stands for a fresh
-Diffie-Hellman output, and the input is the rest of the key material. -/
-def kdfPRFDH (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK) :
-    PRFScheme ECKeyPair (Key × Key × Option Key × Key) (Key × Key × Key) where
-  keygen := P.ecKeygen
-  eval kp q := kdfSpec H q.1 q.2.1 (pubBytes kp.public_key) q.2.2.1 q.2.2.2
+/-- The key derivation on the PQXDH input layout. -/
+def kdfSpec (H : crypto.HmacSha256) (d1 d2 d3 : Key) (d4 : Option Key) (ss : Key) :
+    Key × Key × Key :=
+  kdfOfBytes H (kdfInputBytes d1 d2 d3 d4 ss)
 
 /-- The key derivation as a pseudorandom function keyed by the Kyber secret, for the PQ
 statement: the key is a uniform 32-byte secret and the input is the Diffie-Hellman values. -/
@@ -187,6 +154,141 @@ def kdfPRF (H : crypto.HmacSha256) : PRFScheme Key (Key × Key × Key × Option 
   eval ss q := kdfSpec H q.1 q.2.1 q.2.2.1 q.2.2.2 ss
 
 end Kdf
+
+section ODH
+
+/-- A slot of a key-derivation input in the PQXDH oracle Diffie-Hellman game: a literal 32-byte
+value, or the agreement of one of the two embedded private keys `a` and `b` with a public key
+that the adversary supplies. -/
+inductive DHSlot where
+  /-- A literal value. -/
+  | lit (v : Key)
+  /-- The agreement of `a` with `Y`. -/
+  | agreeA (Y : ECPub)
+  /-- The agreement of `b` with `Y`. -/
+  | agreeB (Y : ECPub)
+
+/-- A key-derivation input with agreement slots: DH1 to DH3, an optional DH4 and the Kyber
+secret. -/
+structure KdfTemplate where
+  /-- The first Diffie-Hellman slot. -/
+  dh1 : DHSlot
+  /-- The second Diffie-Hellman slot. -/
+  dh2 : DHSlot
+  /-- The third Diffie-Hellman slot. -/
+  dh3 : DHSlot
+  /-- The optional fourth Diffie-Hellman slot. -/
+  dh4 : Option DHSlot
+  /-- The Kyber secret. -/
+  ss : Key
+
+/-- The challenge input that the adversary names: literal DH1, DH2 and Kyber secret, and an
+optional one-time prekey `Y4`. The game fills DH3 with `agree(a, B)` and DH4 with `agree(a, Y4)`. -/
+structure ODHChallenge where
+  /-- The literal first Diffie-Hellman value. -/
+  dh1 : Key
+  /-- The literal second Diffie-Hellman value. -/
+  dh2 : Key
+  /-- The one-time prekey of the fourth slot, if any. -/
+  opk : Option ECPub
+  /-- The literal Kyber secret. -/
+  ss : Key
+
+open Classical in
+/-- The 32 bytes that the extracted agreement of `sk` with `Y` returns, or `none` when it returns
+an error, a value of another length, or does not return. -/
+def agreeKey (sk : ECPriv) (Y : ECPub) : Option Key :=
+  if h : ∃ k : Key, curve.PrivateKey.calculate_agreement sk Y = .ok (.Ok k.to_slice) then
+    some (Classical.choose h)
+  else none
+
+/-- The value of a slot for the embedded key pairs `a` and `b`. -/
+def DHSlot.eval (a b : ECKeyPair) : DHSlot → Option Key
+  | .lit v => some v
+  | .agreeA Y => agreeKey a.private_key Y
+  | .agreeB Y => agreeKey b.private_key Y
+
+/-- The complete key-derivation input of a template, or `none` when one of its agreements does
+not return 32 bytes. -/
+def KdfTemplate.eval (a b : ECKeyPair) (t : KdfTemplate) : Option (List U8) := do
+  let d1 ← t.dh1.eval a b
+  let d2 ← t.dh2.eval a b
+  let d3 ← t.dh3.eval a b
+  let d4 ← match t.dh4 with
+    | none => pure none
+    | some s => some <$> s.eval a b
+  pure (kdfInputBytes d1 d2 d3 d4 t.ss)
+
+/-- The complete key-derivation input of the challenge: DH3 is `agree(a, B)` and DH4 is
+`agree(a, Y4)`. -/
+def ODHChallenge.eval (a b : ECKeyPair) (c : ODHChallenge) : Option (List U8) :=
+  KdfTemplate.eval a b
+    { dh1 := .lit c.dh1, dh2 := .lit c.dh2, dh3 := .agreeA b.public_key,
+      dh4 := c.opk.map .agreeA, ss := c.ss }
+
+/-- The oracles of the PQXDH oracle Diffie-Hellman game: uniform sampling and the key derivation
+on a template. -/
+abbrev ODHOracleSpec := unifSpec + (KdfTemplate →ₒ Option (Key × Key × Key))
+
+/-- An adversary against the PQXDH oracle Diffie-Hellman game. From the two public keys, with the
+oracles, it names a challenge; given the challenge keys, with the oracles, it outputs a bit. -/
+structure PqxdhODHAdversary where
+  /-- The adversary's state between its two stages. -/
+  State : Type
+  /-- The first stage: name the challenge. -/
+  pre : ECPub → ECPub → OracleComp ODHOracleSpec (ODHChallenge × State)
+  /-- The second stage: output a bit. -/
+  post : State → Option (Key × Key × Key) → OracleComp ODHOracleSpec Bool
+
+/-- The key-derivation oracle for the embedded key pairs `a` and `b`: it returns the derived keys
+of a template's complete input and records the input; it returns `none` when the input cannot be
+formed, and refuses (returns `none` for) the input `refused`. -/
+def odhImpl (H : crypto.HmacSha256) (a b : ECKeyPair) (refused : Option (List U8)) :
+    QueryImpl ODHOracleSpec (StateT (List (List U8)) ProbComp) :=
+  (HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)).liftTarget
+      (StateT (List (List U8)) ProbComp) +
+    fun t : KdfTemplate =>
+      (match t.eval a b with
+        | none => pure none
+        | some inp =>
+            if refused = some inp then pure none
+            else do
+              modify (inp :: ·)
+              pure (some (kdfOfBytes H inp)) :
+        StateT (List (List U8)) ProbComp (Option (Key × Key × Key)))
+
+/-- **The PQXDH oracle Diffie-Hellman game**, real (`real = true`) or random. Draw the two key
+pairs `a` and `b` from `P.ecKeygen` and give the adversary their public keys. It names a
+challenge input; if that input can be formed, it receives either the derived keys of that input
+(real) or three uniform keys (random), and otherwise `none` in both worlds. Throughout, it may ask
+for the derived keys of any template, but after the challenge the oracle refuses the challenge's
+complete input, and if an earlier query had that input the game outputs `false` in both worlds.
+Refusal is by complete input, not by point: X25519 reads only the u-coordinate of a public key,
+so another encoding of a point gives the same agreement, and DH1 is not checked for canonicality
+(`rust/protocol/src/pqxdh.rs:350-355`). -/
+def pqxdhODHExp (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK) (A : PqxdhODHAdversary)
+    (real : Bool) : ProbComp Bool := do
+  let a ← P.ecKeygen
+  let b ← P.ecKeygen
+  let ((c, st), log) ← (simulateQ (odhImpl H a b none) (A.pre a.public_key b.public_key)).run []
+  match c.eval a b with
+  | none => (simulateQ (odhImpl H a b none) (A.post st none)).run' log
+  | some inp => do
+      let key ← if real then pure (kdfOfBytes H inp) else $ᵗ (Key × Key × Key)
+      let g ← (simulateQ (odhImpl H a b (some inp)) (A.post st (some key))).run' log
+      pure (decide (inp ∉ log) && g)
+
+/-- **The PQXDH oracle Diffie-Hellman advantage**: the distance between the probabilities that
+the adversary outputs `true` in the real and in the random game. This is the mmPRF-ODH notion of
+Brendel, Fischlin, Günther and Janson (CRYPTO 2017), with oracles on both embedded keys, adapted
+to the PQXDH input layout and to X25519 encodings. They show that it holds in the random-oracle
+model under the strong Diffie-Hellman assumption, and that no standard-model proof is to be
+expected. Like every premise here, it bounds adversaries without a resource bound (#41). -/
+def pqxdhODHAdvantage (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK)
+    (A : PqxdhODHAdversary) : ℝ :=
+  |(Pr[= true | pqxdhODHExp H P A true]).toReal - (Pr[= true | pqxdhODHExp H P A false]).toReal|
+
+end ODH
 
 section Kyber
 
