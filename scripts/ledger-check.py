@@ -3,7 +3,7 @@
 
 Usage, from the repository root after `lake build`:
 
-    rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
+    rg -n -g '*.lean' '\bsorry\b|^\s*axiom\b|native_decide|set_option' \
         Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
     lake env lean scripts/Ledger.lean > closures.log
     python3 scripts/ledger-check.py closures.log admissions.log
@@ -17,6 +17,10 @@ It reads three shapes from LEDGER.md:
 - the two-column State table: the three admission counts and the Lean, Mathlib, VCVio and Aeneas
   pins, checked against the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
+The counts match whole tokens: `sorry` as a word, so that `sorryAx` in a recorded axiom list
+does not count, and `axiom` only as a declaration keyword at the start of a line, so that
+`#print axioms` in a spec summary does not count.
+
 Every declaration printed by `scripts/Ledger.lean` must be recorded, and every recorded one printed.
 """
 import json
@@ -24,6 +28,10 @@ import re
 import sys
 from pathlib import Path
 from typing import Callable
+
+
+SORRY = re.compile(r'\bsorry\b')
+TRUST = re.compile(r'^\s*axiom\b|native_decide|set_option')
 
 
 def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:
@@ -76,10 +84,12 @@ pkgs = {p['name']: p for p in json.loads((root / 'lake-manifest.json').read_text
 toolchain = (root / 'lean-toolchain').read_text().strip()
 state = dict(re.findall(r'^\| (.+?) \| (.+?) \|$', ledger, re.M))
 observed = {
-    '`sorry` under `Protocols/`': count(admissions, lambda f, t: f.startswith('Protocols/') and 'sorry' in t),
-    '`sorry` under `ProtocolsTest/`': count(admissions, lambda f, t: f.startswith('ProtocolsTest/') and 'sorry' in t),
+    '`sorry` under `Protocols/`':
+        count(admissions, lambda f, t: f.startswith('Protocols/') and SORRY.search(t) is not None),
+    '`sorry` under `ProtocolsTest/`':
+        count(admissions, lambda f, t: f.startswith('ProtocolsTest/') and SORRY.search(t) is not None),
     '`axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/`':
-        count(admissions, lambda f, t: re.search(r'axiom|native_decide|set_option', t) is not None),
+        count(admissions, lambda f, t: TRUST.search(t) is not None),
     'Lean': toolchain.split(':')[1],
     'Mathlib': f"{pkgs['mathlib']['rev'][:8]} ({pkgs['mathlib']['inputRev']})",
     'VCVio': pkgs['VCVio']['rev'][:8],
