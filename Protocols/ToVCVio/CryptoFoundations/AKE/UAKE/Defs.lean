@@ -41,6 +41,10 @@ parties always reject is perfectly correct. The experiment and `advantage` stay
 defined for every scheme and runtime, so that inadmissible examples can still be
 evaluated.
 
+`CorrectExp` is the paper's Def. 7. It counts a run with a ⊥ output as correct, so
+`CorrectExp` and `PerfectlyCorrect` do not establish honest completion. They are not
+correctness of production PQXDH.
+
 Model simplifications
 * **Rejected protocol messages:** DF'17 does not talk about what happens when a
   protocol message is rejected, but it seems necessary to model this in real
@@ -89,26 +93,15 @@ structure Scheme (m : Type → Type) (K UK TK W : Type) where
 
 /-- The UAKE correctness experiment (Def. 7). The parties' keys are sampled
   using the setup routine, then both parties are run honestly to completion.
-  The experiment returns `true` when both parties output the same key, and also
-  when either party outputs ⊥.
-
-  The second case means that this experiment does not establish honest
-  completion: a scheme whose parties always reject returns `true` with
-  probability 1. Completion is the separate statement `Scheme.HonestlyCompletes`.
-  The experiment is the paper's Def. 7. It is not correctness of production
-  PQXDH. -/
+  The protocol is correct if both (honest) parties output the same key (or
+  either party outputs ⊥). A run with a ⊥ output counts as correct; see the module note. -/
 def CorrectExp [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W) : m Bool := do
   let (uk, tk) ← proto.setup
   let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
   return decide (uOut.join = none ∨ tOut.join = none ∨ uOut.join = tOut.join)
 
-/-- True if the correctness experiment always returns `true`.
-
-  `CorrectExp` also returns `true` when either party outputs ⊥, so a scheme
-  whose parties always reject satisfies this predicate. It therefore does not
-  say that an honest run ends with a key at both parties; `Scheme.HonestlyCompletes`
-  says that, and `Scheme.Admissible` requires both. This is the paper's Def. 7.
-  It is not correctness of production PQXDH. -/
+/-- True if the correctness experiment always returns true. A scheme that always rejects
+  satisfies this; see the module note. -/
 def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
     (runtime : ProbCompRuntime m) : Prop :=
   Pr[= true | runtime.evalDist (CorrectExp proto)] = 1

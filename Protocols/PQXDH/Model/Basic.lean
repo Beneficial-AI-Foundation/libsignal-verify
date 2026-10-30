@@ -30,19 +30,17 @@ Model simplifications
   key (output by the KDF independently from the shared secret and Alice's AEAD
   key). This is then sent to Alice, who uses the `confirm` procedure to check
   that it decrypts under the same `kb` and has the correct content, and returns
-  `sk`, if so. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow, without
-  Bob's extra message. Its role assignment (Alice as the authenticated party) is an artefact
-  of the UAKE definition and carries no security claim. In both schemes, Alice's ciphertext
-  models the specification's initial ciphertext: production sends it as the first Double
-  Ratchet message under ratchet-derived keys, so this is not a correspondence with extracted
-  code. Bob's confirmation message has no production counterpart and is model-only.
+  `sk`, if so. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
+  without Bob's extra message. Its role assignment is an artefact of the UAKE
+  definition and carries no security claim. Alice's ciphertext models the
+  specification's initial ciphertext. Production sends it as the first Double Ratchet
+  message under ratchet-derived keys, so it does not correspond to extracted code.
+  Bob's confirmation message is model-only.
 * **No key reuse between DH and SignatureAlg:** We assume that Bob's identity key
   contains separate keys for DH exchange and signing. This matches the "no key
   reuse" simplification mentioned in Sec. 4 of the spec that other formal
-  analyses required. Production uses one identity key for both the DH exchange and the
-  signature. The separate keys are therefore a modelling choice and a deviation from the
-  implementation, and results proved with separate keys do not transfer to production
-  without a separate argument.
+  analyses required. Production uses one identity key for both, so the separate keys
+  are a modelling choice and a deviation from production.
 * **Separate AEAD key:** The PQXDH spec uses the same KDF output for both
   Alice's AEAD key and the final result of the key exchange, but this seems to
   preclude key indistinguishability. This is because the adversary can try

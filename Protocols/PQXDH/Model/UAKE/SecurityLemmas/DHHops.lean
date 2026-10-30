@@ -15,6 +15,11 @@ Hops 5 and 6 of the DH security theorem `Protocols.PQXDH.uakeInitiator_secure_dh
 `Security.lean`: the forgery and indistinguishability cores, against GapDH,
 the KDF, and the AEAD. See `SecurityLemmas.lean` for the overall map.
 
+The hop lemmas assume `hidKEM`, which does not hold for production: production key
+identifiers are 32-bit prekey ids, and no map from KEM public keys to them is injective.
+The premise stays until hop 5 is restated. Issue #35 reports the underlying problem:
+unsigned key identifiers break transcript matching.
+
 These statements are believed true in the current model (the KDF as a plain
 parameter function, plus a PRF hypothesis), but the standard reductions
 require the KDF to be a programmable random oracle, so their proofs are
@@ -74,12 +79,7 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   Used by `uakeInitiator_secure_dh` as hop 5. A proof would follow the steps above once the KDF
   model is ruled, but the last step does not hold as stated, since unsigned bundle fields (the
   key identifiers and the one-time pre-key) can change without changing the derived keys, so the
-  transcripts differ with no forgery.
-
-  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
-  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
-  removed with the restatement of this hop. Issue #35 reports the underlying problem:
-  unsigned key identifiers break transcript matching. -/
+  transcripts differ with no forgery. Assumes `hidKEM`; see the module note. -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)
@@ -127,12 +127,7 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
      `1 / 2`.
 
   Used by `uakeInitiator_secure_dh` as hop 6. A proof would follow the steps above once the KDF
-  model is ruled.
-
-  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
-  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
-  removed with the restatement of this hop. Issue #35 reports the underlying problem:
-  unsigned key identifiers break transcript matching. -/
+  model is ruled. Assumes `hidKEM`; see the module note. -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)
