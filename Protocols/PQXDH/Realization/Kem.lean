@@ -18,9 +18,9 @@ bounds this failure for the extracted Kyber operations. This file defines that b
 `kyberKem P` packages the extracted `kem::Key<Public>::encapsulate` and
 `kem::Key<Secret>::decapsulate` as a VCVio `KEMScheme` in `RustOracleComp unifSpec`. It shares
 with the Full scheme the key generator `P.pqKeygen`, the law `P.coins` of the generator state
-and the runtime `rustRuntime`. Nothing is replaced by a default value. A protocol error is a
-value: the shared secret and the ciphertext are the `Result`s that the extracted calls return,
-and decapsulating an encapsulation error returns no key. Hence the experiment
+and the runtime `rustRuntime`. The KEM uses no default value. A protocol error is a value: the
+shared secret and the ciphertext are the `Result`s that the extracted calls return, and
+decapsulating an encapsulation error returns no key. Hence the experiment
 `KEMScheme.CorrectExp` returns `true` only when encapsulation returned a ciphertext and a secret
 and decapsulation of that ciphertext returned the same secret (`kyberKem_correctExp_sound`). A
 fault in either call is missing mass, which `KEMScheme.correctnessError` counts as error.
@@ -30,7 +30,7 @@ named hypothesis of the correctness statements, not a fact proved here, and `δ`
 Production calls libcrux's pre-standard Kyber-1024 (`libcrux_ml_kem::kyber1024`,
 `rust/protocol/src/kem/kyber1024.rs:6-7`), not ML-KEM-1024. Discharging the hypothesis needs a
 model of that backend, a correspondence between the model and the source, and the published
-correctness analysis of Kyber; a model of ML-KEM would need its own relation to the pre-standard
+correctness analysis of Kyber. A model of ML-KEM would need its own relation to the pre-standard
 variant.
 -/
 
@@ -53,9 +53,9 @@ noncomputable instance : DecidableEq KemSecret := Classical.decEq _
 variable {Rand Msg C IdC IdK : Type}
 
 /-- The extracted Kyber operations as a KEM in `RustOracleComp unifSpec`. Key generation is the
-ideal generator `P.pqKeygen`; encapsulation draws the generator state from `P.coins` and runs
-the extracted `encapsulate`; decapsulation runs the extracted `decapsulate`, and returns no key
-on a ciphertext that is itself an error. -/
+ideal generator `P.pqKeygen`. Encapsulation draws the generator state from `P.coins` and runs the
+extracted `encapsulate`. Decapsulation runs the extracted `decapsulate`, and it returns no key on
+a ciphertext that is itself an error. -/
 noncomputable def kyberKem (P : Params Rand Msg C IdC IdK) :
     KEMScheme (RustOracleComp unifSpec) KemSecret PQPub PQPriv KemCiphertext where
   keygen := do
@@ -74,11 +74,10 @@ noncomputable def kyberKem (P : Params Rand Msg C IdC IdK) :
         pure (some res)
     | .Err _ => pure none
 
-/-- **No error counts as success.** If the correctness experiment of `kyberKem P` can return
-`true`, then some key pair from `P.pqKeygen` and some state from `P.coins` make the extracted
-encapsulation return a secret `ss` and a ciphertext `ct`, and the extracted decapsulation of `ct`
-return the same `ss`. In particular no protocol error and no fault is ever counted as a correct
-run. -/
+/-- If the correctness experiment of `kyberKem P` can return `true`, then some key pair from
+`P.pqKeygen` and some state from `P.coins` make the extracted encapsulation return a secret `ss`
+and a ciphertext `ct`, and the extracted decapsulation of `ct` return the same `ss`. In
+particular, the experiment never counts a protocol error or a fault as a correct run. -/
 theorem kyberKem_correctExp_sound (P : Params Rand Msg C IdC IdK)
     (h : true ∈ support (kyberKem P).CorrectExp) :
     ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ (ss ct : Slice U8) (r' : Rand),
@@ -103,10 +102,10 @@ theorem kyberKem_correctExp_sound (P : Params Rand Msg C IdC IdK)
     obtain ⟨rfl, rfl⟩ := hmid
     simp at hdec
 
-/-- **`δ`-correctness of the extracted Kyber operations.** The correctness error of `kyberKem P`
-under `rustRuntime` is at most `δ`: the probability that a key pair from `P.pqKeygen`, an
-encapsulation on a state from `P.coins` and the decapsulation of its ciphertext fail to produce
-the same secret, counting faults and protocol errors as failures, is at most `δ`. -/
+/-- `δ`-correctness of the extracted Kyber operations: the correctness error of `kyberKem P`
+under `rustRuntime` is at most `δ`. That is, the probability that a key pair from `P.pqKeygen`,
+an encapsulation on a state from `P.coins` and the decapsulation of its ciphertext fail to
+produce the same secret, counting faults and protocol errors as failures, is at most `δ`. -/
 def KyberDeltaCorrect (P : Params Rand Msg C IdC IdK) (δ : ℝ≥0∞) : Prop :=
   (kyberKem P).deltaCorrect rustRuntime δ
 

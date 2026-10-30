@@ -18,7 +18,7 @@ Each protocol gets one folder under `Protocols/`, named after the protocol, hold
 | `Protocols/PQXDH/` | the model at libsignal's primitives and the results on the extracted code |
 | `Protocols/PQXDH/Realization/` | the Full realization: the UAKE scheme on the extracted entry points, its contracts, and its correctness and security statements |
 | `Protocols/Realization/` | semantics shared by realizations: extracted code as an oracle computation that may fault |
-| `Protocols/Specs/` | spec summaries: `recall` restatements and axiom checks that freeze the headline statements |
+| `Protocols/Specs/` | spec summaries: `recall` restatements and dependency checks that freeze the headline statements |
 | `Protocols/ToVCVio/` | definitions and lemmas staged for VCVio |
 | `Protocols/ToMathlib.lean` | lemmas staged for Mathlib |
 | `ProtocolsTest/` | fixtures and tests for the `Protocols` library, built by default but not part of it |

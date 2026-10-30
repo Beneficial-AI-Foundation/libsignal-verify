@@ -78,13 +78,13 @@ derived keys.
 
 ## Full realization closures
 
-The correctness and security statements of the Full realization, in `Protocols/PQXDH/Realization/`, and the
-fault fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean`. Their statements are frozen, with
-these closures, by `Protocols/Specs/PQXDH/Realization.lean` and by the checks at the end of the fixture file.
-The closures list the opaque leaves that the definitions of the Full scheme mention; what each statement
-assumes about them is the explicit contract premises listed under "Contracts" below. The `sorryAx` comes
-from the stubs listed under "Security placeholders" and "Temporary stubs". The fixtures are proved and depend
-on no `sorryAx`.
+This table covers the correctness and security statements of the Full realization, in
+`Protocols/PQXDH/Realization/`, and the fault fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean`.
+`Protocols/Specs/PQXDH/Realization.lean` and the checks at the end of the fixture file freeze their statements
+with these closures. The closures list the opaque leaves that the definitions of the Full scheme mention. The
+contract premises, listed under "Contracts, policies and modelling choices" below, say what each statement
+assumes about them. The `sorryAx` comes from the stubs listed under "Security placeholders" and "Temporary
+stubs". The fixtures are proved and depend on no `sorryAx`.
 
 | Declaration | File | Axioms |
 | --- | --- | --- |
@@ -114,8 +114,8 @@ in the statements themselves, inherited from PQXDH-model, carry the label `defer
 
 ## Security placeholders
 
-Statements of the Full realization whose proofs belong to the security milestone. They are stubs by design,
-outside the count of admitted hops above. All are in `Protocols/PQXDH/Realization/Security.lean`.
+The proofs of these statements of the Full realization belong to the security milestone. They are stubs by
+design and are not among the admitted hops above. All are in `Protocols/PQXDH/Realization/Security.lean`.
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
@@ -128,8 +128,8 @@ need no stub of their own.
 
 ## Temporary stubs
 
-Statements to be proved before the security statements. They are stubs only until their proofs land and are
-not placeholders.
+These statements are to be proved before the security statements. Their stubs are temporary, unlike the
+placeholders above.
 
 | Statement | File | Content | Status |
 | --- | --- | --- | --- |
@@ -142,10 +142,11 @@ not placeholders.
 
 ## Contracts, policies and modelling choices of the Full realization
 
-Hypotheses of the Full statements, each a named proposition, never an axiom. A contract describes an opaque
-leaf of the extraction and is trusted; a policy describes what the calling application supplies; a modelling
-choice describes something outside the extracted code. The contracts are in
-`Protocols/PQXDH/Realization/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
+These are the hypotheses of the Full statements. Each is a named proposition, never a declaration without a
+body. A contract describes an opaque leaf of the extraction, and it
+is trusted. A policy describes what the calling application supplies. A modelling choice describes something
+outside the extracted code. The contracts are in `Protocols/PQXDH/Realization/Contracts.lean`, with
+fault-or-value forms in `PartialContracts`.
 
 | Item | Kind | Describes | Planned discharge |
 | --- | --- | --- | --- |
@@ -174,9 +175,9 @@ rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' Protocols Protocols.lea
 lake env lean scripts/Ledger.lean
 ```
 
-The first command lists the admissions, the second prints the endpoint, Realization and Full realization
-closures. The first command only selects candidate lines; `scripts/ledger-check.py` counts an admission on a
-listed line when the line's executable text, with the comments of its file blanked, contains `sorry` or
-`sorryAx` as a word, `axiom` as a declaration keyword (after optional attributes and modifiers), or
-`native_decide` or `set_option`. An explicit `sorryAx` term counts; the `sorryAx` in an axiom list recorded by
-`#guard_msgs`, which is a doc comment, and the `#print axioms` commands of the spec summaries do not.
+The first command lists the candidate lines for admissions, and the second prints the endpoint, Realization
+and Full realization closures. `scripts/ledger-check.py` counts an admission on a listed line when the line's
+executable text, with the comments of its file blanked, contains `sorry` or `sorryAx` as a word, `axiom` as a
+declaration keyword (after optional attributes and modifiers), or `native_decide` or `set_option`. So an
+explicit `sorryAx` term counts. The `sorryAx` in an axiom list that `#guard_msgs` records in a doc comment
+does not count, and neither do the `#print axioms` commands of the spec summaries.

@@ -16,22 +16,22 @@ generic in its generator. The four distributions are modelling choices, each wit
 row:
 
 * `coins` is the law of the caller's generator state at the start of a session. A session draws
-  it once (one ideal draw per session); production's generator is long-lived, and the
-  correlation between its sessions is left to the implementation milestone.
+  it once, an ideal draw per session. Production's generator is long-lived, and the correlation
+  between its sessions is left to the implementation milestone.
 * `ecKeygen` and `pqKeygen` are the ideal key generators. Every key pair of the realization,
-  including Alice's ephemeral key, is drawn from them, never from the caller's generator state,
-  whereas production calls `KeyPair::generate` on that state (`rust/protocol/src/session.rs:239`).
-  Their laws are not identified with production's: the relation between `ecKeygen` and the
-  clamped generation of `rust/core/src/curve/curve25519.rs:27-37`, and between either generator
-  and the abstract model's uniform exponent, is an open obligation.
-* `aead` is the synthetic AEAD of the UAKE wrapper; production has no counterpart.
+  Alice's ephemeral key included, comes from them and never from the caller's generator state.
+  Production calls `KeyPair::generate` on that state (`rust/protocol/src/session.rs:239`).
+  Nothing relates their laws to production's. Two relations are open obligations: `ecKeygen`
+  against the clamped generation of `rust/core/src/curve/curve25519.rs:27-37`, and either
+  generator against the abstract model's uniform exponent.
+* `aead` is the synthetic AEAD of the UAKE wrapper. Production has no counterpart.
 
 The file also provides uniform sampling of bytes and byte arrays, which the AEAD and UAKE
 definitions need for 32-byte keys, following PQXDH-model (`PQXDH/Aeneas/Full/UAKE/Defs.lean:52-64`).
 
 `EntryPoints` packages the two entry points of the handshake. `EntryPoints.extracted` is the
-extracted `pqxdh_initiate` and `pqxdh_accept`; every definition of the realization is generic in
-the entry points so that the fault fixtures can substitute entry points that always panic, always
+extracted `pqxdh_initiate` and `pqxdh_accept`. Every definition of the realization is generic in
+the entry points, so the fault fixtures can substitute entry points that always panic, always
 return an error or never terminate.
 -/
 

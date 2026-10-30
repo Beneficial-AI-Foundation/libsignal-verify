@@ -11,21 +11,21 @@ import VCVio.CryptoFoundations.KeyEncapMech
 # Quantitative KEM correctness
 
 The correctness experiment `KEMScheme.CorrectExp` generates a key pair, encapsulates to the public
-key and decapsulates the ciphertext with the secret key; it returns `true` when decapsulation
+key and decapsulates the ciphertext with the secret key. It returns `true` when decapsulation
 recovers the encapsulated key. The **correctness error** of a KEM under a runtime is the missing
 success mass of this experiment,
 
 `ε = 1 - Pr[CorrectExp = true]`,
 
-and the KEM is **`δ`-correct** when `ε ≤ δ`. Defining the error as missing success mass, rather
-than as the probability of the output `false`, also counts the mass of executions that return no
-Boolean at all, such as a computation that panics or does not terminate. Consequently `ε = 0` is
-exactly VCVio's `KEMScheme.PerfectlyCorrect`, even for a runtime whose output distribution has
-total mass below one (`correctnessError_eq_zero_iff_perfectlyCorrect`).
+and the KEM is **`δ`-correct** when `ε ≤ δ`. Because the error is missing success mass and not
+the probability of the output `false`, it also counts executions that return no Boolean, such as
+a computation that panics or does not terminate. So `ε = 0` is exactly VCVio's
+`KEMScheme.PerfectlyCorrect`, even for a runtime whose output distribution has total mass below
+one (`correctnessError_eq_zero_iff_perfectlyCorrect`).
 
-**Source**: `ToVCVio/CryptoFoundations/KeyEncapMech.lean` of secure-messaging at `8369ee7`, the
-declarations `correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect` and
-`deltaCorrect`, restated for the subprobability API of the pinned VCVio.
+The declarations `correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect` and
+`deltaCorrect` come from `ToVCVio/CryptoFoundations/KeyEncapMech.lean` of secure-messaging at
+`8369ee7`. This file restates them for the subprobability API of the pinned VCVio.
 -/
 
 open OracleSpec OracleComp ENNReal

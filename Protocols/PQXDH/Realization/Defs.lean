@@ -18,12 +18,13 @@ projections of the three derived keys.
 The file also defines the joint output of the handshake that the Full realization keeps in both
 parties' states. `JointKeys` records all of what `pqxdh_initiate` and `pqxdh_accept` derive: the
 root key, the chain key with its index, and the post-quantum ratchet key. The UAKE game reads only
-the root key; the rest is kept so that the correctness statements can compare the whole record.
+the root key. The states keep the rest so that the correctness statements can compare the whole
+record.
 `AeadRoleKeys` names the two keys that the synthetic AEAD wrapper of the Full realization uses.
 
-Two predicates state what honest key generation is assumed to produce. `ECKeyPairValid` says
-that a curve25519 key pair's public half is the one derived from its private half; it does not
-say that the private bytes are clamped or how they are distributed. `PQKeyPairShape` says that a
+Two predicates describe the key pairs that honest key generation must produce. `ECKeyPairValid`
+says that a curve25519 key pair's public half is the one derived from its private half. It does
+not say that the private bytes are clamped or how they are distributed. `PQKeyPairShape` says that a
 Kyber key pair has the Kyber1024 type and the Kyber1024 byte lengths.
 
 **Source**: `PQXDH/Aeneas/Full/UAKE/Defs.lean` of libsignal-docs-and-models, the declarations of
@@ -60,8 +61,8 @@ def pqrKeyBytes (hk : HandshakeKeys) : Key := hk.pqr_key
 /-- An extracted curve25519 private key. -/
 abbrev ECPriv : Type := libsignal_core.curve.PrivateKey
 
-/-- An extracted curve25519 key pair. A plain structure: nothing relates its two halves; see
-`ECKeyPairValid`. -/
+/-- An extracted curve25519 key pair. Nothing in the structure relates its two halves (see
+`ECKeyPairValid`). -/
 abbrev ECKeyPair : Type := libsignal_core.curve.KeyPair
 
 /-- An extracted identity public key, a wrapped curve25519 public key. -/
@@ -92,7 +93,7 @@ structure JointKeys where
   root : Key
   /-- The chain key, bytes 32 to 63 of the derivation. -/
   chain : Key
-  /-- The index of the chain key; the derivation sets it to `0`. -/
+  /-- The index of the chain key, which the derivation sets to `0`. -/
   chainIndex : Aeneas.Std.U32
   /-- The post-quantum ratchet key, bytes 64 to 95 of the derivation. -/
   pqr : Key
@@ -116,8 +117,8 @@ structure AeadRoleKeys where
 
 /-- The role assignment of the synthetic wrapper, a modelling choice taken from PQXDH-model:
 Alice's ciphertext uses the chain key and Bob's confirmation the post-quantum ratchet key.
-Production uses neither key for these purposes; the chain key at index `0` keys no message on
-the honest path. -/
+Production uses neither key for these purposes. On the honest path, the chain key at index `0`
+keys no message. -/
 def syntheticAeadRoles (j : JointKeys) : AeadRoleKeys where
   alice := j.chain
   bob := j.pqr

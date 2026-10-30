@@ -10,9 +10,9 @@ import Protocols.PQXDH.Realization.Correctness
 
 The correctness statements of `Protocols.PQXDH.Realization` say that certain success events have
 probability `1`, or at least `1 - δ`. A success event that a broken implementation also satisfies
-would make such a statement vacuous. PQXDH-model's correctness experiment had this defect: it
-counted a run in which either party output nothing as correct, so a realization that always
-failed was perfectly correct.
+would make such a statement vacuous. PQXDH-model's correctness experiment has this defect. It
+counts a run in which either party outputs nothing as correct, so a realization that always fails
+is perfectly correct.
 
 These fixtures replace the extracted entry points by three broken ones:
 
@@ -24,9 +24,9 @@ For each of them, every success event of `Correctness.lean` has probability `0`:
 completion, joint key-record agreement, and wrapper agreement in both UAKE schemes. Hence each
 broken realization fails core completion, and fails the other statements for every `δ < 1`. The
 argument needs only that the initiator's entry point never returns an agreement
-(`EntryPoints.NeverAgrees`): then Alice never leaves her initial state, outputs no key, and no
-success event can occur. No contract is assumed, and every fixture is proved; the `#guard_msgs`
-checks at the end record that their axioms include no `sorryAx`.
+(`EntryPoints.NeverAgrees`). Then Alice never leaves her initial state and outputs no key, so no
+success event can occur. The fixtures assume no contract, and every fixture is proved. The
+`#guard_msgs` checks at the end record that no fixture depends on a stub.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal
@@ -414,7 +414,7 @@ theorem fails_of_neverAgrees {E : EntryPoints Rand} (hE : E.NeverAgrees) {δ : �
   · rw [agreementExp_uakeRecipient_eq_zero P msg hasOPK hE]
     exact not_one_sub_le_zero hδ
 
-/-- **Always-panic fixture.** Entry points that always panic fail every correctness statement,
+/-- The always-panic fixture: entry points that always panic fail every correctness statement,
 for every `δ < 1`. -/
 theorem alwaysPanic_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
     Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysPanic hasOPK)] ≠ 1 ∧
@@ -425,7 +425,7 @@ theorem alwaysPanic_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
         (agreementExp (uakeRecipient P EntryPoints.alwaysPanic msg hasOPK))] :=
   fails_of_neverAgrees P msg hasOPK EntryPoints.alwaysPanic_neverAgrees hδ
 
-/-- **Always-error fixture.** Entry points that always return the protocol error `e` fail every
+/-- The always-error fixture: entry points that always return the protocol error `e` fail every
 correctness statement, for every `δ < 1`. -/
 theorem alwaysError_fails (e : error.SignalProtocolError) {δ : ℝ≥0∞} (hδ : δ < 1) :
     Pr[= true | rustRuntime.evalDist (coreCompletionExp P (EntryPoints.alwaysError e) hasOPK)] ≠
@@ -438,7 +438,7 @@ theorem alwaysError_fails (e : error.SignalProtocolError) {δ : ℝ≥0∞} (hδ
         (agreementExp (uakeRecipient P (EntryPoints.alwaysError e) msg hasOPK))] :=
   fails_of_neverAgrees P msg hasOPK (EntryPoints.alwaysError_neverAgrees e) hδ
 
-/-- **Always-diverge fixture.** Entry points that never terminate fail every correctness
+/-- The always-diverge fixture: entry points that never terminate fail every correctness
 statement, for every `δ < 1`. -/
 theorem alwaysDiverge_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
     Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysDiverge hasOPK)] ≠
@@ -455,10 +455,10 @@ end Fixtures
 
 end Protocols.PQXDH.Realization
 
-/-! ## Axioms of the fixtures
+/-! ## Dependencies of the fixtures
 
-No fixture depends on `sorryAx`. The remaining constants are opaque leaves of the extraction that
-the definitions of the wrapper mention; the fixtures assume nothing about them. -/
+No fixture depends on a stub. The other constants are opaque leaves of the extraction that the
+definitions of the wrapper mention. The fixtures assume nothing about them. -/
 
 /--
 info: 'Protocols.PQXDH.Realization.alwaysPanic_fails' depends on axioms:

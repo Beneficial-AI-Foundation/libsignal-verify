@@ -11,29 +11,29 @@ import Protocols.PQXDH.Realization.Security
 # Spec summary: the Full realization of PQXDH
 
 This file freezes the headline statements of the Full realization. Each theorem is restated with
-`recall`, which checks that the restatement is definitionally equal to the declared statement,
-and each theorem and central definition has a `#guard_msgs` check on its axioms. The build fails
-if a statement or its trust changes. A reader can check the statements here, together with the
-definitions they mention, without reading the proofs.
+`recall`, which checks that the restatement is definitionally equal to the declared statement.
+Each theorem and central definition also has a `#guard_msgs` check on the constants it depends
+on. The build fails if a statement or its trust changes. A reader can check the statements here,
+together with the definitions they mention, without reading the proofs.
 
-The axioms of a statement list the opaque leaves of the extracted code that its definitions
-mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision axiom that the
-extraction of `pqxdh_accept` introduces, and `sorryAx` when the proof, or a proof it uses, is a
-stub. The stubs are of two kinds: temporary stubs of the correctness statements and their
-supporting lemmas, to be proved first, and the security statements and
-`fullExp_noLostMass`, which are placeholders for the security milestone. `Protocols/LEDGER.md`
-lists both kinds apart from the admitted hops of the abstract model.
+The dependencies of a statement are the opaque leaves of the extracted code that its definitions
+mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision constant that
+the extraction of `pqxdh_accept` introduces, and the stub marker when the proof, or a proof it
+uses, is a stub. The stubs are of two kinds. Temporary stubs of the correctness statements and
+their supporting lemmas are to be proved first. The security statements and `fullExp_noLostMass`
+are placeholders for the security milestone. `Protocols/LEDGER.md` lists both kinds apart from the
+admitted hops of the abstract model.
 
 The fault fixtures, which show that the correctness statements are not vacuous, are in
-`ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` and carry their own axiom checks.
+`ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` and carry their own dependency checks.
 -/
 
 open Protocols.PQXDH.Realization Protocols.Realization
 
 /-! ## Security -/
 
-/-! Each headline bound carries its fault term `Pr[⊥]`. The bound without
-that term is recalled below it, with the totality premises it adds. -/
+/-! Each headline bound carries its fault term `Pr[⊥]`. Below it, the file recalls the bound
+without that term, with the totality premises that it adds. -/
 
 recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]

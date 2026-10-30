@@ -13,13 +13,13 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Runtime
 
 The extraction translates a Rust function into a computation in Aeneas's `Result` monad. Such a
 computation either returns a value, panics with an Aeneas error (an arithmetic overflow, an
-out-of-bounds index, a failed `expect`, …), or does not terminate. A protocol model, on the other
-hand, is an oracle computation in VCVio: a program that may sample randomness and whose output is
-read as a probability distribution. This file connects the two.
+out-of-bounds index, a failed `expect`, …), or does not terminate. A protocol model is an oracle
+computation in VCVio: a program that can sample randomness, with its output read as a probability
+distribution. This file connects the two.
 
 `RustOracleComp O α` is `ExceptT Fault (OracleComp O) α`: an oracle computation for the oracle
-specification `O` that may in addition stop with a `Fault`, either a panic carrying its Aeneas
-error or divergence. `liftResult` sends a `Result` computation into it: a returned value becomes
+specification `O` that can also stop with a `Fault`, either a panic carrying its Aeneas error or
+divergence. `liftResult` sends a `Result` computation into it: a returned value becomes
 `pure`, a panic becomes `throw (.panic e)` and divergence becomes `throw .divergence`.
 
 A fault is not a protocol outcome. A Rust function that reports a protocol error returns it as an
@@ -129,16 +129,16 @@ theorem mem_support_liftResult (x : Result α) (a : α) :
     rw [liftResult_div, RustOracleComp.div, ExceptT.mem_support_iff]
     simp [throw, throwThe, MonadExceptOf.throw, ExceptT.mk, ExceptT.run]
 
-/-- The runtime for `RustOracleComp unifSpec`: computations are observed through their native
-distribution, in which every fault is missing mass, and public randomness is lifted from
+/-- The runtime for `RustOracleComp unifSpec`. It reads a computation through its native
+distribution, in which every fault is missing mass, and it lifts public randomness from
 `ProbComp` without faults. -/
 noncomputable def rustRuntime : ProbCompRuntime (RustOracleComp unifSpec) where
   toSPMFSemantics := SPMFSemantics.ofMonadLift _
   toProbCompLift := ProbCompLift.ofMonadLift _
 
-/-- `rustRuntime` is coherent: it observes every computation through the native distribution of
-`RustOracleComp unifSpec`, lifting public randomness leaves its distribution unchanged, and every
-output of positive probability is a possible output. -/
+/-- `rustRuntime` is coherent. It reads every computation through the native distribution of
+`RustOracleComp unifSpec`, a lift of public randomness keeps its distribution, and every output of
+positive probability is a possible output. -/
 theorem rustRuntime_coherent : AKE.UAKE.RuntimeCoherent rustRuntime where
   lawful := inferInstance
   evalDist_eq _ := rfl
@@ -147,14 +147,14 @@ theorem rustRuntime_coherent : AKE.UAKE.RuntimeCoherent rustRuntime where
     exact SPMF.ext (ExceptT.probOutput_liftM mx)
   support_evalDist_subset mx := (support_eq_SPMF_support mx).symm.subset
 
-/-- **Fault erasure, outputs.** The runtime gives an output `a` the probability that the
-underlying computation returns `a` without a fault. -/
+/-- Fault erasure for outputs: the runtime gives an output `a` the probability that the
+computation returns `a` without a fault. -/
 theorem probOutput_rustRuntime (mx : RustOracleComp unifSpec α) (a : α) :
     Pr[= a | rustRuntime.evalDist mx] = Pr[= Except.ok a | mx.run] :=
   ExceptT.probOutput_eq mx a
 
-/-- **Fault erasure, missing mass.** The probability that the runtime returns no value is exactly
-the probability of a fault; nothing else is lost. -/
+/-- Fault erasure for missing mass: the probability that the runtime returns no value is the
+probability of a fault. No other mass is lost. -/
 theorem probFailure_rustRuntime (mx : RustOracleComp unifSpec α) :
     Pr[⊥ | rustRuntime.evalDist mx] = Pr[fun r => r.toBool = false | mx.run] := by
   change Pr[⊥ | mx] = _

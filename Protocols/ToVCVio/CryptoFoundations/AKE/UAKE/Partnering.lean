@@ -28,7 +28,7 @@ the state of a session of T, and records when each session accepted.
 The adversary's only exposure query is `revealT`, which returns the key of a completed session of
 T. There is no corruption of long-term keys and no reveal of session state, and the challenge key
 is given only as the challenge. The oracle implementation, the challenge phase and the
-environment are those of `AKE.UAKE.Exp`, unchanged; only the two decisions above differ.
+environment are those of `AKE.UAKE.Exp`. Only the two decisions above differ.
 `partneredAdvantage` is the guess-form advantage of this experiment.
 -/
 
@@ -64,8 +64,8 @@ def revealedPartnered (π : Partnering proto) (cState : proto.U.State)
   ∃ t ∈ ts, t.revealed = true ∧ π.partner cState t.state
 
 open Classical in
-/-- The key-distinguishing stage over a partnering relation: as `finalize`, except that the guess
-is replaced by a coin flip when a revealed session of T is a partner of the challenge. -/
+/-- The key-distinguishing stage over a partnering relation: as `finalize`, except that a coin
+flip replaces the guess when a revealed session of T is a partner of the challenge. -/
 noncomputable def finalizePartnered [Monad m] (lift : ProbCompLift m) (π : Partnering proto)
     (A : Adversary proto) (st : A.State × Env proto × TK) (cr : ChallengeResult proto)
     (b : Bool) (K1 : Option K) : m Bool := do
@@ -78,7 +78,7 @@ noncomputable def finalizePartnered [Monad m] (lift : ProbCompLift m) (π : Part
   else pure (b' == b)
 
 open Classical in
-/-- **The UAKE experiment over a partnering relation.**
+/-- The UAKE experiment over a partnering relation:
 1. Run setup, and choose the challenge bit `b`.
 2. Run the adversary's challenge stage, with sessions of T and the challenge session.
 3. If the challenge did not accept, run the key-distinguishing stage with no key.
@@ -97,8 +97,8 @@ noncomputable def PartneredExp [SampleableType K] [Monad m] (lift : ProbCompLift
     let K1 ← some <$> lift.liftProbComp ($ᵗ K)
     finalizePartnered lift π A st cr b K1
 
-/-- **Opening budget per phase.** The adversary opens at most `q` sessions of T in its challenge
-stage and at most `q` in its key-distinguishing stage, so at most `2q` in all. -/
+/-- The adversary opens at most `q` sessions of T in its challenge stage and at most `q` in its
+key-distinguishing stage, so at most `2q` in all. -/
 def Adversary.OpensAtMostPerPhase (A : Adversary proto) (q : ℕ) : Prop :=
   (∀ uk w, (A.challenge uk w).IsQueryBoundP (· matches Sum.inr .openT) q) ∧
     (∀ st k, (A.post st k).IsQueryBoundP (· matches Sum.inr .openT) q)

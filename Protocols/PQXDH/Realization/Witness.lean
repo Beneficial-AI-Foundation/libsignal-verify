@@ -13,14 +13,14 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 Two sessions of PQXDH are **partners** when they agree on the associated data and on the
 **original key material** `km`: the exact input of the key derivation, made of 32 bytes of `0xFF`,
 the Diffie-Hellman outputs DH1 to DH4 and the Kyber shared secret. Equal inputs give equal keys,
-since the derivation is a function; distinct inputs that happen to give equal keys do not make
+since the derivation is a function. Distinct inputs that happen to give equal keys do not make
 partners. The guarantee that partnering expresses is "the peer accepted the same original key
 material under the same associated data". It does not authenticate the identifiers or the bytes of
 an unsigned one-time prekey that the initiator's message carries.
 
 The extracted entry points return only the derived keys, not `km`. The realization therefore
-records, in each completed state, the exact inputs of its entry-point call, and the session's `km`
-is given by a specification of that call:
+records, in each completed state, the exact inputs of its entry-point call, and a specification
+of that call gives the session's `km`:
 
 * `InitiateKdfInput crng ip r km` holds when the leaf calls that `pqxdh_initiate` makes on the
   inputs `ip` and the generator state `r` (three or four agreements and one encapsulation) return
@@ -28,10 +28,10 @@ is given by a specification of that call:
 * `AcceptKdfInput rp km` is the same for `pqxdh_accept`, with its agreements and its
   decapsulation.
 
-These are statements about the same invocation, not a recomputation in the protocol: the leaf
-functions are deterministic, so `km` is determined by the call's inputs. The theorems
+These are statements about the same invocation, not a recomputation in the protocol. The leaf
+functions are deterministic, so the call's inputs determine `km`. The theorems
 `initiate_kdfInput_witness` and `accept_kdfInput_witness` state that a successful call derives its
-keys from that `km`. Their proofs are deferred to the specification of the entry points.
+keys from that `km`. Their proofs wait for the specification of the entry points.
 
 `fullPartnering` is the resulting partnering relation of `uakeInitiator`. The session identifier
 `(ad, km)` exists only for completed states, so it is fixed when a session accepts.
@@ -45,7 +45,7 @@ namespace Protocols.PQXDH.Realization
 
 variable {Rand Msg C IdC IdK : Type}
 
-/-- **The original key material of an initiator call.** On the inputs `ip` and the generator
+/-- The original key material of an initiator call. On the inputs `ip` and the generator
 state `r`, the agreements of Alice's identity key with Bob's signed prekey, of her ephemeral key
 with Bob's identity key and signed prekey, and with his one-time prekey when there is one, return
 `d1`, `d2`, `d3` and `d4`; the encapsulation to Bob's Kyber prekey returns the shared secret `ss`;
@@ -67,7 +67,7 @@ def InitiateKdfInput (crng : rand_core_1.CryptoRng Rand) (ip : pqxdh.InitiatorPa
       kem.KeyPublic.encapsulate crng ip.their_kyber_pre_key r = .ok (.Ok (ss, ct), r') ∧
       kdfInput d1 d2 d3 d4 ss = .ok km
 
-/-- **The original key material of a responder call.** On the inputs `rp`, the agreements of
+/-- The original key material of a responder call. On the inputs `rp`, the agreements of
 Bob's signed prekey with Alice's identity key, of his identity key with her ephemeral key, of his
 signed prekey with her ephemeral key, and of his one-time prekey with her ephemeral key when he
 uses one, return `d1`, `d2`, `d3` and `d4`; decapsulating Alice's ciphertext returns `ss`; and
@@ -88,18 +88,18 @@ def AcceptKdfInput (rp : pqxdh.RecipientParameters) (km : Slice U8) : Prop :=
         rp.their_kyber_ciphertext = .ok (.Ok ss) ∧
       kdfInput d1 d2 d3 d4 ss = .ok km
 
-/-- **Same-invocation witness, initiator.** If `pqxdh_initiate` succeeds on `ip` and `r`, its
-keys are the derivation of the original key material of that call. Stub: the proof is deferred to
-the specification of the entry points. -/
+/-- The same-invocation witness for the initiator: if `pqxdh_initiate` succeeds on `ip` and `r`,
+its keys are the derivation of the original key material of that call. The proof is a stub that
+waits for the specification of the entry points. -/
 theorem initiate_kdfInput_witness (crng : rand_core_1.CryptoRng Rand)
     (rng : rand.rng.Rng Rand) (ip : pqxdh.InitiatorParameters) (r r' : Rand)
     (ag : InitiatorAgreement) (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (.Ok ag, r')) :
     ∃ km, InitiateKdfInput crng ip r km ∧ pqxdh.HandshakeKeys.derive km = .ok ag.keys := by
   sorry
 
-/-- **Same-invocation witness, responder.** If `pqxdh_accept` succeeds on `rp`, its keys are the
-derivation of the original key material of that call. Stub: the proof is deferred to the
-specification of the entry points. -/
+/-- The same-invocation witness for the responder: if `pqxdh_accept` succeeds on `rp`, its keys
+are the derivation of the original key material of that call. The proof is a stub that waits for
+the specification of the entry points. -/
 theorem accept_kdfInput_witness (rp : pqxdh.RecipientParameters) (hk : HandshakeKeys)
     (h : pqxdh.pqxdh_accept rp = .ok (.Ok hk)) :
     ∃ km, AcceptKdfInput rp km ∧ pqxdh.HandshakeKeys.derive km = .ok hk := by
@@ -118,7 +118,7 @@ def RecipientState.Sid : RecipientState Msg → (ECPub × ECPub × PQPub) → Sl
   | .done s, ad, km => s.ad = ad ∧ AcceptKdfInput s.inputs km
   | _, _, _ => False
 
-/-- **Original-key partnering** for `uakeInitiator`: Alice's state and Bob's state are partners
+/-- Original-key partnering for `uakeInitiator`: Alice's state and Bob's state are partners
 when both are completed with the same associated data and the same original key material. -/
 def fullPartnering [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) :

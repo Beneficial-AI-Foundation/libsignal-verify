@@ -15,7 +15,7 @@ This file builds the Full realization: a Full core realization plus an explicitl
 UAKE/AEAD wrapper. The core is the extracted handshake: Alice's step runs the extracted
 `pqxdh_initiate` and Bob's runs the extracted `pqxdh_accept`, both through `liftResult` in
 `RustOracleComp unifSpec`. A panic or a non-terminating call of extracted code is therefore a
-fault, which the runtime counts as missing probability mass; it never becomes a rejection, an
+fault, which the runtime counts as missing probability mass. It never becomes a rejection, an
 absent output or a default value. A protocol error that the extracted code returns, such as
 `InvalidMessage` for a non-canonical ephemeral key, is an ordinary value and the party rejects
 the message.
@@ -25,44 +25,44 @@ the message.
 The UAKE notion of Dodis and Fiore needs more than the handshake, and the wrapper supplies it.
 None of it is extracted code.
 
-* **Bundle and identity checks.** Bob publishes his prekey bundle as a message, and Alice checks
-  that the bundle names Bob's identity key, which she knows out of band, and verifies the two
-  prekey signatures with the extracted `PublicKey::verify_signature`, as
-  `process_prekey_bundle` does (`rust/protocol/src/session.rs:208-230`). The identity check
-  stands for production's trusted-identity store.
-* **One identity key.** Bob's identity key pair both signs his prekeys and performs the
-  Diffie-Hellman exchange DH2, as in production. There is no separate signature key. Signatures
-  are computed by the extracted `PrivateKey::calculate_signature` on the extracted serialization
-  of each prekey (`rust/protocol/src/session_management.rs:883-890`), with a fresh draw of the
-  generator state from `P.coins`; a fault in signing or verification is a fault of the run, and
-  a signing error is a returned value after which Bob does not publish.
-* **Synthetic AEAD messages.** Alice's initial message carries an AEAD ciphertext under the key
-  `(syntheticAeadRoles keys).alice`; it models the specification's initial ciphertext. Production
-  sends that ciphertext as the first Double Ratchet message under ratchet-derived keys, so this
-  is not an extracted-code correspondence. Bob's confirmation, an AEAD ciphertext under
-  `(syntheticAeadRoles keys).bob`, exists only in the model: the UAKE game needs the
-  authenticated party to speak last.
+* Bob publishes his prekey bundle as a message. Alice checks that the bundle names Bob's identity
+  key, which she knows out of band, and verifies the two prekey signatures with the extracted
+  `PublicKey::verify_signature`, as `process_prekey_bundle` does
+  (`rust/protocol/src/session.rs:208-230`). The identity check stands for production's
+  trusted-identity store.
+* Bob's identity key pair both signs his prekeys and performs the Diffie-Hellman exchange DH2, as
+  in production. There is no separate signature key. The extracted
+  `PrivateKey::calculate_signature` computes each signature on the extracted serialization of
+  the prekey (`rust/protocol/src/session_management.rs:883-890`), with a fresh draw of the
+  generator state from `P.coins`. A fault in signing or verification is a fault of the run. A
+  signing error is a returned value, after which Bob does not publish.
+* Alice's initial message carries an AEAD ciphertext under the key
+  `(syntheticAeadRoles keys).alice`, which models the specification's initial ciphertext.
+  Production sends that ciphertext as the first Double Ratchet message under ratchet-derived
+  keys, so this is not an extracted-code correspondence. Bob's confirmation, an AEAD ciphertext
+  under `(syntheticAeadRoles keys).bob`, exists only in the model, because the UAKE game needs
+  the authenticated party to speak last.
 
 ## Keys and state
 
-Every key pair is drawn from the ideal generators `P.ecKeygen` and `P.pqKeygen`; Alice's
-generator state `R` is one draw from `P.coins` per session, kept in her state and threaded through
-`pqxdh_initiate`. A rejected message leaves the state, and with it `R`, unchanged. Both completed
-states keep the joint output `JointKeys` (root key, chain key with its index, post-quantum ratchet
-key), the associated data and the exact inputs of the entry-point call. The UAKE output is the
-root key only, which is the target of the existing game; the projection lemmas
-`initiator_output_eq` and `recipient_output_eq` state that the output is the root key of the
-stored joint output.
+Every key pair comes from the ideal generators `P.ecKeygen` and `P.pqKeygen`. Alice's generator
+state `R` is one draw from `P.coins` per session. Her state keeps it, and her call of
+`pqxdh_initiate` threads it through. A rejected message leaves the state, and with it `R`,
+unchanged. Both completed states keep the joint output `JointKeys` (root key, chain key with its
+index, post-quantum ratchet key), the associated data and the exact inputs of the entry-point
+call. The UAKE output is only the root key, the target of the existing game. The projection
+lemmas `initiator_output_eq` and `recipient_output_eq` state that the output is the root key of
+the stored joint output.
 
-Two schemes are built. In `uakeInitiator` Bob is the authenticated party and sends the
-confirmation; the security statements concern this scheme. In `uakeRecipient` Alice is the
-authenticated party and the exchange has two messages; it is used for correctness only.
+The file builds two schemes. In `uakeInitiator`, Bob is the authenticated party and sends the
+confirmation. The security statements concern this scheme. In `uakeRecipient`, Alice is the
+authenticated party and the exchange has two messages. Only the correctness statements use it.
 
-**Source**: `PQXDH/Aeneas/Full/UAKE/Defs.lean` of libsignal-docs-and-models, rebuilt. The
-source's wrappers `runRaw`, `runRes` and `getRes`, its default-filled KEM and its signature
-adapter `extractedSig` replace faults by `none` or by default values; none of them is ported.
-The separate signature key, the comparison of key identifiers for the one-time prekey and the
-`ProbComp` monad are changed as described above.
+This file rebuilds `PQXDH/Aeneas/Full/UAKE/Defs.lean` of libsignal-docs-and-models. The source's
+wrappers `runRaw`, `runRes` and `getRes`, its default-filled KEM and its signature adapter
+`extractedSig` replace faults by `none` or by default values, and this file ports none of them.
+It also changes the separate signature key, the comparison of key identifiers for the one-time
+prekey and the `ProbComp` monad, as described above.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -176,17 +176,17 @@ def encodeEC (pk : ECPub) : RustOracleComp unifSpec (Slice U8) :=
 def encodeKEM (pk : PQPub) : RustOracleComp unifSpec (Slice U8) :=
   liftResult (kem.Key.serialize kem.Public.Insts.Libsignal_protocolKemKeyKind pk)
 
-/-- **Signing, faults kept.** Sign `m` with the private key `sk` by the extracted
-`calculate_signature`, on a fresh draw of the generator state from `P.coins`. A panic or a
-non-terminating call is a fault of the run; a returned error is returned. -/
+/-- Sign `m` with the private key `sk` through the extracted `calculate_signature`, on a fresh
+draw of the generator state from `P.coins`. A panic or a non-terminating call is a fault of the
+run, and an error that signing returns is returned as a value. -/
 def signBytes (P : Params Rand Msg C IdC IdK) (sk : ECPriv) (m : Slice U8) :
     RustOracleComp unifSpec (core.result.Result (Slice U8) libsignal_core.curve.CurveError) := do
   let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
   let (res, _) ← liftResult (curve.PrivateKey.calculate_signature P.cryptoRngInst P.rngInst sk m r)
   pure res
 
-/-- **Verification, faults kept.** Verify the signature `σ` on `m` under `pk` by the extracted
-`verify_signature`. A panic or a non-terminating call is a fault of the run, never `false`. -/
+/-- Verify the signature `σ` on `m` under `pk` through the extracted `verify_signature`. A panic
+or a non-terminating call is a fault of the run, never `false`. -/
 def verifyBytes (pk : ECPub) (m σ : Slice U8) : RustOracleComp unifSpec Bool :=
   liftResult (libsignal_core.curve.PublicKey.verify_signature pk m σ)
 
@@ -204,8 +204,9 @@ def setup (P : Params Rand Msg C IdC IdK) (msg : Msg) :
     { ikB := identityKeyPairOf ikB, spkB := spkB, spkSigB := spkSigB })
 
 /-- Bob's bundle for one session: he signs his Kyber prekey with his identity key and publishes
-his public keys with their identifiers. A signing error is returned and nothing is published.
-In production the bundle comes from a server; the UAKE game has two parties, so Bob sends it. -/
+his public keys with their identifiers. If signing returns an error, Bob returns it and publishes
+nothing. In production the bundle comes from a server. The UAKE game has two parties, so Bob
+sends it. -/
 def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) :
     RustOracleComp unifSpec
       (core.result.Result (FullBundle IdC IdK) libsignal_core.curve.CurveError) := do
@@ -226,13 +227,13 @@ def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) :
 def genOPK (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) : ProbComp (Option ECKeyPair) :=
   if hasOPK then some <$> P.ecKeygen else pure none
 
-/-- **Alice's step on a bundle.** She checks Bob's identity key, then the signature of the signed
-prekey, then the signature of the Kyber prekey, stopping at the first failure as
-`process_prekey_bundle` does (`rust/protocol/src/session.rs:208-230`): the Kyber key is not
-serialized when the first signature fails. She then draws her ephemeral key pair and runs the
+/-- Alice's step on a bundle. She checks Bob's identity key, then the signature of the signed
+prekey, then the signature of the Kyber prekey. She stops at the first failure, as
+`process_prekey_bundle` does (`rust/protocol/src/session.rs:208-230`), so she does not serialize
+the Kyber key when the first signature fails. She then draws her ephemeral key pair and runs the
 initiator's entry point on her generator state `R`. On success she encrypts her message under the
 synthetic key and returns her initial message, her session and the new generator state. Any
-failed check or returned protocol error gives `none`; a fault of extracted code is a fault of the
+failed check or returned protocol error gives `none`. A fault of extracted code is a fault of the
 run. -/
 def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : InitiatorParameters Msg)
     (R : Rand) (b : FullBundle IdC IdK) :
@@ -274,8 +275,8 @@ def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : Initiat
          { inputs := ip, coins := R, keys := keys, ad := ad, msg := p.msg }, R')
 
 /-- The one-time prekey that Bob uses for an initial message naming `id`: none if the message
-names none, his own if it names his, and no admissible choice (`none`) otherwise. In production
-Bob looks the named prekey up in his store; the store is not modelled. -/
+names none, his own if it names his, and no admissible choice (`none`) otherwise. In production,
+Bob finds the named prekey in his store. The model has no store. -/
 def selectOPK [DecidableEq IdC] (P : Params Rand Msg C IdC IdK) (p : RecipientParameters)
     (id : Option IdC) : Option (Option ECKeyPair) :=
   match id, p.opkB with
@@ -283,10 +284,10 @@ def selectOPK [DecidableEq IdC] (P : Params Rand Msg C IdC IdK) (p : RecipientPa
   | some i, some opk => if P.idEC opk.public_key = i then some (some opk) else none
   | some _, none => none
 
-/-- **Bob's step on an initial message.** He checks the identifiers of his signed and Kyber
-prekeys, selects the one-time prekey the message names, runs the responder's entry point, and
-decrypts Alice's synthetic ciphertext. Any failed check, returned protocol error or failed
-decryption gives `none`; a fault of extracted code is a fault of the run. -/
+/-- Bob's step on an initial message. He checks the identifiers of his signed and Kyber prekeys,
+selects the one-time prekey the message names, runs the responder's entry point, and decrypts
+Alice's synthetic ciphertext. Any failed check, returned protocol error or failed decryption gives
+`none`. A fault of extracted code is a fault of the run. -/
 def accept [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (p : RecipientParameters) (m : FullInitialMessage C IdC IdK) :
     RustOracleComp unifSpec (Option (BobSession Msg)) := do
@@ -337,7 +338,7 @@ def InitiatorState.jointKeys : InitiatorState Rand Msg → Option JointKeys
 /-- Bob's states: unable to publish after a signing error, waiting for an initial message, and
 completed. -/
 inductive RecipientState (Msg : Type) where
-  /-- Signing returned an error; the session does nothing. -/
+  /-- Signing returned an error, and the session does nothing. -/
   | dead
   /-- Bundle published; waiting for the initial message. -/
   | awaiting (p : RecipientParameters)
@@ -433,7 +434,7 @@ def recipientNoConfirm [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg 
     | _, _ => pure .reject
   output st := pure (st.jointKeys.map fun j => some j.root)
 
-/-- **The Full realization with Bob authenticated.** Three messages: Bob's bundle, Alice's
+/-- The Full realization with Bob authenticated. It has three messages: Bob's bundle, Alice's
 initial message and Bob's confirmation. Alice is the unauthenticated party U and Bob the
 authenticated party T. The security statements concern this scheme. -/
 def uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
@@ -445,10 +446,10 @@ def uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   U := initiator P E
   T := recipient P E hasOPK
 
-/-- **The Full realization with Alice authenticated, for correctness only.** Two messages: Bob's
-bundle and Alice's initial message. Bob is the unauthenticated party U and Alice the
-authenticated party T. No security statement concerns this scheme: Alice signs nothing, so the
-UAKE notion does not fit this direction. -/
+/-- The Full realization with Alice authenticated, for correctness only. It has two messages:
+Bob's bundle and Alice's initial message. Bob is the unauthenticated party U and Alice the
+authenticated party T. No security statement concerns this scheme, because Alice signs nothing
+and the UAKE notion does not fit this direction. -/
 def uakeRecipient [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) :
     UAKE.Scheme (RustOracleComp unifSpec) Key RecipientIdentity (InitiatorParameters Msg)
@@ -458,16 +459,16 @@ def uakeRecipient [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC
   U := recipientNoConfirm P E hasOPK
   T := initiatorNoConfirm P E
 
-/-- **Projection, Alice.** In both schemes Alice's output is the root key of her stored joint
-output, and nothing before completion. -/
+/-- In both schemes, Alice's output is the root key of her stored joint output, and nothing
+before completion. -/
 theorem initiator_output_eq [DecidableEq Msg] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (st : InitiatorState Rand Msg) :
     (initiator P E).output st = pure (st.jointKeys.map fun j => some j.root) ∧
       (initiatorNoConfirm P E).output st = pure (st.jointKeys.map fun j => some j.root) :=
   ⟨rfl, rfl⟩
 
-/-- **Projection, Bob.** In both schemes Bob's output is the root key of his stored joint output,
-and nothing before completion. -/
+/-- In both schemes, Bob's output is the root key of his stored joint output, and nothing before
+completion. -/
 theorem recipient_output_eq [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (hasOPK : Bool) (st : RecipientState Msg) :
     (recipient P E hasOPK).output st = pure (st.jointKeys.map fun j => some j.root) ∧
