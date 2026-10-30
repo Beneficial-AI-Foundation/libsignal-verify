@@ -47,8 +47,9 @@ extracted code or on the interfaces that its contracts name, and the remaining p
   every extracted decapsulation with an honest secret key either faults or returns `K`'s output.
   It claims no termination; faulted runs are counted separately. Production runs libcrux's
   pre-standard Kyber-1024, not ML-KEM-1024. Out of scope here: the correctness of libcrux's Kyber
-  against the Kyber specification, the IND-CCA security of Kyber itself (a hardness assumption),
-  and ML-KEM Braid.
+  against the Kyber specification, which belongs to libcrux and Cryspen; the IND-CCA security of
+  Kyber itself, a hardness assumption; and ML-KEM Braid, which belongs to SPQR-verify. Its model
+  in secure-messaging PR #397 is passive and IND-CPA on ML-KEM, so it does not plug in here.
 * **Fitting messages** (`Adversary.SendsFittingMessages`). The extraction's byte slices may be as
   long as the largest `usize`, which no Rust allocation reaches. A bundle carrying a Kyber key of
   that length makes the serialization in Alice's signature check overflow, a fault that cannot
