@@ -16,6 +16,9 @@ facts that their output functions are pure, and transcript-length
 characterizations of honest runs started from `setup`.
 The length lemmas are also used by the Aeneas instantiations'
 well-formedness proofs. The proofs in this file are AI-written.
+
+The two length lemmas assume `hkem` (perfect KEM correctness), which is an idealization.
+Production Kyber decapsulates wrongly with a small probability, so they do not apply to it.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -232,7 +235,7 @@ lemma recipientNoConfirm_pureOutput
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
 /-- Under the correctness hypotheses, an honest run of the T=Bob parties on
-  keys drawn from `setup` transfers exactly the scheme's 3 messages. -/
+  keys drawn from `setup` transfers exactly the scheme's 3 messages. See the module note. -/
 lemma runHonest_length_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -256,7 +259,7 @@ lemma runHonest_length_initiator
     hspkSigB hrun).2
 
 /-- Under the correctness hypotheses, an honest run of the T=Alice parties
-  on keys drawn from `setup` transfers exactly the scheme's 2 messages. -/
+  on keys drawn from `setup` transfers exactly the scheme's 2 messages. See the module note. -/
 lemma runHonest_length_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]

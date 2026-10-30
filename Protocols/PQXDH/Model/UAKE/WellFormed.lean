@@ -14,6 +14,9 @@ import Protocols.PQXDH.Model.UAKE.WellFormedLemmas
 party produces output exactly when its protocol run completes, each party's
 output function is pure, and an honest run transfers exactly `rounds` messages.
 The supporting lemmas live in `WellFormedLemmas.lean`.
+
+Both theorems assume `hkem` (perfect KEM correctness), which is an idealization.
+Production Kyber decapsulates wrongly with a small probability, so they do not apply to it.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -24,7 +27,7 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- The T=Bob model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 3 messages. -/
+  exactly 3 messages. Assumes perfect KEM correctness; see the module note. -/
 theorem uakeInitiator_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -42,7 +45,7 @@ theorem uakeInitiator_wellFormed
 
 /-- The T=Alice model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 2 messages. -/
+  exactly 2 messages. Assumes perfect KEM correctness; see the module note. -/
 theorem uakeRecipient_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
