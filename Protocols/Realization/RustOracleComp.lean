@@ -29,7 +29,7 @@ read as a distribution (`rustRuntime`), every fault is missing probability mass,
 never be mistaken for a rejection, a default value or a successful run
 (`probOutput_rustRuntime`, `probFailure_rustRuntime`).
 
-The M1 instance is `O = unifSpec`, the oracle for uniform sampling, so that
+The instance used here is `O = unifSpec`, the oracle for uniform sampling, so that
 `RustOracleComp unifSpec` is `ExceptT Fault ProbComp`. `rustRuntime` packages its semantics as
 a `ProbCompRuntime`, and `rustRuntime_coherent` shows that this runtime is coherent in the sense
 of `AKE.UAKE.RuntimeCoherent`.
@@ -129,7 +129,7 @@ theorem mem_support_liftResult (x : Result α) (a : α) :
     rw [liftResult_div, RustOracleComp.div, ExceptT.mem_support_iff]
     simp [throw, throwThe, MonadExceptOf.throw, ExceptT.mk, ExceptT.run]
 
-/-- The M1 runtime for `RustOracleComp unifSpec`: computations are observed through their native
+/-- The runtime for `RustOracleComp unifSpec`: computations are observed through their native
 distribution, in which every fault is missing mass, and public randomness is lifted from
 `ProbComp` without faults. -/
 noncomputable def rustRuntime : ProbCompRuntime (RustOracleComp unifSpec) where

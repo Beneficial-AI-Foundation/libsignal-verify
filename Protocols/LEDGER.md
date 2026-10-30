@@ -83,7 +83,7 @@ fault fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean`. Their st
 these closures, by `Protocols/Specs/PQXDH/Realization.lean` and by the checks at the end of the fixture file.
 The closures list the opaque leaves that the definitions of the Full scheme mention; what each statement
 assumes about them is the explicit contract premises listed under "Contracts" below. The `sorryAx` comes
-from the stubs listed under "Gate S placeholders" and "Temporary stubs". The fixtures are proved and depend
+from the stubs listed under "Security placeholders" and "Temporary stubs". The fixtures are proved and depend
 on no `sorryAx`.
 
 | Declaration | File | Axioms |
@@ -112,7 +112,7 @@ on no `sorryAx`.
 The issue trackers of Beneficial-AI-Foundation/PQXDH-model and of this repository hold the items. The gaps
 in the statements themselves, inherited from PQXDH-model, carry the label `deferred-fix` here.
 
-## Gate S placeholders
+## Security placeholders
 
 Statements of the Full realization whose proofs belong to the security milestone. They are stubs by design,
 outside the count of admitted hops above. All are in `Protocols/PQXDH/Realization/Security.lean`.
@@ -128,7 +128,8 @@ need no stub of their own.
 
 ## Temporary stubs
 
-Statements that M1 proves. They are stubs only until their proofs land and are not placeholders.
+Statements to be proved before the security statements. They are stubs only until their proofs land and are
+not placeholders.
 
 | Statement | File | Content | Status |
 | --- | --- | --- | --- |
@@ -162,7 +163,7 @@ choice describes something outside the extracted code. The contracts are in
 | `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | — |
 | `P.coins` | modelling choice | one ideal draw of the generator state per session | implementation milestone |
 | `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws, not `KeyPair::generate` on the caller's generator; their law is not related to production's clamped generation or to the abstract uniform exponent | open bridge obligation |
-| `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | Gate S route beyond the wrapper |
+| `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a route beyond the wrapper, at the security milestone |
 
 ## How to regenerate
 

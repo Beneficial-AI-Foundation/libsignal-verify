@@ -20,7 +20,7 @@ The axioms of a statement list the opaque leaves of the extracted code that its 
 mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision axiom that the
 extraction of `pqxdh_accept` introduces, and `sorryAx` when the proof, or a proof it uses, is a
 stub. The stubs are of two kinds: temporary stubs of the correctness statements and their
-supporting lemmas, which Milestone 1 proves, and the security statements and
+supporting lemmas, to be proved first, and the security statements and
 `fullExp_noLostMass`, which are placeholders for the security milestone. `Protocols/LEDGER.md`
 lists both kinds apart from the admitted hops of the abstract model.
 

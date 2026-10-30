@@ -84,7 +84,7 @@ PQXDH-model's gap Diffie-Hellman and key-derivation terms.
   code; see `Scheme.lean`.
 
 The proofs of the two statements and of `fullExp_noLostMass` are stubs: they are placeholders for
-the security milestone and are listed separately from the four stop-line admissions.
+the security milestone, and `Protocols/LEDGER.md` lists them apart from the admitted hops.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal

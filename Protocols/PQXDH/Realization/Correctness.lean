@@ -45,7 +45,8 @@ The fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` check that 
 events are not vacuous: entry points that always panic, always return an error or never
 terminate give each event probability `0`, so they fail every statement for every `δ < 1`.
 
-The proofs of the four theorems are stubs, to be completed in M1.
+The proofs of the four theorems are temporary stubs, to be completed before the security
+statements are proved.
 -/
 
 open OracleSpec OracleComp AKE ENNReal
@@ -133,7 +134,7 @@ def agreementExp {m : Type → Type} [Monad m] {K UK TK W : Type} (proto : UAKE.
 `pqxdh_accept` both return their keys with probability `1`. Hypotheses: the leaf contracts, the
 HKDF contract for some MAC interface `H`, valid curve25519 pairs from `P.ecKeygen`,
 Kyber1024-shaped pairs from `P.pqKeygen`, and a generator total on a domain that contains every
-state drawn from `P.coins`. Stub: the proof is a temporary M1 obligation. -/
+state drawn from `P.coins`. Stub: the proof is a temporary obligation. -/
 theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -147,7 +148,7 @@ theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
 entry points return their keys, the two joint outputs agree on the root key, the chain key with
 its index and the post-quantum ratchet key, and the chain index is `0`, with probability at least
 `1 - δ`, where `δ` bounds the correctness error of the extracted Kyber operations. Hypotheses: as
-for `coreCompletion_extracted`, and `KyberDeltaCorrect P δ`. Stub: the proof is a temporary M1
+for `coreCompletion_extracted`, and `KyberDeltaCorrect P δ`. Stub: the proof is a temporary
 obligation. -/
 theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
@@ -162,7 +163,7 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
 `uakeInitiator` on the extracted entry points, both parties output a key and the two keys are
 equal, with probability at least `1 - δ`. Hypotheses: as for `jointKeyAgreement_extracted`, the
 signature contracts, totality of the generator's `rand::Rng` view on `Dom` (signing uses it), and
-perfect correctness of the synthetic AEAD. Stub: the proof is a temporary M1 obligation. -/
+perfect correctness of the synthetic AEAD. Stub: the proof is a temporary obligation. -/
 theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hC : CoreContracts) (hS : SignatureContracts)
@@ -180,7 +181,7 @@ theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [Deci
 /-- **Wrapper agreement, Alice authenticated, probability at least `1 - δ`.** In an honest run of
 `uakeRecipient` on the extracted entry points, both parties output a key and the two keys are
 equal, with probability at least `1 - δ`. Hypotheses: as for `wrapperAgreement_uakeInitiator`.
-This direction is correctness-only. Stub: the proof is a temporary M1 obligation. -/
+This direction is correctness-only. Stub: the proof is a temporary obligation. -/
 theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hC : CoreContracts) (hS : SignatureContracts)
