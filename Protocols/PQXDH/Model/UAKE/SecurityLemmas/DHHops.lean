@@ -74,7 +74,11 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   Used by `uakeInitiator_secure_dh` as hop 5. A proof would follow the steps above once the KDF
   model is ruled, but the last step does not hold as stated, since unsigned bundle fields (the
   key identifiers and the one-time pre-key) can change without changing the derived keys, so the
-  transcripts differ with no forgery. -/
+  transcripts differ with no forgery.
+
+  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
+  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
+  removed with the restatement of this hop (tracked in issue #35). -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)
@@ -122,7 +126,11 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
      `1 / 2`.
 
   Used by `uakeInitiator_secure_dh` as hop 6. A proof would follow the steps above once the KDF
-  model is ruled. -/
+  model is ruled.
+
+  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
+  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
+  removed with the restatement of this hop (tracked in issue #35). -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)

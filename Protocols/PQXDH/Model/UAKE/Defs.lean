@@ -154,7 +154,10 @@ def uakeInitiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   T := recipient P hasOPK
 
 /-- Alice's Party state machine, which internally uses the `initiate` function,
-  traceable to the PQXDH spec. -/
+  traceable to the PQXDH spec.
+
+  Correctness-only: it is the keyed party of `uakeRecipient`, which has no advantage
+  statement and no partnering (see `uakeRecipient`). -/
 def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
@@ -173,7 +176,10 @@ def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
     | _ => pure none
 
 /-- Bob's Party state machine, which internally uses the `publish` and `accept`
-  functions, traceable to the PQXDH spec. -/
+  functions, traceable to the PQXDH spec.
+
+  Correctness-only: it is the unkeyed party of `uakeRecipient`, which has no advantage
+  statement and no partnering (see `uakeRecipient`). -/
 def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
@@ -198,7 +204,15 @@ def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
     | .inl _ => pure none
     | .inr SK => pure (some (some SK))
 
-/-- UAKE scheme in which Alice plays the part of the authenticated party T. -/
+/-- UAKE scheme in which Alice plays the part of the authenticated party T.
+
+  Correctness-only. This scheme follows PQXDH's two-message flow around the core, and the
+  correctness and well-formedness theorems use it. The signatures, identifiers and AEAD of
+  this flow are outside the extracted core. It is not a security target: its unkeyed party's
+  input is Bob's long-term secret state, and PQXDH gives the initiator no explicit
+  authentication. No advantage statement is made for it, and no partnering is defined for it.
+  Generic functions still accept the scheme, so this scope is enforced by documentation and
+  not by types. -/
 def uakeRecipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :

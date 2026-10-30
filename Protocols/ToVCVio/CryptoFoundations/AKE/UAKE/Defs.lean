@@ -89,14 +89,26 @@ structure Scheme (m : Type → Type) (K UK TK W : Type) where
 
 /-- The UAKE correctness experiment (Def. 7). The parties' keys are sampled
   using the setup routine, then both parties are run honestly to completion.
-  The protocol is correct if both (honest) parties output the same key (or
-  either party outputs ⊥). -/
+  The experiment returns `true` when both parties output the same key, and also
+  when either party outputs ⊥.
+
+  The second case means that this experiment does not establish honest
+  completion: a scheme whose parties always reject returns `true` with
+  probability 1. Completion is the separate statement `Scheme.HonestlyCompletes`.
+  The experiment is the paper's Def. 7. It is not correctness of production
+  PQXDH. -/
 def CorrectExp [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W) : m Bool := do
   let (uk, tk) ← proto.setup
   let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
   return decide (uOut.join = none ∨ tOut.join = none ∨ uOut.join = tOut.join)
 
-/-- True if the correctness experiment always returns true. -/
+/-- True if the correctness experiment always returns `true`.
+
+  `CorrectExp` also returns `true` when either party outputs ⊥, so a scheme
+  whose parties always reject satisfies this predicate. It therefore does not
+  say that an honest run ends with a key at both parties; `Scheme.HonestlyCompletes`
+  says that, and `Scheme.Admissible` requires both. This is the paper's Def. 7.
+  It is not correctness of production PQXDH. -/
 def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
     (runtime : ProbCompRuntime m) : Prop :=
   Pr[= true | runtime.evalDist (CorrectExp proto)] = 1

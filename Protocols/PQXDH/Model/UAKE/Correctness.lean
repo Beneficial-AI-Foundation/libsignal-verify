@@ -21,7 +21,15 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 /-- The PQXDH model in the T=Bob direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). -/
+  when paired with the message used to generate it).
+
+  The conclusion `UAKE.PerfectlyCorrect` also holds for a scheme whose parties
+  always reject (see `UAKE.CorrectExp`), so the statement alone does not
+  establish honest completion. The proof does derive that both parties output
+  the same key, through `run_support_initiator`, but the statement does not
+  record it. The statement is the paper's Def. 7 for the abstract model. It is
+  not correctness of production PQXDH, and `hkem` assumes perfect KEM
+  correctness, which production Kyber does not have. -/
 theorem uakeInitiator_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -53,7 +61,18 @@ theorem uakeInitiator_perfectlyCorrect
 /-- The PQXDH model in the T=Alice direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). -/
+  when paired with the message used to generate it).
+
+  Correctness only: `uakeRecipient` has no advantage statement and no
+  partnering.
+
+  The conclusion `UAKE.PerfectlyCorrect` also holds for a scheme whose parties
+  always reject (see `UAKE.CorrectExp`), so the statement alone does not
+  establish honest completion. The proof does derive that both parties output
+  the same key, through `run_support_recipient`, but the statement does not
+  record it. The statement is the paper's Def. 7 for the abstract model. It is
+  not correctness of production PQXDH, and `hkem` assumes perfect KEM
+  correctness, which production Kyber does not have. -/
 theorem uakeRecipient_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]

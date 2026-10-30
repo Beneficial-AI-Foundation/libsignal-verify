@@ -72,7 +72,15 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   Used by `uakeInitiator_secure_pq` as hop 5. A proof would follow the steps above in the current
   model, but the last step does not hold as stated, since unsigned bundle fields (the key
   identifiers and the one-time pre-key) can change without changing the derived keys, so the
-  transcripts differ with no forgery. -/
+  transcripts differ with no forgery.
+
+  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
+  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
+  removed with the restatement of this hop (tracked in issue #35).
+
+  The premise `hkemCorrect` is a labelled idealization. It is false for production Kyber,
+  whose decapsulation can return a different shared secret with a small nonzero
+  probability, so this hop is not instantiated at production Kyber. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
@@ -121,7 +129,15 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
      `1 / 2`.
 
   Used by `uakeInitiator_secure_pq` as hop 6. A proof would follow the steps above in the current
-  model. -/
+  model.
+
+  The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
+  prekey ids and no map from KEM public keys to them is injective. It is kept until it is
+  removed with the restatement of this hop (tracked in issue #35).
+
+  The premise `hkemCorrect` is a labelled idealization. It is false for production Kyber,
+  whose decapsulation can return a different shared secret with a small nonzero
+  probability, so this hop is not instantiated at production Kyber. -/
 lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εkdf εpk : ℝ)
