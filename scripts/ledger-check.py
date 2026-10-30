@@ -3,10 +3,13 @@
 
 Usage, from the repository root after `lake build`:
 
-    rg -n -g '*.lean' '\bsorry\b|^\s*axiom\b|native_decide|set_option' \
+    rg -n -g '*.lean' "$PATTERN" \
         Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
     lake env lean scripts/Ledger.lean > closures.log
     python3 scripts/ledger-check.py closures.log admissions.log
+
+where `$PATTERN` is the pattern in the "How to regenerate" section of LEDGER.md and in the `rg`
+step of `.github/workflows/lean.yml`, the same as `SORRY|TRUST` below.
 
 Exits 0 iff every closure, count and pin that the LEDGER records matches the regenerated output.
 It reads three shapes from LEDGER.md:
@@ -17,9 +20,9 @@ It reads three shapes from LEDGER.md:
 - the two-column State table: the three admission counts and the Lean, Mathlib, VCVio and Aeneas
   pins, checked against the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
-The counts match whole tokens: `sorry` as a word, so that `sorryAx` in a recorded axiom list
-does not count, and `axiom` only as a declaration keyword at the start of a line, so that
-`#print axioms` in a spec summary does not count.
+The counts match whole tokens: `sorry` as a word, so that `sorryAx` in a recorded axiom list does
+not count, and `axiom` only as a declaration keyword at the start of a line, after optional
+attributes and modifiers, so that `#print axioms` in a spec summary does not count.
 
 Every declaration printed by `scripts/Ledger.lean` must be recorded, and every recorded one printed.
 """
@@ -31,7 +34,9 @@ from typing import Callable
 
 
 SORRY = re.compile(r'\bsorry\b')
-TRUST = re.compile(r'^\s*axiom\b|native_decide|set_option')
+TRUST = re.compile(r'^\s*(?:@\[[^\]]*\]\s*)*'
+                   r'(?:(?:private|protected|noncomputable|unsafe|partial|nonrec|scoped|local)\s+)*'
+                   r'axiom\b|native_decide|set_option')
 
 
 def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:

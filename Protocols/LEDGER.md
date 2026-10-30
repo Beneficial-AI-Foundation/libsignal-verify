@@ -170,10 +170,11 @@ choice describes something outside the extracted code. The contracts are in
 From the repository root, after `lake build`:
 
 ```
-rg -n -g '*.lean' '\bsorry\b|^\s*axiom\b|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean
+rg -n -g '*.lean' '\bsorry\b|^\s*(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|noncomputable|unsafe|partial|nonrec|scoped|local)\s+)*axiom\b|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean
 lake env lean scripts/Ledger.lean
 ```
 
 The first command lists the admissions, the second prints the endpoint, Realization and Full realization
-closures. The pattern matches `sorry` as a word and `axiom` only as a declaration keyword, so the `sorryAx` in
-a recorded axiom list and the `#print axioms` commands of the spec summaries are not counted.
+closures. The pattern matches `sorry` as a word and `axiom` only as a declaration keyword, after optional
+attributes and modifiers, so the `sorryAx` in a recorded axiom list and the `#print axioms` commands of the
+spec summaries are not counted.
