@@ -226,11 +226,14 @@ def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) :
 def genOPK (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) : ProbComp (Option ECKeyPair) :=
   if hasOPK then some <$> P.ecKeygen else pure none
 
-/-- **Alice's step on a bundle.** She checks Bob's identity key and both prekey signatures, draws
-her ephemeral key pair, and runs the initiator's entry point on her generator state `R`. On
-success she encrypts her message under the synthetic key and returns her initial message, her
-session and the new generator state. Any failed check or returned protocol error gives `none`;
-a fault of extracted code is a fault of the run. -/
+/-- **Alice's step on a bundle.** She checks Bob's identity key, then the signature of the signed
+prekey, then the signature of the Kyber prekey, stopping at the first failure as
+`process_prekey_bundle` does (`rust/protocol/src/session.rs:208-230`): the Kyber key is not
+serialized when the first signature fails. She then draws her ephemeral key pair and runs the
+initiator's entry point on her generator state `R`. On success she encrypts her message under the
+synthetic key and returns her initial message, her session and the new generator state. Any
+failed check or returned protocol error gives `none`; a fault of extracted code is a fault of the
+run. -/
 def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : InitiatorParameters Msg)
     (R : Rand) (b : FullBundle IdC IdK) :
     RustOracleComp unifSpec
@@ -238,9 +241,10 @@ def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : Initiat
   if b.ikB ≠ p.ikB.public_key then return none
   let spkBytes ← encodeEC b.spkB.1
   let okSPK ← verifyBytes b.ikB spkBytes b.spkSigB
+  if !okSPK then return none
   let pqBytes ← encodeKEM b.pqpkB.1
   let okPQ ← verifyBytes b.ikB pqBytes b.pqpkSigB
-  if !(okSPK && okPQ) then return none
+  if !okPQ then return none
   let ekA ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
   let ip : pqxdh.InitiatorParameters :=
     { our_identity_key_pair := p.ikA

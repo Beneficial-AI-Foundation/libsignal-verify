@@ -246,7 +246,11 @@ theorem initiate_eq_none (hE : E.NeverAgrees) (p : InitiatorParameters Msg)
   split_ifs at hx
   · simpa using hx
   simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨_, -, _, -, _, -, _, -, _, -, hx⟩ := hx
+  obtain ⟨_, -, _, -, _, -, hx⟩ := hx
+  split_ifs at hx
+  · simpa using hx
+  simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
+  obtain ⟨_, -, _, -, _, -, hx⟩ := hx
   split_ifs at hx
   · simpa using hx
   simp only [pure_bind, support_bind, Set.mem_iUnion, exists_prop] at hx
@@ -450,3 +454,53 @@ theorem alwaysDiverge_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
 end Fixtures
 
 end Protocols.PQXDH.Realization
+
+/-! ## Axioms of the fixtures
+
+No fixture depends on `sorryAx`. The remaining constants are opaque leaves of the extraction that
+the definitions of the wrapper mention; the fixtures assume nothing about them. -/
+
+/--
+info: 'Protocols.PQXDH.Realization.alwaysPanic_fails' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_signature,
+ curve.PublicKey.verify_signature_for_multipart_message,
+ alloc.vec.Vec.into_boxed_slice,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.Realization.alwaysPanic_fails
+
+/--
+info: 'Protocols.PQXDH.Realization.alwaysError_fails' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_signature,
+ curve.PublicKey.verify_signature_for_multipart_message,
+ alloc.vec.Vec.into_boxed_slice,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.Realization.alwaysError_fails
+
+/--
+info: 'Protocols.PQXDH.Realization.alwaysDiverge_fails' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_signature,
+ curve.PublicKey.verify_signature_for_multipart_message,
+ alloc.vec.Vec.into_boxed_slice,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.Realization.alwaysDiverge_fails

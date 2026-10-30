@@ -16,8 +16,9 @@ and a few conversions of the Rust standard library are `axiom` declarations in t
 external files, so Lean knows only their types. A **contract** states what such a leaf does: its
 success and error behaviour on an explicit domain, and that it terminates without panicking there.
 Every contract here is a proposition, used as a named hypothesis of the theorems that need it,
-never an `axiom` and never a `sorry`. Nothing is inferred from the type of a leaf: a `Result`
-type allows a panic and a loop, and a contract excludes them only where it says so.
+never an `axiom` declaration and never an admitted proof. Nothing is inferred from the type of a
+leaf: a `Result` type allows a panic and a loop, and a contract excludes them only where it says
+so.
 
 Each contract cites the Rust code it describes. The source was read, not verified: the contracts
 are trusted, each has its own row on the ledger, and the plan is to discharge the curve contracts
@@ -90,8 +91,10 @@ Source: `PrivateKey::calculate_agreement` (`rust/core/src/curve.rs:296-309`) cla
 (`rust/core/src/curve/curve25519.rs:170-174`) and computes X25519, and `PrivateKey::public_key`
 (`rust/core/src/curve.rs:259-267`) multiplies the clamped scalar into the base point. Both values
 are therefore the u-coordinate of the product of the two clamped scalars with the base point. A
-clamped scalar is a nonzero multiple of 8 below the group order, so the product is not the
-identity and its u-coordinate is not zero: the all-zero rejection never triggers. -/
+clamped scalar is a multiple of 8 in `[2^254, 2^255)`. It is not divisible by the prime group
+order `ℓ ≈ 2^252`: a multiple `kℓ` in that range has `k < 8`, while `8 ∣ kℓ` with `ℓ` odd forces
+`8 ∣ k`. So both clamped scalars are nonzero modulo `ℓ`, the product point is not the identity,
+and its u-coordinate is not zero: the all-zero rejection never triggers. -/
 def AgreementDerived : Prop :=
   ∀ (sk₁ sk₂ : ECPriv) (pk₁ pk₂ : ECPub),
     curve.PrivateKey.public_key sk₁ = .ok (.Ok pk₁) →
