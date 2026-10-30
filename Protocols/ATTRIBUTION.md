@@ -27,7 +27,9 @@ project root. The files listed here were ported from other projects and keep the
 | `Protocols/PQXDH/Model/UAKE/WellFormedLemmas.lean` | `PQXDH/Spec/UAKE/WellFormedLemmas.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.PQXDH`, docstrings say "model" for the Lean side, four lemmas added stating that the model parties' output functions are pure, module docstring names them |
 | `Protocols/PQXDH/Realization/Defs.lean` | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`Bytes`, `ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes`, lines 68-71, 99-102, 220-227) | header rewritten, import paths, namespace `PQXDH.Aeneas.Full` renamed `Protocols.PQXDH.Realization`, module docstring added, only the seven declarations the KDF mirror uses are taken |
 | `Protocols/PQXDH/Realization/Kdf.lean` | `PQXDH/Aeneas/Full/UAKE/SecurityDefs.lean` (`pubBytes`, `sliceOfKey`, `pubSlice`, `kdfInput`, `deriveHK`, `deriveKeys`, `DeriveKeysTotal`, lines 44-110) | header rewritten, import paths, namespace `PQXDH.Aeneas.Full` renamed `Protocols.PQXDH.Realization`, module docstring added, the source's `noncomputable section` replaced by `noncomputable` on `deriveHK` and `deriveKeys` only; theorem `deriveKeysTotal` is new here (not in the source): it proves `DeriveKeysTotal` from `HkdfSha256Contract` |
-| `Protocols/ToMathlib.lean` | `PQXDH/ToMathlib.lean` | header rewritten, module docstring added |
+| `Protocols/PQXDH/Realization/Defs.lean` (additions of 30 October 2026) | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`ECPriv`, `ECKeyPair`, `IdKey`, `IdKeyPair`, `PQPub`, `PQPriv`, `PQKeyPair`, `InitiatorAgreement`, `ECKeyPairValid`) | taken as abbreviations of the extracted types; `JointKeys`, `AeadRoleKeys`, `syntheticAeadRoles` and `PQKeyPairShape` are new here |
+| `Protocols/PQXDH/Realization/Params.lean` | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`Parameters`, the `SampleableType` and `Fintype` instances for bytes and arrays, lines 52-64, 151-171) | parameters rebuilt with one identity key (no separate signature scheme) and no `ProbComp` wrappers; the array instances go through an explicit equivalence, since the pinned Aeneas `Array` is a structure; `EntryPoints` is new here |
+| `Protocols/PQXDH/Realization/Scheme.lean` | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`setup`, `publish`, `initiate`, `accept`, `confirm`, the four parties, `uakeInitiator`, `uakeRecipient`) | rebuilt in `RustOracleComp` instead of `ProbComp`: `runRaw`, `runRes`, `getRes`, the default-filled `pqkem` and `extractedSig` are not ported; one identity key signs and agrees; the generator state is in Alice's state; completed states keep `JointKeys` and the call inputs; the one-time prekey is the one the message names; a signing error stops Bob from publishing |
 | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | `ToVCVio/CryptoFoundations/AEAD.lean` | header rewritten, docstrings added to the four admitted lemmas |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | header rewritten, import paths, `Scheme.WellFormed` requires pure outputs, admissibility definitions from VCVio PR #476 added (see below) |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Party.lean` | `ToVCVio/CryptoFoundations/AKE/UAKE/Party.lean` | header rewritten, `runHonestLoop` never steps a party after it reports `done = true`, `Party.PureOutput` added |
@@ -51,3 +53,14 @@ project root. The files listed here were ported from other projects and keep the
 | --- | --- | --- |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `HonestCompletionExp`, `Scheme.HonestlyCompletes` and `Scheme.Admissible` only, stated with `Pr[= · \| ·]` instead of measures, docstrings rewritten |
 | `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `RuntimeCoherent` stated for `SPMF` semantics and native `MonadLiftT` lifts instead of measures and `MonadAttach`, docstrings rewritten |
+
+## Beneficial AI Foundation, secure-messaging
+
+- Source: <https://github.com/Beneficial-AI-Foundation/secure-messaging>, commit `8369ee7`. The repository
+  is on Lean 4.35 and cannot be imported at this repository's pins, so the declarations are restated here.
+- Copyright (c) 2026 Beneficial AI Foundation.
+- Licence: Apache License 2.0, as stated in the source file headers; text in `LICENSES/Apache-2.0.txt`.
+
+| File here | File there | Changes made here |
+| --- | --- | --- |
+| `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean` | `ToVCVio/CryptoFoundations/KeyEncapMech.lean` (`correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect`, `deltaCorrect`) | restated with `Pr[= true \| ·]` of the pinned `SPMF` API instead of measures; `one_sub_le_probOutput_of_deltaCorrect` is new here |
