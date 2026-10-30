@@ -232,7 +232,11 @@ lemma recipientNoConfirm_pureOutput
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
 /-- Under the correctness hypotheses, an honest run of the T=Bob parties on
-  keys drawn from `setup` transfers exactly the scheme's 3 messages. -/
+  keys drawn from `setup` transfers exactly the scheme's 3 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 lemma runHonest_length_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -256,7 +260,11 @@ lemma runHonest_length_initiator
     hspkSigB hrun).2
 
 /-- Under the correctness hypotheses, an honest run of the T=Alice parties
-  on keys drawn from `setup` transfers exactly the scheme's 2 messages. -/
+  on keys drawn from `setup` transfers exactly the scheme's 2 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 lemma runHonest_length_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]

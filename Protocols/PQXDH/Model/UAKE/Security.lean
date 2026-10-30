@@ -74,7 +74,13 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- Top-level UAKE security theorem for the PQXDH model, assuming the
   underlying DH key exchange is hard to break. This models UAKE security in the
-  non-PQ setting. -/
+  non-PQ setting.
+
+  The premises `hsig`, `hgap`, `haead` and `hkdf` quantify over all adversaries with
+  no resource bound (issue #41). A computationally unbounded adversary breaks each
+  primitive, so each premise holds only for an `ε` close to the largest advantage its game
+  allows. The theorem is a true implication that does not yet express computational
+  security. That needs the resource model of #41. -/
 theorem uakeInitiator_secure_dh
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [Inhabited S] [Inhabited SSK]
@@ -84,7 +90,8 @@ theorem uakeInitiator_secure_dh
     /- PREMISE FALSE FOR PRODUCTION. We assume the function mapping KEM keys to key
       identifiers is injective. Production identifiers are 32-bit prekey ids, and no map
       from 1568-byte KEM public keys to a 32-bit space is injective. The premise is kept
-      until it is removed with the restatement of hop 5 (tracked in issue #35). -/
+      until it is removed with the restatement of hop 5. Issue #35 reports the underlying
+      problem: unsigned key identifiers break transcript matching. -/
     (hidKEM : Function.Injective P.idKEM)
     /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
@@ -155,7 +162,13 @@ theorem uakeInitiator_secure_dh
     signature scheme is PQ secure, which is not the case for PQXDH in practice.
     The way to fix this would be to use a dedicated HNDL security notion here,
     rather than UAKE, and omit the hypothesis that the signature scheme is
-    secure. -/
+    secure.
+
+  The premises `hsig`, `hkem`, `haead` and `hkdf` quantify over all adversaries with
+  no resource bound (issue #41). A computationally unbounded adversary breaks each
+  primitive, so each premise holds only for an `ε` close to the largest advantage its game
+  allows. The theorem is a true implication that does not yet express computational
+  security. That needs the resource model of #41. -/
 theorem uakeInitiator_secure_pq
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [SampleableType SS] [DecidableEq SS]
@@ -166,7 +179,8 @@ theorem uakeInitiator_secure_pq
     /- PREMISE FALSE FOR PRODUCTION. We assume the function mapping KEM keys to key
       identifiers is injective. Production identifiers are 32-bit prekey ids, and no map
       from 1568-byte KEM public keys to a 32-bit space is injective. The premise is kept
-      until it is removed with the restatement of hop 5 (tracked in issue #35). -/
+      until it is removed with the restatement of hop 5. Issue #35 reports the underlying
+      problem: unsigned key identifiers break transcript matching. -/
     (hidKEM : Function.Injective P.idKEM)
     /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)

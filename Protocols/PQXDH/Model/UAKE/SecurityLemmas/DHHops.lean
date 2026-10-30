@@ -78,7 +78,8 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
   The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
   prekey ids and no map from KEM public keys to them is injective. It is kept until it is
-  removed with the restatement of this hop (tracked in issue #35). -/
+  removed with the restatement of this hop. Issue #35 reports the underlying problem:
+  unsigned key identifiers break transcript matching. -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)
@@ -130,7 +131,8 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
 
   The premise `hidKEM` does not hold for production, where key identifiers are 32-bit
   prekey ids and no map from KEM public keys to them is injective. It is kept until it is
-  removed with the restatement of this hop (tracked in issue #35). -/
+  removed with the restatement of this hop. Issue #35 reports the underlying problem:
+  unsigned key identifiers break transcript matching. -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)

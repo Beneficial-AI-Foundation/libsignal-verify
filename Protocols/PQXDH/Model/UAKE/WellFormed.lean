@@ -24,7 +24,11 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- The T=Bob model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 3 messages. -/
+  exactly 3 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 theorem uakeInitiator_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -42,7 +46,11 @@ theorem uakeInitiator_wellFormed
 
 /-- The T=Alice model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 2 messages. -/
+  exactly 2 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 theorem uakeRecipient_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]

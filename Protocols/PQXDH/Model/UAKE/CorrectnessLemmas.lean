@@ -66,7 +66,11 @@ lemma verify_eq_true_of_perfectlyComplete
   exact hmem
 
 /-- For a perfectly correct KEM, decapsulating an honestly produced ciphertext
-  can only return the encapsulated shared secret. -/
+  can only return the encapsulated shared secret.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 lemma decaps_eq_some_of_perfectlyCorrect [DecidableEq SS]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
@@ -197,7 +201,11 @@ lemma opkB_mem_of_genOPK {F G : Type}
 
 /-- Support characterization of an honest run of the T=Bob scheme: under the
   correctness hypotheses, both parties output `some` of the same key, and the
-  transcript carries exactly the scheme's 3 messages. -/
+  transcript carries exactly the scheme's 3 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 lemma run_support_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -273,7 +281,11 @@ lemma run_support_initiator
 
 /-- Support characterization of an honest run of the T=Alice scheme: under the
   correctness hypotheses, both parties output `some` of the same key, and the
-  transcript carries exactly the scheme's 2 messages. -/
+  transcript carries exactly the scheme's 2 messages.
+
+  The hypothesis `hkem` (perfect KEM correctness) is an idealization. It is false for
+  production Kyber, whose decapsulation can return a different shared secret with a small
+  nonzero probability, so this statement does not apply to production Kyber. -/
 lemma run_support_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
