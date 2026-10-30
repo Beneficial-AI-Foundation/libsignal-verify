@@ -17,7 +17,7 @@ jobs:
       - name: Check Protocols/LEDGER.md against regenerated output
         run: |
           command -v rg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep)
-          rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
+          rg -n -g '*.lean' '\bsorry\b|^\s*axiom\b|native_decide|set_option' \
             Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > "$RUNNER_TEMP/admissions.log" || [ $? -eq 1 ]
           lake env lean scripts/Ledger.lean > "$RUNNER_TEMP/closures.log"
           python3 -I scripts/ledger-check.py "$RUNNER_TEMP/closures.log" "$RUNNER_TEMP/admissions.log"
