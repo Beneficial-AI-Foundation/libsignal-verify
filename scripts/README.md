@@ -22,6 +22,15 @@ lake build Libsignal
 | `npm run src-diff` | Regenerates `src-modifications.diff` against the pinned upstream libsignal commit; needs GNU diff (`gdiff` on macOS, from Homebrew `diffutils`) |
 | `npm run typecheck` | Type-checks the scripts |
 
+## Checks
+
+The Lean Build workflow also runs two checks:
+
+| Script | Fails when |
+| --- | --- |
+| `ledger-check.py` | a closure, admission count or pin recorded in `Protocols/LEDGER.md` differs from what its "How to regenerate" commands print; the header shows how to run it |
+| `spec-layout-check.sh` | a directory under `rust/Libsignal/Spec/` is named `Aeneas` or `Charon`, or a file outside `Spec/Std/` opens a `core`, `alloc`, `std` or `Aeneas.Std` namespace |
+
 ## Profiles
 
 | Profile | Configuration | Lean output |
