@@ -31,16 +31,16 @@ Model simplifications
   key). This is then sent to Alice, who uses the `confirm` procedure to check
   that it decrypts under the same `kb` and has the correct content, and returns
   `sk`, if so. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
-  without Bob's extra message. Its role assignment is an artefact of the UAKE
-  definition and carries no security claim. Alice's ciphertext models the
-  specification's initial ciphertext. Production sends it as the first Double Ratchet
-  message under ratchet-derived keys, so it does not correspond to extracted code.
-  Bob's confirmation message is model-only.
+  without Bob's extra message. Its role assignment comes from the UAKE definition and
+  carries no security claim. Alice's ciphertext models the specification's initial
+  ciphertext. Production sends it as the first Double Ratchet message under
+  ratchet-derived keys, so it does not correspond to extracted code. Bob's confirmation
+  message exists only in the model.
 * **No key reuse between DH and SignatureAlg:** We assume that Bob's identity key
   contains separate keys for DH exchange and signing. This matches the "no key
   reuse" simplification mentioned in Sec. 4 of the spec that other formal
   analyses required. Production uses one identity key for both, so the separate keys
-  are a modelling choice and a deviation from production.
+  are a modelling choice and a deviation.
 * **Separate AEAD key:** The PQXDH spec uses the same KDF output for both
   Alice's AEAD key and the final result of the key exchange, but this seems to
   preclude key indistinguishability. This is because the adversary can try

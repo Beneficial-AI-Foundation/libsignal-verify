@@ -15,12 +15,8 @@ Hops 5 and 6 of the PQ security theorem `Protocols.PQXDH.uakeInitiator_secure_pq
 KEM's IND-CCA security, the KDF, and the AEAD. See `SecurityLemmas.lean`
 for the overall map.
 
-The hop lemmas assume `hkemCorrect` (perfect KEM correctness), an idealization. Production
-Kyber decapsulates wrongly with a small probability, so the hops do not apply to it.
-They also assume `hidKEM`, which does not hold for production: production key identifiers
-are 32-bit prekey ids, and no map from KEM public keys to them is injective. That premise
-stays until hop 5 is restated. Issue #35 reports the underlying problem: unsigned key
-identifiers break transcript matching.
+The hop lemmas assume `hkemCorrect`, an idealization, and `hidKEM`, which fails for
+production. The module note of `Security.lean` gives the reasons.
 
 Unlike the GapDH cores, these reductions are expressible in the current
 model: the KDF's PRF key slot is an abstract bitstring (the KEM shared

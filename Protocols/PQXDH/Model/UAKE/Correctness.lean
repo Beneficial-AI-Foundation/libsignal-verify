@@ -10,14 +10,11 @@ import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
 /-!
 # Top-level Correctness Theorems for the PQXDH model
 
-Scope of these theorems:
-* `UAKE.PerfectlyCorrect` counts a run with a ⊥ output as correct, so it does not
-  establish honest completion. It is the paper's Def. 7, not correctness of production
-  PQXDH. Each proof does derive that both parties output the same key, through
-  `run_support_initiator` or `run_support_recipient`, but the statements do not record it.
-* The hypothesis `hkem` (perfect KEM correctness) is an idealization. Production Kyber
-  decapsulates wrongly with a small probability, so these theorems do not apply to it.
-* `uakeRecipient` is correctness-only: it has no advantage statement and no partnering.
+The two theorems state `UAKE.PerfectlyCorrect` for the model schemes `uakeInitiator` and
+`uakeRecipient`. That predicate counts a run with a ⊥ output as correct, so it does not
+establish honest completion (see `UAKE.CorrectExp`). Both theorems assume `hkem` (perfect
+KEM correctness), an idealization, because production Kyber decapsulates wrongly with a
+small probability.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -62,8 +59,8 @@ theorem uakeInitiator_perfectlyCorrect
 /-- The PQXDH model in the T=Alice direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). Correctness only; see the module
-  note for its scope. -/
+  when paired with the message used to generate it). This scheme is correctness-only; see
+  the module note of `UAKE/Defs.lean`. -/
 theorem uakeRecipient_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]

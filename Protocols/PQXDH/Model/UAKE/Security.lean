@@ -14,19 +14,18 @@ We model UAKE security of the model by bounding the adversary's advantage in the
 UAKE game based on its advantage in the security games of the underlying
 cryptographic primitives.
 
-Scope of the statements
+Scope of the two theorems
 * The premises on the primitives (`hsig`, `hgap`, `hkem`, `haead`, `hkdf`) quantify over
   all adversaries, with no resource bound (#41). An unbounded adversary breaks each
   primitive, so each premise holds only when its `ε` is close to the largest advantage of
-  its game. The theorems are true implications. They do not yet express computational
-  security, which needs the resource model of #41.
-* `hkemCorrect` (perfect KEM correctness) is an idealization. Production Kyber
-  decapsulates wrongly with a small probability, so `uakeInitiator_secure_pq` does not
-  apply to production Kyber.
-* `hidKEM` does not hold for production. Production key identifiers are 32-bit prekey
-  ids, and no map from 1568-byte KEM public keys to a 32-bit space is injective. The
-  premise stays until hop 5 is restated. Issue #35 reports the underlying problem:
-  unsigned key identifiers break transcript matching.
+  its game. The theorems are true implications that do not yet express computational
+  security. That needs the resource model of #41.
+* `hkemCorrect` (perfect KEM correctness) is an idealization, because production Kyber
+  decapsulates wrongly with a small probability.
+* `hidKEM` does not hold for production, because key identifiers there are 32-bit prekey
+  ids and no map from 1568-byte KEM public keys to them is injective. The premise stays
+  until hop 5 is restated. Issue #35 reports the underlying problem: unsigned key
+  identifiers break transcript matching.
 
 Model simplifications
 * **Unilateral authentication:** UAKE is unilaterally authenticated. In
@@ -36,8 +35,7 @@ Model simplifications
   requires explicit authentication, and Alice's authentication to Bob is
   implicit via the adversary being unable to compute the DH output, rather than
   relying on Alice's signature (she signs nothing). The other direction,
-  `uakeRecipient`, is correctness-only: it has no advantage statement and no
-  partnering.
+  `uakeRecipient`, is correctness-only and has no advantage statement here.
 * **SUF-CMA signature (not EUF-CMA):** Since UAKE is a
   transcript-matching-style definition, our security theorems are subject to
   harmless but definition-breaking "no-match" attacks on the signature scheme.
@@ -83,15 +81,15 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- Top-level UAKE security theorem for the PQXDH model, assuming the
   underlying DH key exchange is hard to break. This models UAKE security in the
-  non-PQ setting. See the module note for the scope of its premises. -/
+  non-PQ setting. The module note describes the scope of its premises. -/
 theorem uakeInitiator_secure_dh
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [Inhabited S] [Inhabited SSK]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq SS] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    /- We assume the function mapping KEM keys to key identifiers is injective. This does not
-      hold for production; see the module note. -/
+    /- We assume the function mapping KEM keys to key identifiers is injective. This fails
+      for production; see the module note. -/
     (hidKEM : Function.Injective P.idKEM)
     /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
@@ -163,7 +161,8 @@ theorem uakeInitiator_secure_dh
     The way to fix this would be to use a dedicated HNDL security notion here,
     rather than UAKE, and omit the hypothesis that the signature scheme is
     secure.
-  See the module note for the scope of its premises. -/
+
+  The module note describes the scope of its premises. -/
 theorem uakeInitiator_secure_pq
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [SampleableType SS] [DecidableEq SS]
@@ -171,8 +170,8 @@ theorem uakeInitiator_secure_pq
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    /- We assume the function mapping KEM keys to key identifiers is injective. This does not
-      hold for production; see the module note. -/
+    /- We assume the function mapping KEM keys to key identifiers is injective. This fails
+      for production; see the module note. -/
     (hidKEM : Function.Injective P.idKEM)
     /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
@@ -184,7 +183,7 @@ theorem uakeInitiator_secure_pq
       signature scheme definition leaves it monadic, so this seems to be a
       modeling gap. -/
     (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    /- We assume the KEM is perfectly correct. This is an idealization; see the module note. -/
+    /- We assume the KEM is perfectly correct (an idealization; see the module note). -/
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     /- Bound on an adversary's advantage in forging a signature.
       * DEVIATION FROM SPEC: We require the signature scheme to be SUF-CMA, not

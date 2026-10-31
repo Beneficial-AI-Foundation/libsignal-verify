@@ -37,9 +37,10 @@ T=Alice case is the standard 2-round protocol.
 
 The T=Alice scheme `uakeRecipient`, with its parties `initiatorNoConfirm` and
 `recipientNoConfirm`, is correctness-only. It follows PQXDH's message flow around the
-core. Its unkeyed party's input is Bob's long-term secret state, and PQXDH gives the
-initiator no explicit authentication. The scheme has no advantage statement and no
-partnering. Generic functions still accept it, so this scope rests on documentation.
+core. Its unkeyed party takes Bob's long-term secret state as input, and PQXDH gives the
+initiator no explicit authentication. Only the correctness and well-formedness theorems
+use the scheme, and the security theorems cover `uakeInitiator`. Generic functions still
+accept `uakeRecipient`, so this scope rests on documentation.
 
 Model simplifications
 * **Medium-term secrets as long-term:** The spec describes SPK and PQSPK as

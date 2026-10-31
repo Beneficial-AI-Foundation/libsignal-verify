@@ -15,10 +15,8 @@ Hops 5 and 6 of the DH security theorem `Protocols.PQXDH.uakeInitiator_secure_dh
 `Security.lean`: the forgery and indistinguishability cores, against GapDH,
 the KDF, and the AEAD. See `SecurityLemmas.lean` for the overall map.
 
-The hop lemmas assume `hidKEM`, which does not hold for production: production key
-identifiers are 32-bit prekey ids, and no map from KEM public keys to them is injective.
-The premise stays until hop 5 is restated. Issue #35 reports the underlying problem:
-unsigned key identifiers break transcript matching.
+The hop lemmas assume `hidKEM`, which fails for production. The module note of
+`Security.lean` gives the reason.
 
 These statements are believed true in the current model (the KDF as a plain
 parameter function, plus a PRF hypothesis), but the standard reductions
