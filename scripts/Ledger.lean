@@ -6,6 +6,7 @@ Authors: Jin Xing Lim
 
 import Libsignal
 import Protocols
+import ProtocolsTest
 
 /-! # Ledger probe
 
@@ -37,3 +38,19 @@ Prints the axiom closures recorded in `Protocols/LEDGER.md`. Run from the reposi
 #print axioms Protocols.PQXDH.Realization.chainKeyBytes
 #print axioms Protocols.PQXDH.Realization.pqrKeyBytes
 #print axioms Protocols.PQXDH.Realization.Bytes
+
+-- Full realization: correctness and security statements, and the fault fixtures.
+#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_dh
+#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total
+#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_pq
+#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total
+#print axioms Protocols.PQXDH.Realization.fullExp_noLostMass
+#print axioms Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator
+#print axioms Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient
+#print axioms Protocols.PQXDH.Realization.coreCompletion_extracted
+#print axioms Protocols.PQXDH.Realization.jointKeyAgreement_extracted
+#print axioms Protocols.PQXDH.Realization.initiate_kdfInput_witness
+#print axioms Protocols.PQXDH.Realization.accept_kdfInput_witness
+#print axioms Protocols.PQXDH.Realization.alwaysPanic_fails
+#print axioms Protocols.PQXDH.Realization.alwaysError_fails
+#print axioms Protocols.PQXDH.Realization.alwaysDiverge_fails

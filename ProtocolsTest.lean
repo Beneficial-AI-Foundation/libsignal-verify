@@ -4,6 +4,7 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Jin Xing Lim
 -/
 
+import ProtocolsTest.PQXDH.Realization.FaultFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.ExperimentFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TransportFixtures

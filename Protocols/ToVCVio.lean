@@ -6,11 +6,13 @@ Authors: Jin Xing Lim
 
 import Protocols.ToVCVio.CryptoFoundations.AEAD
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Party
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Runtime
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transcript
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
+import Protocols.ToVCVio.CryptoFoundations.KEMCorrectness
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
 import Protocols.ToVCVio.OracleComp.QueryTracking.Structures
 
