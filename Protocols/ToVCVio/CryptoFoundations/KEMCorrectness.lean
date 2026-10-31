@@ -12,12 +12,12 @@ import VCVio.CryptoFoundations.KeyEncapMech
 
 The correctness experiment `KEMScheme.CorrectExp` generates a key pair, encapsulates to the public
 key and decapsulates the ciphertext with the secret key. It returns `true` when decapsulation
-recovers the encapsulated key. The **correctness error** of a KEM under a runtime is the missing
+recovers the encapsulated key. The correctness error of a KEM under a runtime is the missing
 success mass of this experiment,
 
 `ε = 1 - Pr[CorrectExp = true]`,
 
-and the KEM is **`δ`-correct** when `ε ≤ δ`. Because the error is missing success mass and not
+and the KEM is `δ`-correct when `ε ≤ δ`. Because the error is missing success mass and not
 the probability of the output `false`, it also counts executions that return no Boolean, such as
 a computation that panics or does not terminate. So `ε = 0` is exactly VCVio's
 `KEMScheme.PerfectlyCorrect`, even for a runtime whose output distribution has total mass below

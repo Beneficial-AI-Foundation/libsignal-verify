@@ -13,55 +13,22 @@ import Protocols.PQXDH.Realization.Defs
 /-!
 # Contracts for the opaque leaves of the PQXDH entry points
 
-The extraction leaves opaque the cryptographic primitives that `pqxdh_initiate` and
-`pqxdh_accept` call: curve25519 agreement and signatures, the Kyber1024 backend, the
-random-number generator and a few conversions of the Rust standard library. The hand-maintained
-external files declare them without a body, so Lean knows only their types. A **contract** states
-what such a leaf does: its success and error behaviour on an explicit domain, and that it
-terminates without panicking there. Every contract here is a proposition, and the theorems that
-need it take it as a named hypothesis. No contract is a declaration without a body or an admitted
-proof. No contract follows from the type of a leaf: a `Result` type allows a panic and a loop,
-and a contract excludes them only where it says so.
+The extraction leaves opaque the primitives that `pqxdh_initiate` and `pqxdh_accept` call:
+curve25519 agreement and signatures, the Kyber1024 backend, the random-number generator and a few
+conversions of the Rust standard library. The hand-maintained external files declare them without
+a body, so Lean knows only their types.
 
-Each contract cites the Rust code it describes. We read that code but did not verify it, so the
-contracts are trusted, and each has its own row in the ledger. The plan is to discharge the curve
-contracts from the verified curve25519 implementation and the Kyber contracts from a model of
-libcrux.
+A contract states what such a leaf does on an explicit domain: which values or errors it returns,
+and that it terminates without panicking. Each contract is a proposition that a theorem takes as a
+named hypothesis. A `Result` type allows a panic and a loop, and a contract excludes them only
+where it says so. Each contract cites the Rust code it describes. We read that code but did not
+verify it, so every contract is trusted and has its own row in `Protocols/LEDGER.md`.
 
-The contracts fall into four groups.
-
-* Curve25519 (`rust/core/src/curve.rs`, `rust/core/src/curve/curve25519.rs`). Agreement between
-  two keys whose public halves are derived from their private halves succeeds with 32 bytes and
-  gives the same value from either side (`AgreementDerived`). This replaces the assumption that
-  agreement commutes on every key pair, which production breaks on low-order points. On any
-  inputs, agreement returns either 32 bytes or the error `InvalidKeyAgreement` (`AgreementTotal`).
-  The torsion check always returns a Boolean (`TorsionFreeTotal`), and a derived public key
-  passes the canonicality check that `pqxdh_accept` applies to the initiator's ephemeral key
-  (`DerivedCanonical`).
-* XEdDSA signatures on the same curve25519 keys. Signing terminates with a 64-byte signature when
-  the random-number generator is total (`SignTotal`). A signature verifies under the derived
-  public key (`SignVerify`), and verification always returns a Boolean (`VerifyTotal`).
-* Kyber1024 (`rust/protocol/src/kem/kyber1024.rs`). Encapsulation on a key whose length is not
-  1568 bytes returns `BadKEMKeyLength` and leaves the generator state unchanged
-  (`KyberEncapsBadLength`). On a 1568-byte key, when the generator is total, encapsulation
-  terminates with a 32-byte secret and a 1568-byte ciphertext (`KyberEncapsBackend`).
-  Decapsulation has three exact branches (`KyberDecaps`).
-* Randomness and the standard library. `RngTotal core Dom` says that the generator's methods
-  terminate without panicking on the states in `Dom` and stay in `Dom`. It is the named
-  RNG-totality hypothesis, because a `CryptoRng` adapter can panic (`rand_core` 0.9.3,
-  `UnwrapErr`, `src/lib.rs:300-317`). The other contracts describe a vector turned into a boxed
-  slice, a boxed slice copied from a slice, slice equality and string allocation.
-
-`CoreContracts` and `SignatureContracts` bundle the contracts as named fields.
-
-## Fault-or-value contracts
-
-The contracts above are total: each says that a leaf returns, and what it returns. The security
-statements count every faulted run in a separate term, `Pr[⊥]`. So they do not need totality, and
-they must not depend on a complete list of totality contracts. They use the **fault-or-value**
-form of each contract instead, bundled in `PartialContracts`: *if* the leaf returns, it returns
-the value described above. A fault-or-value contract says nothing about termination. Each one
-follows from the corresponding total contract.
+Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
+`CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
+and `fullExp_noLostMass` take. The fault-or-value form says only what a leaf returns if it
+returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
+The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 -/
 
 open Aeneas Aeneas.Std Result
@@ -75,8 +42,9 @@ variable {R : Type}
 
 /-- On every state in `Dom`, the three methods of the random-number generator terminate without
 panicking and return a state in `Dom`, and `fill_bytes` keeps the length of the buffer. This is
-the hypothesis that the caller's generator instance is total, which the type
-`rand_core::CryptoRng` does not guarantee. -/
+the hypothesis that the caller's generator instance is total. The type `rand_core::CryptoRng` does
+not guarantee it, because a `CryptoRng` adapter can panic (`rand_core` 0.9.3, `UnwrapErr`,
+`src/lib.rs:300-317`). -/
 def RngTotal (core : rand_core_1.RngCore R) (Dom : R → Prop) : Prop :=
   ∀ r, Dom r →
     (core.next_u32 r ⦃ _ r' => Dom r' ⦄) ∧ (core.next_u64 r ⦃ _ r' => Dom r' ⦄) ∧
@@ -105,9 +73,9 @@ def AgreementDerived : Prop :=
           curve.PrivateKey.calculate_agreement sk₁ pk₂ = .ok (.Ok s) ∧
           curve.PrivateKey.calculate_agreement sk₂ pk₁ = .ok (.Ok s)
 
-/-- On every private and public key, agreement terminates without
-panicking and returns either 32 bytes or the error `InvalidKeyAgreement`, which it returns for
-the all-zero shared value (`rust/core/src/curve.rs:296-309`). -/
+/-- On every private and public key, agreement terminates without panicking and returns either
+32 bytes or the error `InvalidKeyAgreement`, which it returns for the all-zero shared value
+(`rust/core/src/curve.rs:296-309`). -/
 def AgreementTotal : Prop :=
   ∀ (sk : ECPriv) (pk : ECPub),
     curve.PrivateKey.calculate_agreement sk pk ⦃ r =>
@@ -120,9 +88,9 @@ def TorsionFreeTotal : Prop :=
 
 /-- A public key derived from a private key passes the check `is_canonical` that `pqxdh_accept`
 applies to the initiator's ephemeral key (`rust/protocol/src/pqxdh.rs:339`): it is torsion-free
-and its encoding is reduced
-(`rust/core/src/curve.rs:165-190`). A derived key is a multiple of the base point, which lies in
-the prime-order subgroup, and its u-coordinate is encoded below `2^255 - 19`. -/
+and its encoding is reduced (`rust/core/src/curve.rs:165-190`). A derived key is a multiple of
+the base point, which lies in the prime-order subgroup, and its u-coordinate is encoded below
+`2^255 - 19`. -/
 def DerivedCanonical : Prop :=
   ∀ (sk : ECPriv) (pk : ECPub), curve.PrivateKey.public_key sk = .ok (.Ok pk) →
     libsignal_core.curve.PublicKey.is_canonical pk = .ok true
@@ -143,8 +111,8 @@ def SignTotal : Prop :=
           (∃ σ, res = .Ok σ ∧ σ.length = 64) ∧ Dom r' ⦄
 
 /-- A signature that the private key `sk` computes on `msg` verifies under the public key derived
-from `sk` (XEdDSA, `rust/core/src/curve/curve25519.rs:66-158`). One key both signs and agrees,
-and this is the completeness half of the single identity key. -/
+from `sk` (XEdDSA, `rust/core/src/curve/curve25519.rs:66-158`). It is the completeness half of
+the single identity key, which both signs and agrees. -/
 def SignVerify : Prop :=
   ∀ {R : Type} (crng : rand_core_1.CryptoRng R) (rng : rand.rng.Rng R) (sk : ECPriv)
     (pk : ECPub) (msg σ : Slice U8) (r r' : R),
@@ -189,7 +157,8 @@ def KyberEncapsBackend : Prop :=
 ciphertext does not have 1568 bytes; otherwise a 32-byte shared secret
 (`rust/protocol/src/kem/kyber1024.rs:42-54`). On a mismatched ciphertext, Kyber returns a
 pseudorandom secret, not an error, so success says nothing about agreement. `KyberDeltaCorrect`
-measures agreement. Termination rests on the same unbounded sampling loop as encapsulation. -/
+bounds how often the secrets differ. Termination rests on the same unbounded sampling loop as
+encapsulation. -/
 def KyberDecaps : Prop :=
   ∀ (sk : kem.KeyMaterial kem.Secret) (ct : Slice U8),
     kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate sk ct ⦃ res =>

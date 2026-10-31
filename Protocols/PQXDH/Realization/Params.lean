@@ -13,26 +13,13 @@ import Protocols.ToVCVio.CryptoFoundations.AEAD
 /-!
 # Parameters of the Full realization
 
-`Params` collects what the Full realization takes from outside the extracted code. The two
-random-number-generator instances are the caller's choice, as in Rust, where every entry point is
-generic in its generator. The four distributions are modelling choices, each with its own ledger
-row:
+`Params` collects what the Full realization takes from outside the extracted code. The caller
+chooses the two random-number-generator instances, as in Rust, where every entry point is generic
+in its generator. The other four fields are modelling choices, each with its own ledger row. The
+file also provides uniform sampling of bytes and byte arrays, which the AEAD and UAKE definitions
+need for 32-byte keys, following PQXDH-model (`PQXDH/Aeneas/Full/UAKE/Defs.lean:52-64`).
 
-* `coins` is the law of the caller's generator state at the start of a session. A session draws
-  it once, an ideal draw per session. Production's generator is long-lived, and the correlation
-  between its sessions is left to the implementation milestone.
-* `ecKeygen` and `pqKeygen` are the ideal key generators. Every key pair of the realization,
-  Alice's ephemeral key included, comes from them and never from the caller's generator state.
-  Production calls `KeyPair::generate` on that state (`rust/protocol/src/session.rs:239`).
-  Nothing relates their laws to production's. Two relations are open obligations: `ecKeygen`
-  against the clamped generation of `rust/core/src/curve/curve25519.rs:27-37`, and either
-  generator against the abstract model's uniform exponent.
-* `aead` is the synthetic AEAD of the UAKE wrapper. Production has no counterpart.
-
-The file also provides uniform sampling of bytes and byte arrays, which the AEAD and UAKE
-definitions need for 32-byte keys, following PQXDH-model (`PQXDH/Aeneas/Full/UAKE/Defs.lean:52-64`).
-
-`EntryPoints` packages the two entry points of the handshake. `EntryPoints.extracted` is the
+`EntryPoints` packages the two entry points of the handshake, and `EntryPoints.extracted` is the
 extracted `pqxdh_initiate` and `pqxdh_accept`. Every definition of the realization is generic in
 the entry points, so the fault fixtures can substitute entry points that always panic, always
 return an error or never terminate.
@@ -76,13 +63,21 @@ structure Params (Rand Msg C IdC IdK : Type) where
   rngInst : rand.rng.Rng Rand
   /-- The caller's generator, as `rand_core::CryptoRng`. -/
   cryptoRngInst : rand_core_1.CryptoRng Rand
-  /-- The law of the caller's generator state at the start of a session (modelling choice). -/
+  /-- The law of the caller's generator state at the start of a session, drawn once per session
+  (modelling choice). Production's generator is long-lived, and the model does not relate its
+  sessions. -/
   coins : ProbComp Rand
-  /-- The ideal curve25519 key generator (modelling choice). -/
+  /-- The ideal curve25519 key generator (modelling choice). Every curve25519 key pair, Alice's
+  ephemeral key included, comes from it, while production calls `KeyPair::generate` on the
+  caller's generator (`rust/protocol/src/session.rs:239`). Its law is related neither to
+  production's clamped generation (`rust/core/src/curve/curve25519.rs:27-37`) nor to the abstract
+  model's uniform exponent. -/
   ecKeygen : ProbComp ECKeyPair
-  /-- The ideal Kyber key generator (modelling choice). -/
+  /-- The ideal Kyber key generator (modelling choice), in place of production's
+  `KeyPair::generate` on the caller's generator. -/
   pqKeygen : ProbComp PQKeyPair
-  /-- The synthetic AEAD of the UAKE wrapper, with associated data `(IK_A, IK_B, PQPK_B)`. -/
+  /-- The synthetic AEAD of the UAKE wrapper, with associated data `(IK_A, IK_B, PQPK_B)`.
+  Production has no counterpart. -/
   aead : AEAD.Scheme ProbComp Msg Key (ECPub × ECPub × PQPub) C
   /-- Identifiers of curve25519 prekeys. -/
   idEC : ECPub → IdC

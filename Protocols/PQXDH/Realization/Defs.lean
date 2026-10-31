@@ -20,16 +20,16 @@ The file also defines the joint output of the handshake that the Full realizatio
 parties' states. `JointKeys` records all of what `pqxdh_initiate` and `pqxdh_accept` derive: the
 root key, the chain key with its index, and the post-quantum ratchet key. The UAKE game reads only
 the root key. The states keep the rest so that the correctness statements can compare the whole
-record.
-`AeadRoleKeys` names the two keys that the synthetic AEAD wrapper of the Full realization uses.
+record. `AeadRoleKeys` names the two keys that the synthetic AEAD wrapper of the Full realization
+uses.
 
 Two predicates describe the key pairs that honest key generation must produce. `ECKeyPairValid`
 says that a curve25519 key pair's public half is the one derived from its private half. It does
-not say that the private bytes are clamped or how they are distributed. `PQKeyPairShape` says that a
-Kyber key pair has the Kyber1024 type and the Kyber1024 byte lengths.
+not say that the private bytes are clamped or how they are distributed. `PQKeyPairShape` says that
+a Kyber key pair has the Kyber1024 type and the Kyber1024 byte lengths.
 
-**Source**: `PQXDH/Aeneas/Full/UAKE/Defs.lean` of libsignal-docs-and-models, the declarations of
-the same names (`ECKeyPairValid` at lines 282-286). `JointKeys`, `AeadRoleKeys` and
+The declarations of the same names come from `PQXDH/Aeneas/Full/UAKE/Defs.lean` of
+libsignal-docs-and-models (`ECKeyPairValid` at lines 282-286). `JointKeys`, `AeadRoleKeys` and
 `PQKeyPairShape` are new here.
 -/
 

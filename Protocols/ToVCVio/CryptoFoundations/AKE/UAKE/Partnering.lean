@@ -15,24 +15,15 @@ import VCVio.OracleComp.QueryTracking.QueryBound
 The UAKE experiment `AKE.UAKE.Exp` decides whether an adversary attacked the challenge session by
 comparing transcripts: the adversary is trivial when it relayed the messages of some session of
 the authenticated party T (the "ping-pong" relation of Dodis and Fiore). This file states the same
-experiment over a general **partnering relation** between the state of the challenge session and
-the state of a session of T, and records when each session accepted.
+experiment over a partnering relation between the state of the challenge session and the state of
+a session of T, and records when each session accepted (`acceptTime`).
 
-* `acceptTime tr` is the time at which a completed session accepted: the clock value of the last
-  entry of its transcript. The experiment already timestamps every message, and a session that
-  has accepted takes no further message, so no step counter is needed.
-* The challenge is **authentication-partnered** (`authPartnered`) when some completed session of T
-  is its partner and accepted no later than the challenge did. When the challenge accepted with no
-  such partner, the adversary has impersonated T and wins.
-* The challenge has a **revealed partner** (`revealedPartnered`) when some session of T whose key
-  the adversary revealed is its partner, at any time. Such a challenge is not fresh: the adversary
-  knows its key, and the experiment replaces its guess by a coin flip.
-
-The adversary's only exposure query is `revealT`, which returns the key of a completed session of
-T. There is no corruption of long-term keys and no reveal of session state, and the challenge key
-is given only as the challenge. The oracle implementation, the challenge phase and the
-environment are those of `AKE.UAKE.Exp`. Only the two decisions above differ.
-`partneredAdvantage` is the guess-form advantage of this experiment.
+`PartneredExp` makes two decisions differently from `AKE.UAKE.Exp`. If the challenge accepts with
+no partner that accepted no later (`authPartnered`), the adversary has impersonated T and wins. If
+a revealed session of T is a partner (`revealedPartnered`), the challenge is not fresh, and a coin
+flip replaces the guess. The oracle implementation, the challenge phase and the environment are
+those of `AKE.UAKE.Exp`. The adversary's only exposure query is `revealT`, which returns the key of
+a completed session of T. `partneredAdvantage` is the guess-form advantage of this experiment.
 -/
 
 open OracleSpec OracleComp
@@ -47,7 +38,8 @@ structure Partnering (proto : Scheme m K UK TK W) where
   /-- The partner relation between a U state and a T state. -/
   partner : proto.U.State → proto.T.State → Prop
 
-/-- The time at which a session accepted: the clock value of the last entry of its transcript. -/
+/-- The time at which a session accepted: the clock value of the last entry of its transcript.
+The experiment timestamps every message, and an accepted session takes no further message. -/
 def acceptTime (tr : Transcript W) : Option ℕ :=
   tr.entries.getLast?.map Prod.snd
 

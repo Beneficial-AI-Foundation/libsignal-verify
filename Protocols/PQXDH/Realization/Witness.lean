@@ -13,31 +13,20 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 /-!
 # Original-key partnering for the Full realization
 
-Two sessions of PQXDH are **partners** when they agree on the associated data and on the
-**original key material** `km`: the exact input of the key derivation, made of 32 bytes of `0xFF`,
-the Diffie-Hellman outputs DH1 to DH4 and the Kyber shared secret. Equal inputs give equal keys,
-since the derivation is a function. Distinct inputs that happen to give equal keys do not make
-partners. The guarantee that partnering expresses is "the peer accepted the same original key
-material under the same associated data". It does not authenticate the identifiers or the bytes of
-an unsigned one-time prekey that the initiator's message carries.
+Two sessions of PQXDH are partners when they agree on the associated data and on the original key
+material `km`, the exact input of the key derivation: 32 bytes of `0xFF`, the Diffie-Hellman
+outputs DH1 to DH4 and the Kyber shared secret. Equal inputs give equal keys, since the derivation
+is a function, but distinct inputs that give equal keys do not make partners. Partnering binds the
+key material and the associated data. The identifiers and the bytes of an unsigned one-time
+prekey in the initiator's message are not authenticated.
 
-The extracted entry points return only the derived keys, not `km`. The realization therefore
-records, in each completed state, the exact inputs of its entry-point call, and a specification
-of that call gives the session's `km`:
-
-* `InitiateKdfInput crng ip r km` holds when the leaf calls that `pqxdh_initiate` makes on the
-  inputs `ip` and the generator state `r` (three or four agreements and one encapsulation) return
-  values, and `km` is `kdfInput` of exactly those values;
-* `AcceptKdfInput rp km` is the same for `pqxdh_accept`, with its agreements and its
-  decapsulation.
-
-These are statements about the same invocation, not a recomputation in the protocol. The leaf
-functions are deterministic, so the call's inputs determine `km`. The theorems
-`initiate_kdfInput_witness` and `accept_kdfInput_witness` state that a successful call derives its
-keys from that `km`. Their proofs wait for the specification of the entry points.
-
-`fullPartnering` is the resulting partnering relation of `uakeInitiator`. The session identifier
-`(ad, km)` exists only for completed states, so it is fixed when a session accepts.
+The extracted entry points return the derived keys but not `km`. So each completed state records
+the exact inputs of its entry-point call, and `InitiateKdfInput` and `AcceptKdfInput` specify the
+`km` of that call. The leaf functions are deterministic, so the inputs of a call determine its
+`km`. `initiate_kdfInput_witness` and `accept_kdfInput_witness` state that a successful call
+derives its keys from that `km`, and their proofs are stubs. `fullPartnering` is the resulting
+partnering relation of `uakeInitiator`. The session identifier `(ad, km)` exists only for
+completed states, so it is fixed when a session accepts.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -92,8 +81,7 @@ def AcceptKdfInput (rp : pqxdh.RecipientParameters) (km : Slice U8) : Prop :=
       kdfInput d1 d2 d3 d4 ss = .ok km
 
 /-- The same-invocation witness for the initiator: if `pqxdh_initiate` succeeds on `ip` and `r`,
-its keys are the derivation of the original key material of that call. The proof is a stub that
-waits for the specification of the entry points. -/
+its keys are the derivation of the original key material of that call. The proof is a stub. -/
 theorem initiate_kdfInput_witness (crng : rand_core_1.CryptoRng Rand)
     (rng : rand.rng.Rng Rand) (ip : pqxdh.InitiatorParameters) (r r' : Rand)
     (ag : InitiatorAgreement) (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (.Ok ag, r')) :
@@ -101,8 +89,7 @@ theorem initiate_kdfInput_witness (crng : rand_core_1.CryptoRng Rand)
   sorry
 
 /-- The same-invocation witness for the responder: if `pqxdh_accept` succeeds on `rp`, its keys
-are the derivation of the original key material of that call. The proof is a stub that waits for
-the specification of the entry points. -/
+are the derivation of the original key material of that call. The proof is a stub. -/
 theorem accept_kdfInput_witness (rp : pqxdh.RecipientParameters) (hk : HandshakeKeys)
     (h : pqxdh.pqxdh_accept rp = .ok (.Ok hk)) :
     ∃ km, AcceptKdfInput rp km ∧ pqxdh.HandshakeKeys.derive km = .ok hk := by

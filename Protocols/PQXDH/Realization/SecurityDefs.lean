@@ -13,53 +13,16 @@ import VCVio.CryptoFoundations.PRF
 /-!
 # Premises of the security statements of the Full realization
 
-The security statements of the Full realization bound an adversary's advantage by the advantages
-of adversaries against the primitives. This file defines those primitive games, stated on the
-extracted code or on the interfaces that its contracts name, and the remaining premises.
+The security statements of the Full realization bound an adversary's advantage by its advantages
+in primitive games. This file defines those games, on the extracted code or on the interfaces
+that its contracts name, and the other premises of the statements.
 
-* Signatures (`jointSigAdvantage`). Bob's single identity key both signs and performs
-  Diffie-Hellman. The game is existential unforgeability under chosen messages *with an agreement
-  oracle on the same key*. The adversary gets the identity public key, a signing oracle that runs
-  the extracted signing through the fault-preserving adapter `signBytes`, and an oracle that
-  returns the extracted agreement of the identity private key with any public key it chooses. It
-  wins with a signature that the extracted verification accepts on a message it never asked to be
-  signed. Strong unforgeability is false of production, because production verification accepts
-  `(R, s + ℓ)` whenever it accepts `(R, s)` (`rust/core/src/curve/curve25519.rs:134-155`). This
-  file defines the game because VCVio's unforgeability games are typed over `OracleComp` only. It
-  scores a winning probability, so a fault only lowers it.
-* Diffie-Hellman and key derivation for the DH statement (`pqxdhODHAdvantage`). One premise of
-  the oracle Diffie-Hellman kind covers both. It speaks about the protocol's own Diffie-Hellman
-  values and its own key derivation, the RFC 5869 HKDF of the MAC interface `H` that
-  `HkdfSha256Contract H` names, on the PQXDH input layout and label.
-  - Two key pairs `a` and `b` come from `P.ecKeygen`, and the adversary sees both public keys.
-  - It must tell the derived keys of a challenge input, whose third slot is `agree(a, B)` and whose
-    fourth slot is `agree(a, Y4)`, from random keys.
-  - Meanwhile it can ask for the derived keys of any input whose slots are literals or agreements
-    of `a` or `b` with points of its choice.
-  - The slot structure is what a reduction needs. Bob's long-term signed prekey enters every one of
-    his sessions twice (DH1 and DH3) against points the adversary chooses. Alice's ephemeral key
-    meets an unsigned one-time prekey in DH4.
-  - The game does not use the uniform-exponent law of the abstract model. Its keys come from the
-    Full generator.
-* Key derivation for the PQ statement (`kdfPRF`). The key derivation is a pseudorandom function
-  keyed by the Kyber secret, a uniform 32-byte key.
-* Kyber (`KyberBridge`). The PQ statement assumes IND-CCA security of an abstract total KEM `K`,
-  VCVio's notion, as the model's PQ theorem does. The bridge contract ties `K` to the extracted
-  calls: `P.pqKeygen` is `K`'s key generation, `K`'s encapsulation is a function of the generator
-  state drawn from `P.coins`, and every extracted encapsulation on a 1568-byte key and every
-  extracted decapsulation with an honest secret key either faults or returns `K`'s output. It
-  claims no termination, and the statements count faulted runs separately. Production runs
-  libcrux's pre-standard Kyber-1024, not ML-KEM-1024. Three items are out of scope here:
-  - the correctness of libcrux's Kyber against the Kyber specification, which belongs to libcrux
-    and Cryspen;
-  - the IND-CCA security of Kyber itself, a hardness assumption;
-  - ML-KEM Braid, which belongs to SPQR-verify. Its model in secure-messaging PR #397 is passive
-    and IND-CPA on ML-KEM, so it does not plug in here.
-* Fitting messages (`Adversary.SendsFittingMessages`). The extraction's byte slices can be as long
-  as the largest `usize`, which no Rust allocation reaches. A bundle carrying a Kyber key of that
-  length makes the serialization in Alice's signature check overflow, a fault that cannot occur in
-  production. The statement that the experiment loses no mass assumes that the adversary never
-  sends such a key. The security bounds themselves do not assume it.
+Both statements use the joint unforgeability game of the identity key (`jointSigAdvantage`). The
+DH statement adds the oracle Diffie-Hellman game on the protocol's own Diffie-Hellman values and
+key derivation (`pqxdhODHAdvantage`). The PQ statement adds the key derivation as a pseudorandom
+function keyed by the Kyber secret (`kdfPRF`), and the bridge from an abstract KEM to the
+extracted Kyber calls (`KyberBridge`). `Adversary.SendsFittingMessages` is a premise of
+`fullExp_noLostMass` only.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal
@@ -105,9 +68,14 @@ def jointSigImpl (P : Params Rand Msg C IdC IdK) (sk : ECPriv) :
     liftM (liftResult (curve.PrivateKey.calculate_agreement sk pk) : RustOracleComp unifSpec _)
   unifImpl + (signImpl + agreeImpl)
 
-/-- The joint unforgeability game. Draw the identity key pair from `P.ecKeygen`, run the
-adversary with the signing and agreement oracles, and verify its output with the extracted
-verification. The adversary wins when the signature verifies and the message was never signed. -/
+/-- The joint unforgeability game: existential unforgeability under chosen messages, with an
+agreement oracle on the same key. Draw the identity key pair from `P.ecKeygen`, run the adversary
+with the signing and agreement oracles, and verify its output with the extracted verification.
+The adversary wins when the signature verifies and the message was never signed.
+
+Strong unforgeability is false of production, because production verification accepts
+`(R, s + ℓ)` whenever it accepts `(R, s)` (`rust/core/src/curve/curve25519.rs:134-155`). VCVio's
+unforgeability games are typed over `OracleComp` only, so this file defines its own. -/
 def jointSigForgeExp (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) :
     RustOracleComp unifSpec Bool := do
   let kp ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
@@ -115,7 +83,8 @@ def jointSigForgeExp (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) :
   let ok ← verifyBytes kp.public_key msg σ
   pure (ok && decide (msg ∉ signed))
 
-/-- The adversary's success probability in the joint unforgeability game. -/
+/-- The adversary's success probability in the joint unforgeability game. A fault only lowers
+it. -/
 def jointSigAdvantage (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) : ℝ≥0∞ :=
   Pr[= true | rustRuntime.evalDist (jointSigForgeExp P A)]
 
@@ -272,7 +241,11 @@ Throughout, it can ask for the derived keys of any template. After the challenge
 refuses the challenge's complete input, and if an earlier query had that input, the game outputs
 `false` in both worlds. The oracle refuses by complete input, not by point: X25519 reads only the
 u-coordinate of a public key, so another encoding of a point gives the same agreement, and Bob
-does not check the public key of DH1 for canonicality (`rust/protocol/src/pqxdh.rs:350-355`). -/
+does not check the public key of DH1 for canonicality (`rust/protocol/src/pqxdh.rs:350-355`).
+
+The slots follow what a reduction needs. Bob's long-term signed prekey enters DH1 and DH3 of each
+of his sessions, against points that the adversary chooses. Alice's ephemeral key meets an
+unsigned one-time prekey in DH4. -/
 def pqxdhODHExp (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK) (A : PqxdhODHAdversary)
     (real : Bool) : ProbComp Bool := do
   let a ← P.ecKeygen
@@ -307,7 +280,16 @@ section Kyber
   secret key from `P.pqKeygen`, either faults or returns what `encDet` or `decDet` gives, where a
   returned error stands for no key.
 
-The bridge claims no termination. `KyberPartial` covers the branches on keys of other lengths. -/
+The bridge claims no termination. `KyberPartial` covers the branches on keys of other lengths.
+
+The PQ statement assumes IND-CCA security of `K`, VCVio's notion, as the model's PQ theorem does.
+Production runs libcrux's pre-standard Kyber-1024, not ML-KEM-1024. Three items are out of scope
+here:
+* the correctness of libcrux's Kyber against the Kyber specification, which belongs to libcrux
+  and Cryspen;
+* the IND-CCA security of Kyber itself, a hardness assumption;
+* ML-KEM Braid, which belongs to SPQR-verify. Its model in secure-messaging PR #397 is passive
+  and IND-CPA on ML-KEM, so it does not plug in here. -/
 def KyberBridge (P : Params Rand Msg C IdC IdK)
     (K : KEMScheme ProbComp Key PQPub PQPriv (Slice U8)) : Prop :=
   P.pqKeygen = (fun x => ({ public_key := x.1, secret_key := x.2 } : PQKeyPair)) <$> K.keygen ∧
@@ -334,7 +316,10 @@ def FitsInMemory : FullMessage C IdC IdK → Prop
   | _ => True
 
 open Classical in
-/-- The adversary sends only messages that fit in memory, in both of its stages. -/
+/-- The adversary sends only messages that fit in memory, in both of its stages. A bundle with a
+Kyber key of the largest `usize` length makes the serialization in Alice's signature check
+overflow, a fault that cannot occur in production. `fullExp_noLostMass` takes this premise. The
+security bounds do not take it. -/
 def Adversary.SendsFittingMessages {K UK TK : Type}
     {proto : UAKE.Scheme (RustOracleComp unifSpec) K UK TK (FullMessage C IdC IdK)}
     (A : UAKE.Adversary proto) : Prop :=

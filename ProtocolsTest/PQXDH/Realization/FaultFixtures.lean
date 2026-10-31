@@ -10,23 +10,16 @@ import Protocols.PQXDH.Realization.Correctness
 
 The correctness statements of `Protocols.PQXDH.Realization` say that certain success events have
 probability `1`, or at least `1 - δ`. A success event that a broken implementation also satisfies
-would make such a statement vacuous. PQXDH-model's correctness experiment has this defect. It
-counts a run in which either party outputs nothing as correct, so a realization that always fails
-is perfectly correct.
+would make such a statement vacuous. The UAKE correctness experiment `AKE.UAKE.CorrectExp`, from
+PQXDH-model, counts a run in which either party outputs nothing as correct, so a realization that
+always fails passes it.
 
-These fixtures replace the extracted entry points by three broken ones:
-
-* `EntryPoints.alwaysPanic`: both entry points panic;
-* `EntryPoints.alwaysError e`: both return the protocol error `e`;
-* `EntryPoints.alwaysDiverge`: neither terminates.
-
-For each of them, every success event of `Correctness.lean` has probability `0`: core
-completion, joint key-record agreement, and wrapper agreement in both UAKE schemes. Hence each
-broken realization fails core completion, and fails the other statements for every `δ < 1`. The
-argument needs only that the initiator's entry point never returns an agreement
-(`EntryPoints.NeverAgrees`). Then Alice never leaves her initial state and outputs no key, so no
-success event can occur. The fixtures assume no contract, and every fixture is proved. The
-`#guard_msgs` checks at the end record that no fixture depends on a stub.
+The fixtures replace the extracted entry points by three broken ones, `EntryPoints.alwaysPanic`,
+`EntryPoints.alwaysError` and `EntryPoints.alwaysDiverge`, and prove that each fails every
+correctness statement for every `δ < 1`. The argument needs only that the initiator's entry point
+never returns an agreement (`EntryPoints.NeverAgrees`). Then Alice never leaves her initial state
+and outputs no key, so every success event has probability `0`. The fixtures assume no contract.
+The `#guard_msgs` checks at the end record that no fixture depends on a stub.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal

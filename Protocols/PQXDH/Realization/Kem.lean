@@ -29,12 +29,10 @@ and decapsulation of that ciphertext returned the same secret (`kyberKem_correct
 fault in either call is missing mass, which `KEMScheme.correctnessError` counts as error.
 
 `KyberDeltaCorrect P δ` states that this experiment has correctness error at most `δ`. It is a
-named hypothesis of the correctness statements, not a fact proved here, and `δ` stays symbolic.
+named hypothesis of the correctness statements, not proved here, and `δ` stays symbolic.
 Production calls libcrux's pre-standard Kyber-1024 (`libcrux_ml_kem::kyber1024`,
-`rust/protocol/src/kem/kyber1024.rs:6-7`), not ML-KEM-1024. Discharging the hypothesis needs a
-model of that backend, a correspondence between the model and the source, and the published
-correctness analysis of Kyber. A model of ML-KEM would need its own relation to the pre-standard
-variant.
+`rust/protocol/src/kem/kyber1024.rs:6-7`), not ML-KEM-1024, and this repository has no model of
+that backend.
 -/
 
 open OracleSpec OracleComp ENNReal

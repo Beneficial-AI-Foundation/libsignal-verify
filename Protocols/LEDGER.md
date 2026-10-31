@@ -114,8 +114,8 @@ in the statements themselves, inherited from PQXDH-model, carry the label `defer
 
 ## Security placeholders
 
-The proofs of these statements of the Full realization belong to the security milestone. They are stubs by
-design and are not among the admitted hops above. All are in `Protocols/PQXDH/Realization/Security.lean`.
+These statements of the Full realization are stubs by design, apart from the admitted hops above. All are in
+`Protocols/PQXDH/Realization/Security.lean`.
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
@@ -128,8 +128,7 @@ need no stub of their own.
 
 ## Temporary stubs
 
-These statements are to be proved before the security statements. Their stubs are temporary, unlike the
-placeholders above.
+The stubs of these statements are temporary, unlike the security placeholders above.
 
 | Statement | File | Content | Status |
 | --- | --- | --- | --- |
@@ -142,13 +141,12 @@ placeholders above.
 
 ## Contracts, policies and modelling choices of the Full realization
 
-These are the hypotheses of the Full statements. Each is a named proposition, never a declaration without a
-body. A contract describes an opaque leaf of the extraction, and it
-is trusted. A policy describes what the calling application supplies. A modelling choice describes something
-outside the extracted code. The contracts are in `Protocols/PQXDH/Realization/Contracts.lean`, with
-fault-or-value forms in `PartialContracts`.
+These are the hypotheses of the Full statements, each a named proposition. A contract describes an opaque
+leaf of the extraction and is trusted. A policy describes what the calling application supplies. A modelling
+choice describes something outside the extracted code. The contracts are in
+`Protocols/PQXDH/Realization/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
 
-| Item | Kind | Describes | Planned discharge |
+| Item | Kind | Describes | Discharged by |
 | --- | --- | --- | --- |
 | `AgreementDerived`, `AgreementTotal` | contract | `calculate_agreement`: commutation and success on derived keys; 32 bytes or `InvalidKeyAgreement` | curve25519-dalek-fork |
 | `TorsionFreeTotal`, `DerivedCanonical` | contract | `is_torsion_free`; derived keys pass `is_canonical` | curve25519-dalek-fork |
@@ -156,15 +154,15 @@ fault-or-value forms in `PartialContracts`.
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | contract | the Kyber1024 backend: length branches, backend panic freedom and termination (libcrux's unbounded sampling loop) | a model of libcrux |
 | `RngTotal` | contract | totality of the caller's generator on a domain containing the drawn states | the caller's choice of generator |
 | `VecIntoBoxedSlice`, `BoxSliceFromU8`, `SliceEqArrayU8`, `ToOwnedTotal` | contract | standard-library conversions | short faithful bodies |
-| `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | existing contract |
+| `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | unchanged from `main` |
 | `KyberBridge` | contract | extracted Kyber calls fault or return the outputs of an abstract KEM `K` | a model of libcrux |
 | `KyberDeltaCorrect` | contract | correctness error of the extracted Kyber operations at most `δ` | published Kyber analysis with a model of libcrux |
-| `ECKeyPairValid` on `P.ecKeygen` | policy | key pairs from the ideal generator have derived public halves | the bridge to production key generation |
-| `PQKeyPairShape` on `P.pqKeygen` | policy | Kyber pairs have the Kyber1024 type and lengths | the bridge to production key generation |
-| `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | — |
-| `P.coins` | modelling choice | one ideal draw of the generator state per session | implementation milestone |
-| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws, not `KeyPair::generate` on the caller's generator; their law is not related to production's clamped generation or to the abstract uniform exponent | open bridge obligation |
-| `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a route beyond the wrapper, at the security milestone |
+| `ECKeyPairValid` on `P.ecKeygen` | policy | key pairs from the ideal generator have derived public halves | a correspondence with production key generation |
+| `PQKeyPairShape` on `P.pqKeygen` | policy | Kyber pairs have the Kyber1024 type and lengths | a correspondence with production key generation |
+| `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | none needed |
+| `P.coins` | modelling choice | one ideal draw of the generator state per session | a correspondence with production's generator |
+| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent | a correspondence with production key generation |
+| `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
 
 ## How to regenerate
 
