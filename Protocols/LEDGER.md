@@ -180,4 +180,6 @@ and Full realization closures. `scripts/ledger-check.py` counts an admission on 
 executable text, with the comments of its file blanked, contains `sorry` or `sorryAx` as a word, `axiom` as a
 declaration keyword (after optional attributes and modifiers), or `native_decide` or `set_option`. So an
 explicit `sorryAx` term counts. The `sorryAx` in an axiom list that `#guard_msgs` records in a doc comment
-does not count, and neither do the `#print axioms` commands of the spec summaries.
+does not count, and neither do the `#print axioms` commands of the spec summaries. The scanner keeps string
+and character literals and quoted identifiers `«…»`, so a comment marker inside one opens no comment.
+`python3 scripts/ledger-check.py --self-test`, which CI runs first, checks the scanner on fixed cases.

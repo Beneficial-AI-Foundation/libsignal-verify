@@ -23,6 +23,7 @@ executable text, what is left of it once `code_lines` blanks the comments of its
 optional attributes and modifiers), or `native_decide` or `set_option` as a word. An explicit
 `sorryAx` term therefore counts, while the `sorryAx` in an axiom list recorded as the expected
 output of `#guard_msgs`, which is a doc comment, does not, and `#print axioms` is no declaration.
+`python3 scripts/ledger-check.py --self-test` checks the comment scanner on fixed cases.
 
 Every declaration printed by `scripts/Ledger.lean` must be recorded, and every recorded one printed.
 """
@@ -52,8 +53,9 @@ def code_lines(src: str) -> list[str]:
 
     Line comments and nested block comments, which include docstrings and the expected output of
     `#guard_msgs`, become spaces, and line breaks stay, so line numbers do not move. String, raw
-    string and character literals are kept: a comment marker inside one opens no comment, and a
-    token inside one still counts, which errs towards counting.
+    string and character literals and quoted identifiers `«…»` are kept: a comment marker inside
+    one opens no comment, and a token inside one still counts, which errs towards counting. As in
+    Lean, a quoted identifier runs to the next `»`.
     """
     out: list[str] = []
     i, n, depth = 0, len(src), 0
@@ -81,6 +83,9 @@ def code_lines(src: str) -> list[str]:
             while j < n and src[j] != '"':
                 j += 2 if src[j] == '\\' else 1
             j = min(j + 1, n)
+        elif c == '«':
+            j = src.find('»', i + 1)
+            j = n if j < 0 else j + 1
         else:
             raw = RAW.match(src, i) if c == 'r' and not ident_char(prev) else None
             char = CHAR.match(src, i) if c == "'" and not ident_char(prev) else None
@@ -95,6 +100,48 @@ def code_lines(src: str) -> list[str]:
         i = j
     return ''.join(out).split('\n')
 
+
+# Regression cases for `code_lines`, one per line. Lines 7, 9, 11, 13 and 15 hold an admission
+# that a comment marker inside a literal or a quoted identifier must not hide; lines 17 and 18
+# hold `axiom` declarations. Every other line names the tokens only in a comment or a command.
+SELF_TEST = r"""/-- info: 'X' depends on axioms: [propext, sorryAx, Classical.choice] -/
+#guard_msgs in
+#print axioms X
+-- a line comment naming sorry, sorryAx, native_decide and set_option
+/- outer /- nested sorryAx -/ still inside: sorry
+axiom inside_block : False -/
+theorem unchecked : False := sorryAx False false
+def s : String := "/-"
+theorem after_string : False := sorryAx False false
+def r1 : String := r#"/- -- "#
+theorem after_raw : False := sorryAx False false
+def c : Char := '"'
+theorem after_char : False := sorry -- trailing comment with sorryAx
+def «/-» : Nat := 0
+theorem after_quoted : False := sorryAx False false
+theorem h' : True := trivial -- after a primed name: sorry
+private axiom hidden : False
+@[simp, aesop safe [foo]] noncomputable axiom attributed : Nat
+/-! module doc mentioning axiom foo : False and native_decide -/
+"""
+SELF_TEST_SORRY = {7, 9, 11, 13, 15}
+SELF_TEST_TRUST = {17, 18}
+
+
+def self_test() -> bool:
+    """Check `code_lines`, `SORRY` and `TRUST` on `SELF_TEST`, and print any mismatch."""
+    lines = code_lines(SELF_TEST)
+    sorry = {i for i, l in enumerate(lines, 1) if SORRY.search(l)}
+    trust = {i for i, l in enumerate(lines, 1) if TRUST.search(l)}
+    if sorry != SELF_TEST_SORRY or trust != SELF_TEST_TRUST:
+        print(f'SELF-TEST FAILED: sorry lines {sorted(sorry)}, axiom lines {sorted(trust)}')
+        return False
+    print('SELF-TEST OK')
+    return True
+
+
+if sys.argv[1:] == ['--self-test']:
+    sys.exit(0 if self_test() else 1)
 
 root = Path(__file__).resolve().parent.parent
 code_of: dict[str, list[str]] = {}
