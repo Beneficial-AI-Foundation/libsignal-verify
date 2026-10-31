@@ -101,9 +101,10 @@ def code_lines(src: str) -> list[str]:
     return ''.join(out).split('\n')
 
 
-# Regression cases for `code_lines`, one per line. Lines 7, 9, 11, 13 and 15 hold an admission
-# that a comment marker inside a literal or a quoted identifier must not hide; lines 17 and 18
-# hold `axiom` declarations. Every other line names the tokens only in a comment or a command.
+# Regression cases for `code_lines`, one per line. Lines 7, 9, 11, 13, 15 and 16 hold an admission
+# that a comment marker inside a literal or a quoted identifier must not hide. Line 17 is a comment
+# that a quote inside the identifier of line 16 must not turn into code. Lines 19 and 20 hold
+# `axiom` declarations. Every other line names the tokens only in a comment or a command.
 SELF_TEST = r"""/-- info: 'X' depends on axioms: [propext, sorryAx, Classical.choice] -/
 #guard_msgs in
 #print axioms X
@@ -119,13 +120,15 @@ def c : Char := '"'
 theorem after_char : False := sorry -- trailing comment with sorryAx
 def «/-» : Nat := 0
 theorem after_quoted : False := sorryAx False false
+def «"' --» : Nat := sorry
+-- a comment after the quoted identifier: sorry
 theorem h' : True := trivial -- after a primed name: sorry
 private axiom hidden : False
 @[simp, aesop safe [foo]] noncomputable axiom attributed : Nat
 /-! module doc mentioning axiom foo : False and native_decide -/
 """
-SELF_TEST_SORRY = {7, 9, 11, 13, 15}
-SELF_TEST_TRUST = {17, 18}
+SELF_TEST_SORRY = {7, 9, 11, 13, 15, 16}
+SELF_TEST_TRUST = {19, 20}
 
 
 def self_test() -> bool:
