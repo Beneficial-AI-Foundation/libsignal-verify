@@ -41,8 +41,8 @@ three take, as named hypotheses, the contracts of the opaque leaves (`CoreContra
 curve25519 pairs, Kyber1024-shaped Kyber pairs), and the RNG-totality hypothesis together with
 the domain `Dom` of the generator states drawn from `P.coins`. None assumes perfect Kyber
 correctness. For `δ = 0`, the second and third statements become probability-one statements. For
-`δ > 0`, the wrapper need not complete honestly: after a Kyber mismatch the parties hold
-different keys, and a party can reject the other's synthetic ciphertext.
+`δ > 0`, the wrapper need not complete honestly: after a Kyber mismatch the parties can hold
+different keys, and a party can then reject the other's synthetic ciphertext.
 
 The fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` check that the success
 events are not vacuous: entry points that always panic, always return an error or never

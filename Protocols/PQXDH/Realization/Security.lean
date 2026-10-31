@@ -66,19 +66,27 @@ into a bound without the `Pr[⊥]` term.
 The oracle Diffie-Hellman assumption replaces two premises of PQXDH-model, gap Diffie-Hellman and
 a key derivation keyed by a fresh public key, which say nothing about the Diffie-Hellman values
 that the protocol uses. Otherwise both bounds keep the shape of PQXDH-model's statements. The PQ
-statement assumes neither perfect Kyber correctness nor a bound on Kyber's correctness error. A
-decapsulation mismatch gives the two parties different keys, and the adversary profits from that
-only through the AEAD and key-derivation terms.
+statement assumes neither perfect Kyber correctness nor a bound on Kyber's correctness error.
 
 ## Limits
 
-* The premises bound the advantage of every adversary, with no resource bound (#41). Against
-  computationally unbounded adversaries they hold only with large constants, so the statements
-  are not yet meaningful computational security.
+* The premises bound the advantage of every adversary, with no resource bound (#41). Unbounded
+  adversaries force the ε of each hardness premise (`εsig`, `εodh`, `εkem`, `εkdf`) close to 1,
+  so each bound exceeds 1/2 and holds trivially. The statements are not yet meaningful
+  computational security.
 * The PQ statement models post-quantum security as UAKE security without the Diffie-Hellman
   assumption. It still assumes the signature premise, and joint unforgeability with an agreement
   oracle implies that discrete logarithms are hard for the identity key. This is PQXDH-model's
   model gap, made sharper by the single key.
+* No premise of the PQ statement bounds one kind of accepted run. A Kyber decapsulation mismatch
+  changes the key-derivation input `km` of Bob's session, so his session is not Alice's partner
+  under `fullPartnering`. If the two inputs still give the same keys, Alice accepts without a
+  partner, and `PartneredExp` counts a win. `kdfPRF` is a pseudorandom function under one key, and
+  AEAD integrity counts only fresh ciphertexts, so neither term bounds that run. The proof of the
+  PQ statement must bound accepted runs without an original-key partner. Two routes are open: a
+  binding or collision premise on the key derivation, or a mismatch event with its own proved
+  bound. The gap does not make the statement false today, because, by the first limit, its bound
+  holds trivially. The bound becomes meaningful only once #41 is resolved and this run is bounded.
 * The wrapper (bundle as a message from Bob, synthetic AEAD, Bob's confirmation) is not extracted
   code (see `Scheme.lean`).
 
@@ -145,8 +153,9 @@ at most `q` sessions of Bob in each stage, its advantage is at most
 The premises are those of `uakeInitiator_secure_dh` without the Diffie-Hellman assumption,
 together with IND-CCA security of an abstract KEM `K` (`εkem`) that the Kyber bridge contract
 ties to the extracted Kyber calls, and the key derivation as a pseudorandom function keyed by the
-Kyber secret (`εkdf`). No premise concerns Kyber's correctness. The proof is a stub, a
-placeholder for the security milestone. -/
+Kyber secret (`εkdf`). No premise concerns Kyber's correctness. The proof must also bound runs in
+which Alice accepts without an original-key partner after a Kyber mismatch (see the limits in the
+module docstring). The proof is a stub, a placeholder for the security milestone. -/
 theorem uakeInitiator_secure_pq (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
