@@ -84,9 +84,12 @@ most `q` sessions of Bob in each stage, its advantage is at most
 The premises are the fault-or-value contracts for the HMAC interface `H`, valid curve25519 pairs
 and Kyber1024-shaped pairs from the ideal generators, joint unforgeability of the identity key
 (`εsig`), the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and the key
-derivation (`εodh`), AEAD integrity (`εaead`) and Kyber public-key guessing (`εpk`). The oracle
-Diffie-Hellman assumption holds in the random-oracle model under the strong Diffie-Hellman
-assumption, and no standard-model proof is expected. Like every premise here, it ranges over
+derivation (`εodh`), AEAD integrity (`εaead`) and Kyber public-key guessing (`εpk`).
+
+The oracle Diffie-Hellman premise adapts the mmPRF-ODH notion of Brendel, Fischlin, Günther and
+Janson, and the statement assumes it separately. Their random-oracle proof under ClawStDH and
+GapDH does not cover this adaptation, and no reduction for it is established here (see
+`pqxdhODHAdvantage`). Like every premise here, the oracle Diffie-Hellman premise ranges over
 adversaries without a resource bound (#41). The proof is a stub. -/
 theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)

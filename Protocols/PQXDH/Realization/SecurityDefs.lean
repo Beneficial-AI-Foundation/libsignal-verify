@@ -258,11 +258,16 @@ def pqxdhODHExp (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK) (A : Pqx
       pure (decide (inp ∉ log) && g)
 
 /-- The PQXDH oracle Diffie-Hellman advantage: the distance between the probabilities that
-the adversary outputs `true` in the real and in the random game. This is the mmPRF-ODH notion of
-Brendel, Fischlin, Günther and Janson (CRYPTO 2017), with oracles on both embedded keys, adapted
-to the PQXDH input layout and to X25519 encodings. They show that it holds in the random-oracle
-model under the strong Diffie-Hellman assumption, and that no standard-model proof is expected.
-Like every premise here, it bounds adversaries without a resource bound (#41). -/
+the adversary outputs `true` in the real and in the random game.
+
+The game adapts the mmPRF-ODH notion of Brendel, Fischlin, Günther and Janson (CRYPTO 2017), with
+oracles on both embedded keys, to the PQXDH input layout, to X25519 encodings and to the HKDF of
+`H`. Their Theorem 3.3 proves their mmPRF-ODH in the random-oracle model under ClawStDH, and
+through it under GapDH, for efficient adversaries in a cyclic group with uniform exponents. That
+theorem does not cover this adaptation, which is a separate premise, and this file establishes no
+reduction for it. The paper also shows that algebraic black-box reductions in the standard model
+are implausible even for weaker variants. Like every premise here, `pqxdhODHAdvantage` ranges over
+adversaries without a resource bound (#41). -/
 def pqxdhODHAdvantage (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK)
     (A : PqxdhODHAdversary) : ℝ :=
   |(Pr[= true | pqxdhODHExp H P A true]).toReal - (Pr[= true | pqxdhODHExp H P A false]).toReal|

@@ -119,7 +119,7 @@ These statements of the Full realization are stubs by design, apart from the adm
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
-| `Protocols.PQXDH.Realization.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint unforgeability of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (random-oracle model, strong Diffie-Hellman), AEAD integrity, Kyber public-key guessing | stub |
+| `Protocols.PQXDH.Realization.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint unforgeability of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (an adaptation of mmPRF-ODH, assumed separately; the paper's random-oracle proof under ClawStDH and GapDH does not cover it), AEAD integrity, Kyber public-key guessing | stub |
 | `Protocols.PQXDH.Realization.uakeInitiator_secure_pq` | advantage ≤ `εsig + 2q(εkem + εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | as above without Diffie-Hellman, with IND-CCA of an abstract KEM and the Kyber bridge contract, KDF as a PRF keyed by the Kyber secret | stub |
 | `Protocols.PQXDH.Realization.fullExp_noLostMass` | the Full experiment faults with probability 0 | the total contracts, RNG totality on the coin domain, Kyber1024-shaped honest Kyber pairs, an adversary sending only messages that fit in memory | stub |
 
