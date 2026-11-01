@@ -6,8 +6,8 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Realization.Contracts
-import Protocols.PQXDH.Realization.Scheme
+import Protocols.PQXDH.Contracts
+import Protocols.PQXDH.Scheme
 import Libsignal.Spec.Protocol.Crypto.HkdfSha256
 
 /-!
@@ -27,7 +27,7 @@ correctness error of the extracted Kyber operations (`KyberDeltaCorrect`). For `
 become probability-one statements. For `δ > 0`, the parties can hold different keys after a Kyber
 mismatch, and a party can then reject the other's synthetic ciphertext.
 
-The fixtures in `ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` show that the success events
+The fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean` show that the success events
 are not vacuous: entry points that always panic, always return an error or never terminate fail
 every statement for every `δ < 1`.
 
@@ -39,7 +39,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 noncomputable section
 
@@ -105,16 +105,6 @@ def jointKeyExp (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (hasOPK :
           (JointKeys.ofHandshakeKeys hk).chainIndex = 0#u32)
     | _, _ => false)
 
-open Classical in
-/-- The wrapper-agreement event of a UAKE scheme: in an honest run from setup, both parties output
-a key and the keys are equal. Unlike `AKE.UAKE.CorrectExp`, a run in which a party outputs no key
-counts as a failure. -/
-def agreementExp {m : Type → Type} [Monad m] {K UK TK W : Type} (proto : UAKE.Scheme m K UK TK W) :
-    m Bool := do
-  let (uk, tk) ← proto.setup
-  let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
-  pure (decide (uOut.join.isSome ∧ uOut.join = tOut.join))
-
 /-- Core completion: on honest inputs, the extracted `pqxdh_initiate` and `pqxdh_accept` both
 return their keys with probability `1`. The hypotheses are the leaf contracts, the HKDF contract
 for some MAC interface `H`, valid curve25519 pairs from `P.ecKeygen`, Kyber1024-shaped pairs from
@@ -164,7 +154,7 @@ theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
     1 - δ ≤ Pr[= true | rustRuntime.evalDist
-      (agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))] := by
+      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))] := by
   sorry
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
@@ -182,9 +172,9 @@ theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
     1 - δ ≤ Pr[= true | rustRuntime.evalDist
-      (agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))] := by
+      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))] := by
   sorry
 
 end
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

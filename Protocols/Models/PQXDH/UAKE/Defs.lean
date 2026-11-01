@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.Basic
+import Protocols.Models.PQXDH.Basic
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
 import Protocols.ToMathlib
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
@@ -32,7 +32,7 @@ the protocol twice, once with Alice as T, and once with Bob as T. Note that
 these two instantiations need slightly different shapes, due to the convention
 from DF'17 that "T speaks last". In both cases, the initial message is from
 Bob, so the T=Bob case is 3-round, with an extra confirmation message from Bob
-(see bullet 1 of "Model simplifications" in `Protocols/PQXDH/Model/Basic.lean`) whereas the
+(see bullet 1 of "Model simplifications" in `Protocols/Models/PQXDH/Basic.lean`) whereas the
 T=Alice case is the standard 2-round protocol.
 
 Model simplifications
@@ -60,7 +60,7 @@ Model simplifications
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -237,4 +237,4 @@ def kdfPRFDH [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   keygen := $ᵗ F
   eval := fun c q => P.kdf (q.1, q.2.1, c • P.gen, q.2.2.1, q.2.2.2)
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

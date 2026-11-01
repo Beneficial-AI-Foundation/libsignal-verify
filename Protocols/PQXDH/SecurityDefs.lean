@@ -6,8 +6,8 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Realization.Contracts
-import Protocols.PQXDH.Realization.Witness
+import Protocols.PQXDH.Contracts
+import Protocols.PQXDH.Witness
 import VCVio.CryptoFoundations.PRF
 
 /-!
@@ -30,7 +30,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 noncomputable section
 
@@ -338,4 +338,4 @@ end Fitting
 
 end
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

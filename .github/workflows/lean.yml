@@ -30,3 +30,5 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: scripts/spec-layout-check.sh
+      - run: scripts/models-dependency-check.sh --self-test
+      - run: scripts/models-dependency-check.sh

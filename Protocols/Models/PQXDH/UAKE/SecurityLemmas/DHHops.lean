@@ -5,13 +5,13 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas.Games
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 
 /-!
 # GapDH Core Hops
 
-Hops 5 and 6 of the DH security theorem `Protocols.PQXDH.uakeInitiator_secure_dh` in
+Hops 5 and 6 of the DH security theorem `Protocols.Models.PQXDH.uakeInitiator_secure_dh` in
 `Security.lean`: the forgery and indistinguishability cores, against GapDH,
 the KDF, and the AEAD. See `SecurityLemmas.lean` for the overall map.
 
@@ -27,7 +27,7 @@ The lemma statements and proofs in this file are AI-written.
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
@@ -138,4 +138,4 @@ lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
       q * (εgap + εaead + εkdf) + 2 * (q : ℝ) ^ 2 * εpk := by
   sorry
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

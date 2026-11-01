@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.WellFormedLemmas
+import Protocols.Models.PQXDH.UAKE.WellFormedLemmas
 
 /-!
 # Well-formedness of the PQXDH Model's UAKE Schemes
@@ -18,7 +18,7 @@ The supporting lemmas live in `WellFormedLemmas.lean`.
 
 open OracleSpec OracleComp AKE AKE.UAKE
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -63,4 +63,4 @@ theorem uakeRecipient_wellFormed
   subst huk htk
   exact runHonest_length_recipient P msg hasOPK hsig hkem haead hsetup₀ hrun
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

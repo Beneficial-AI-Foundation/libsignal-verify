@@ -8,7 +8,7 @@ Protocols/ATTRIBUTION.md.
 -/
 import Libsignal.Spec.Protocol.Crypto.HkdfSha256
 import Libsignal.Translated.Protocol.Funs
-import Protocols.PQXDH.Realization.Defs
+import Protocols.PQXDH.Defs
 
 /-!
 # Contracts for the opaque leaves of the PQXDH entry points
@@ -34,7 +34,7 @@ The security statements take these, because they count every faulted run in the 
 open Aeneas Aeneas.Std Result
 open libsignal_protocol
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 section Rng
 
@@ -318,4 +318,4 @@ structure PartialContracts (H : crypto.HmacSha256) : Prop where
   /-- See `HkdfSha256Partial`. -/
   hkdf : HkdfSha256Partial H
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

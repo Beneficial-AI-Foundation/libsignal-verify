@@ -36,7 +36,7 @@ libsignal-docs-and-models (`ECKeyPairValid` at lines 282-286). `JointKeys`, `Aea
 open Aeneas Aeneas.Std
 open libsignal_protocol
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 /-- Fixed-length byte arrays from the Aeneas extraction. -/
 abbrev Bytes (n : Aeneas.Std.Usize) : Type := Aeneas.Std.Array Aeneas.Std.U8 n
@@ -137,4 +137,4 @@ def PQKeyPairShape (kp : PQKeyPair) : Prop :=
   kp.public_key.key_type = .Kyber1024 ∧ kp.secret_key.key_type = .Kyber1024 ∧
     kp.public_key.key_data.data.length = 1568 ∧ kp.secret_key.key_data.data.length = 3168
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

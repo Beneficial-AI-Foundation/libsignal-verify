@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
-Authors: Ben Hamlin
+Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
@@ -140,6 +141,129 @@ def runHonest [Monad m] {InP OutP InQ OutQ : Type}
   let pOut ← P.output pState'
   let qOut ← Q.output qState'
   pure (pOut, qOut, ms)
+
+end Party
+
+namespace Party
+
+section Stuck
+
+variable {m : Type → Type} [Monad m] [MonadLiftT m SetM] [LawfulMonadLiftT m SetM]
+  {InP OutP InQ OutQ W : Type} (P : Party m InP W OutP) (Q : Party m InQ W OutQ)
+
+/-- If every step of `P` from a state satisfying `I` rejects, then an honest run that starts with
+`P` in `I` ends with `P` in `I`. -/
+theorem runHonestLoop_fst_of_stuck (I : P.State → Prop)
+    (hI : ∀ st, I st → ∀ w r, r ∈ support (P.step st w) → r = .reject) :
+    ∀ fuel pS qS w turn sd sent, I pS →
+      ∀ x ∈ support (Party.runHonestLoop P Q fuel pS qS w turn sd sent), I x.1 := by
+  intro fuel
+  induction fuel with
+  | zero =>
+    intro pS qS w turn sd sent hpS x hx
+    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
+    rw [hx]
+    exact hpS
+  | succ n ih =>
+    intro pS qS w turn sd sent hpS x hx
+    cases turn with
+    | true =>
+      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
+      obtain ⟨r, -, hx⟩ := hx
+      split at hx
+      · split at hx
+        · simp only [support_pure, Set.mem_singleton_iff] at hx
+          rw [hx]
+          exact hpS
+        · exact ih _ _ _ _ _ _ hpS x hx
+      all_goals
+        simp only [support_pure, Set.mem_singleton_iff] at hx
+        rw [hx]
+        exact hpS
+    | false =>
+      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
+      obtain ⟨r, hr, hx⟩ := hx
+      rw [hI pS hpS w r hr] at hx
+      simp only [support_pure, Set.mem_singleton_iff] at hx
+      rw [hx]
+      exact hpS
+
+/-- If every step of `Q` from a state satisfying `I` rejects, then an honest run that starts with
+`Q` in `I` ends with `Q` in `I`. -/
+theorem runHonestLoop_snd_of_stuck (I : Q.State → Prop)
+    (hI : ∀ st, I st → ∀ w r, r ∈ support (Q.step st w) → r = .reject) :
+    ∀ fuel pS qS w turn sd sent, I qS →
+      ∀ x ∈ support (Party.runHonestLoop P Q fuel pS qS w turn sd sent), I x.2.1 := by
+  intro fuel
+  induction fuel with
+  | zero =>
+    intro pS qS w turn sd sent hqS x hx
+    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
+    rw [hx]
+    exact hqS
+  | succ n ih =>
+    intro pS qS w turn sd sent hqS x hx
+    cases turn with
+    | true =>
+      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
+      obtain ⟨r, hr, hx⟩ := hx
+      rw [hI qS hqS w r hr] at hx
+      simp only [support_pure, Set.mem_singleton_iff] at hx
+      rw [hx]
+      exact hqS
+    | false =>
+      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
+      obtain ⟨r, -, hx⟩ := hx
+      split at hx
+      · split at hx
+        · simp only [support_pure, Set.mem_singleton_iff] at hx
+          rw [hx]
+          exact hqS
+        · exact ih _ _ _ _ _ _ hqS x hx
+      all_goals
+        simp only [support_pure, Set.mem_singleton_iff] at hx
+        rw [hx]
+        exact hqS
+
+/-- If `P` starts in `I` and every step of `P` from `I` rejects, then `P`'s output after any
+honest run is an output of some state in `I`. -/
+theorem runHonest_fst_of_stuck (I : P.State → Prop)
+    (hI : ∀ st, I st → ∀ w r, r ∈ support (P.step st w) → r = .reject)
+    (hInit : ∀ inP r, r ∈ support (P.init inP) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
+    ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.1 ∈ support (P.output st) := by
+  intro x hx
+  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
+  obtain ⟨pInit, hpInit, qInit, -, ⟨pS, qS, ms⟩, hrun, pOut, hpOut, qOut, -, hx⟩ := hx
+  simp only [support_pure, Set.mem_singleton_iff] at hx
+  refine ⟨pS, ?_, by rw [hx]; exact hpOut⟩
+  unfold Party.runHonestStart at hrun
+  split at hrun
+  · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
+  · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
+  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
+    rw [hrun.1]
+    exact hInit _ _ hpInit
+
+/-- If `Q` starts in `I` and every step of `Q` from `I` rejects, then `Q`'s output after any
+honest run is an output of some state in `I`. -/
+theorem runHonest_snd_of_stuck (I : Q.State → Prop)
+    (hI : ∀ st, I st → ∀ w r, r ∈ support (Q.step st w) → r = .reject)
+    (hInit : ∀ inQ r, r ∈ support (Q.init inQ) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
+    ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.2.1 ∈ support (Q.output st) := by
+  intro x hx
+  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
+  obtain ⟨pInit, -, qInit, hqInit, ⟨pS, qS, ms⟩, hrun, pOut, -, qOut, hqOut, hx⟩ := hx
+  simp only [support_pure, Set.mem_singleton_iff] at hx
+  refine ⟨qS, ?_, by rw [hx]; exact hqOut⟩
+  unfold Party.runHonestStart at hrun
+  split at hrun
+  · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
+  · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
+  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
+    rw [hrun.2.1]
+    exact hInit _ _ hqInit
+
+end Stuck
 
 end Party
 

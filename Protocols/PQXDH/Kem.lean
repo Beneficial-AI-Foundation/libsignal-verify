@@ -6,7 +6,7 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Realization.Params
+import Protocols.PQXDH.Params
 import Protocols.Realization.RustOracleComp
 import Protocols.ToVCVio.CryptoFoundations.KEMCorrectness
 
@@ -40,7 +40,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 /-- A shared secret as the extracted calls return it: the secret bytes, or a protocol error. -/
 abbrev KemSecret : Type := core.result.Result (Slice U8) error.SignalProtocolError
@@ -110,4 +110,4 @@ produce the same secret, counting faults and protocol errors as failures, is at 
 def KyberDeltaCorrect (P : Params Rand Msg C IdC IdK) (δ : ℝ≥0∞) : Prop :=
   (kyberKem P).deltaCorrect rustRuntime δ
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

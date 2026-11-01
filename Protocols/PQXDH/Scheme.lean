@@ -6,8 +6,8 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.Defs
-import Protocols.PQXDH.Realization.Kem
+import Protocols.Models.PQXDH.UAKE.Defs
+import Protocols.PQXDH.Kem
 
 /-!
 # The Full realization: PQXDH as a UAKE scheme on the extracted entry points
@@ -44,7 +44,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 noncomputable section
 
@@ -62,15 +62,17 @@ variable {Rand Msg C IdC IdK : Type}
 
 /-- Bob's prekey bundle: his identity key, signed prekey, Kyber prekey and optional one-time
 prekey, with identifiers and the two signatures. -/
-abbrev FullBundle (IdC IdK : Type) : Type := PreKeyBundle ECPub PQPub (Slice U8) IdC IdK
+abbrev FullBundle (IdC IdK : Type) : Type :=
+  Models.PQXDH.PreKeyBundle ECPub PQPub (Slice U8) IdC IdK
 
 /-- Alice's initial message: her identity and ephemeral keys, the serialized Kyber ciphertext,
 the identifiers of the prekeys she used and the synthetic AEAD ciphertext. -/
-abbrev FullInitialMessage (C IdC IdK : Type) : Type := InitialMessage ECPub (Slice U8) C IdC IdK
+abbrev FullInitialMessage (C IdC IdK : Type) : Type :=
+  Models.PQXDH.InitialMessage ECPub (Slice U8) C IdC IdK
 
 /-- The messages of the UAKE exchange: the bundle, the initial message and the confirmation. -/
 abbrev FullMessage (C IdC IdK : Type) : Type :=
-  Message ECPub PQPub (Slice U8) (Slice U8) C IdC IdK
+  Models.PQXDH.Message ECPub PQPub (Slice U8) (Slice U8) C IdC IdK
 
 /-- The identity public key carried by a curve25519 key pair. -/
 def identityKeyOf (kp : ECKeyPair) : IdKey := { public_key := kp.public_key }
@@ -451,4 +453,4 @@ theorem recipient_output_eq [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand
 
 end
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

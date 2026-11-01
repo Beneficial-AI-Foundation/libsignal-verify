@@ -7,7 +7,7 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Libsignal.Translated.Protocol.Funs
-import Protocols.PQXDH.Realization.Defs
+import Protocols.PQXDH.Defs
 import Protocols.ToVCVio.CryptoFoundations.AEAD
 
 /-!
@@ -29,7 +29,7 @@ open OracleSpec OracleComp
 open Aeneas Aeneas.Std
 open libsignal_protocol
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 /-- Uniform sampling of a byte, through its 8-bit vector. -/
 instance : SampleableType Aeneas.Std.U8 :=
@@ -101,4 +101,4 @@ noncomputable def EntryPoints.extracted {Rand : Type} : EntryPoints Rand where
   initiate := pqxdh.pqxdh_initiate
   accept := pqxdh.pqxdh_accept
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

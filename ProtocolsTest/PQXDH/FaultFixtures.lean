@@ -3,12 +3,12 @@ Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
-import Protocols.PQXDH.Realization.Correctness
+import Protocols.PQXDH.Correctness
 
 /-!
 # Fault fixtures for the correctness statements of the Full realization
 
-The correctness statements of `Protocols.PQXDH.Realization` say that certain success events have
+The correctness statements of `Protocols.PQXDH` say that certain success events have
 probability `1`, or at least `1 - δ`. A success event that a broken implementation also satisfies
 would make such a statement vacuous. The UAKE correctness experiment `AKE.UAKE.CorrectExp`, from
 PQXDH-model, counts a run in which either party outputs nothing as correct, so a realization that
@@ -27,7 +27,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 variable {Rand Msg C IdC IdK : Type}
 
@@ -105,125 +105,6 @@ theorem jointKeyExp_eq_zero (hE : E.NeverAgrees) :
   rcases x with ⟨_ | _, _⟩ <;> simp at h
 
 end Core
-
-section Stuck
-
-variable {m : Type → Type} [Monad m] [MonadLiftT m SetM] [LawfulMonadLiftT m SetM]
-  {InP OutP InQ OutQ W : Type} (P : Party m InP W OutP) (Q : Party m InQ W OutQ)
-
-/-- If every step of `P` from a state satisfying `I` rejects, then an honest run that starts with
-`P` in `I` ends with `P` in `I`. -/
-theorem runHonestLoop_fst_of_stuck (I : P.State → Prop)
-    (hI : ∀ st, I st → ∀ w r, r ∈ support (P.step st w) → r = .reject) :
-    ∀ fuel pS qS w turn sd sent, I pS →
-      ∀ x ∈ support (Party.runHonestLoop P Q fuel pS qS w turn sd sent), I x.1 := by
-  intro fuel
-  induction fuel with
-  | zero =>
-    intro pS qS w turn sd sent hpS x hx
-    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
-    rw [hx]
-    exact hpS
-  | succ n ih =>
-    intro pS qS w turn sd sent hpS x hx
-    cases turn with
-    | true =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, -, hx⟩ := hx
-      split at hx
-      · split at hx
-        · simp only [support_pure, Set.mem_singleton_iff] at hx
-          rw [hx]
-          exact hpS
-        · exact ih _ _ _ _ _ _ hpS x hx
-      all_goals
-        simp only [support_pure, Set.mem_singleton_iff] at hx
-        rw [hx]
-        exact hpS
-    | false =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, hr, hx⟩ := hx
-      rw [hI pS hpS w r hr] at hx
-      simp only [support_pure, Set.mem_singleton_iff] at hx
-      rw [hx]
-      exact hpS
-
-/-- If every step of `Q` from a state satisfying `I` rejects, then an honest run that starts with
-`Q` in `I` ends with `Q` in `I`. -/
-theorem runHonestLoop_snd_of_stuck (I : Q.State → Prop)
-    (hI : ∀ st, I st → ∀ w r, r ∈ support (Q.step st w) → r = .reject) :
-    ∀ fuel pS qS w turn sd sent, I qS →
-      ∀ x ∈ support (Party.runHonestLoop P Q fuel pS qS w turn sd sent), I x.2.1 := by
-  intro fuel
-  induction fuel with
-  | zero =>
-    intro pS qS w turn sd sent hqS x hx
-    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
-    rw [hx]
-    exact hqS
-  | succ n ih =>
-    intro pS qS w turn sd sent hqS x hx
-    cases turn with
-    | true =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, hr, hx⟩ := hx
-      rw [hI qS hqS w r hr] at hx
-      simp only [support_pure, Set.mem_singleton_iff] at hx
-      rw [hx]
-      exact hqS
-    | false =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, -, hx⟩ := hx
-      split at hx
-      · split at hx
-        · simp only [support_pure, Set.mem_singleton_iff] at hx
-          rw [hx]
-          exact hqS
-        · exact ih _ _ _ _ _ _ hqS x hx
-      all_goals
-        simp only [support_pure, Set.mem_singleton_iff] at hx
-        rw [hx]
-        exact hqS
-
-/-- If `P` starts in `I` and every step of `P` from `I` rejects, then `P`'s output after any
-honest run is an output of some state in `I`. -/
-theorem runHonest_fst_of_stuck (I : P.State → Prop)
-    (hI : ∀ st, I st → ∀ w r, r ∈ support (P.step st w) → r = .reject)
-    (hInit : ∀ inP r, r ∈ support (P.init inP) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
-    ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.1 ∈ support (P.output st) := by
-  intro x hx
-  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨pInit, hpInit, qInit, -, ⟨pS, qS, ms⟩, hrun, pOut, hpOut, qOut, -, hx⟩ := hx
-  simp only [support_pure, Set.mem_singleton_iff] at hx
-  refine ⟨pS, ?_, by rw [hx]; exact hpOut⟩
-  unfold Party.runHonestStart at hrun
-  split at hrun
-  · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
-  · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
-  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
-    rw [hrun.1]
-    exact hInit _ _ hpInit
-
-/-- If `Q` starts in `I` and every step of `Q` from `I` rejects, then `Q`'s output after any
-honest run is an output of some state in `I`. -/
-theorem runHonest_snd_of_stuck (I : Q.State → Prop)
-    (hI : ∀ st, I st → ∀ w r, r ∈ support (Q.step st w) → r = .reject)
-    (hInit : ∀ inQ r, r ∈ support (Q.init inQ) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
-    ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.2.1 ∈ support (Q.output st) := by
-  intro x hx
-  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨pInit, -, qInit, hqInit, ⟨pS, qS, ms⟩, hrun, pOut, -, qOut, hqOut, hx⟩ := hx
-  simp only [support_pure, Set.mem_singleton_iff] at hx
-  refine ⟨qS, ?_, by rw [hx]; exact hqOut⟩
-  unfold Party.runHonestStart at hrun
-  split at hrun
-  · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
-  · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
-  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
-    rw [hrun.2.1]
-    exact hInit _ _ hqInit
-
-end Stuck
 
 section Wrapper
 
@@ -346,7 +227,7 @@ theorem agreementExp_uakeInitiator_eq_zero [DecidableEq Msg] [DecidableEq IdC] [
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
   obtain ⟨⟨uk, tk⟩, -, ⟨uOut, tOut, ms⟩, hrun, h⟩ := h
-  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := runHonest_fst_of_stuck (uakeInitiator P E msg hasOPK).U
+  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_fst_of_stuck (uakeInitiator P E msg hasOPK).U
     (uakeInitiator P E msg hasOPK).T AliceWaiting (initiator_stuck P hE)
     (initiator_init_waiting P) uk tk _ _ hrun
   simp only [uakeInitiator, initiator, InitiatorState.jointKeys, Option.map_none, support_pure,
@@ -364,7 +245,7 @@ theorem agreementExp_uakeRecipient_eq_zero [DecidableEq IdC] [DecidableEq IdK]
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
   obtain ⟨⟨uk, tk⟩, -, ⟨uOut, tOut, ms⟩, hrun, h⟩ := h
-  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := runHonest_snd_of_stuck (uakeRecipient P E msg hasOPK).U
+  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_snd_of_stuck (uakeRecipient P E msg hasOPK).U
     (uakeRecipient P E msg hasOPK).T AliceWaiting (initiatorNoConfirm_stuck P hE)
     (initiatorNoConfirm_init_waiting P) uk tk _ _ hrun
   simp only [uakeRecipient, initiatorNoConfirm, InitiatorState.jointKeys, Option.map_none,
@@ -446,7 +327,7 @@ theorem alwaysDiverge_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
 
 end Fixtures
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH
 
 /-! ## Dependencies of the fixtures
 
@@ -454,7 +335,7 @@ No fixture depends on a stub. The other constants are opaque leaves of the extra
 definitions of the wrapper mention. The fixtures assume nothing about them. -/
 
 /--
-info: 'Protocols.PQXDH.Realization.alwaysPanic_fails' depends on axioms:
+info: 'Protocols.PQXDH.alwaysPanic_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -466,10 +347,10 @@ info: 'Protocols.PQXDH.Realization.alwaysPanic_fails' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.alwaysPanic_fails
+#print axioms Protocols.PQXDH.alwaysPanic_fails
 
 /--
-info: 'Protocols.PQXDH.Realization.alwaysError_fails' depends on axioms:
+info: 'Protocols.PQXDH.alwaysError_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -481,10 +362,10 @@ info: 'Protocols.PQXDH.Realization.alwaysError_fails' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.alwaysError_fails
+#print axioms Protocols.PQXDH.alwaysError_fails
 
 /--
-info: 'Protocols.PQXDH.Realization.alwaysDiverge_fails' depends on axioms:
+info: 'Protocols.PQXDH.alwaysDiverge_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -496,4 +377,4 @@ info: 'Protocols.PQXDH.Realization.alwaysDiverge_fails' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.alwaysDiverge_fails
+#print axioms Protocols.PQXDH.alwaysDiverge_fails

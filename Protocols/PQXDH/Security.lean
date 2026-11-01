@@ -6,7 +6,7 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Realization.SecurityDefs
+import Protocols.PQXDH.SecurityDefs
 
 /-!
 # Security of the Full realization
@@ -58,7 +58,7 @@ open Aeneas Aeneas.Std
 open libsignal_protocol
 open Protocols.Realization
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 noncomputable section
 
@@ -206,4 +206,4 @@ theorem uakeInitiator_secure_pq_total (P : Params Rand Msg C IdC IdK) (msg : Msg
 
 end
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

@@ -6,8 +6,8 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Realization.Kdf
-import Protocols.PQXDH.Realization.Scheme
+import Protocols.PQXDH.Kdf
+import Protocols.PQXDH.Scheme
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 
 /-!
@@ -32,7 +32,7 @@ open OracleSpec OracleComp AKE AKE.UAKE
 open Aeneas Aeneas.Std
 open libsignal_protocol
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 variable {Rand Msg C IdC IdK : Type}
 
@@ -115,4 +115,4 @@ def fullPartnering [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   partner sa sb := ∃ ad km,
     InitiatorState.Sid (Msg := Msg) P.cryptoRngInst sa ad km ∧ RecipientState.Sid sb ad km
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

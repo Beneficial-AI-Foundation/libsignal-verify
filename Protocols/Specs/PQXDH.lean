@@ -4,8 +4,8 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
 import Mathlib.Tactic.Recall
-import Protocols.PQXDH.Realization.Correctness
-import Protocols.PQXDH.Realization.Security
+import Protocols.PQXDH.Correctness
+import Protocols.PQXDH.Security
 
 /-!
 # Spec summary: the Full realization of PQXDH
@@ -24,17 +24,17 @@ abstract model, in two groups: temporary stubs of the correctness statements and
 lemmas, and security placeholders for the security statements and `fullExp_noLostMass`.
 
 The fault fixtures, which show that the correctness statements are not vacuous, are in
-`ProtocolsTest/PQXDH/Realization/FaultFixtures.lean` and carry their own dependency checks.
+`ProtocolsTest/PQXDH/FaultFixtures.lean` and carry their own dependency checks.
 -/
 
-open Protocols.PQXDH.Realization Protocols.Realization
+open Protocols.PQXDH Protocols.Realization
 
 /-! ## Security -/
 
 /-! Each headline bound carries its fault term `Pr[⊥]`. Below it, the file recalls the bound
 without that term, with the totality premises that it adds. -/
 
-recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh
+recall Protocols.PQXDH.uakeInitiator_secure_dh
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H)
@@ -50,7 +50,7 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh
       + Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)].toReal
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_dh' depends on axioms:
+info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -75,9 +75,9 @@ info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_dh' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_dh
+#print axioms Protocols.PQXDH.uakeInitiator_secure_dh
 
-recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total
+recall Protocols.PQXDH.uakeInitiator_secure_dh_total
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H) (hCt : CoreContracts)
@@ -97,7 +97,7 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total' depends on axioms:
+info: 'Protocols.PQXDH.uakeInitiator_secure_dh_total' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -122,9 +122,9 @@ info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total' depends on axi
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_dh_total
+#print axioms Protocols.PQXDH.uakeInitiator_secure_dh_total
 
-recall Protocols.PQXDH.Realization.uakeInitiator_secure_pq
+recall Protocols.PQXDH.uakeInitiator_secure_pq
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H)
@@ -145,7 +145,7 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_pq
       + Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)].toReal
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_pq' depends on axioms:
+info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -170,9 +170,9 @@ info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_pq' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_pq
+#print axioms Protocols.PQXDH.uakeInitiator_secure_pq
 
-recall Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total
+recall Protocols.PQXDH.uakeInitiator_secure_pq_total
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H) (hCt : CoreContracts)
@@ -197,7 +197,7 @@ recall Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total' depends on axioms:
+info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -222,9 +222,9 @@ info: 'Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total' depends on axi
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeInitiator_secure_pq_total
+#print axioms Protocols.PQXDH.uakeInitiator_secure_pq_total
 
-recall Protocols.PQXDH.Realization.fullExp_noLostMass
+recall Protocols.PQXDH.fullExp_noLostMass
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
     (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
@@ -238,7 +238,7 @@ recall Protocols.PQXDH.Realization.fullExp_noLostMass
     : Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)] = 0
 
 /--
-info: 'Protocols.PQXDH.Realization.fullExp_noLostMass' depends on axioms:
+info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -263,11 +263,11 @@ info: 'Protocols.PQXDH.Realization.fullExp_noLostMass' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.fullExp_noLostMass
+#print axioms Protocols.PQXDH.fullExp_noLostMass
 
 /-! ## Correctness -/
 
-recall Protocols.PQXDH.Realization.coreCompletion_extracted
+recall Protocols.PQXDH.coreCompletion_extracted
     {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) (hC : CoreContracts)
     (H : libsignal_protocol.crypto.HmacSha256) (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -276,7 +276,7 @@ recall Protocols.PQXDH.Realization.coreCompletion_extracted
     : Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK)] = 1
 
 /--
-info: 'Protocols.PQXDH.Realization.coreCompletion_extracted' depends on axioms:
+info: 'Protocols.PQXDH.coreCompletion_extracted' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -299,9 +299,9 @@ info: 'Protocols.PQXDH.Realization.coreCompletion_extracted' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.coreCompletion_extracted
+#print axioms Protocols.PQXDH.coreCompletion_extracted
 
-recall Protocols.PQXDH.Realization.jointKeyAgreement_extracted
+recall Protocols.PQXDH.jointKeyAgreement_extracted
     {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) (hC : CoreContracts)
     (H : libsignal_protocol.crypto.HmacSha256) (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -311,7 +311,7 @@ recall Protocols.PQXDH.Realization.jointKeyAgreement_extracted
     : 1 - δ ≤ Pr[= true | rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK)]
 
 /--
-info: 'Protocols.PQXDH.Realization.jointKeyAgreement_extracted' depends on axioms:
+info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -334,9 +334,9 @@ info: 'Protocols.PQXDH.Realization.jointKeyAgreement_extracted' depends on axiom
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.jointKeyAgreement_extracted
+#print axioms Protocols.PQXDH.jointKeyAgreement_extracted
 
-recall Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator
+recall Protocols.PQXDH.wrapperAgreement_uakeInitiator
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
     (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
@@ -349,10 +349,10 @@ recall Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator
     (hδ : KyberDeltaCorrect P δ)
     : 1 - δ
       ≤ Pr[= true | rustRuntime.evalDist
-      (agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))]
+      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))]
 
 /--
-info: 'Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator' depends on axioms:
+info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -377,9 +377,9 @@ info: 'Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator' depends on ax
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.wrapperAgreement_uakeInitiator
+#print axioms Protocols.PQXDH.wrapperAgreement_uakeInitiator
 
-recall Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient
+recall Protocols.PQXDH.wrapperAgreement_uakeRecipient
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
     (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
@@ -392,10 +392,10 @@ recall Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient
     (hδ : KyberDeltaCorrect P δ)
     : 1 - δ
       ≤ Pr[= true | rustRuntime.evalDist
-      (agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))]
+      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))]
 
 /--
-info: 'Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient' depends on axioms:
+info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -420,11 +420,11 @@ info: 'Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient' depends on ax
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.wrapperAgreement_uakeRecipient
+#print axioms Protocols.PQXDH.wrapperAgreement_uakeRecipient
 
 /-! ## Witness -/
 
-recall Protocols.PQXDH.Realization.initiate_kdfInput_witness
+recall Protocols.PQXDH.initiate_kdfInput_witness
     {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
     (ip : libsignal_protocol.pqxdh.InitiatorParameters) (r r' : Rand) (ag : InitiatorAgreement)
     (h : libsignal_protocol.pqxdh.pqxdh_initiate rng crng ip r = Aeneas.Std.Result.ok
@@ -433,7 +433,7 @@ recall Protocols.PQXDH.Realization.initiate_kdfInput_witness
       = Aeneas.Std.Result.ok ag.keys
 
 /--
-info: 'Protocols.PQXDH.Realization.initiate_kdfInput_witness' depends on axioms:
+info: 'Protocols.PQXDH.initiate_kdfInput_witness' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -448,9 +448,9 @@ info: 'Protocols.PQXDH.Realization.initiate_kdfInput_witness' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.initiate_kdfInput_witness
+#print axioms Protocols.PQXDH.initiate_kdfInput_witness
 
-recall Protocols.PQXDH.Realization.accept_kdfInput_witness
+recall Protocols.PQXDH.accept_kdfInput_witness
     (rp : libsignal_protocol.pqxdh.RecipientParameters) (hk : HandshakeKeys)
     (h : libsignal_protocol.pqxdh.pqxdh_accept rp = Aeneas.Std.Result.ok
       (Aeneas.Std.core.result.Result.Ok hk))
@@ -458,7 +458,7 @@ recall Protocols.PQXDH.Realization.accept_kdfInput_witness
       = Aeneas.Std.Result.ok hk
 
 /--
-info: 'Protocols.PQXDH.Realization.accept_kdfInput_witness' depends on axioms:
+info: 'Protocols.PQXDH.accept_kdfInput_witness' depends on axioms:
  [propext,
  sorryAx,
  Classical.choice,
@@ -477,7 +477,7 @@ info: 'Protocols.PQXDH.Realization.accept_kdfInput_witness' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.accept_kdfInput_witness
+#print axioms Protocols.PQXDH.accept_kdfInput_witness
 
 /-! ## Runtime and KEM correctness -/
 
@@ -575,7 +575,7 @@ info: 'KEMScheme.one_sub_le_probOutput_of_deltaCorrect' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms KEMScheme.one_sub_le_probOutput_of_deltaCorrect
 
-recall Protocols.PQXDH.Realization.kyberKem_correctExp_sound
+recall Protocols.PQXDH.kyberKem_correctExp_sound
     {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK)
     (h : true ∈ support (kyberKem P).CorrectExp)
     : ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ ss ct r',
@@ -585,7 +585,7 @@ recall Protocols.PQXDH.Realization.kyberKem_correctExp_sound
       (Aeneas.Std.core.result.Result.Ok ss)
 
 /--
-info: 'Protocols.PQXDH.Realization.kyberKem_correctExp_sound' depends on axioms:
+info: 'Protocols.PQXDH.kyberKem_correctExp_sound' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -599,16 +599,16 @@ info: 'Protocols.PQXDH.Realization.kyberKem_correctExp_sound' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.kyberKem_correctExp_sound
+#print axioms Protocols.PQXDH.kyberKem_correctExp_sound
 
-recall Protocols.PQXDH.Realization.initiator_output_eq
+recall Protocols.PQXDH.initiator_output_eq
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (st : InitiatorState Rand Msg)
     : (initiator P E).output st = pure (Option.map (fun j => some j.root) st.jointKeys) ∧
       (initiatorNoConfirm P E).output st = pure (Option.map (fun j => some j.root) st.jointKeys)
 
 /--
-info: 'Protocols.PQXDH.Realization.initiator_output_eq' depends on axioms:
+info: 'Protocols.PQXDH.initiator_output_eq' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -619,9 +619,9 @@ info: 'Protocols.PQXDH.Realization.initiator_output_eq' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.initiator_output_eq
+#print axioms Protocols.PQXDH.initiator_output_eq
 
-recall Protocols.PQXDH.Realization.recipient_output_eq
+recall Protocols.PQXDH.recipient_output_eq
     {Rand Msg C IdC IdK : Type} [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
     (E : EntryPoints Rand) (hasOPK : Bool) (st : RecipientState Msg)
     : (recipient P E hasOPK).output st = pure (Option.map (fun j => some j.root) st.jointKeys) ∧
@@ -629,7 +629,7 @@ recall Protocols.PQXDH.Realization.recipient_output_eq
       (Option.map (fun j => some j.root) st.jointKeys)
 
 /--
-info: 'Protocols.PQXDH.Realization.recipient_output_eq' depends on axioms:
+info: 'Protocols.PQXDH.recipient_output_eq' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -640,7 +640,7 @@ info: 'Protocols.PQXDH.Realization.recipient_output_eq' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.recipient_output_eq
+#print axioms Protocols.PQXDH.recipient_output_eq
 
 /-! ## Definitions -/
 
@@ -663,7 +663,7 @@ info: 'Protocols.Realization.liftResult' depends on axioms:
 #print axioms Protocols.Realization.liftResult
 
 /--
-info: 'Protocols.PQXDH.Realization.kyberKem' depends on axioms:
+info: 'Protocols.PQXDH.kyberKem' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -677,10 +677,10 @@ info: 'Protocols.PQXDH.Realization.kyberKem' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.kyberKem
+#print axioms Protocols.PQXDH.kyberKem
 
 /--
-info: 'Protocols.PQXDH.Realization.KyberDeltaCorrect' depends on axioms:
+info: 'Protocols.PQXDH.KyberDeltaCorrect' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -694,10 +694,10 @@ info: 'Protocols.PQXDH.Realization.KyberDeltaCorrect' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.KyberDeltaCorrect
+#print axioms Protocols.PQXDH.KyberDeltaCorrect
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeInitiator' depends on axioms:
+info: 'Protocols.PQXDH.uakeInitiator' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -709,10 +709,10 @@ info: 'Protocols.PQXDH.Realization.uakeInitiator' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeInitiator
+#print axioms Protocols.PQXDH.uakeInitiator
 
 /--
-info: 'Protocols.PQXDH.Realization.uakeRecipient' depends on axioms:
+info: 'Protocols.PQXDH.uakeRecipient' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -724,10 +724,10 @@ info: 'Protocols.PQXDH.Realization.uakeRecipient' depends on axioms:
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.uakeRecipient
+#print axioms Protocols.PQXDH.uakeRecipient
 
 /--
-info: 'Protocols.PQXDH.Realization.fullPartnering' depends on axioms:
+info: 'Protocols.PQXDH.fullPartnering' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -744,10 +744,10 @@ info: 'Protocols.PQXDH.Realization.fullPartnering' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.fullPartnering
+#print axioms Protocols.PQXDH.fullPartnering
 
 /--
-info: 'Protocols.PQXDH.Realization.fullExp' depends on axioms:
+info: 'Protocols.PQXDH.fullExp' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -770,10 +770,10 @@ info: 'Protocols.PQXDH.Realization.fullExp' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.fullExp
+#print axioms Protocols.PQXDH.fullExp
 
 /--
-info: 'Protocols.PQXDH.Realization.fullAdvantage' depends on axioms:
+info: 'Protocols.PQXDH.fullAdvantage' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -796,10 +796,10 @@ info: 'Protocols.PQXDH.Realization.fullAdvantage' depends on axioms:
  libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.fullAdvantage
+#print axioms Protocols.PQXDH.fullAdvantage
 
 /--
-info: 'Protocols.PQXDH.Realization.CoreContracts' depends on axioms:
+info: 'Protocols.PQXDH.CoreContracts' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -814,10 +814,10 @@ info: 'Protocols.PQXDH.Realization.CoreContracts' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.CoreContracts
+#print axioms Protocols.PQXDH.CoreContracts
 
 /--
-info: 'Protocols.PQXDH.Realization.SignatureContracts' depends on axioms:
+info: 'Protocols.PQXDH.SignatureContracts' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -826,10 +826,10 @@ info: 'Protocols.PQXDH.Realization.SignatureContracts' depends on axioms:
  curve.PublicKey.verify_signature_for_multipart_message]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.SignatureContracts
+#print axioms Protocols.PQXDH.SignatureContracts
 
 /--
-info: 'Protocols.PQXDH.Realization.PartialContracts' depends on axioms:
+info: 'Protocols.PQXDH.PartialContracts' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -846,10 +846,10 @@ info: 'Protocols.PQXDH.Realization.PartialContracts' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.PartialContracts
+#print axioms Protocols.PQXDH.PartialContracts
 
 /--
-info: 'Protocols.PQXDH.Realization.KyberBridge' depends on axioms:
+info: 'Protocols.PQXDH.KyberBridge' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -863,10 +863,10 @@ info: 'Protocols.PQXDH.Realization.KyberBridge' depends on axioms:
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.KyberBridge
+#print axioms Protocols.PQXDH.KyberBridge
 
 /--
-info: 'Protocols.PQXDH.Realization.jointSigAdvantage' depends on axioms:
+info: 'Protocols.PQXDH.jointSigAdvantage' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -875,29 +875,29 @@ info: 'Protocols.PQXDH.Realization.jointSigAdvantage' depends on axioms:
  curve.PublicKey.verify_signature_for_multipart_message]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.jointSigAdvantage
+#print axioms Protocols.PQXDH.jointSigAdvantage
 
 /--
-info: 'Protocols.PQXDH.Realization.pqxdhODHAdvantage' depends on axioms:
+info: 'Protocols.PQXDH.pqxdhODHAdvantage' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
  curve.PrivateKey.calculate_agreement]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.pqxdhODHAdvantage
+#print axioms Protocols.PQXDH.pqxdhODHAdvantage
 
 /--
-info: 'Protocols.PQXDH.Realization.kdfPRF' depends on axioms:
+info: 'Protocols.PQXDH.kdfPRF' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.kdfPRF
+#print axioms Protocols.PQXDH.kdfPRF
 
 /--
-info: 'Protocols.PQXDH.Realization.coreCompletionExp' depends on axioms:
+info: 'Protocols.PQXDH.coreCompletionExp' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -905,10 +905,10 @@ info: 'Protocols.PQXDH.Realization.coreCompletionExp' depends on axioms:
  core.num.nonzero.NonZero]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.coreCompletionExp
+#print axioms Protocols.PQXDH.coreCompletionExp
 
 /--
-info: 'Protocols.PQXDH.Realization.jointKeyExp' depends on axioms:
+info: 'Protocols.PQXDH.jointKeyExp' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
@@ -916,22 +916,22 @@ info: 'Protocols.PQXDH.Realization.jointKeyExp' depends on axioms:
  core.num.nonzero.NonZero]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.jointKeyExp
+#print axioms Protocols.PQXDH.jointKeyExp
 
 /--
-info: 'Protocols.PQXDH.Realization.agreementExp' depends on axioms:
+info: 'AKE.UAKE.agreementExp' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.agreementExp
+#print axioms AKE.UAKE.agreementExp
 
 /--
-info: 'Protocols.PQXDH.Realization.Adversary.SendsFittingMessages' depends on axioms:
+info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Protocols.PQXDH.Realization.Adversary.SendsFittingMessages
+#print axioms Protocols.PQXDH.Adversary.SendsFittingMessages
