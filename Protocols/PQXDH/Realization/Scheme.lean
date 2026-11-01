@@ -14,10 +14,9 @@ import Protocols.PQXDH.Realization.Kem
 
 The Full realization is the extracted handshake inside a synthetic UAKE wrapper. Alice's step
 runs the extracted `pqxdh_initiate` and Bob's step runs the extracted `pqxdh_accept`, both through
-`liftResult` in `RustOracleComp unifSpec`. A panic or a non-terminating call of extracted code is
-a fault, which the runtime counts as missing probability mass, never a rejection, an absent output
-or a default value. A protocol error that the extracted code returns, such as `InvalidMessage` for
-a non-canonical ephemeral key, is an ordinary value, and the party rejects the message.
+`liftResult` in `RustOracleComp unifSpec`. Panics and divergence of extracted code are faults,
+represented only by missing probability mass. A returned protocol error, such as `InvalidMessage`
+for a non-canonical ephemeral key, is an ordinary value that makes the party reject the message.
 
 The wrapper supplies what the UAKE notion of Dodis and Fiore needs beyond the handshake. Bob
 publishes his prekey bundle as a message, signed with his identity key, which also performs DH2
@@ -203,14 +202,13 @@ def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) :
 def genOPK (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) : ProbComp (Option ECKeyPair) :=
   if hasOPK then some <$> P.ecKeygen else pure none
 
-/-- Alice's step on a bundle. She checks Bob's identity key, then the signature of the signed
-prekey, then the signature of the Kyber prekey. She stops at the first failure, as
-`process_prekey_bundle` does (`rust/protocol/src/session.rs:208-230`), so she does not serialize
-the Kyber key when the first signature fails. She then draws her ephemeral key pair and runs the
-initiator's entry point on her generator state `R`. On success she encrypts her message under the
-synthetic key and returns her initial message, her session and the new generator state. Any
-failed check or returned protocol error gives `none`. A fault of extracted code is a fault of the
-run. -/
+/-- Alice checks Bob's identity key, then the signed-prekey signature, then the Kyber-prekey
+signature, stopping at the first failure as `process_prekey_bundle` does
+(`rust/protocol/src/session.rs:208-230`). A failed signed-prekey signature check skips Kyber
+serialization. She draws her ephemeral key pair and runs the initiator's entry point on her
+generator state `R`. On success, she encrypts her message under the synthetic key and returns her
+initial message, session and new generator state. Failed checks or returned protocol errors give
+`none`. Faults of extracted code propagate to the run. -/
 def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : InitiatorParameters Msg)
     (R : Rand) (b : FullBundle IdC IdK) :
     RustOracleComp unifSpec

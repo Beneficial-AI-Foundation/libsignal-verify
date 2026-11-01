@@ -126,7 +126,7 @@ statement: the key is a uniform 32-byte secret and the input is the Diffie-Hellm
 def kdfPRF (H : crypto.HmacSha256) : PRFScheme Key (Key × Key × Key × Option Key) (Key × Key × Key)
     where
   keygen := $ᵗ Key
-  eval ss q := kdfSpec H q.1 q.2.1 q.2.2.1 q.2.2.2 ss
+  eval ss := fun (d1, d2, d3, d4) => kdfSpec H d1 d2 d3 d4 ss
 
 end Kdf
 
@@ -243,9 +243,8 @@ refuses the challenge's complete input, and if an earlier query had that input, 
 u-coordinate of a public key, so another encoding of a point gives the same agreement, and Bob
 does not check the public key of DH1 for canonicality (`rust/protocol/src/pqxdh.rs:350-355`).
 
-The slots follow what a reduction needs. Bob's long-term signed prekey enters DH1 and DH3 of each
-of his sessions, against points that the adversary chooses. Alice's ephemeral key meets an
-unsigned one-time prekey in DH4. -/
+Bob's long-term signed prekey enters DH1 and DH3 of each of his sessions, against points that the
+adversary chooses. Alice's ephemeral key meets an unsigned one-time prekey in DH4. -/
 def pqxdhODHExp (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK) (A : PqxdhODHAdversary)
     (real : Bool) : ProbComp Bool := do
   let a ← P.ecKeygen

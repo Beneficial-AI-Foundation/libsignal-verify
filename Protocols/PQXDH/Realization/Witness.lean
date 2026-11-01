@@ -16,9 +16,8 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 Two sessions of PQXDH are partners when they agree on the associated data and on the original key
 material `km`, the exact input of the key derivation: 32 bytes of `0xFF`, the Diffie-Hellman
 outputs DH1 to DH4 and the Kyber shared secret. Equal inputs give equal keys, since the derivation
-is a function, but distinct inputs that give equal keys do not make partners. Partnering binds the
-key material and the associated data. The identifiers and the bytes of an unsigned one-time
-prekey in the initiator's message are not authenticated.
+is a function, but distinct inputs that give equal keys do not make partners. The identifiers and
+the bytes of an unsigned one-time prekey in the initiator's message are not authenticated.
 
 The extracted entry points return the derived keys but not `km`. So each completed state records
 the exact inputs of its entry-point call, and `InitiateKdfInput` and `AcceptKdfInput` specify the
@@ -80,16 +79,16 @@ def AcceptKdfInput (rp : pqxdh.RecipientParameters) (km : Slice U8) : Prop :=
         rp.their_kyber_ciphertext = .ok (.Ok ss) ∧
       kdfInput d1 d2 d3 d4 ss = .ok km
 
-/-- The same-invocation witness for the initiator: if `pqxdh_initiate` succeeds on `ip` and `r`,
-its keys are the derivation of the original key material of that call. The proof is a stub. -/
+/-- If `pqxdh_initiate` succeeds on `ip` and `r`, its keys are derived from the original key
+material of that call. The proof is a stub. -/
 theorem initiate_kdfInput_witness (crng : rand_core_1.CryptoRng Rand)
     (rng : rand.rng.Rng Rand) (ip : pqxdh.InitiatorParameters) (r r' : Rand)
     (ag : InitiatorAgreement) (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (.Ok ag, r')) :
     ∃ km, InitiateKdfInput crng ip r km ∧ pqxdh.HandshakeKeys.derive km = .ok ag.keys := by
   sorry
 
-/-- The same-invocation witness for the responder: if `pqxdh_accept` succeeds on `rp`, its keys
-are the derivation of the original key material of that call. The proof is a stub. -/
+/-- If `pqxdh_accept` succeeds on `rp`, its keys are derived from the original key material of
+that call. The proof is a stub. -/
 theorem accept_kdfInput_witness (rp : pqxdh.RecipientParameters) (hk : HandshakeKeys)
     (h : pqxdh.pqxdh_accept rp = .ok (.Ok hk)) :
     ∃ km, AcceptKdfInput rp km ∧ pqxdh.HandshakeKeys.derive km = .ok hk := by

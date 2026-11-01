@@ -84,9 +84,10 @@ noncomputable def PartneredExp [SampleableType K] [Monad m] (lift : ProbCompLift
   let (uk, tk) ← proto.setup
   let b ← lift.liftProbComp ($ᵗ Bool)
   let (cr, st) ← challengeSession lift A uk tk
+  let (_, env, _) := st
   if cr.K0.isNone then
     finalizePartnered lift π A st cr b none
-  else if !decide (authPartnered π st.2.1.challenge.state cr.challengeTr st.2.1.tSessions) then
+  else if !decide (authPartnered π env.challenge.state cr.challengeTr env.tSessions) then
     return true
   else
     let K1 ← some <$> lift.liftProbComp ($ᵗ K)

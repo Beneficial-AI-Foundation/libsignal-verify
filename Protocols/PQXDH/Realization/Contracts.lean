@@ -111,8 +111,8 @@ def SignTotal : Prop :=
           (∃ σ, res = .Ok σ ∧ σ.length = 64) ∧ Dom r' ⦄
 
 /-- A signature that the private key `sk` computes on `msg` verifies under the public key derived
-from `sk` (XEdDSA, `rust/core/src/curve/curve25519.rs:66-158`). It is the completeness half of
-the single identity key, which both signs and agrees. -/
+from `sk` (XEdDSA, `rust/core/src/curve/curve25519.rs:66-158`). This is signature completeness
+for the identity key used for both signing and agreement. -/
 def SignVerify : Prop :=
   ∀ {R : Type} (crng : rand_core_1.CryptoRng R) (rng : rand.rng.Rng R) (sk : ECPriv)
     (pk : ECPub) (msg σ : Slice U8) (r r' : R),

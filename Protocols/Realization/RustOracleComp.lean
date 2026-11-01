@@ -24,9 +24,8 @@ divergence. `liftResult` sends a `Result` computation into it: a returned value 
 
 A Rust function reports a protocol error as an ordinary value, for example
 `Err(SignalProtocolError::…)`, and `liftResult` passes such a value through unchanged. A fault is
-an execution that produces no value. When the computation is read as a distribution
-(`rustRuntime`), every fault is missing probability mass, so a fault never counts as a rejection,
-a default value or a successful run (`probOutput_rustRuntime`, `probFailure_rustRuntime`).
+an execution that produces no value. The runtime `rustRuntime` represents faults only as missing
+probability mass (`probOutput_rustRuntime`, `probFailure_rustRuntime`).
 
 The instance used here is `O = unifSpec`, the oracle for uniform sampling, so that
 `RustOracleComp unifSpec` is `ExceptT Fault ProbComp`. `rustRuntime` packages its semantics as

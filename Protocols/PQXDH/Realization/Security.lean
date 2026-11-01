@@ -37,8 +37,8 @@ the total contracts, and the two `_total` corollaries drop the term.
   bounds.
 * The PQ statement models post-quantum security as UAKE security without the Diffie-Hellman
   premise. It keeps the signature premise, and joint unforgeability with an agreement oracle
-  implies that discrete logarithms are hard for the identity key. This is PQXDH-model's model
-  gap, made sharper by the single key.
+  implies that discrete logarithms are hard for the identity key. This limitation is inherited
+  from PQXDH-model. Here the same key also performs agreement.
 * A Kyber decapsulation mismatch changes the key-derivation input `km` of Bob's session, so his
   session is not Alice's partner. If the two inputs still give the same keys, Alice accepts and
   `PartneredExp` counts a win. No premise of the PQ statement bounds that run: `kdfPRF` is a

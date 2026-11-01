@@ -13,16 +13,14 @@ import Libsignal.Spec.Protocol.Crypto.HkdfSha256
 /-!
 # Correctness of the Full realization
 
-Three statements say that PQXDH, run honestly on the extracted entry points, works. Core
-completion (`coreCompletion_extracted`) and joint key-record agreement
-(`jointKeyAgreement_extracted`) concern the extracted handshake alone. Wrapper agreement
-(`wrapperAgreement_uakeInitiator`, `wrapperAgreement_uakeRecipient`) adds the synthetic wrapper of
-`Scheme.lean`.
+Core completion (`coreCompletion_extracted`) and joint key-record agreement
+(`jointKeyAgreement_extracted`) concern an honest PQXDH run on the extracted handshake alone.
+Wrapper agreement (`wrapperAgreement_uakeInitiator`, `wrapperAgreement_uakeRecipient`) adds the
+synthetic wrapper of `Scheme.lean`.
 
-Each statement bounds from below the probability of a success event in an honest run, and none is
-conditioned on success. A run in which a party rejects, an entry point returns a protocol error,
-or extracted code panics or does not terminate counts as a failure. A faulted run is missing
-probability mass, which never counts towards a success probability.
+Each statement bounds from below the probability of success in an honest run, without
+conditioning on success. Rejections, protocol errors, panics and divergence count as failures.
+Faults contribute only missing probability mass.
 
 The agreement statements hold with probability at least `1 - δ`, where `δ` bounds the
 correctness error of the extracted Kyber operations (`KyberDeltaCorrect`). For `δ = 0` they
