@@ -23,6 +23,11 @@ jobs:
           lake env lean scripts/Ledger.lean > "$RUNNER_TEMP/closures.log"
           python3 -I scripts/ledger-check.py "$RUNNER_TEMP/closures.log" "$RUNNER_TEMP/admissions.log"
 
+      - name: Check the import headers of Protocols/Models/
+        run: |
+          scripts/models-dependency-check.sh --self-test
+          scripts/models-dependency-check.sh
+
   spec-layout:
     name: Check Spec Layout
     runs-on: ubuntu-latest
@@ -30,5 +35,3 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: scripts/spec-layout-check.sh
-      - run: scripts/models-dependency-check.sh --self-test
-      - run: scripts/models-dependency-check.sh

@@ -29,7 +29,7 @@ Files outside these folders:
 | `Protocols/ATTRIBUTION.md` | the files ported from other projects, which keep their own licence |
 | `rust/Libsignal/Spec/` | functional-correctness specifications of extracted functions |
 
-The dependency rule: no file under `Protocols/Models/` imports the extraction (`Libsignal`) or a realisation (`Protocols.<P>`, `Protocols.Realization`). Inside the `Protocols` library, a model imports only `Protocols.Models`, `Protocols.ToVCVio` and `Protocols.ToMathlib`. A realisation may import the models. CI checks the rule with `scripts/models-dependency-check.sh`, after a self-test of the check on fixed cases.
+The dependency rule: no file under `Protocols/Models/` imports the extraction (`Libsignal`) or a realisation (`Protocols.<P>`, `Protocols.Realization`). Inside the `Protocols` library, a model imports only `Protocols.Models`, `Protocols.ToVCVio` and `Protocols.ToMathlib`. A realisation may import the models. CI checks the rule with `scripts/models-dependency-check.sh`. The check reads each import header with Lean's own header parser, so comments, line breaks, `public`, `meta` and `import all` count as they do for Lean. CI first runs a self-test of the check on fixed headers.
 
 A `recall` restatement in a spec summary is checked up to definitional equality: it fails when a statement
 changes its meaning, but not when it only changes its spelling or the names of its binders.
