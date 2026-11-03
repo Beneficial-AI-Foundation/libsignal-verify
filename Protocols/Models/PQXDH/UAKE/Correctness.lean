@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
+import Protocols.Models.PQXDH.UAKE.CorrectnessLemmas
 
 /-!
 # Top-level Correctness Theorems for the PQXDH model
@@ -20,7 +20,7 @@ small probability.
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -91,4 +91,4 @@ theorem uakeRecipient_perfectlyCorrect
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
     hspkSigB hrun).1
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

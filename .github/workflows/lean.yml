@@ -16,11 +16,17 @@ jobs:
 
       - name: Check Protocols/LEDGER.md against regenerated output
         run: |
+          python3 -I scripts/ledger-check.py --self-test
           command -v rg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep)
           rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
             Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > "$RUNNER_TEMP/admissions.log" || [ $? -eq 1 ]
           lake env lean scripts/Ledger.lean > "$RUNNER_TEMP/closures.log"
           python3 -I scripts/ledger-check.py "$RUNNER_TEMP/closures.log" "$RUNNER_TEMP/admissions.log"
+
+      - name: Check the import headers of Protocols/Models/
+        run: |
+          scripts/models-dependency-check.sh --self-test
+          scripts/models-dependency-check.sh
 
   spec-layout:
     name: Check Spec Layout

@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
+import Protocols.Models.PQXDH.UAKE.CorrectnessLemmas
 
 /-!
 # Well-formedness Lemmas for the PQXDH model
@@ -23,7 +23,7 @@ production Kyber decapsulates wrongly with a small probability.
 
 open OracleSpec OracleComp AKE AKE.UAKE
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -284,4 +284,4 @@ lemma runHonest_length_recipient
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
     hspkSigB hrun).2
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

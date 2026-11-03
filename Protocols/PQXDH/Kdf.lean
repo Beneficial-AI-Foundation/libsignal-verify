@@ -7,7 +7,7 @@ Protocols/ATTRIBUTION.md.
 -/
 import Libsignal.Spec.Std.Alloc.Vec.ExtendFromSlice
 import Libsignal.Spec.Protocol.Pqxdh.HandshakeKeys.Derive
-import Protocols.PQXDH.Realization.Defs
+import Protocols.PQXDH.Defs
 
 /-!
 # Lean mirror of the extracted PQXDH key derivation
@@ -29,7 +29,7 @@ and `deriveKeys`, which call the extracted derivation, are marked `noncomputable
 open Aeneas Aeneas.Std Result
 open libsignal_protocol
 
-namespace Protocols.PQXDH.Realization
+namespace Protocols.PQXDH
 
 /-- The raw bytes of a curve25519 public key. -/
 def pubBytes (p : ECPub) : Key :=
@@ -117,4 +117,4 @@ theorem deriveKeysTotal
   refine ⟨keys, ?_⟩
   rcases dh4 with _ | d <;> simp_all [deriveHK, pubSlice, sliceOfKey, lift, pure_tc_eq]
 
-end Protocols.PQXDH.Realization
+end Protocols.PQXDH

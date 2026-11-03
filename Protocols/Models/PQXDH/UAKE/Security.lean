@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas
 
 /-!
 # Security Theorems for the PQXDH model
@@ -75,7 +75,7 @@ Model simplifications
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -231,4 +231,4 @@ theorem uakeInitiator_secure_pq
     hkem hkdf hpk
   nlinarith [h₀, h₁, h₂, h₃, h₄, h₅]
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

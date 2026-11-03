@@ -54,7 +54,7 @@ Model simplifications
   as separate KDF outputs.
 -/
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -308,4 +308,4 @@ def confirm [DecidableEq Msg]
   if P.aead.decrypt ctx.kb ctx.ad conf = some ctx.msg then some ctx.sk
   else none
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH
