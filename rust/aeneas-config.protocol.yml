@@ -126,6 +126,12 @@ charon:
     # pulled. Its only callers (key_length, KeyPair::generate) are opaque, so
     # nothing references it transparently. (`_::` = inherent-method form.)
     - "libsignal_protocol::kem::_::parameters"
+    # previous_session_states is opaque (below). From Aeneas de16f3c on, its
+    # map closure's FnMut/FnOnce impls are reached as well, and their bodies fail
+    # a prepass ("Unexpected error"), so opaque cannot help. Up to 0855ce1 these
+    # impls were not emitted at all; excluding them keeps that shape.
+    - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnMut<_> for _}"
+    - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnOnce<_> for _}"
     # Crate-level excludes
     - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
     - "core::str::pattern"                # GATs unsupported by Aeneas
@@ -217,6 +223,11 @@ charon:
     - "libsignal_protocol::double_ratchet::log_jump_ahead"
     - "libsignal_protocol::double_ratchet::log_corrupt_receiver_chain"
     - "libsignal_protocol::double_ratchet::skipped_key_from_pb"  # moves a &'static str from an opaque call
+    # Aeneas de16f3c fails on this body with "Unreachable" (double_ratchet.rs
+    # 334-369, the tail with the `while … receiver_chains.remove(0)` loop);
+    # 0855ce1 translated it. Opaque until Aeneas is fixed: it becomes an axiom
+    # on the receive path. No proof uses it.
+    - "libsignal_protocol::double_ratchet::_::dh_ratchet_step"
     # triple_ratchet — logging helpers only (Aeneas fails on log! expansions);
     # encrypt/decrypt and from_session_state are transparent.
     - "libsignal_protocol::triple_ratchet::log_sender_chain_corrupt"
@@ -365,14 +376,14 @@ tweaks:
       replace: "-- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
     - find: |
         @[rust_trait "rand#1::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
-        structure rand_1.rng.Rng (Self : Type) where
+        structure rand_1.rng.Rng (Self : Type _) where
           rand_core_1RngCoreInst : rand_core_1.RngCore Self
       replace: "abbrev rand_1.rng.Rng := _root_.rand.rng.Rng\n"
       required: true
     # Reuse the identical trait and concrete subtle models owned by Crypto.
     - find: |
         @[rust_trait "subtle::ConstantTimeEq"]
-        structure subtle.ConstantTimeEq (Self : Type) where
+        structure subtle.ConstantTimeEq (Self : Type _) where
           ct_eq : Self → Self → Result subtle.Choice
       replace: "abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq\n"
       required: true

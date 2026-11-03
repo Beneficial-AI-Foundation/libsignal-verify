@@ -9,6 +9,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -23,14 +24,14 @@ namespace libsignal_protocol
     Name pattern: [core::marker::PhantomData]
     Visibility: public -/
 @[reducible, rust_type "core::marker::PhantomData"]
-def core.marker.PhantomData (T : Type) := Unit
+def core.marker.PhantomData (T : Type _) := Unit
 
 /-- Trait declaration: [bytes::buf::buf_impl::Buf]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.0/src/buf/buf_impl.rs', lines 122:0-122:13
     Name pattern: [bytes::buf::buf_impl::Buf]
     Visibility: public -/
 @[rust_trait "bytes::buf::buf_impl::Buf"]
-structure bytes.buf.buf_impl.Buf (Self : Type) where
+structure bytes.buf.buf_impl.Buf (Self : Type _) where
   remaining : Self → Result Std.Usize
   chunk : Self → Result (Slice Std.U8)
   advance : Self → Std.Usize → Result Self
@@ -40,7 +41,7 @@ structure bytes.buf.buf_impl.Buf (Self : Type) where
     Name pattern: [bytes::buf::buf_mut::BufMut]
     Visibility: public -/
 @[rust_trait "bytes::buf::buf_mut::BufMut"]
-structure bytes.buf.buf_mut.BufMut (Self : Type) where
+structure bytes.buf.buf_mut.BufMut (Self : Type _) where
   remaining_mut : Self → Result Std.Usize
   advance_mut : Self → Std.Usize → Result Self
   chunk_mut : Self → Result (bytes.buf.uninit_slice.UninitSlice ×
@@ -91,7 +92,7 @@ inductive prost.encoding.wire_type.WireType where
     Name pattern: [prost::message::Message]
     Visibility: public -/
 @[rust_trait "prost::message::Message"]
-structure prost.message.Message (Self : Type) where
+structure prost.message.Message (Self : Type _) where
   encode_raw : forall {T1 : Type} (bytesbufbuf_mutBufMutInst :
     bytes.buf.buf_mut.BufMut T1), Self → T1 → Result T1
   merge_field : forall {T1 : Type} (bytesbufbuf_implBufInst :
@@ -114,7 +115,7 @@ structure prost.message.Message (Self : Type) where
     Name pattern: [rand_core#1::UnwrapErr]
     Visibility: public -/
 @[reducible, rust_type "rand_core#1::UnwrapErr"]
-def rand_core_1.UnwrapErr (R : Type) (Clause0_Error : Type) := R
+def rand_core_1.UnwrapErr (R : Type _) (Clause0_Error : Type _) := R
 
 /-- Trait declaration: [rand_core#1::TryRngCore]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.9.5/src/lib.rs', lines 220:0-220:20
@@ -122,7 +123,7 @@ def rand_core_1.UnwrapErr (R : Type) (Clause0_Error : Type) := R
     Visibility: public -/
 @[rust_trait "rand_core#1::TryRngCore"
   (parentClauses := ["corefmtDebugInst", "corefmtDisplayInst"])]
-structure rand_core_1.TryRngCore (Self : Type) (Self_Error : Type) where
+structure rand_core_1.TryRngCore (Self : Type _) (Self_Error : Type _) where
   corefmtDebugInst : core.fmt.Debug Self_Error
   corefmtDisplayInst : core.fmt.Display Self_Error
   try_next_u32 : Self → Result ((core.result.Result Std.U32 Self_Error) ×
@@ -138,8 +139,8 @@ structure rand_core_1.TryRngCore (Self : Type) (Self_Error : Type) where
     Name pattern: [rand_core#1::TryCryptoRng]
     Visibility: public -/
 @[rust_trait "rand_core#1::TryCryptoRng" (parentClauses := ["TryRngCoreInst"])]
-structure rand_core_1.TryCryptoRng (Self : Type) (Self_Clause0_Error : Type)
-  where
+structure rand_core_1.TryCryptoRng (Self : Type _) (Self_Clause0_Error :
+  Type _) where
   TryRngCoreInst : rand_core_1.TryRngCore Self Self_Clause0_Error
 
 /-- [rand_core#1::os::OsRng]
@@ -714,7 +715,7 @@ Unit
 
 /-- [libsignal_protocol::kem::KeyMaterial]
     Source: 'rust/protocol/src/kem.rs', lines 276:0-280:1 -/
-structure kem.KeyMaterial (T : Type) where
+structure kem.KeyMaterial (T : Type _) where
   data : Slice Std.U8
   kind : core.marker.PhantomData T
 
@@ -743,13 +744,13 @@ inductive kem.DecapsulateError where
 /-- Trait declaration: [libsignal_protocol::kem::KeyKind]
     Source: 'rust/protocol/src/kem.rs', lines 254:0-256:1
     Visibility: public -/
-structure kem.KeyKind (Self : Type) where
+structure kem.KeyKind (Self : Type _) where
   key_length : kem.KeyType → Result Std.Usize
 
 /-- [libsignal_protocol::kem::Key]
     Source: 'rust/protocol/src/kem.rs', lines 315:0-318:1
     Visibility: public -/
-structure kem.Key (T : Type) where
+structure kem.Key (T : Type _) where
   key_type : kem.KeyType
   key_data : kem.KeyMaterial T
 
@@ -762,7 +763,7 @@ structure kem.Ciphertext where
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::{closure}]
     Source: 'rust/protocol/src/kem.rs', lines 373:21-375:13 -/
 @[reducible]
-def kem.KeyPublic.encapsulate.closure (R : Type) := kem.Key kem.Public
+def kem.KeyPublic.encapsulate.closure (R : Type _) := kem.Key kem.Public
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Secret>}::decapsulate::{closure}]
     Source: 'rust/protocol/src/kem.rs', lines 406:21-413:13 -/
@@ -965,7 +966,7 @@ structure state.session.SessionState where
 /-- [libsignal_protocol::ratchet::initialize_initiator_session::{closure}]
     Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
 @[reducible]
-def ratchet.initialize_initiator_session.closure (R : Type) := Unit
+def ratchet.initialize_initiator_session.closure (R : Type _) := Unit
 
 /-- [libsignal_protocol::ratchet::initialize_recipient_session::{closure}]
     Source: 'rust/protocol/src/ratchet.rs', lines 155:13-161:5 -/
@@ -1013,7 +1014,7 @@ def sender_keys.SenderKeyState.remove_sender_message_key.closure := Std.U32
     Visibility: public -/
 structure sender_keys.SenderKeyRecord where
   states : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
-    Global
+    alloc.alloc.Global
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyRecord}::deserialize::{closure}]
     Source: 'rust/protocol/src/sender_keys.rs', lines 253:21-253:69 -/
@@ -1141,7 +1142,7 @@ structure state.kyber_prekey.KyberPreKeyRecord where
 /-- Trait declaration: [libsignal_protocol::state::signed_prekey::KeySerde]
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 114:0-119:1
     Visibility: public -/
-structure state.signed_prekey.KeySerde (Self : Type) where
+structure state.signed_prekey.KeySerde (Self : Type _) where
   serialize : Self → Result (alloc.vec.Vec Std.U8)
   deserialize : forall {T : Type} (coreconvertAsRefPSliceU8Inst :
     core.convert.AsRef T (Slice Std.U8)), T → Result (core.result.Result Self
@@ -1150,8 +1151,8 @@ structure state.signed_prekey.KeySerde (Self : Type) where
 /-- Trait declaration: [libsignal_protocol::state::signed_prekey::KeyPairSerde]
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 121:0-129:1
     Visibility: public -/
-structure state.signed_prekey.KeyPairSerde (Self : Type) (Self_PublicKey :
-  Type) (Self_PrivateKey : Type) where
+structure state.signed_prekey.KeyPairSerde (Self : Type _) (Self_PublicKey :
+  Type _) (Self_PrivateKey : Type _) where
   PublicKey : state.signed_prekey.KeySerde Self_PublicKey
   PrivateKey : state.signed_prekey.KeySerde Self_PrivateKey
   from_public_and_private : Slice Std.U8 → Slice Std.U8 → Result
@@ -1162,9 +1163,9 @@ structure state.signed_prekey.KeyPairSerde (Self : Type) (Self_PublicKey :
 /-- Trait declaration: [libsignal_protocol::state::signed_prekey::GenericSignedPreKey]
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 52:0-112:1
     Visibility: public -/
-structure state.signed_prekey.GenericSignedPreKey (Self : Type) (Self_KeyPair :
-  Type) (Self_Id : Type) (Self_Clause0_PublicKey : Type)
-  (Self_Clause0_PrivateKey : Type) where
+structure state.signed_prekey.GenericSignedPreKey (Self : Type _) (Self_KeyPair
+  : Type _) (Self_Id : Type _) (Self_Clause0_PublicKey : Type _)
+  (Self_Clause0_PrivateKey : Type _) where
   KeyPairSerdeInst : state.signed_prekey.KeyPairSerde Self_KeyPair
     Self_Clause0_PublicKey Self_Clause0_PrivateKey
   coreconvertFromSelf_IdU32Inst : core.convert.From Self_Id Std.U32
@@ -1249,13 +1250,13 @@ def triple_ratchet.OutgoingTripleRatchet.from_session_state.closure := Unit
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt::{closure#1}]
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 166:17-169:9 -/
 @[reducible]
-def triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1 (R : Type) :=
+def triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1 (R : Type _) :=
   libsignal_core.address.ProtocolAddress
 
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt::{closure}]
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 152:56-157:9 -/
 @[reducible]
-def triple_ratchet.OutgoingTripleRatchet.encrypt.closure (R : Type) := Unit
+def triple_ratchet.OutgoingTripleRatchet.encrypt.closure (R : Type _) := Unit
 
 /-- [libsignal_protocol::triple_ratchet::TripleRatchet]
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 215:0-220:1 -/
@@ -1268,7 +1269,7 @@ structure triple_ratchet.TripleRatchet where
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::decrypt::{closure}]
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 298:73-310:9 -/
 @[reducible]
-def triple_ratchet.TripleRatchet.decrypt.closure (R : Type) :=
+def triple_ratchet.TripleRatchet.decrypt.closure (R : Type _) :=
   protocol.CiphertextMessageType
 
 end libsignal_protocol
