@@ -29,14 +29,14 @@ section CorrectnessLemmas
 
 /-- Output probabilities under the `probComp` runtime's `evalDist` coincide
   with those of the computation itself. -/
-lemma probOutput_probComp_evalDist {α : Type} (oa : ProbComp α) (x : α) :
-    Pr[= x | ProbCompRuntime.probComp.evalDist oa] = Pr[= x | oa] := by
+lemma probOutput_probComp_evalDist {α : Type} [MeasurableSpace α] (oa : ProbComp α) (x : α) :
+    ProbCompRuntime.probComp.evalDist oa {x} = 𝒟[oa] {x} := by
   rfl
 
 /-- A Boolean computation that returns `true` with probability 1 has support
   `{true}`. -/
 lemma support_eq_singleton_true_of_evalDist {oa : ProbComp Bool}
-    (h : Pr[= true | ProbCompRuntime.probComp.evalDist oa] = 1) :
+    (h : ProbCompRuntime.probComp.evalDist oa {true} = 1) :
     support oa = {true} := by
   rw [probOutput_probComp_evalDist, probOutput_eq_one_iff] at h
   exact h.2

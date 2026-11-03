@@ -105,7 +105,7 @@ theorem uakeInitiator_secure_dh
       * DEVIATION FROM SPEC: We require the signature scheme to be SUF-CMA, not
         just EUF-CMA. This is required to avoid (harmless) LS'17-style
         "no-match" attacks because we use a transcript-matching AKE definition. -/
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
     /- Bound on an adversary's advantage in the DH security game. -/
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
@@ -122,11 +122,11 @@ theorem uakeInitiator_secure_dh
         a PRF, in order to complete the proof. The previous CryptoVerif
         analysis uses a RO here. -/
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf)
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf)
     /- Bound on the probability of guessing the public key output by the KEM's
       key generation. This bounds KEM public-key collisions and predictions
       across T-oracle sessions, which otherwise seem to break UAKE security. -/
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     /- Top-level theorem statement: The adversary's advantage in the UAKE game
       is bounded as a polynomial over the adversary bounds of the underlying
       schemes, where the coefficients are small constants and the number q of
@@ -197,11 +197,11 @@ theorem uakeInitiator_secure_pq
         against HNDL attacks, which requires only secrecy, not integrity.
         However, UAKE cannot capture secrecy alone. A better way to model this
         kind of security would be to use a secrecy-only definition. -/
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
     /- Bound on an adversary's advantage in the IND-CCA game for the KEM. -/
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     /- Bound on the adversary's advantage forging an AEAD ciphertext. -/
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
@@ -210,11 +210,11 @@ theorem uakeInitiator_secure_pq
       * MODEL SIMPLIFICATION: We model the KDF as a PRF keyed by the KEM
         secret. -/
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf)
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf)
     /- Bound on the probability of guessing the public key output by the KEM's
       key generation. This bounds KEM public-key collisions and predictions
       across T-oracle sessions, which otherwise seem to break UAKE security. -/
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     /- Top-level theorem statement: The adversary's advantage in the UAKE game
       is bounded as a polynomial over the adversary bounds of the underlying
       schemes, where the coefficients are small constants and the number q of

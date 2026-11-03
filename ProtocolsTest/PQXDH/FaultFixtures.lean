@@ -85,7 +85,7 @@ theorem coreHonestRun_snd_eq_none (hE : E.NeverAgrees) :
 
 /-- Core completion has probability `0` when the initiator never returns an agreement. -/
 theorem coreCompletionExp_eq_zero (hE : E.NeverAgrees) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P E hasOPK)] = 0 := by
+    rustRuntime.evalDist (coreCompletionExp P E hasOPK) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [coreCompletionExp, support_bind, Set.mem_iUnion, exists_prop] at h
@@ -96,7 +96,7 @@ theorem coreCompletionExp_eq_zero (hE : E.NeverAgrees) :
 /-- Joint key-record agreement has probability `0` when the initiator never returns an
 agreement. -/
 theorem jointKeyExp_eq_zero (hE : E.NeverAgrees) :
-    Pr[= true | rustRuntime.evalDist (jointKeyExp P E hasOPK)] = 0 := by
+    rustRuntime.evalDist (jointKeyExp P E hasOPK) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [jointKeyExp, support_bind, Set.mem_iUnion, exists_prop] at h
@@ -222,7 +222,7 @@ theorem initiatorNoConfirm_init_waiting (p : InitiatorParameters Msg) :
 returns an agreement: Alice never outputs a key. -/
 theorem agreementExp_uakeInitiator_eq_zero [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (msg : Msg) (hasOPK : Bool) (hE : E.NeverAgrees) :
-    Pr[= true | rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK))] = 0 := by
+    rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK)) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
@@ -240,7 +240,7 @@ returns an agreement: Alice, the authenticated party, never outputs a key, and a
 both keys. -/
 theorem agreementExp_uakeRecipient_eq_zero [DecidableEq IdC] [DecidableEq IdK]
     (msg : Msg) (hasOPK : Bool) (hE : E.NeverAgrees) :
-    Pr[= true | rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK))] = 0 := by
+    rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK)) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
@@ -273,11 +273,11 @@ completion does not hold with probability `1`, and for every `δ < 1` neither jo
 agreement nor wrapper agreement (in either scheme) holds with probability at least `1 - δ`. -/
 theorem fails_of_neverAgrees {E : EntryPoints Rand} (hE : E.NeverAgrees) {δ : ℝ≥0∞}
     (hδ : δ < 1) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P E hasOPK)] ≠ 1 ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist (jointKeyExp P E hasOPK)] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK))] ∧
+    rustRuntime.evalDist (coreCompletionExp P E hasOPK) {true} ≠ 1 ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist (jointKeyExp P E hasOPK) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK)) {true} ∧
       ¬ 1 - δ ≤
-        Pr[= true | rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK))] := by
+        rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK)) {true} := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · rw [coreCompletionExp_eq_zero P hasOPK hE]
     exact zero_ne_one
@@ -291,38 +291,38 @@ theorem fails_of_neverAgrees {E : EntryPoints Rand} (hE : E.NeverAgrees) {δ : �
 /-- The always-panic fixture: entry points that always panic fail every correctness statement,
 for every `δ < 1`. -/
 theorem alwaysPanic_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysPanic hasOPK)] ≠ 1 ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysPanic hasOPK)] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeInitiator P EntryPoints.alwaysPanic msg hasOPK))] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeRecipient P EntryPoints.alwaysPanic msg hasOPK))] :=
+    rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysPanic hasOPK) {true} ≠ 1 ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysPanic hasOPK) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeInitiator P EntryPoints.alwaysPanic msg hasOPK)) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeRecipient P EntryPoints.alwaysPanic msg hasOPK)) {true} :=
   fails_of_neverAgrees P msg hasOPK EntryPoints.alwaysPanic_neverAgrees hδ
 
 /-- The always-error fixture: entry points that always return the protocol error `e` fail every
 correctness statement, for every `δ < 1`. -/
 theorem alwaysError_fails (e : error.SignalProtocolError) {δ : ℝ≥0∞} (hδ : δ < 1) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P (EntryPoints.alwaysError e) hasOPK)] ≠
+    rustRuntime.evalDist (coreCompletionExp P (EntryPoints.alwaysError e) hasOPK) {true} ≠
         1 ∧
       ¬ 1 - δ ≤
-        Pr[= true | rustRuntime.evalDist (jointKeyExp P (EntryPoints.alwaysError e) hasOPK)] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeInitiator P (EntryPoints.alwaysError e) msg hasOPK))] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeRecipient P (EntryPoints.alwaysError e) msg hasOPK))] :=
+        rustRuntime.evalDist (jointKeyExp P (EntryPoints.alwaysError e) hasOPK) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeInitiator P (EntryPoints.alwaysError e) msg hasOPK)) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeRecipient P (EntryPoints.alwaysError e) msg hasOPK)) {true} :=
   fails_of_neverAgrees P msg hasOPK (EntryPoints.alwaysError_neverAgrees e) hδ
 
 /-- The always-diverge fixture: entry points that never terminate fail every correctness
 statement, for every `δ < 1`. -/
 theorem alwaysDiverge_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysDiverge hasOPK)] ≠
+    rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysDiverge hasOPK) {true} ≠
         1 ∧
       ¬ 1 - δ ≤
-        Pr[= true | rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysDiverge hasOPK)] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeInitiator P EntryPoints.alwaysDiverge msg hasOPK))] ∧
-      ¬ 1 - δ ≤ Pr[= true | rustRuntime.evalDist
-        (agreementExp (uakeRecipient P EntryPoints.alwaysDiverge msg hasOPK))] :=
+        rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysDiverge hasOPK) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeInitiator P EntryPoints.alwaysDiverge msg hasOPK)) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist
+        (agreementExp (uakeRecipient P EntryPoints.alwaysDiverge msg hasOPK)) {true} :=
   fails_of_neverAgrees P msg hasOPK EntryPoints.alwaysDiverge_neverAgrees hδ
 
 end Fixtures

@@ -10,8 +10,8 @@ import VCVio.CryptoFoundations.KeyEncapMech
 /-!
 # Quantitative KEM correctness
 
-The correctness experiment `KEMScheme.correctnessExperiment` generates a key pair, encapsulates to the public
-key and decapsulates the ciphertext with the secret key. It returns `true` when decapsulation
+The correctness experiment `KEMScheme.correctnessExperiment` generates a key pair, encapsulates
+to the public key and decapsulates the ciphertext with the secret key. It returns `true` when decapsulation
 recovers the encapsulated key. The correctness error of a KEM under a runtime is the missing
 success mass of this experiment,
 
@@ -35,8 +35,8 @@ namespace KEMScheme
 variable {m : Type → Type} [Monad m] {K PK SK C : Type} [DecidableEq K]
 
 /-- Correctness error of `kem` under `runtime`: the missing success mass
-`1 - Pr[correctnessExperiment = true]`. It counts both a `false` result and the mass of executions that
-return nothing. -/
+`1 - Pr[correctnessExperiment = true]`. It counts both a `false` result and the mass of
+executions that return nothing. -/
 noncomputable def correctnessError (kem : KEMScheme m K PK SK C)
     (runtime : ProbCompRuntime m) : ℝ≥0∞ :=
   1 - runtime.evalDist kem.correctnessExperiment {true}

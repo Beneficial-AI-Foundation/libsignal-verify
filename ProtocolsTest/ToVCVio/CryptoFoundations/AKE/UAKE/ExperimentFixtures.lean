@@ -113,8 +113,9 @@ randomness by answering every uniform query with `0`. Its lift is a monad morphi
 `ProbCompRuntime` alone does not exclude it. -/
 
 private noncomputable def constRuntime : ProbCompRuntime ProbComp where
-  toSPMFSemantics := SPMFSemantics.ofMonadLift ProbComp
+  toSemanticsVia := SemanticsVia.ofEvalDistSemantics ProbComp
   toProbCompLift := ⟨simulateQ' fun n => (pure 0 : ProbComp (Fin (n + 1)))⟩
+  evalDist_map_eq _f hf mx := _root_.evalDist_map mx hf
 
 /-- Lifted through `constRuntime`, a fair coin lands on `0` with probability one, so the
 runtime is not coherent. -/

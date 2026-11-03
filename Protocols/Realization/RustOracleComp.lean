@@ -45,6 +45,10 @@ inductive Fault where
   /-- The extracted code does not terminate. -/
   | divergence
 
+/-- Faults carry the discrete σ-algebra. The output measure of an `ExceptT` computation needs a
+measurable space on its error type. -/
+instance : MeasurableSpace Fault := ⊤
+
 /-- An oracle computation for the specification `O` that may also stop with a `Fault`. -/
 abbrev RustOracleComp {ι : Type} (O : OracleSpec ι) (α : Type) : Type :=
   ExceptT Fault (OracleComp O) α
@@ -131,8 +135,9 @@ theorem mem_support_liftResult (x : Result α) (a : α) :
 distribution, in which every fault is missing mass, and it lifts public randomness from
 `ProbComp` without faults. -/
 noncomputable def rustRuntime : ProbCompRuntime (RustOracleComp unifSpec) where
-  toSPMFSemantics := SPMFSemantics.ofMonadLift _
+  toSemanticsVia := SemanticsVia.ofEvalDistSemantics _
   toProbCompLift := ProbCompLift.ofMonadLift _
+  evalDist_map_eq _f hf mx := _root_.evalDist_map mx hf
 
 /-- `rustRuntime` is coherent. It reads every computation through the native distribution of
 `RustOracleComp unifSpec`, a lift of public randomness keeps its distribution, and every output of
@@ -147,14 +152,15 @@ theorem rustRuntime_coherent : AKE.UAKE.RuntimeCoherent rustRuntime where
 
 /-- Fault erasure for outputs: the runtime gives an output `a` the probability that the
 computation returns `a` without a fault. -/
-theorem probOutput_rustRuntime (mx : RustOracleComp unifSpec α) (a : α) :
-    Pr[= a | rustRuntime.evalDist mx] = Pr[= Except.ok a | mx.run] :=
+theorem probOutput_rustRuntime [MeasurableSpace α] [MeasurableSingletonClass α]
+    (mx : RustOracleComp unifSpec α) (a : α) :
+    rustRuntime.evalDist mx {a} = Pr{let r ← mx.run}[r = Except.ok a] :=
   ExceptT.probOutput_eq mx a
 
 /-- Fault erasure for missing mass: the probability that the runtime returns no value is the
 probability of a fault. No other mass is lost. -/
-theorem probFailure_rustRuntime (mx : RustOracleComp unifSpec α) :
-    Pr[⊥ | rustRuntime.evalDist mx] = Pr[fun r => r.toBool = false | mx.run] := by
+theorem probFailure_rustRuntime [MeasurableSpace α] (mx : RustOracleComp unifSpec α) :
+    rustRuntime.prFail mx = Pr{let r ← mx.run}[r.toBool = false] := by
   change Pr[⊥ | mx] = _
   rw [ExceptT.probFailure_eq, probFailure_eq_zero, zero_add]
   congr 1
@@ -162,18 +168,19 @@ theorem probFailure_rustRuntime (mx : RustOracleComp unifSpec α) :
   cases r <;> simp [Except.toBool]
 
 /-- An output has probability `0` exactly when it is not a possible output. -/
-theorem probOutput_rustRuntime_eq_zero_iff (mx : RustOracleComp unifSpec α) (a : α) :
-    Pr[= a | rustRuntime.evalDist mx] = 0 ↔ a ∉ support mx := by
+theorem probOutput_rustRuntime_eq_zero_iff [MeasurableSpace α] [MeasurableSingletonClass α]
+    (mx : RustOracleComp unifSpec α) (a : α) :
+    rustRuntime.evalDist mx {a} = 0 ↔ a ∉ support mx := by
   rw [probOutput_rustRuntime, probOutput_eq_zero_iff, ExceptT.mem_support_iff]
 
 /-- A panic has no output: every value has probability `0`. -/
-@[simp] theorem probOutput_rustRuntime_liftResult_fail (e : Error) (a : α) :
-    Pr[= a | rustRuntime.evalDist (liftResult (Result.fail e : Result α))] = 0 := by
+@[simp] theorem probOutput_rustRuntime_liftResult_fail [MeasurableSpace α] (e : Error) (a : α) :
+    rustRuntime.evalDist (liftResult (Result.fail e : Result α)) {a} = 0 := by
   simp [probOutput_rustRuntime, liftResult_fail]
 
 /-- Divergence has no output: every value has probability `0`. -/
-@[simp] theorem probOutput_rustRuntime_liftResult_div (a : α) :
-    Pr[= a | rustRuntime.evalDist (liftResult (Result.div : Result α))] = 0 := by
+@[simp] theorem probOutput_rustRuntime_liftResult_div [MeasurableSpace α] (a : α) :
+    rustRuntime.evalDist (liftResult (Result.div : Result α)) {a} = 0 := by
   simp [probOutput_rustRuntime, liftResult_div, RustOracleComp.div]
 
 end Protocols.Realization

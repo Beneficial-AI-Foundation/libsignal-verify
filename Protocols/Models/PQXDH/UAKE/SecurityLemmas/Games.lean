@@ -110,7 +110,7 @@ def forgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool :
 
 /-- Probability of the forgery event. -/
 def forgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
-  (Pr[= true | forgeExp P msg hasOPK A]).toReal
+  (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal
 
 /-- Signature-forgery experiment: the challenge session completed, and some
   signed pair in the bundle it accepted was never produced by the
@@ -122,7 +122,7 @@ def sigForgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Boo
 
 /-- Probability of the signature-forgery event. -/
 def sigForgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
-  (Pr[= true | sigForgeExp P msg hasOPK A]).toReal
+  (Pr{let y ← (sigForgeExp P msg hasOPK A)}[y = true]).toReal
 
 /-- KEM-key guessing experiment: the bad event `pqpkGuessed` occurred during
   the challenge phase. -/
@@ -132,7 +132,7 @@ def pqpkGuessedExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp 
 
 /-- Probability of the KEM-key guessing event. -/
 def pqpkGuessedProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
-  (Pr[= true | pqpkGuessedExp P msg hasOPK A]).toReal
+  (Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true]).toReal
 
 /-- Residual forgery experiment: a forgery on an honestly signed bundle,
   with pairwise-distinct and unpredicted KEM keys. This is the event bounded
@@ -145,7 +145,7 @@ def forgeHonestGoodExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbC
 
 /-- Probability of the residual forgery event. -/
 def forgeHonestGoodProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
-  (Pr[= true | forgeHonestGoodExp P msg hasOPK A]).toReal
+  (Pr{let y ← (forgeHonestGoodExp P msg hasOPK A)}[y = true]).toReal
 
 /-- The UAKE experiment with the forgery branch's outright win replaced by a
   fair coin flip. Identical to `UAKE.Exp` on the other two branches. -/
@@ -163,7 +163,7 @@ def indistExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool 
 
 /-- The adversary's advantage over a fair coin in `indistExp`. -/
 def indistAdvantage (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
-  |(Pr[= true | indistExp P msg hasOPK A]).toReal - 1 / 2|
+  |(Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal - 1 / 2|
 
 end
 

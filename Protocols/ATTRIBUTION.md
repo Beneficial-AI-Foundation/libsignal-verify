@@ -61,8 +61,8 @@ project root. The files listed here were ported from other projects and keep the
 
 | File here | File there | Changes made here |
 | --- | --- | --- |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `HonestCompletionExp`, `Scheme.HonestlyCompletes` and `Scheme.Admissible` only, stated with `Pr[= · \| ·]` instead of measures, docstrings rewritten |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `RuntimeCoherent` stated for `SPMF` semantics and native `MonadLiftT` lifts instead of measures and `MonadAttach`, docstrings rewritten |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `HonestCompletionExp`, `Scheme.HonestlyCompletes` and `Scheme.Admissible` only, docstrings rewritten |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `RuntimeCoherent` and `runtimeCoherent_probComp` as upstream; the corollary is named `forall_mem_support_evalDist` instead of `ae_of_forall_mem_support` and takes `p` implicitly; docstrings rewritten |
 
 ## Beneficial AI Foundation, secure-messaging
 
@@ -73,4 +73,4 @@ project root. The files listed here were ported from other projects and keep the
 
 | File here | File there | Changes made here |
 | --- | --- | --- |
-| `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean` | `ToVCVio/CryptoFoundations/KeyEncapMech.lean` (`correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect`, `deltaCorrect`) | restated with `Pr[= true \| ·]` of the pinned `SPMF` API instead of measures; `one_sub_le_probOutput_of_deltaCorrect` is new here |
+| `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean` | `ToVCVio/CryptoFoundations/KeyEncapMech.lean` (`correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect`, `deltaCorrect`) | `correctnessError_eq_evalDist_false_add_prFail` and the later lemmas are not copied; `one_sub_le_probOutput_of_deltaCorrect` is new here |

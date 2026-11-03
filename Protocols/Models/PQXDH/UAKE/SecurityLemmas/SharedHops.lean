@@ -36,9 +36,10 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   of the probabilities for `b`, `c`, and `d`. -/
 private lemma probOutput_pure_le_add3 {a b c d : Bool}
     (h : a = true → (b || (c || d)) = true) :
-    Pr[= true | (pure a : ProbComp Bool)] ≤
-      Pr[= true | (pure b : ProbComp Bool)] + Pr[= true | (pure c : ProbComp Bool)] +
-        Pr[= true | (pure d : ProbComp Bool)] := by
+    Pr{let y ← (pure a : ProbComp Bool)}[y = true] ≤
+      Pr{let y ← (pure b : ProbComp Bool)}[y = true] +
+        Pr{let y ← (pure c : ProbComp Bool)}[y = true] +
+        Pr{let y ← (pure d : ProbComp Bool)}[y = true] := by
   cases a with
   | false => simp
   | true =>
@@ -202,7 +203,7 @@ omit [DecidableEq CT] [DecidableEq C] in
 lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig := by
   sorry
@@ -226,7 +227,7 @@ omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
 lemma pqpkGuessedProb_le
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εpk : ℝ)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
   sorry
 

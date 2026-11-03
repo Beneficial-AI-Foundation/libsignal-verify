@@ -17,13 +17,13 @@ namespace SignatureAlg
 variable {ι : Type u} {spec : OracleSpec ι} {M PK SK S : Type}
   [DecidableEq M] [DecidableEq S]
 
-/-- The SUF-CMA experiment. Identical to `unforgeableExp`, except that the
-  adversary may win by outputing a σ for a queried message, as long as no
-  such query returned σ. -/
+/-- The SUF-CMA experiment, observed through `runtime`. Identical to
+  `unforgeableExperiment`, except that the adversary may win by outputing a σ for a
+  queried message, as long as no such query returned σ. -/
 noncomputable def stronglyUnforgeableExp
     {sigAlg : SignatureAlg (OracleComp spec) M PK SK S}
     (runtime : ProbCompRuntime (OracleComp spec))
-    (adv : unforgeableAdv sigAlg) : SPMF Bool :=
+    (adv : UnforgeableAdversary sigAlg) : MeasureTheory.Measure Bool :=
   letI : DecidableEq M := Classical.decEq M
   letI : DecidableEq S := Classical.decEq S
   runtime.evalDist do
@@ -40,19 +40,20 @@ noncomputable def stronglyUnforgeableExp
     return !log.wasQueriedWith msg σ && verified
 
 /-- The success probability of a CMA adversary in the SUF-CMA experiment. -/
-noncomputable def unforgeableAdv.strongAdvantage
+noncomputable def UnforgeableAdversary.strongAdvantage
     {sigAlg : SignatureAlg (OracleComp spec) M PK SK S}
     (runtime : ProbCompRuntime (OracleComp spec))
-    (adv : unforgeableAdv sigAlg) : ℝ≥0∞ := Pr[= true | stronglyUnforgeableExp runtime adv]
+    (adv : UnforgeableAdversary sigAlg) : ℝ≥0∞ := stronglyUnforgeableExp runtime adv {true}
 
 omit [DecidableEq M] [DecidableEq S] in
 lemma unforgeableAdv.advantage_le_strongAdvantage
     {sigAlg : SignatureAlg (OracleComp spec) M PK SK S}
     (runtime : ProbCompRuntime (OracleComp spec))
-    (h_pull : ∀ {α β : Type} (f : α → β) (mx : OracleComp spec α),
-      runtime.evalDist (mx >>= fun x => pure (f x)) = f <$> runtime.evalDist mx)
-    (adv : unforgeableAdv sigAlg) :
-    adv.advantage runtime ≤ adv.strongAdvantage runtime := by
+    (h_pull : ∀ {α β : Type} [MeasurableSpace α] [MeasurableSpace β] (f : α → β),
+      Measurable f → ∀ (mx : OracleComp spec α),
+        runtime.evalDist (mx >>= fun x => pure (f x)) = (runtime.evalDist mx).map f)
+    (adv : UnforgeableAdversary sigAlg) :
+    unforgeableAdvantage runtime adv ≤ adv.strongAdvantage runtime := by
   letI : DecidableEq M := Classical.decEq M
   letI : DecidableEq S := Classical.decEq S
   unfold unforgeableAdv.advantage unforgeableExp
