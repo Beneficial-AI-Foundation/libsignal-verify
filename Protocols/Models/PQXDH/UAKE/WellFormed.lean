@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.WellFormedLemmas
+import Protocols.Models.PQXDH.UAKE.WellFormedLemmas
 
 /-!
 # Well-formedness of the PQXDH Model's UAKE Schemes
@@ -14,17 +14,20 @@ import Protocols.PQXDH.Model.UAKE.WellFormedLemmas
 party produces output exactly when its protocol run completes, each party's
 output function is pure, and an honest run transfers exactly `rounds` messages.
 The supporting lemmas live in `WellFormedLemmas.lean`.
+
+Both theorems assume `hkem` (perfect KEM correctness), an idealization, because production
+Kyber decapsulates wrongly with a small probability.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- The T=Bob model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 3 messages. -/
+  exactly 3 messages. Assumes `hkem`; see the module note. -/
 theorem uakeInitiator_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -42,7 +45,7 @@ theorem uakeInitiator_wellFormed
 
 /-- The T=Alice model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
-  exactly 2 messages. -/
+  exactly 2 messages. Assumes `hkem`; see the module note. -/
 theorem uakeRecipient_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -63,4 +66,4 @@ theorem uakeRecipient_wellFormed
   subst huk htk
   exact runHonest_length_recipient P msg hasOPK hsig hkem haead hsetup₀ hrun
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

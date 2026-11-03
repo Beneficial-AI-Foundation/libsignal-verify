@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
-Authors: Ben Hamlin
+Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
@@ -90,16 +91,28 @@ structure Scheme (m : Type → Type) (K UK TK W : Type) where
 /-- The UAKE correctness experiment (Def. 7). The parties' keys are sampled
   using the setup routine, then both parties are run honestly to completion.
   The protocol is correct if both (honest) parties output the same key (or
-  either party outputs ⊥). -/
+  either party outputs ⊥). A run with a ⊥ output counts as correct, so this experiment
+  does not establish honest completion. It is not correctness of production PQXDH. -/
 def CorrectExp [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W) : m Bool := do
   let (uk, tk) ← proto.setup
   let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
   return decide (uOut.join = none ∨ tOut.join = none ∨ uOut.join = tOut.join)
 
-/-- True if the correctness experiment always returns true. -/
+/-- True if the correctness experiment always returns true. A scheme that always rejects
+  satisfies this; see `CorrectExp`. -/
 def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
     (runtime : ProbCompRuntime m) : Prop :=
   Pr[= true | runtime.evalDist (CorrectExp proto)] = 1
+
+open Classical in
+/-- The wrapper-agreement event of a UAKE scheme: in an honest run from setup, both parties output
+a key and the keys are equal. Unlike `AKE.UAKE.CorrectExp`, a run in which a party outputs no key
+counts as a failure. -/
+noncomputable def agreementExp {m : Type → Type} [Monad m] {K UK TK W : Type}
+    (proto : UAKE.Scheme m K UK TK W) : m Bool := do
+  let (uk, tk) ← proto.setup
+  let (uOut, tOut, _) ← proto.U.runHonest proto.T uk tk (proto.rounds + 1)
+  pure (decide (uOut.join.isSome ∧ uOut.join = tOut.join))
 
 /-- True if
   1. both parties output iff the protocol run is complete,

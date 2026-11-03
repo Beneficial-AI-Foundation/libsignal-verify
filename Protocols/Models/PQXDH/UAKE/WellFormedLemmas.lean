@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
+import Protocols.Models.PQXDH.UAKE.CorrectnessLemmas
 
 /-!
 # Well-formedness Lemmas for the PQXDH model
@@ -16,11 +16,14 @@ facts that their output functions are pure, and transcript-length
 characterizations of honest runs started from `setup`.
 The length lemmas are also used by the Aeneas instantiations'
 well-formedness proofs. The proofs in this file are AI-written.
+
+The two length lemmas assume `hkem` (perfect KEM correctness), an idealization, because
+production Kyber decapsulates wrongly with a small probability.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -232,7 +235,8 @@ lemma recipientNoConfirm_pureOutput
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
 /-- Under the correctness hypotheses, an honest run of the T=Bob parties on
-  keys drawn from `setup` transfers exactly the scheme's 3 messages. -/
+  keys drawn from `setup` transfers exactly the scheme's 3 messages. Assumes `hkem`; see
+  the module note. -/
 lemma runHonest_length_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -256,7 +260,8 @@ lemma runHonest_length_initiator
     hspkSigB hrun).2
 
 /-- Under the correctness hypotheses, an honest run of the T=Alice parties
-  on keys drawn from `setup` transfers exactly the scheme's 2 messages. -/
+  on keys drawn from `setup` transfers exactly the scheme's 2 messages. Assumes `hkem`; see
+  the module note. -/
 lemma runHonest_length_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -279,4 +284,4 @@ lemma runHonest_length_recipient
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
     hspkSigB hrun).2
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

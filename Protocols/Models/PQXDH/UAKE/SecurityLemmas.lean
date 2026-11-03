@@ -5,18 +5,18 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas.Games
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas.SharedHops
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas.DHHops
-import Protocols.PQXDH.Model.UAKE.SecurityLemmas.PQHops
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.SharedHops
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.DHHops
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.PQHops
 
 /-!
 # Security Lemmas for the PQXDH model
 
 Game hops scaffolding the proofs of the top-level security theorems
-`Protocols.PQXDH.uakeInitiator_secure_dh` and `Protocols.PQXDH.uakeInitiator_secure_pq` in
-`Security.lean`. Both proofs split the UAKE experiment into a forgery
-branch (the challenge session completes on a transcript that matches no
+`Protocols.Models.PQXDH.uakeInitiator_secure_dh` and
+`Protocols.Models.PQXDH.uakeInitiator_secure_pq` in `Security.lean`. Both proofs split the UAKE
+experiment into a forgery branch (the challenge session completes on a transcript that matches no
 T-oracle session) and an indistinguishability branch (the adversary
 distinguishes the accepted session key from random). They share Hops 1
 through 4 and differ only in the core hops, which bound the two branches

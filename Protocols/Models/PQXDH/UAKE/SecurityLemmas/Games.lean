@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.WellFormedLemmas
+import Protocols.Models.PQXDH.UAKE.WellFormedLemmas
 
 /-!
 # Games and Events for the PQXDH Security Hops
@@ -23,7 +23,7 @@ The definitions in this file are AI-written.
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 noncomputable section
 
@@ -167,4 +167,4 @@ def indistAdvantage (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
 
 end
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

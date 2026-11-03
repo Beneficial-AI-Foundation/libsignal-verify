@@ -5,23 +5,29 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.UAKE.CorrectnessLemmas
+import Protocols.Models.PQXDH.UAKE.CorrectnessLemmas
 
 /-!
 # Top-level Correctness Theorems for the PQXDH model
+
+The two theorems state `UAKE.PerfectlyCorrect` for the model schemes `uakeInitiator` and
+`uakeRecipient`. That predicate counts a run with a ⊥ output as correct, so it does not
+establish honest completion (see `UAKE.CorrectExp`). Both theorems assume `hkem` (perfect
+KEM correctness), an idealization, because production Kyber decapsulates wrongly with a
+small probability.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
 /-- The PQXDH model in the T=Bob direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). -/
+  when paired with the message used to generate it). See the module note for its scope. -/
 theorem uakeInitiator_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -53,7 +59,8 @@ theorem uakeInitiator_perfectlyCorrect
 /-- The PQXDH model in the T=Alice direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). -/
+  when paired with the message used to generate it). This scheme is correctness-only; see
+  the module note of `UAKE/Defs.lean`. -/
 theorem uakeRecipient_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
@@ -84,4 +91,4 @@ theorem uakeRecipient_perfectlyCorrect
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
     hspkSigB hrun).1
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH

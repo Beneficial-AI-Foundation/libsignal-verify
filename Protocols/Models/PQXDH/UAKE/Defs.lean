@@ -5,7 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Protocols.PQXDH.Model.Basic
+import Protocols.Models.PQXDH.Basic
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
 import Protocols.ToMathlib
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
@@ -32,8 +32,15 @@ the protocol twice, once with Alice as T, and once with Bob as T. Note that
 these two instantiations need slightly different shapes, due to the convention
 from DF'17 that "T speaks last". In both cases, the initial message is from
 Bob, so the T=Bob case is 3-round, with an extra confirmation message from Bob
-(see bullet 1 of "Model simplifications" in `Protocols/PQXDH/Model/Basic.lean`) whereas the
+(see bullet 1 of "Model simplifications" in `Protocols/Models/PQXDH/Basic.lean`) whereas the
 T=Alice case is the standard 2-round protocol.
+
+The T=Alice scheme `uakeRecipient`, with its parties `initiatorNoConfirm` and
+`recipientNoConfirm`, is correctness-only. It follows PQXDH's message flow around the
+core. Its unkeyed party takes Bob's long-term secret state as input, and PQXDH gives the
+initiator no explicit authentication. Only the correctness and well-formedness theorems
+use the scheme, and the security theorems cover `uakeInitiator`. Generic functions still
+accept `uakeRecipient`, so this scope rests on documentation.
 
 Model simplifications
 * **Medium-term secrets as long-term:** The spec describes SPK and PQSPK as
@@ -60,7 +67,7 @@ Model simplifications
 open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
-namespace Protocols.PQXDH
+namespace Protocols.Models.PQXDH
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 
@@ -154,7 +161,7 @@ def uakeInitiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   T := recipient P hasOPK
 
 /-- Alice's Party state machine, which internally uses the `initiate` function,
-  traceable to the PQXDH spec. -/
+  traceable to the PQXDH spec. Correctness-only; see the module note. -/
 def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
@@ -173,7 +180,7 @@ def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
     | _ => pure none
 
 /-- Bob's Party state machine, which internally uses the `publish` and `accept`
-  functions, traceable to the PQXDH spec. -/
+  functions, traceable to the PQXDH spec. Correctness-only; see the module note. -/
 def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
@@ -198,7 +205,8 @@ def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
     | .inl _ => pure none
     | .inr SK => pure (some (some SK))
 
-/-- UAKE scheme in which Alice plays the part of the authenticated party T. -/
+/-- UAKE scheme in which Alice plays the part of the authenticated party T.
+  Correctness-only; see the module note. -/
 def uakeRecipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :
@@ -237,4 +245,4 @@ def kdfPRFDH [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   keygen := $ᵗ F
   eval := fun c q => P.kdf (q.1, q.2.1, c • P.gen, q.2.2.1, q.2.2.2)
 
-end Protocols.PQXDH
+end Protocols.Models.PQXDH
