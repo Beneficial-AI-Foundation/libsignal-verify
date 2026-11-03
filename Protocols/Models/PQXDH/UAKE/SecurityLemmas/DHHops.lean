@@ -15,6 +15,9 @@ Hops 5 and 6 of the DH security theorem `Protocols.Models.PQXDH.uakeInitiator_se
 `Security.lean`: the forgery and indistinguishability cores, against GapDH,
 the KDF, and the AEAD. See `SecurityLemmas.lean` for the overall map.
 
+The hop lemmas assume `hidKEM`, which fails for production. The module note of
+`Security.lean` gives the reason.
+
 These statements are believed true in the current model (the KDF as a plain
 parameter function, plus a PRF hypothesis), but the standard reductions
 require the KDF to be a programmable random oracle, so their proofs are
@@ -74,7 +77,7 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   Used by `uakeInitiator_secure_dh` as hop 5. A proof would follow the steps above once the KDF
   model is ruled, but the last step does not hold as stated, since unsigned bundle fields (the
   key identifiers and the one-time pre-key) can change without changing the derived keys, so the
-  transcripts differ with no forgery. -/
+  transcripts differ with no forgery. Assumes `hidKEM`; see the module note. -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)
@@ -122,7 +125,7 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
      `1 / 2`.
 
   Used by `uakeInitiator_secure_dh` as hop 6. A proof would follow the steps above once the KDF
-  model is ruled. -/
+  model is ruled. Assumes `hidKEM`; see the module note. -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)

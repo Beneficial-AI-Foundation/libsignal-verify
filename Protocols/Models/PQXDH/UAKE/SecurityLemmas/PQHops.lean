@@ -15,6 +15,9 @@ Hops 5 and 6 of the PQ security theorem `Protocols.Models.PQXDH.uakeInitiator_se
 KEM's IND-CCA security, the KDF, and the AEAD. See `SecurityLemmas.lean`
 for the overall map.
 
+The hop lemmas assume `hkemCorrect`, an idealization, and `hidKEM`, which fails for
+production. The module note of `Security.lean` gives the reasons.
+
 Unlike the GapDH cores, these reductions are expressible in the current
 model: the KDF's PRF key slot is an abstract bitstring (the KEM shared
 secret) that the game uses only as a KDF key, so once the IND-CCA hop makes
@@ -72,7 +75,8 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   Used by `uakeInitiator_secure_pq` as hop 5. A proof would follow the steps above in the current
   model, but the last step does not hold as stated, since unsigned bundle fields (the key
   identifiers and the one-time pre-key) can change without changing the derived keys, so the
-  transcripts differ with no forgery. -/
+  transcripts differ with no forgery. Assumes `hidKEM` and `hkemCorrect`; see the module
+  note. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
@@ -121,7 +125,7 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
      `1 / 2`.
 
   Used by `uakeInitiator_secure_pq` as hop 6. A proof would follow the steps above in the current
-  model. -/
+  model. Assumes `hidKEM` and `hkemCorrect`; see the module note. -/
 lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εkdf εpk : ℝ)
