@@ -126,10 +126,10 @@ charon:
     # pulled. Its only callers (key_length, KeyPair::generate) are opaque, so
     # nothing references it transparently. (`_::` = inherent-method form.)
     - "libsignal_protocol::kem::_::parameters"
-    # previous_session_states is opaque (below). From Aeneas de16f3c on, its
-    # map closure's FnMut/FnOnce impls are reached as well, and their bodies fail
-    # a prepass ("Unexpected error"), so opaque cannot help. Up to 0855ce1 these
-    # impls were not emitted at all; excluding them keeps that shape.
+    # previous_session_states is opaque (below). From de16f3c on, Aeneas also
+    # reaches the FnMut/FnOnce impls of its map closure, and their bodies fail a
+    # prepass ("Unexpected error"), so opaque cannot help. Aeneas 0855ce1 did not
+    # emit these impls at all. Excluding them keeps that shape.
     - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnMut<_> for _}"
     - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnOnce<_> for _}"
     # Crate-level excludes
@@ -224,9 +224,9 @@ charon:
     - "libsignal_protocol::double_ratchet::log_corrupt_receiver_chain"
     - "libsignal_protocol::double_ratchet::skipped_key_from_pb"  # moves a &'static str from an opaque call
     # Aeneas de16f3c fails on this body with "Unreachable" (double_ratchet.rs
-    # 334-369, the tail with the `while … receiver_chains.remove(0)` loop);
-    # 0855ce1 translated it. Opaque until Aeneas is fixed: it becomes an axiom
-    # on the receive path. No proof uses it.
+    # 334-369, the tail with the `while … receiver_chains.remove(0)` loop).
+    # Aeneas 0855ce1 translated it. Opaque until Aeneas is fixed, so it becomes
+    # an axiom on the receive path. No proof uses it.
     - "libsignal_protocol::double_ratchet::_::dh_ratchet_step"
     # triple_ratchet — logging helpers only (Aeneas fails on log! expansions);
     # encrypt/decrypt and from_session_state are transparent.

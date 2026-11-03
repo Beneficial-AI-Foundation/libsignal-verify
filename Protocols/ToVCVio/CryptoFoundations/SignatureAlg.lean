@@ -18,7 +18,7 @@ variable {ι : Type u} {spec : OracleSpec ι} {M PK SK S : Type}
   [DecidableEq M] [DecidableEq S]
 
 /-- The SUF-CMA experiment, observed through `runtime`. Identical to
-  `unforgeableExperiment`, except that the adversary may win by outputing a σ for a
+  `unforgeableExperiment`, except that the adversary may win by outputting a σ for a
   queried message, as long as no such query returned σ. -/
 noncomputable def stronglyUnforgeableExp
     {sigAlg : SignatureAlg (OracleComp spec) M PK SK S}

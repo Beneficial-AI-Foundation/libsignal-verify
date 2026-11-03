@@ -17,12 +17,15 @@ The UAKE experiment samples its challenge bit and replacement key through the
 uniform query with a constant is still a monad morphism, and against such a runtime an
 adversary that guesses the constant bit wins every run.
 
-`RuntimeCoherent` ties a runtime to the native output measure `𝒟[·]` of its monad: the
-possible outputs satisfy the attachment laws; the native measure preserves `pure` and
-measurable `bind`; the runtime observes every computation through `𝒟[·]`; lifting public
-randomness leaves its distribution unchanged; and on a discrete output space the observed
-outputs are possible outputs almost surely, so invariants proved on `support` hold almost
-surely for the outputs the runtime observes.
+`RuntimeCoherent` ties a runtime to the native output measure `𝒟[·]` of its monad:
+
+* the possible outputs satisfy the attachment laws;
+* the native measure preserves `pure` and measurable `bind`;
+* the runtime observes every computation through `𝒟[·]`;
+* lifting public randomness leaves its distribution unchanged;
+* on a discrete output space, the observed outputs are possible outputs almost surely.
+
+So an invariant proved on `support` holds almost surely for the outputs the runtime observes.
 -/
 
 open MeasureTheory OracleComp

@@ -1722,7 +1722,7 @@ noncomputable def double_ratchet.skipped_key_from_pb
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 320:4-369:5 -/
--- Opaque since Aeneas de16f3c, which fails on its body ("Unreachable");
+-- Opaque since Aeneas de16f3c, which fails on its body ("Unreachable").
 -- Aeneas 0855ce1 translated it. See `aeneas-config.protocol.yml`.
 axiom double_ratchet.RatchetState.dh_ratchet_step
   {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
