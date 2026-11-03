@@ -26,5 +26,6 @@ jobs:
     with:
       target: libsignal-verify
       pr: ${{ github.event.workflow_run.pull_requests[0].number || inputs.pr }}
+      per_run_usd: "15"
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
