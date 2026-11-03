@@ -10,12 +10,12 @@ import VCVio.CryptoFoundations.KeyEncapMech
 /-!
 # Quantitative KEM correctness
 
-The correctness experiment `KEMScheme.CorrectExp` generates a key pair, encapsulates to the public
+The correctness experiment `KEMScheme.correctnessExperiment` generates a key pair, encapsulates to the public
 key and decapsulates the ciphertext with the secret key. It returns `true` when decapsulation
 recovers the encapsulated key. The correctness error of a KEM under a runtime is the missing
 success mass of this experiment,
 
-`ε = 1 - Pr[CorrectExp = true]`,
+`ε = 1 - Pr[correctnessExperiment = true]`,
 
 and the KEM is `δ`-correct when `ε ≤ δ`. Because the error is missing success mass and not
 the probability of the output `false`, it also counts executions that return no Boolean, such as
@@ -25,7 +25,7 @@ one (`correctnessError_eq_zero_iff_perfectlyCorrect`).
 
 The declarations `correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect` and
 `deltaCorrect` come from `ToVCVio/CryptoFoundations/KeyEncapMech.lean` of secure-messaging at
-`8369ee7`. This file restates them for the subprobability API of the pinned VCVio.
+`8369ee7`. This file states them in the same measure form.
 -/
 
 open OracleSpec OracleComp ENNReal
@@ -35,11 +35,11 @@ namespace KEMScheme
 variable {m : Type → Type} [Monad m] {K PK SK C : Type} [DecidableEq K]
 
 /-- Correctness error of `kem` under `runtime`: the missing success mass
-`1 - Pr[CorrectExp = true]`. It counts both a `false` result and the mass of executions that
+`1 - Pr[correctnessExperiment = true]`. It counts both a `false` result and the mass of executions that
 return nothing. -/
 noncomputable def correctnessError (kem : KEMScheme m K PK SK C)
     (runtime : ProbCompRuntime m) : ℝ≥0∞ :=
-  1 - Pr[= true | runtime.evalDist kem.CorrectExp]
+  1 - runtime.evalDist kem.correctnessExperiment {true}
 
 /-- `δ`-correctness of `kem` under `runtime`: the correctness error is at most `δ`. -/
 def deltaCorrect (kem : KEMScheme m K PK SK C) (runtime : ProbCompRuntime m) (δ : ℝ≥0∞) :
@@ -57,7 +57,7 @@ theorem correctnessError_eq_zero_iff_perfectlyCorrect (kem : KEMScheme m K PK SK
 /-- A `δ`-correct KEM's correctness experiment succeeds with probability at least `1 - δ`. -/
 theorem one_sub_le_probOutput_of_deltaCorrect {kem : KEMScheme m K PK SK C}
     {runtime : ProbCompRuntime m} {δ : ℝ≥0∞} (h : kem.deltaCorrect runtime δ) :
-    1 - δ ≤ Pr[= true | runtime.evalDist kem.CorrectExp] := by
+    1 - δ ≤ runtime.evalDist kem.correctnessExperiment {true} := by
   rw [deltaCorrect, correctnessError] at h
   exact tsub_le_iff_tsub_le.mp h
 

@@ -34,7 +34,7 @@ def CorrectExp (aead : Scheme ProbComp Msg Key AD C) (msg : Msg) (ad : AD) : Pro
   pure (decide (aead.decrypt k ad c = some msg))
 
 def PerfectlyCorrect (aead : Scheme ProbComp Msg Key AD C) : Prop :=
-  ∀ msg ad, Pr[= true | CorrectExp aead msg ad] = 1
+  ∀ msg ad, Pr{let b ← CorrectExp aead msg ad}[b = true] = 1
 
 structure IND_CPA_Adversary (_aead : Scheme ProbComp Msg Key AD C) where
   run : OracleComp (unifSpec + ((AD × Msg × Msg) →ₒ C)) Bool
@@ -53,7 +53,7 @@ def IND_CPA_Game (aead : Scheme ProbComp Msg Key AD C)
 
 noncomputable def IND_CPA_Advantage (aead : Scheme ProbComp Msg Key AD C)
     (A : IND_CPA_Adversary aead) : ℝ :=
-  |(Pr[= true | IND_CPA_Game aead A]).toReal - 1 / 2|
+  |(Pr{let b ← IND_CPA_Game aead A}[b = true]).toReal - 1 / 2|
 
 def ctxtImpl (aead : Scheme ProbComp Msg Key AD C) (k : Key) :
     QueryImpl ((AD × Msg) →ₒ C) (StateT (List (AD × C)) ProbComp) :=
@@ -73,7 +73,7 @@ def INT_CTXT_Game (aead : Scheme ProbComp Msg Key AD C)
 
 noncomputable def INT_CTXT_Advantage (aead : Scheme ProbComp Msg Key AD C)
     (A : INT_CTXT_Adversary aead) : ℝ :=
-  (Pr[= true | INT_CTXT_Game aead A]).toReal
+  (Pr{let b ← INT_CTXT_Game aead A}[b = true]).toReal
 
 def ctxtVfImpl (aead : Scheme ProbComp Msg Key AD C) (k : Key) :
     QueryImpl (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Bool))
@@ -100,7 +100,7 @@ def INT_CTXT_VF_Game (aead : Scheme ProbComp Msg Key AD C)
 
 noncomputable def INT_CTXT_VF_Advantage (aead : Scheme ProbComp Msg Key AD C)
     (A : INT_CTXT_VF_Adversary aead) : ℝ :=
-  (Pr[= true | INT_CTXT_VF_Game aead A]).toReal
+  (Pr{let b ← INT_CTXT_VF_Game aead A}[b = true]).toReal
 
 def ctxtDecImpl (aead : Scheme ProbComp Msg Key AD C) (k : Key) :
     QueryImpl (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))
@@ -126,7 +126,7 @@ def INT_CTXT_D_Game (aead : Scheme ProbComp Msg Key AD C)
 
 noncomputable def INT_CTXT_D_Advantage (aead : Scheme ProbComp Msg Key AD C)
     (A : INT_CTXT_D_Adversary aead) : ℝ :=
-  (Pr[= true | INT_CTXT_D_Game aead A]).toReal
+  (Pr{let b ← INT_CTXT_D_Game aead A}[b = true]).toReal
 
 omit [DecidableEq Msg] in
 /-- Plain INT-CTXT is no harder than the verification-oracle variant: `B` runs `A` and submits

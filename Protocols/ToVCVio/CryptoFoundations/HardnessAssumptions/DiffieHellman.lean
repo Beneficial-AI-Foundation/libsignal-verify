@@ -34,8 +34,8 @@ def nominalDDHExpRand {KP PK : Type} (keygen : ProbComp KP) (pk : KP → PK)
 
 noncomputable def nominalDDHDistAdvantage {KP PK : Type} (keygen : ProbComp KP)
     (pk : KP → PK) (dh : KP → PK → PK) (adversary : NominalDDHAdversary PK) : ℝ :=
-  |(Pr[= true | nominalDDHExpReal keygen pk dh adversary]).toReal -
-    (Pr[= true | nominalDDHExpRand keygen pk adversary]).toReal|
+  |(Pr{let b ← nominalDDHExpReal keygen pk dh adversary}[b = true]).toReal -
+    (Pr{let b ← nominalDDHExpRand keygen pk adversary}[b = true]).toReal|
 
 section Nominal
 
@@ -48,19 +48,19 @@ def groupKeygen (g : G) : ProbComp (G × F) := do
   return (a • g, a)
 
 lemma ddhExpReal_eq_nominalDDHExpReal (g : G) (A : _root_.DiffieHellman.DDHAdversary F G) :
-    _root_.DiffieHellman.ddhExpReal g A
+    _root_.DiffieHellman.ddhRealExperiment g A
       = nominalDDHExpReal (groupKeygen (F := F) g) Prod.fst
         (fun kp pk => kp.2 • pk) (A g) := by
   simp [_root_.DiffieHellman.ddhExpReal, nominalDDHExpReal, groupKeygen, smul_smul]
 
 lemma ddhExpRand_eq_nominalDDHExpRand (g : G) (A : _root_.DiffieHellman.DDHAdversary F G) :
-    _root_.DiffieHellman.ddhExpRand g A
+    _root_.DiffieHellman.ddhRandomExperiment g A
       = nominalDDHExpRand (groupKeygen (F := F) g) Prod.fst (A g) := by
   simp [_root_.DiffieHellman.ddhExpRand, nominalDDHExpRand, groupKeygen]
 
 lemma ddhDistAdvantage_eq_nominalDDHDistAdvantage (g : G)
     (A : _root_.DiffieHellman.DDHAdversary F G) :
-    _root_.DiffieHellman.ddhDistAdvantage g A
+    (_root_.DiffieHellman.ddhAdvantage g A).toReal
       = nominalDDHDistAdvantage (groupKeygen (F := F) g) Prod.fst
         (fun kp pk => kp.2 • pk) (A g) := by
   unfold _root_.DiffieHellman.ddhDistAdvantage nominalDDHDistAdvantage
@@ -93,7 +93,7 @@ noncomputable def gapDHExp (g : G) (adversary : GapDHAdversary F G) : ProbComp B
   return decide (h = (a * b) • g)
 
 noncomputable def gapDHAdvantage (g : G) (adversary : GapDHAdversary F G) : ℝ :=
-  (Pr[= true | gapDHExp g adversary]).toReal
+  (Pr{let b ← gapDHExp g adversary}[b = true]).toReal
 
 end Gap
 
