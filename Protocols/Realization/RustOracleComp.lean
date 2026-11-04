@@ -161,7 +161,7 @@ theorem probOutput_rustRuntime [MeasurableSpace α] [MeasurableSingletonClass α
 probability of a fault. No other mass is lost. -/
 theorem probFailure_rustRuntime [MeasurableSpace α] (mx : RustOracleComp unifSpec α) :
     rustRuntime.prFail mx = Pr{let r ← mx.run}[r.toBool = false] := by
-  change Pr[⊥ | mx] = _
+  change prFail mx = _
   rw [ExceptT.probFailure_eq, probFailure_eq_zero, zero_add]
   congr 1
   funext r

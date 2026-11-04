@@ -120,8 +120,8 @@ private noncomputable def constRuntime : ProbCompRuntime ProbComp where
 /-- Lifted through `constRuntime`, a fair coin lands on `0` with probability one, so the
 runtime is not coherent. -/
 example : ¬ RuntimeCoherent constRuntime := fun h => by
-  have h₀ : Pr[= 0 | constRuntime.liftProbComp (query (spec := unifSpec) 1)]
-      = Pr[= 0 | (query (spec := unifSpec) 1 : ProbComp (Fin 2))] := by
+  have h₀ : Pr{let y ← (constRuntime.liftProbComp (query (spec := unifSpec) 1))}[y = 0]
+      = Pr{let y ← (query (spec := unifSpec) 1 : ProbComp (Fin 2))}[y = 0] := by
     rw [probOutput_def, probOutput_def, h.lift_evalDist_eq]
   simp [constRuntime, ProbCompRuntime.liftProbComp] at h₀
   exact absurd h₀.symm (by rw [ENNReal.inv_eq_one]; norm_num)
