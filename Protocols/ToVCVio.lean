@@ -30,7 +30,8 @@ helper. The files keep the module paths and namespaces of PQXDH-model at f862593
 follow VCVio's module paths: `EvalDist/Monad/Basic`, `OracleComp/ProbComp` and
 `OracleComp/QueryTracking/QueryBound` hold probability lemmas, among them a potential bound for
 bad events of simulated computations. `CryptoFoundations/AKE/UAKE/OracleInvariants` holds facts
-about the UAKE oracle for every scheme. VCVio's PR #476 (merged 2026-10-20, merge commit `abed2e31`) carries the UAKE
+about the UAKE oracle for every scheme.
+VCVio's PR #476 (merged 2026-10-20, merge commit `abed2e31`) carries the UAKE
 files on the Lean module system and the measure-only probability API, neither available at the
 pinned VCVio. The UAKE source files are unchanged between the captured PR head `17b53734` and
 the merge. The pin remains `cbd4144b`; advancing it requires a separate API migration.
