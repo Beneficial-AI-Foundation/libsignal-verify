@@ -1,0 +1,94 @@
+Translation patch: libsignal_protocol::pqxdh::RecipientParameters
+
+Change: `RecipientParameters<'a>` with `their_kyber_ciphertext: &'a kem::SerializedCiphertext` becomes `RecipientParameters` that owns the ciphertext. The accessor and `pqxdh_accept` borrow the field; `type RecipientParams<'a>` in the `Handshake` impl, the `BobSignalProtocolParameters` alias in `ratchet.rs` and the caller in `session.rs` (`kyber_ciphertext.clone()`) follow.
+Why: Charon fails on a struct with a lifetime parameter in a field type (blocker catalog LIFETIME-STRUCT).
+Behaviour: same values; `process_prekey_impl` makes one extra copy of the Kyber ciphertext.
+Applies after: protocol-pqxdh-Pqxdh-Handshake.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+--- a/rust/protocol/src/pqxdh.rs
++++ b/rust/protocol/src/pqxdh.rs
+@@ -37,7 +37,7 @@ pub(crate) struct Pqxdh;
+ #[cfg_attr(feature = "extraction", charon::exclude)]
+ impl Handshake for Pqxdh {
+     type InitiatorParams = InitiatorParameters;
+-    type RecipientParams<'a> = RecipientParameters<'a>;
++    type RecipientParams<'a> = RecipientParameters;
+     type InitiatorMessage = kem::SerializedCiphertext;
+     type SessionSecret = HandshakeKeys;
+ 
+@@ -249,7 +249,7 @@ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
+ /// The recipient uses their own pre-keys together with the initiator's
+ /// identity and base keys (received in the pre-key message) to compute
+ /// the same shared secret.
+-pub struct RecipientParameters<'a> {
++pub struct RecipientParameters {
+     our_identity_key_pair: IdentityKeyPair,
+     our_signed_pre_key_pair: KeyPair,
+     our_one_time_pre_key_pair: Option<KeyPair>,
+@@ -257,12 +257,12 @@ pub struct RecipientParameters<'a> {
+ 
+     their_identity_key: IdentityKey,
+     their_ephemeral_key: PublicKey,
+-    their_kyber_ciphertext: &'a kem::SerializedCiphertext,
++    their_kyber_ciphertext: kem::SerializedCiphertext,
+ 
+     self_session: bool,
+ }
+ 
+-impl<'a> RecipientParameters<'a> {
++impl RecipientParameters {
+     pub fn new(
+         our_identity_key_pair: IdentityKeyPair,
+         our_signed_pre_key_pair: KeyPair,
+@@ -270,7 +270,7 @@ impl<'a> RecipientParameters<'a> {
+         our_kyber_pre_key_pair: kem::KeyPair,
+         their_identity_key: IdentityKey,
+         their_ephemeral_key: PublicKey,
+-        their_kyber_ciphertext: &'a kem::SerializedCiphertext,
++        their_kyber_ciphertext: kem::SerializedCiphertext,
+         self_session: bool,
+     ) -> Self {
+         Self {
+@@ -317,7 +317,7 @@ impl<'a> RecipientParameters<'a> {
+ 
+     #[inline]
+     pub fn their_kyber_ciphertext(&self) -> &kem::SerializedCiphertext {
+-        self.their_kyber_ciphertext
++        &self.their_kyber_ciphertext
+     }
+ 
+     #[inline]
+@@ -376,7 +376,7 @@ pub(crate) fn pqxdh_accept(parameters: &RecipientParameters) -> Result<Handshake
+         &parameters
+             .our_kyber_pre_key_pair
+             .secret_key
+-            .decapsulate(parameters.their_kyber_ciphertext)?,
++            .decapsulate(&parameters.their_kyber_ciphertext)?,
+     );
+ 
+     Ok(HandshakeKeys::derive(&secrets))
+diff --git a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs
+--- a/rust/protocol/src/ratchet.rs
++++ b/rust/protocol/src/ratchet.rs
+@@ -22,7 +22,7 @@ use crate::{KeyPair, Result, SessionRecord, SignalProtocolError, consts};
+ #[doc(hidden)]
+ pub type AliceSignalProtocolParameters = InitiatorParameters;
+ #[doc(hidden)]
+-pub type BobSignalProtocolParameters<'a> = RecipientParameters<'a>;
++pub type BobSignalProtocolParameters = RecipientParameters;
+ 
+ fn spqr_chain_params(self_connection: bool) -> spqr::ChainParams {
+     #[allow(clippy::needless_update)]
+diff --git a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
+--- a/rust/protocol/src/session.rs
++++ b/rust/protocol/src/session.rs
+@@ -171,7 +171,7 @@ async fn process_prekey_impl(
+         our_kyber_pre_key_pair,
+         *message.identity_key(),
+         *message.base_key(),
+-        kyber_ciphertext,
++        kyber_ciphertext.clone(),
+         our_identity_key_pair.identity_key().is_same_account(
+             local_address,
+             message.identity_key(),

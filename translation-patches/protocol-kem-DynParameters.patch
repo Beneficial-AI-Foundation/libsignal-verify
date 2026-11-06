@@ -1,0 +1,86 @@
+Translation patch: libsignal_protocol::kem::DynParameters
+
+Change: under the `extraction` feature, the trait and its blanket impl are `#[charon::exclude]`. Its three uses (`Key<Public>::encapsulate`, `Key<Secret>::decapsulate`, `Ciphertext::deserialize`) now `match` on the `KeyType` and call `<kyber1024::Parameters as Parameters>` directly, with the same error mapping as the blanket impl.
+Why: `KeyType::parameters` returns a `&'static dyn DynParameters`, and `dyn` trait dispatch does not translate (blocker catalog DYN-TRAIT).
+Behaviour: same results in the default feature set, where `Kyber1024` is the only `KeyType`; the blanket impl forwarded to the same `Parameters` functions.
+Relies on: the default feature set: with `kyber768` or `mlkem1024`, `KeyType` has more variants and the three `match`es are not exhaustive.
+
+diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+--- a/rust/protocol/src/kem.rs
++++ b/rust/protocol/src/kem.rs
+@@ -106,6 +106,7 @@ trait Parameters {
+ }
+ 
+ /// Acts as a bridge between the static [Parameters] trait and the dynamic [KeyType] enum.
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ trait DynParameters {
+     fn public_key_length(&self) -> usize;
+     fn secret_key_length(&self) -> usize;
+@@ -125,6 +126,7 @@ trait DynParameters {
+     ) -> Result<SharedSecret>;
+ }
+ 
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ impl<T: Parameters> DynParameters for T {
+     fn public_key_length(&self) -> usize {
+         Self::PUBLIC_KEY_LENGTH
+@@ -351,10 +353,16 @@ impl Key<Public> {
+         &self,
+         csprng: &mut R,
+     ) -> Result<(SharedSecret, SerializedCiphertext)> {
+-        let (ss, ct) = self
+-            .key_type
+-            .parameters()
+-            .encapsulate(&self.key_data, csprng)?;
++        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
++        let (ss, ct) = match self.key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::encapsulate(
++                &self.key_data,
++                csprng,
++            )
++            .map_err(|BadKEMKeyLength| {
++                SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
++            })?,
++        };
+         Ok((
+             ss,
+             Ciphertext {
+@@ -378,9 +386,21 @@ impl Key<Secret> {
+                 self.key_type.value(),
+             ));
+         }
+-        self.key_type
+-            .parameters()
+-            .decapsulate(&self.key_data, ct.data)
++        // Direct dispatch (replaces vtable dispatch through `DynParameters`).
++        match self.key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::decapsulate(
++                &self.key_data,
++                &ct.data,
++            )
++            .map_err(|e| match e {
++                DecapsulateError::BadKeyLength => {
++                    SignalProtocolError::BadKEMKeyLength(self.key_type, self.key_data.len())
++                }
++                DecapsulateError::BadCiphertext => {
++                    SignalProtocolError::BadKEMCiphertextLength(self.key_type, ct.data.len())
++                }
++            }),
++        }
+     }
+ }
+ 
+@@ -491,7 +511,12 @@ impl Ciphertext {
+             return Err(SignalProtocolError::NoKeyTypeIdentifier);
+         }
+         let key_type = KeyType::try_from(value[0])?;
+-        if value.len() != key_type.parameters().ciphertext_length() + 1 {
++        // Direct dispatch on the ciphertext-length constant (replaces vtable
++        // dispatch through `DynParameters`).
++        let expected_len = match key_type {
++            KeyType::Kyber1024 => <kyber1024::Parameters as Parameters>::CIPHERTEXT_LENGTH + 1,
++        };
++        if value.len() != expected_len {
+             return Err(SignalProtocolError::BadKEMCiphertextLength(
+                 key_type,
+                 value.len(),

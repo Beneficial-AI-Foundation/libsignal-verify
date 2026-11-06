@@ -49,6 +49,8 @@ export interface AeneasConfig {
     repo: string;
     commit: string;
   };
+  /** Translation patches applied to a work copy of the workspace before Charon, repo-relative. */
+  patches_dir: string;
   charon: {
     sysroot: string;
     extract_opaque_bodies: boolean;
@@ -197,6 +199,10 @@ export function loadConfig(root?: string, configFile?: string | string[]): { con
 
   // Apply defaults
   config.upstream = config.upstream ?? { repo: "", commit: "" };
+  config.patches_dir = config.patches_dir ?? "translation-patches";
+  if (typeof config.patches_dir !== "string" || path.isAbsolute(config.patches_dir)) {
+    throw new Error("patches_dir must be a repo-relative path");
+  }
   config.charon = config.charon ?? {} as AeneasConfig["charon"];
   config.charon.sysroot = config.charon.sysroot ?? "default";
   if (typeof config.charon.sysroot !== "string") throw new Error("charon.sysroot must be a string");

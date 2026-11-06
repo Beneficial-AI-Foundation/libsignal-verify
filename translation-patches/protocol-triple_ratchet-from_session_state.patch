@@ -1,0 +1,80 @@
+Translation patch: libsignal_protocol::triple_ratchet::{OutgoingTripleRatchet, TripleRatchet}::from_session_state
+
+Change: the parameter `state` is renamed `session_state` in both functions; rustfmt reflows two statements.
+Why: a parameter named like the `state` module shadows the module in the generated Lean ([aeneas#1098](https://github.com/AeneasVerif/aeneas/issues/1098)).
+Behaviour: identical.
+Applies after: protocol-triple_ratchet-address_pair.patch, protocol-triple_ratchet-decrypt-aes_cbc_errors.patch, protocol-triple_ratchet-decrypt-spqr_errors.patch, protocol-triple_ratchet-error_messages.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/triple_ratchet.rs b/rust/protocol/src/triple_ratchet.rs
+--- a/rust/protocol/src/triple_ratchet.rs
++++ b/rust/protocol/src/triple_ratchet.rs
+@@ -92,28 +92,27 @@ pub(crate) struct OutgoingTripleRatchet {
+ }
+ 
+ impl OutgoingTripleRatchet {
+-    pub(crate) fn from_session_state(state: &mut SessionState) -> Result<Self> {
++    // `session_state`, not `state`: a parameter named like the `state` module
++    // shadows it in the generated Lean (aeneas#1098).
++    pub(crate) fn from_session_state(session_state: &mut SessionState) -> Result<Self> {
+         let sender_ratchet_key = KeyPair {
+-            public_key: state.sender_ratchet_key()?,
+-            private_key: state.sender_ratchet_private_key()?,
++            public_key: session_state.sender_ratchet_key()?,
++            private_key: session_state.sender_ratchet_private_key()?,
+         };
+-        let sender_chain_key = state.get_sender_chain_key()?;
+-        let pqr_state = state.take_pq_ratchet_state();
+-        let session_version: u8 = state.session_version()?.try_into().map_err(|_| {
++        let sender_chain_key = session_state.get_sender_chain_key()?;
++        let pqr_state = session_state.take_pq_ratchet_state();
++        let session_version: u8 = session_state.session_version()?.try_into().map_err(|_| {
+             SignalProtocolError::InvalidSessionStructure(VERSION_DOES_NOT_FIT_IN_U8)
+         })?;
+-        let local_identity_key = state.local_identity_key()?;
+-        let remote_identity_key =
+-            state
+-                .remote_identity_key()?
+-                .ok_or(SignalProtocolError::InvalidSessionStructure(
+-                    "missing remote identity key",
+-                ))?;
++        let local_identity_key = session_state.local_identity_key()?;
++        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
++            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
++        )?;
+ 
+         Ok(Self {
+             sender_ratchet_key,
+             sender_chain_key,
+-            previous_counter: state.previous_counter(),
++            previous_counter: session_state.previous_counter(),
+             pqr_state,
+             session_version,
+             local_identity_key,
+@@ -216,16 +215,17 @@ impl TripleRatchet {
+     /// Fails if the session is missing required fields (root key, identity
+     /// keys, etc.). The caller should map the error appropriately for the
+     /// context (e.g., "no session available to decrypt").
+-    pub(crate) fn from_session_state(state: &mut SessionState, self_session: bool) -> Result<Self> {
+-        let ratchet = state.take_ratchet_state(self_session)?;
+-        let pqr_state = state.take_pq_ratchet_state();
+-        let local_identity_key = state.local_identity_key()?;
+-        let remote_identity_key =
+-            state
+-                .remote_identity_key()?
+-                .ok_or(SignalProtocolError::InvalidSessionStructure(
+-                    "missing remote identity key",
+-                ))?;
++    // `session_state`, not `state`: see `OutgoingTripleRatchet::from_session_state`.
++    pub(crate) fn from_session_state(
++        session_state: &mut SessionState,
++        self_session: bool,
++    ) -> Result<Self> {
++        let ratchet = session_state.take_ratchet_state(self_session)?;
++        let pqr_state = session_state.take_pq_ratchet_state();
++        let local_identity_key = session_state.local_identity_key()?;
++        let remote_identity_key = session_state.remote_identity_key()?.ok_or(
++            SignalProtocolError::InvalidSessionStructure("missing remote identity key"),
++        )?;
+ 
+         Ok(Self {
+             ratchet,

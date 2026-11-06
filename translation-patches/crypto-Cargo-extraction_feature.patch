@@ -1,0 +1,19 @@
+Translation patch: signal-crypto `Cargo.toml`
+
+Change: adds an empty `extraction` feature.
+Why: the extraction builds the crate with this feature, which switches on the `charon` tool attributes and the other extraction-only code.
+Behaviour: unchanged; the feature is off by default.
+
+diff --git a/rust/crypto/Cargo.toml b/rust/crypto/Cargo.toml
+--- a/rust/crypto/Cargo.toml
++++ b/rust/crypto/Cargo.toml
+@@ -11,6 +11,9 @@ license.workspace = true
+ edition = "2024"
+ rust-version = "1.85"
+ 
++[features]
++extraction = []
++
+ [lints]
+ workspace = true
+ 

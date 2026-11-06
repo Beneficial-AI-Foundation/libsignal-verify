@@ -1,0 +1,27 @@
+Translation patch: libsignal_protocol::crypto::hmac_sha256_parts (new)
+
+Change: adds `hmac_sha256_parts(key, parts)`, which feeds the parts in order to one HMAC-SHA256 state and returns the 32-byte tag.
+Why: the same associated-type limitation, for an incremental `Hmac`.
+Behaviour: unchanged; nothing calls the helper until protocol-protocol-SignalMessage-compute_mac.patch.
+
+diff --git a/rust/protocol/src/crypto.rs b/rust/protocol/src/crypto.rs
+--- a/rust/protocol/src/crypto.rs
++++ b/rust/protocol/src/crypto.rs
+@@ -64,6 +64,17 @@ pub(crate) fn hmac_sha256(key: &[u8], input: &[u8]) -> [u8; 32] {
+     hmac.finalize().into_bytes().into()
+ }
+ 
++// Feed the parts to one HMAC-SHA256 state in order: the extraction toolchain
++// cannot lift the generic array associated types of an inline incremental HMAC.
++pub(crate) fn hmac_sha256_parts(key: &[u8], parts: &[&[u8]]) -> [u8; 32] {
++    let mut hmac =
++        Hmac::<Sha256>::new_from_slice(key).expect("HMAC-SHA256 should accept any size key");
++    for part in parts {
++        hmac.update(part);
++    }
++    hmac.finalize().into_bytes().into()
++}
++
+ pub(crate) fn aes256_ctr_hmacsha256_encrypt(
+     msg: &[u8],
+     cipher_key: &[u8],

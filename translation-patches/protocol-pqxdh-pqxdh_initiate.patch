@@ -1,0 +1,31 @@
+Translation patch: libsignal_protocol::pqxdh::pqxdh_initiate
+
+Change: the parameter `mut csprng: &mut R` becomes `csprng: &mut R`, and `encapsulate(&mut csprng)` becomes `encapsulate::<R>(&mut *csprng)`.
+Why: for a `&mut &mut R` argument Aeneas generates an ill-typed RNG state update; an explicit reborrow avoids the double borrow.
+Behaviour: identical; `encapsulate` gets the same generator.
+
+diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+--- a/rust/protocol/src/pqxdh.rs
++++ b/rust/protocol/src/pqxdh.rs
+@@ -200,7 +200,7 @@ impl InitiatorParameters {
+ /// to produce keys ready for ratchet initialization.
+ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
+     parameters: &InitiatorParameters,
+-    mut csprng: &mut R,
++    csprng: &mut R,
+ ) -> Result<InitiatorAgreement> {
+     let mut secrets = Vec::with_capacity(32 * 6);
+ 
+@@ -231,7 +231,11 @@ pub(crate) fn pqxdh_initiate<R: Rng + CryptoRng>(
+     }
+ 
+     let kyber_ciphertext = {
+-        let (ss, ct) = parameters.their_kyber_pre_key.encapsulate(&mut csprng)?;
++        // Explicit reborrow: for `&mut csprng` (a `&mut &mut R`) Aeneas
++        // generates an ill-typed RNG state update.
++        let (ss, ct) = parameters
++            .their_kyber_pre_key
++            .encapsulate::<R>(&mut *csprng)?;
+         secrets.extend_from_slice(ss.as_ref());
+         ct
+     };

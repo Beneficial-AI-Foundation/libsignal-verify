@@ -1,0 +1,76 @@
+Translation patch: libsignal_core::address::DeviceId
+
+Change: `DeviceId(NonZeroU8)` becomes `DeviceId { id: NonZeroU8 }`; every use of `.0` and of the constructor follows.
+Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
+Behaviour: identical; the field is private, so only its name changes.
+
+diff --git a/rust/core/src/address.rs b/rust/core/src/address.rs
+--- a/rust/core/src/address.rs
++++ b/rust/core/src/address.rs
+@@ -674,8 +674,12 @@ mod service_id_tests {
+ /// represents some user.
+ ///
+ /// Used in [ProtocolAddress].
++// Modified for Aeneas: tuple struct → named field.
++// https://github.com/AeneasVerif/aeneas/issues/767
+ #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
+-pub struct DeviceId(NonZeroU8);
++pub struct DeviceId {
++    id: NonZeroU8,
++}
+ 
+ #[derive(Copy, Clone, Debug, Eq, PartialEq, thiserror::Error)]
+ #[error("device ID is out of range")]
+@@ -701,7 +705,7 @@ impl DeviceId {
+     /// returned instead.
+     pub const fn new_nonzero(id: NonZeroU8) -> Result<Self, InvalidDeviceId> {
+         if id.get() <= MAX_VALID_DEVICE_ID {
+-            Ok(Self(id))
++            Ok(Self { id })
+         } else {
+             Err(InvalidDeviceId)
+         }
+@@ -712,19 +716,19 @@ const MAX_VALID_DEVICE_ID: u8 = 127;
+ 
+ impl From<DeviceId> for u32 {
+     fn from(value: DeviceId) -> Self {
+-        value.0.get().into()
++        value.id.get().into()
+     }
+ }
+ 
+ impl From<DeviceId> for u8 {
+     fn from(value: DeviceId) -> Self {
+-        value.0.get()
++        value.id.get()
+     }
+ }
+ 
+ impl From<DeviceId> for NonZeroU8 {
+     fn from(value: DeviceId) -> Self {
+-        value.0
++        value.id
+     }
+ }
+ 
+@@ -751,16 +755,16 @@ impl TryFrom<u32> for DeviceId {
+ 
+ impl fmt::Display for DeviceId {
+     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+-        write!(f, "{}", self.0)
++        write!(f, "{}", self.id)
+     }
+ }
+ 
+ impl rand::distr::Distribution<DeviceId> for rand::distr::StandardUniform {
+     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> DeviceId {
+-        DeviceId(
+-            NonZeroU8::new(rng.random_range(1..=MAX_VALID_DEVICE_ID))
++        DeviceId {
++            id: NonZeroU8::new(rng.random_range(1..=MAX_VALID_DEVICE_ID))
+                 .expect("guaranteed by random_range"),
+-        )
++        }
+     }
+ }
+ 

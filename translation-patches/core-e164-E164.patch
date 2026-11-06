@@ -1,0 +1,54 @@
+Translation patch: libsignal_core::e164::E164
+
+Change: `E164(NonZeroU64)` becomes `E164 { inner: NonZeroU64 }`; `.map(Self)` becomes `.map(|inner| Self { inner })`, and the other uses follow.
+Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
+Behaviour: identical; the field is private, so only its name changes.
+
+diff --git a/rust/core/src/e164.rs b/rust/core/src/e164.rs
+--- a/rust/core/src/e164.rs
++++ b/rust/core/src/e164.rs
+@@ -7,20 +7,24 @@ use std::fmt::Display;
+ use std::num::{NonZeroU64, ParseIntError};
+ use std::str::FromStr;
+ 
++// Modified for Aeneas: tuple struct → named field.
++// https://github.com/AeneasVerif/aeneas/issues/767
+ #[derive(Copy, Clone, Debug, PartialEq, Eq, derive_more::Into)]
+-pub struct E164(NonZeroU64);
++pub struct E164 {
++    inner: NonZeroU64,
++}
+ 
+ impl E164 {
+     pub const fn new(number: NonZeroU64) -> Self {
+-        Self(number)
++        Self { inner: number }
+     }
+ 
+     pub fn to_be_bytes(&self) -> [u8; std::mem::size_of::<u64>()] {
+-        self.0.get().to_be_bytes()
++        self.inner.get().to_be_bytes()
+     }
+ 
+     pub fn from_be_bytes(bytes: [u8; std::mem::size_of::<u64>()]) -> Option<Self> {
+-        NonZeroU64::new(u64::from_be_bytes(bytes)).map(Self)
++        NonZeroU64::new(u64::from_be_bytes(bytes)).map(|inner| Self { inner })
+     }
+ }
+ 
+@@ -28,13 +32,13 @@ impl FromStr for E164 {
+     type Err = ParseIntError;
+     fn from_str(s: &str) -> Result<Self, Self::Err> {
+         let s = s.strip_prefix('+').unwrap_or(s);
+-        NonZeroU64::from_str(s).map(Self)
++        NonZeroU64::from_str(s).map(|inner| Self { inner })
+     }
+ }
+ 
+ impl Display for E164 {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+-        write!(f, "+{}", self.0)
++        write!(f, "+{}", self.inner)
+     }
+ }
+ 

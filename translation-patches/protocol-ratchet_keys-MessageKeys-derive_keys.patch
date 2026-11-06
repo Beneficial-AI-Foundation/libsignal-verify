@@ -1,0 +1,27 @@
+Translation patch: libsignal_protocol::ratchet::keys::MessageKeys::derive_keys
+
+Change: the inline `Hkdf::<Sha256>::new(..).expand(..)` becomes `crate::crypto::hkdf_sha256(..)` with the same salt, input, info and output buffer.
+Why: see protocol-crypto-hkdf_sha256.patch.
+Behaviour: identical; the helper makes the same call.
+Relies on: protocol-crypto-hkdf_sha256.patch
+
+diff --git a/rust/protocol/src/ratchet/keys.rs b/rust/protocol/src/ratchet/keys.rs
+--- a/rust/protocol/src/ratchet/keys.rs
++++ b/rust/protocol/src/ratchet/keys.rs
+@@ -104,9 +104,13 @@ impl MessageKeys {
+     ) -> Self {
+         let _trace = libsignal_debug::trace_block!("MessageKeys::derive_keys");
+         let (cipher_key, mac_key, iv) = derive_arrays(|okm| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(optional_salt, input_key_material)
+-                .expand(b"WhisperMessageKeys", okm)
+-                .expect("valid output length")
++            crate::crypto::hkdf_sha256(
++                optional_salt,
++                input_key_material,
++                b"WhisperMessageKeys",
++                okm,
++            )
++            .expect("valid output length")
+         });
+ 
+         MessageKeys {

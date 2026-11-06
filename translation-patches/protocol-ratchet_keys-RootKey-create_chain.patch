@@ -1,0 +1,20 @@
+Translation patch: libsignal_protocol::ratchet::keys::RootKey::create_chain
+
+Change: the inline `Hkdf::<Sha256>::new(..).expand(..)` becomes `crate::crypto::hkdf_sha256(..)` with the same salt, input, info and output buffer.
+Why: see protocol-crypto-hkdf_sha256.patch.
+Behaviour: identical; the helper makes the same call.
+Relies on: protocol-crypto-hkdf_sha256.patch
+
+diff --git a/rust/protocol/src/ratchet/keys.rs b/rust/protocol/src/ratchet/keys.rs
+--- a/rust/protocol/src/ratchet/keys.rs
++++ b/rust/protocol/src/ratchet/keys.rs
+@@ -207,8 +207,7 @@ impl RootKey {
+     ) -> Result<(RootKey, ChainKey)> {
+         let shared_secret = our_ratchet_key.calculate_agreement(their_ratchet_key)?;
+         let (root_key, chain_key, []) = derive_arrays(|bytes| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(Some(&self.key), &shared_secret)
+-                .expand(b"WhisperRatchet", bytes)
++            crate::crypto::hkdf_sha256(Some(&self.key), &shared_secret, b"WhisperRatchet", bytes)
+                 .expect("valid output length")
+         });
+ 

@@ -1,0 +1,20 @@
+Translation patch: signal_crypto::hash::CryptographicHash
+
+Change: under the `extraction` feature, the enum does not derive `Clone` and is `#[charon::opaque]`.
+Why: not recorded in the source or the extraction notes. The enum holds RustCrypto hash states, which the translation treats as opaque.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: crypto-lib-register_tool.patch
+
+diff --git a/rust/crypto/src/hash.rs b/rust/crypto/src/hash.rs
+--- a/rust/crypto/src/hash.rs
++++ b/rust/crypto/src/hash.rs
+@@ -48,7 +48,8 @@ impl CryptographicMac {
+     }
+ }
+ 
+-#[derive(Clone)]
++#[cfg_attr(not(feature = "extraction"), derive(Clone))]
++#[cfg_attr(feature = "extraction", charon::opaque)]
+ pub enum CryptographicHash {
+     Sha1(Sha1),
+     Sha256(Sha256),

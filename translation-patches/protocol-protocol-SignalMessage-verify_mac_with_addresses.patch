@@ -1,0 +1,62 @@
+Translation patch: libsignal_protocol::protocol::SignalMessage::verify_mac_with_addresses
+
+Change: the two `log::warn!` calls move into the new functions `log_invalid_local_addresses` and `log_address_mismatch`, called at the same points.
+Why: Aeneas stops with an internal error on `log!` expansions; the helpers are opaque in the extraction (`aeneas-config.protocol.yml`).
+Behaviour: same log level and message at the same point; the log record gives the helper's source line.
+
+diff --git a/rust/protocol/src/protocol.rs b/rust/protocol/src/protocol.rs
+--- a/rust/protocol/src/protocol.rs
++++ b/rust/protocol/src/protocol.rs
+@@ -57,6 +57,27 @@ impl CiphertextMessage {
+     }
+ }
+ 
++// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
++// these as opaque effects. Level and message are unchanged.
++fn log_invalid_local_addresses(
++    sender_address: &ProtocolAddress,
++    recipient_address: &ProtocolAddress,
++) {
++    log::warn!(
++        "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
++        sender_address,
++        recipient_address,
++    );
++}
++
++fn log_address_mismatch(sender_address: &ProtocolAddress, recipient_address: &ProtocolAddress) {
++    log::warn!(
++        "Address mismatch: sender={}, recipient={}",
++        sender_address,
++        recipient_address,
++    );
++}
++
+ #[derive(Debug, Clone)]
+ pub struct SignalMessage {
+     message_version: u8,
+@@ -189,22 +210,14 @@ impl SignalMessage {
+         };
+ 
+         let Some(expected) = Self::serialize_addresses(sender_address, recipient_address) else {
+-            log::warn!(
+-                "Locally supplied addresses not valid Service IDs: sender={}, recipient={}",
+-                sender_address,
+-                recipient_address,
+-            );
++            log_invalid_local_addresses(sender_address, recipient_address);
+             return Ok(false);
+         };
+ 
+         if bool::from(expected.ct_eq(encoded_addresses.as_ref())) {
+             Ok(true)
+         } else {
+-            log::warn!(
+-                "Address mismatch: sender={}, recipient={}",
+-                sender_address,
+-                recipient_address,
+-            );
++            log_address_mismatch(sender_address, recipient_address);
+             Ok(false)
+         }
+     }
