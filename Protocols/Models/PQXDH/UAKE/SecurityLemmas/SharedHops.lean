@@ -24,12 +24,12 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
   [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   [SampleableType K]
-  (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+  (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
 /-- One-point union bound: if the Boolean `a` implies `b || (c || d)`, the
   probability that a deterministic run returns `a = true` is at most the sum
@@ -52,7 +52,7 @@ omit [SampleableType K] in
   accepted bundle carries a signed pair the challenger never produced, or
   the KEM-key bad event occurred, or the run is a residual forgery with an
   honest bundle and separated KEM keys. -/
-private lemma forge_or_cases (tk : RecipientIdentity F G SPK SSK S)
+private lemma forge_or_cases (tk : RecipientIdentity F G S)
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (h : (cr.K0.isSome && !isPingPong cr) = true) :
     ((cr.K0.isSome && (challengeBundle P msg hasOPK cr).any fun b =>
@@ -185,10 +185,13 @@ omit [DecidableEq CT] [DecidableEq C] in
   strong existential forgery against `P.sig`.
 
   Intended reduction: the SUF-CMA adversary simulates the challenge phase,
-  substituting its challenge public key for `sigkB.1` and its signing oracle
+  substituting its challenge public key for `ikB.1` and its signing oracle
   for the two uses of `P.sig.sign` (setup's pre-key signature and each
-  session's KEM-key signature; the signing key is used nowhere else, and the
-  adversary never sees it). When the challenge session completes, it stops
+  session's KEM-key signature). The identity secret `ikB.2` is also used
+  outside signing: each T-session's `accept` computes `DH p.ikB.2 msg.ekA` on
+  the adversary's ephemeral key, so this outline must also answer that use.
+  Whether the statement holds as stated with the single identity key is under
+  review. When the challenge session completes, it stops
   and outputs the accepted bundle's signed pair that `honestBundle` fails,
   so the pair was not returned by any signing query. Determinism of
   verification (`hverifyDet`) transfers the initiator's successful
@@ -199,9 +202,9 @@ omit [DecidableEq CT] [DecidableEq C] in
 
   Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. A proof would build the
   SUF-CMA adversary described above and relate its winning event to `sigForgeExp`. -/
-lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
+lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
-    (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
+    (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hsig : ∀ B : P.sig.unforgeableAdv,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig := by

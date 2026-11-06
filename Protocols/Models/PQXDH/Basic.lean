@@ -36,11 +36,16 @@ Model simplifications
   ciphertext. Production sends it as the first Double Ratchet message under
   ratchet-derived keys, so it does not correspond to extracted code. Bob's confirmation
   message exists only in the model.
-* **No key reuse between DH and SignatureAlg:** We assume that Bob's identity key
-  contains separate keys for DH exchange and signing. This matches the "no key
-  reuse" simplification mentioned in Sec. 4 of the spec that other formal
-  analyses required. Production uses one identity key for both, so the separate keys
-  are a modelling choice and a deviation.
+* **Single identity key:** Bob's identity key pair `ikB = (x • gen, x)` signs his
+  signed pre-key and every KEM pre-key, and it also takes part in the Diffie-Hellman
+  exchange. Production does the same: XEdDSA signing and X25519 agreement use one
+  identity key. The signature scheme `Parameters.sig` therefore draws its keys with
+  `dhKeygen`, so signature completeness is a property of `P.sign` and `P.verify` on
+  the keys that `dhKeygen` produces. The source model gave Bob a separate signature
+  key pair, which is the "no key reuse" simplification of Sec. 4 of the spec (see
+  `Protocols/ATTRIBUTION.md`). The model keeps the uniform exponent of `dhKeygen`,
+  whereas production clamps its scalars; `Protocols/LEDGER.md` records the relation
+  between the two key generators as open.
 * **Separate AEAD key:** The PQXDH spec uses the same KDF output for both
   Alice's AEAD key and the final result of the key exchange, but this seems to
   preclude key indistinguishability. This is because the adversary can try
@@ -56,7 +61,7 @@ Model simplifications
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- The input type to the abstract SignatureAlg. We need the same signature
    scheme to sign both DH and KEM public keys, so we use a sum of these. -/
@@ -76,14 +81,18 @@ abbrev KeyMaterial (G SS : Type) : Type := G × G × G × Option G × SS
   (the paper gives several alternatives), we use VCVio's existing abstract
   notions of a `KemScheme` and `SignatureAlg`. A relevant AEAD primitive does
   not appear in VCVio, so we use our own formalization (under `Protocols/ToVCVio/`,
-  for potential upstreaming). -/
-structure Parameters (F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type) where
+  for potential upstreaming). The signing and verification algorithms are fields;
+  the signature scheme `Parameters.sig` built from them draws its keys with
+  `dhKeygen`, because the identity key both signs and does Diffie-Hellman. -/
+structure Parameters (F G SS PQPK PQSK CT S C Msg K IdC IdK : Type) where
   /-- Generator for the Diffie-Hellman group -/
   gen : G
   /-- KEM used for the post-quantum portion of the key exchange -/
   pqkem : KEMScheme ProbComp SS PQPK PQSK CT
-  /-- Signature scheme used for signing keys -/
-  sig : SignatureAlg ProbComp (SignatureInput G PQPK) SPK SSK S
+  /-- Signing with an identity key pair: public key in `G`, secret exponent in `F`. -/
+  sign : G → F → SignatureInput G PQPK → ProbComp S
+  /-- Verification of a signature against an identity public key. -/
+  verify : G → SignatureInput G PQPK → S → ProbComp Bool
   /-- AEAD used for the initial PQXDH message -/
   aead : AEAD.Scheme ProbComp Msg K (G × G × PQPK) C
   /-- Key derivation function used to generate the session key that results
@@ -105,46 +114,46 @@ def dhKeygen [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
 /-- Generate a DH shared key g^xy, given a secret key y and a public key g^x. -/
 def DH [Field F] [AddCommGroup G] [Module F G] (sk : F) (pk : G) : G := sk • pk
 
+/-- The signature scheme on identity keys. Its key generation is `dhKeygen`, so the
+  keys it signs with are the Diffie-Hellman identity keys, and VCVio's notions of
+  completeness and unforgeability for `P.sig` refer to keys drawn by `dhKeygen`. -/
+@[reducible] def Parameters.sig [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
+    SignatureAlg ProbComp (SignatureInput G PQPK) G F S where
+  keygen := dhKeygen P.gen
+  sign := P.sign
+  verify := P.verify
+
 /-- Generate a DH OPK only if hasOPK is true. -/
 def genOPK [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     (gen : G) (hasOPK : Bool) : ProbComp (Option (G × F)) :=
   if hasOPK then some <$> dhKeygen gen else pure none
 
 /-- The parameters given to Alice on startup. -/
-structure InitiatorParameters (F G SPK Msg : Type) where
+structure InitiatorParameters (F G Msg : Type) where
   /-- Alice's long-term identity DH keypair. -/
   ikA : G × F
-  /-- Bob's identity DH public key. We include this here in order to pin Bob's
-    identity to Alice. This models the out-of-band key fingerprinting from Sec.
-    4.1 of the spec. -/
+  /-- Bob's identity public key, used both for Diffie-Hellman and to verify Bob's
+    signatures. We include this here in order to pin Bob's identity to Alice. This
+    models the out-of-band key fingerprinting from Sec. 4.1 of the spec. -/
   ikB : G
-  /-- Bob's signature-scheme public key.
-    * DEVIATION FROM SPEC: We make a simplifying assumption that Bob's identity
-      key contains independently chosen values for DH and signature scheme keys.
-      This conflicts with the verbatim wording of the spec, but it is mentioned in
-      Sec. 4 as a simplifying assumption used in previous analyses. -/
-  sigpkB : SPK
   /-- The message Alice intends to send to Bob in the initial AEAD ciphertext. -/
   msg : Msg
 
-/-- Bob's full set of long- and medium-term key pairs, including identity key,
-  signing key, and signed (medium-term) pre-key. -/
-structure RecipientIdentity (F G SPK SSK S : Type) where
-  /-- Bob's identity DH key pair. -/
+/-- Bob's long- and medium-term key pairs: the identity key, which also signs, and
+  the signed (medium-term) pre-key with its signature. -/
+structure RecipientIdentity (F G S : Type) where
+  /-- Bob's identity key pair, used for Diffie-Hellman and for signing. -/
   ikB : G × F
-  /-- Bob's signature key pair. -/
-  sigkB : SPK × SSK
   /-- Bob's signed (medium-term) DH pre-key pair. -/
   spkB : G × F
   /-- Bob's signature for his SPK. -/
   spkSigB : S
 
 /-- The parameters given to Bob on startup. -/
-structure RecipientParameters (F G PQPK PQSK SPK SSK S : Type) where
-  /-- Bob's identity DH key pair. -/
+structure RecipientParameters (F G PQPK PQSK S : Type) where
+  /-- Bob's identity key pair, used for Diffie-Hellman and for signing. -/
   ikB : G × F
-  /-- Bob's signature key pair. -/
-  sigkB : SPK × SSK
   /-- Bob's signed (medium-term) DH pre-key pair. -/
   spkB : G × F
   /-- Bob's signature for his SPK. -/
@@ -211,27 +220,25 @@ structure SessionContext (G PQPK Msg K : Type) where
   msg : Msg
 
 /-- Create the long-term state used by Alice and Bob respectively for all
-  sessions. -/
+  sessions. Bob signs his signed pre-key with his identity key. -/
 def setup [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) :
-    ProbComp (InitiatorParameters F G SPK Msg ×
-      RecipientIdentity F G SPK SSK S) := do
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) :
+    ProbComp (InitiatorParameters F G Msg × RecipientIdentity F G S) := do
   let ikA ← dhKeygen P.gen
   let ikB ← dhKeygen P.gen
-  let sigkB ← P.sig.keygen
   let spkB ← dhKeygen P.gen
-  let spkSigB ← P.sig.sign sigkB.1 sigkB.2 (EncodeEC spkB.1)
-  return ({ ikA := ikA, ikB := ikB.1, sigpkB := sigkB.1, msg := msg },
-    { ikB := ikB, sigkB := sigkB, spkB := spkB, spkSigB := spkSigB })
+  let spkSigB ← P.sig.sign ikB.1 ikB.2 (EncodeEC spkB.1)
+  return ({ ikA := ikA, ikB := ikB.1, msg := msg },
+    { ikB := ikB, spkB := spkB, spkSigB := spkSigB })
 
 /-- Compute Bob's key bundle to send to Alice.
   * DEVIATION FROM SPEC: In the spec, this is retrieved by Alice from a
     third-party server, however in UAKE, we have only two parties. Therefore,
     we make this a message from Bob. -/
-def publish (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-    (p : RecipientParameters F G PQPK PQSK SPK SSK S) :
+def publish (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
+    (p : RecipientParameters F G PQPK PQSK S) :
     ProbComp (PreKeyBundle G PQPK S IdC IdK) := do
-  let pqpkSigB ← P.sig.sign p.sigkB.1 p.sigkB.2 (EncodeKEM p.pqpkB.1)
+  let pqpkSigB ← P.sign p.ikB.1 p.ikB.2 (EncodeKEM p.pqpkB.1)
   return { ikB := p.ikB.1
            spkB := (p.spkB.1, P.idEC p.spkB.1)
            spkSigB := p.spkSigB
@@ -249,13 +256,13 @@ def publish (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
     by using the candidate key to decrypt the initial message and checking
     whether it succeeds. -/
 def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-    (p : InitiatorParameters F G SPK Msg)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
+    (p : InitiatorParameters F G Msg)
     (bundle : PreKeyBundle G PQPK S IdC IdK) :
     ProbComp (Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K)) := do
   if bundle.ikB ≠ p.ikB then return none
-  let okSPK ← P.sig.verify p.sigpkB (EncodeEC bundle.spkB.1) bundle.spkSigB
-  let okPQPK ← P.sig.verify p.sigpkB (EncodeKEM bundle.pqpkB.1) bundle.pqpkSigB
+  let okSPK ← P.sig.verify p.ikB (EncodeEC bundle.spkB.1) bundle.spkSigB
+  let okPQPK ← P.sig.verify p.ikB (EncodeKEM bundle.pqpkB.1) bundle.pqpkSigB
   if !(okSPK && okPQPK) then return none
   let ekA : G × F ← dhKeygen P.gen
   let (CT, SS) ← P.pqkem.encaps bundle.pqpkB.1
@@ -282,8 +289,8 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
     it's needed in order to fit the UAKE security definition in the T=Bob case.
     See bullet 1 of "Model simplifications". -/
 def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-    (p : RecipientParameters F G PQPK PQSK SPK SSK S)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
+    (p : RecipientParameters F G PQPK PQSK S)
     (msg : InitialMessage G CT C IdC IdK) :
     ProbComp (Option (SessionContext G PQPK Msg K)) := do
   if msg.idSPK ≠ P.idEC p.spkB.1 ∨ msg.idPQPK ≠ P.idKEM p.pqpkB.1 ∨
@@ -303,7 +310,7 @@ def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableE
   with the correct message, AD, and KDF-derived key. Return the shared key, if
   so. -/
 def confirm [DecidableEq Msg]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (ctx : SessionContext G PQPK Msg K) (conf : C) : Option K :=
   if P.aead.decrypt ctx.kb ctx.ad conf = some ctx.msg then some ctx.sk
   else none

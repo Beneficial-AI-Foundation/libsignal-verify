@@ -27,12 +27,12 @@ namespace Protocols.Models.PQXDH
 
 noncomputable section
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
   [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   [SampleableType K]
-  (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+  (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
 /-- The pre-key bundle carried by a transcript's first message, if any. In
   the T=Bob scheme, a T-oracle session transcript begins with the bundle Bob
@@ -65,7 +65,7 @@ def challengeBundle (cr : ChallengeResult (uakeInitiator P msg hasOPK)) :
   created by `setup`, and the KEM pair was published by some T-oracle
   session. A completed challenge session whose accepted bundle fails this
   predicate yields a strong (SUF-CMA) signature forgery. -/
-def honestBundle (tk : RecipientIdentity F G SPK SSK S)
+def honestBundle (tk : RecipientIdentity F G S)
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (b : PreKeyBundle G PQPK S IdC IdK) : Bool :=
   decide (b.spkB.1 = tk.spkB.1) && decide (b.spkSigB = tk.spkSigB) &&
@@ -98,7 +98,7 @@ def pqpkGuessed (cr : ChallengeResult (uakeInitiator P msg hasOPK)) : Bool :=
   commuting independent samples. -/
 def challengePhase (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
     ProbComp (ChallengeResult (uakeInitiator P msg hasOPK) ×
-      (A.State × Env (uakeInitiator P msg hasOPK) × RecipientIdentity F G SPK SSK S)) := do
+      (A.State × Env (uakeInitiator P msg hasOPK) × RecipientIdentity F G S)) := do
   let (uk, tk) ← setup P msg
   challengeSession ProbCompRuntime.probComp.toProbCompLift A uk tk
 

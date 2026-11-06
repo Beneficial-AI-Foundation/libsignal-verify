@@ -23,7 +23,7 @@ open OracleSpec OracleComp AKE AKE.UAKE
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- The T=Bob model scheme is well-formed: both parties output only at
   completion, both output functions are pure, and an honest run transfers
@@ -32,7 +32,7 @@ theorem uakeInitiator_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead) :
@@ -50,7 +50,7 @@ theorem uakeRecipient_wellFormed
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead) :
