@@ -128,11 +128,15 @@ These should usually be prioritized in that order, but adjust the trade-off as n
 
 # Lean specifications
 
-- **Spec files mirror the Rust source path**: crate, then module, then item. A spec for `libsignal_protocol::pqxdh::HandshakeKeys::derive` lives in `rust/Libsignal/Spec/Protocol/Pqxdh/HandshakeKeys/Derive.lean`. This holds even when the extraction places a declaration in another crate's namespace.
+- **Proof files mirror the Rust source path**: crate, then module, then item. The specification and proof for `libsignal_protocol::pqxdh::HandshakeKeys::derive` live in `rust/Libsignal/Proofs/Protocol/Pqxdh/HandshakeKeys/Derive.lean`. This holds even when the extraction places a declaration in another crate's namespace.
 
-- **Standard-library items go under `rust/Libsignal/Spec/Std/<crate>/...`**, apart from libsignal's own crates. For example, `alloc::vec::Vec::extend_from_slice` lives in `Spec/Std/Alloc/Vec/ExtendFromSlice.lean`.
+- **Each Rust source file has one spec summary** in `rust/Libsignal/Specs/`, at the path of that source file: `rust/protocol/src/pqxdh.rs` has `Specs/Protocol/Pqxdh.lean`. The summary restates every public theorem of the proof files below it with `recall`, and checks the axioms of every theorem and definition with `#guard_msgs` and `#print axioms`. A definition, such as an extracted entry point, gets the axiom check only. The build then fails if a statement or its axioms change. `recall` checks a restatement up to definitional equality, so it fails when a statement changes its meaning, but not when it only changes its spelling.
+
+- **Standard-library items go under `Proofs/Std/<crate>/...` and `Specs/Std/<crate>/...`**, apart from libsignal's own crates. For example, `alloc::vec::Vec::extend_from_slice` lives in `Proofs/Std/Alloc/Vec/ExtendFromSlice.lean`, and its summary in `Specs/Std/Alloc/Vec.lean`.
 
 - **No folder is named after a tool** such as Aeneas or Charon.
+
+`scripts/spec-layout-check.sh` checks these rules, except that a path mirrors the Rust source. Its header lists what else it cannot see.
 
 
 # Other useful documents
