@@ -50,17 +50,16 @@ lemma fst_eq_smul_of_mem_support_dhKeygen
   obtain ⟨sk, rfl⟩ := hx
   rfl
 
-/-- Perfect completeness of the identity-key signature scheme `P.sig` is completeness
-  of `P.sign` and `P.verify` on the shared generator: signing any message with a key
-  pair drawn by `dhKeygen`, the same generator that produces the Diffie-Hellman
-  identity keys, and verifying the result returns `true` with probability 1. -/
+/-- `P.sig` is perfectly complete if and only if, for every message, signing with
+  `P.sign` under an identity key pair drawn by `dhKeygen` and checking with
+  `P.verify` returns `true` with probability 1. -/
 lemma sig_perfectlyComplete_iff [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     P.sig.PerfectlyComplete ProbCompRuntime.probComp ↔
       ∀ m : G ⊕ PQPK, Pr[= true | do
-        let kp ← dhKeygen (F := F) P.gen
-        let σ ← P.sign kp.1 kp.2 m
-        P.verify kp.1 m σ] = 1 :=
+        let (pk, sk) ← dhKeygen (F := F) P.gen
+        let σ ← P.sign pk sk m
+        P.verify pk m σ] = 1 :=
   Iff.rfl
 
 /-- For a perfectly complete signature scheme, verifying an honestly generated

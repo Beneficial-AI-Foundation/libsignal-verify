@@ -184,14 +184,10 @@ omit [DecidableEq CT] [DecidableEq C] in
 /-- Hop 3 (SUF-CMA): a signature forgery in the challenge phase yields a
   strong existential forgery against `P.sig`.
 
-  Intended reduction: the SUF-CMA adversary simulates the challenge phase,
+  Ported reduction outline: the SUF-CMA adversary simulates the challenge phase,
   substituting its challenge public key for `ikB.1` and its signing oracle
   for the two uses of `P.sig.sign` (setup's pre-key signature and each
-  session's KEM-key signature). The identity secret `ikB.2` is also used
-  outside signing: each T-session's `accept` computes `DH p.ikB.2 msg.ekA` on
-  the adversary's ephemeral key, so this outline must also answer that use.
-  Whether the statement holds as stated with the single identity key is under
-  review. When the challenge session completes, it stops
+  session's KEM-key signature). When the challenge session completes, it stops
   and outputs the accepted bundle's signed pair that `honestBundle` fails,
   so the pair was not returned by any signing query. Determinism of
   verification (`hverifyDet`) transfers the initiator's successful
@@ -200,8 +196,19 @@ omit [DecidableEq CT] [DecidableEq C] in
   `publish` sign only two message forms, so a dishonest bundle may reuse an
   honestly signed message with a fresh signature.
 
-  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. A proof would build the
-  SUF-CMA adversary described above and relate its winning event to `sigForgeExp`. -/
+  With the single identity key this outline is incomplete. Each T-session's
+  `accept` also computes `DH p.ikB.2 msg.ekA` on the adversary's ephemeral key,
+  and the SUF-CMA game has no query that answers this. The statement still
+  holds, because `hsig` bounds adversaries without a resource limit (#41): an
+  adversary that makes no query and outputs some valid pair for its public key
+  wins with at least the probability of `sigForgeExp`. So the statement says
+  nothing about efficient adversaries. Its intended replacement premise is
+  joint unforgeability of the identity key: signing queries and agreement
+  queries `Y ↦ DH x Y` on the one key pair, with a win on a valid signature of a
+  message that was never signed. With that premise the forgery event compares
+  signed keys, not signature bytes, because XEdDSA signatures are malleable.
+
+  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
 lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)

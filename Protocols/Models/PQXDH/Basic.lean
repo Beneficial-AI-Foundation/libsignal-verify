@@ -38,14 +38,12 @@ Model simplifications
   message exists only in the model.
 * **Single identity key:** Bob's identity key pair `ikB = (x • gen, x)` signs his
   signed pre-key and every KEM pre-key, and it also takes part in the Diffie-Hellman
-  exchange. Production does the same: XEdDSA signing and X25519 agreement use one
-  identity key. The signature scheme `Parameters.sig` therefore draws its keys with
-  `dhKeygen`, so signature completeness is a property of `P.sign` and `P.verify` on
-  the keys that `dhKeygen` produces. The source model gave Bob a separate signature
-  key pair, which is the "no key reuse" simplification of Sec. 4 of the spec (see
-  `Protocols/ATTRIBUTION.md`). The model keeps the uniform exponent of `dhKeygen`,
-  whereas production clamps its scalars; `Protocols/LEDGER.md` records the relation
-  between the two key generators as open.
+  exchange. Production also uses one identity key for XEdDSA signing and X25519
+  agreement. So `Parameters.sig` draws its keys with `dhKeygen`. The source gives Bob
+  a separate signature key pair, the "no key reuse" simplification of Sec. 4 of the
+  spec (see `Protocols/ATTRIBUTION.md`). `dhKeygen` samples a uniform exponent, and
+  production clamps its scalars; the relation between the two generators is open
+  (`Protocols/LEDGER.md`).
 * **Separate AEAD key:** The PQXDH spec uses the same KDF output for both
   Alice's AEAD key and the final result of the key exchange, but this seems to
   preclude key indistinguishability. This is because the adversary can try
@@ -114,9 +112,8 @@ def dhKeygen [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
 /-- Generate a DH shared key g^xy, given a secret key y and a public key g^x. -/
 def DH [Field F] [AddCommGroup G] [Module F G] (sk : F) (pk : G) : G := sk • pk
 
-/-- The signature scheme on identity keys. Its key generation is `dhKeygen`, so the
-  keys it signs with are the Diffie-Hellman identity keys, and VCVio's notions of
-  completeness and unforgeability for `P.sig` refer to keys drawn by `dhKeygen`. -/
+/-- The signature scheme on the Diffie-Hellman identity keys drawn by `dhKeygen`.
+  VCVio's completeness and unforgeability notions for `P.sig` use this distribution. -/
 @[reducible] def Parameters.sig [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     SignatureAlg ProbComp (SignatureInput G PQPK) G F S where
@@ -133,9 +130,9 @@ def genOPK [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
 structure InitiatorParameters (F G Msg : Type) where
   /-- Alice's long-term identity DH keypair. -/
   ikA : G × F
-  /-- Bob's identity public key, used both for Diffie-Hellman and to verify Bob's
-    signatures. We include this here in order to pin Bob's identity to Alice. This
-    models the out-of-band key fingerprinting from Sec. 4.1 of the spec. -/
+  /-- Bob's identity public key, used for Diffie-Hellman and to verify his signatures,
+    pinned to Alice. This models the out-of-band key fingerprinting from Sec. 4.1 of
+    the spec. -/
   ikB : G
   /-- The message Alice intends to send to Bob in the initial AEAD ciphertext. -/
   msg : Msg
