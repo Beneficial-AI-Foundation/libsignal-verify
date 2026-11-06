@@ -18,8 +18,11 @@ output and the KEM shared secret) and `deriveHK` passes it to the extracted
 `pqxdh.HandshakeKeys.derive`. The mirror restates the input layout of the extracted functions; this
 file does not prove that it agrees with them.
 
-`deriveKeysTotal` proves `DeriveKeysTotal`, the totality of `deriveHK`, from the contract
-`HkdfSha256Contract` on the opaque `crypto.hkdf_sha256`, through `HandshakeKeys.derive_spec`.
+`kdfInput_spec` gives the exact bytes that `kdfInput` returns, `kdfInputSliceBytes`, for slices
+of any length under one bound on the total length; `kdfInput_fixed_spec` adds the length, 160 or
+192 bytes, for 32-byte components. `deriveKeysTotal` proves `DeriveKeysTotal`, the totality of
+`deriveHK`, from the contract `HkdfSha256Contract` on the opaque `crypto.hkdf_sha256`, through
+`HandshakeKeys.derive_spec`.
 
 **Source**: `PQXDH/Aeneas/Full/UAKE/SecurityDefs.lean` of libsignal-docs-and-models, the
 declarations of the same names. The source opens a `noncomputable section`; here only `deriveHK`
@@ -85,7 +88,16 @@ theorem kdfInput_spec (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : S
     (h_len : (kdfInputSliceBytes dh1 dh2 dh3 dh4 ss).length ≤ Usize.max) :
     kdfInput dh1 dh2 dh3 dh4 ss ⦃ inp =>
       inp.val = kdfInputSliceBytes dh1 dh2 dh3 dh4 ss ⦄ := by
-  sorry
+  open Aeneas.Std.alloc.vec in
+  have h_cap : ∀ j, (Vec.with_capacity U8 j).length = 0 := fun _ => rfl
+  open Aeneas.Std.alloc.vec in
+  have h_nil : ∀ j, (Vec.with_capacity U8 j).val = [] := fun _ => rfl
+  open Aeneas.Std.alloc.vec in
+  rcases dh4 with _ | d <;>
+    simp only [kdfInputSliceBytes, Option.map, Option.getD, List.length_append,
+      List.length_replicate, List.append_nil] at h_len <;>
+    unfold kdfInput <;> step* <;>
+    simp [kdfInputSliceBytes, Vec.deref, Slice.from_val, *]
 
 /-- **The KDF input for 32-byte components.** When the DH outputs and the KEM secret are 32-byte
 arrays, `kdfInput` succeeds, returns `kdfInputSliceBytes`, and has 160 bytes without a fourth DH
@@ -97,7 +109,15 @@ theorem kdfInput_fixed_spec (dh1 dh2 dh3 : Array U8 32#usize) (dh4 : Option (Arr
         inp.val = kdfInputSliceBytes dh1.to_slice dh2.to_slice dh3.to_slice
           (dh4.map (·.to_slice)) ss.to_slice ∧
         inp.length = if dh4.isSome then 192 else 160 ⦄ := by
-  sorry
+  have h192 : 192 ≤ Usize.max := by
+    rcases Usize.bounds_eq with h | h <;> rw [h] <;> simp only [U32.max, U64.max] <;> scalar_tac
+  have h_len : (kdfInputSliceBytes dh1.to_slice dh2.to_slice dh3.to_slice
+      (dh4.map (·.to_slice)) ss.to_slice).length = if dh4.isSome then 192 else 160 := by
+    rcases dh4 with _ | d <;> simp [kdfInputSliceBytes]
+  refine WP.spec_mono (kdfInput_spec _ _ _ _ _ ?_) ?_
+  · rw [h_len]; split <;> omega
+  · intro inp h_val
+    exact ⟨h_val, by simp [Slice.length, h_val, h_len]⟩
 
 /-- Run the extracted HKDF derivation on the assembled KDF input. -/
 noncomputable def deriveHK (dh1 dh2 dh3 : ECPub) (dh4 : Option ECPub) (ss : Key) :
