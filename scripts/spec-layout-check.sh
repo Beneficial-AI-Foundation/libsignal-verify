@@ -96,7 +96,7 @@ check() {
   done < <(find "$proofs" -name '*.lean' -print0)
 
   while IFS= read -r -d '' file; do
-    for name in $(grep -E '^recall[[:space:]]' "$file" | awk '{print $2}'); do
+    for name in $(grep -E '^recall[[:space:]]' "$file" | awk '{print $2}' || true); do
       if ! grep -qxF "#print axioms $name" "$file"; then
         echo "Recalled $name has no axiom check in ${file#"$lib"/}"
         status=1

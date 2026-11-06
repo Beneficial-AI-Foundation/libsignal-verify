@@ -7,11 +7,11 @@ import Mathlib.Tactic.Recall
 import Libsignal.Proofs.Std.Alloc.Vec.ExtendFromSlice
 
 /-!
-# Spec summary: `library/alloc/src/vec/mod.rs`
+# Spec summary: `alloc::vec::Vec`
 
-This file freezes the specifications of `Vec::extend_from_slice` from the Rust standard library,
-as the Aeneas standard library models it. Each theorem is restated with `recall` and has a
-`#guard_msgs` check on the axioms it depends on.
+This file freezes the specifications of `alloc::vec::Vec::extend_from_slice` from the Rust
+standard library, through its model in the Aeneas standard library (`Aeneas/Std/Vec.lean`). Each
+theorem is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on.
 -/
 
 open Aeneas Aeneas.Std Result in
