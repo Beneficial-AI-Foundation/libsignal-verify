@@ -1,0 +1,57 @@
+Translation patch: libsignal_protocol::triple_ratchet::TripleRatchet::decrypt (AES-CBC errors)
+
+Change: the arms `Err(BadKeyOrIv)` and `Err(BadCiphertext(msg))` become `Err(e) if is_bad_key_or_iv(&e)` and `Err(e)`. The message comes from the new function `decrypt_failure_message(e)`, which matches `BadCiphertext(msg)` and formats as before. Its `BadKeyOrIv` arm is `unreachable!`, because the guard takes that variant first.
+Why: `BadCiphertext(&'static str)` comes from an opaque call. Aeneas has no loan for that static borrow, so expanding the variant or copying the field fails. `is_bad_key_or_iv` and `decrypt_failure_message` are opaque in the extraction (`aeneas-config.protocol.yml`).
+Behaviour: same results for both variants.
+Applies after: protocol-triple_ratchet-address_pair.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/triple_ratchet.rs b/rust/protocol/src/triple_ratchet.rs
+--- a/rust/protocol/src/triple_ratchet.rs
++++ b/rust/protocol/src/triple_ratchet.rs
+@@ -36,6 +36,23 @@ fn address_pair<'a>(
+     }
+ }
+ 
++// Inspect `DecryptionError` only in helpers: its `BadCiphertext(&'static str)`
++// field comes from an opaque call, and Aeneas has no loan for that static
++// borrow when the variant is expanded or the field copied.
++fn is_bad_key_or_iv(error: &signal_crypto::DecryptionError) -> bool {
++    matches!(error, signal_crypto::DecryptionError::BadKeyOrIv)
++}
++
++// Callers pass only `BadCiphertext` (the other variant is tested first).
++fn decrypt_failure_message(error: signal_crypto::DecryptionError) -> String {
++    match error {
++        signal_crypto::DecryptionError::BadCiphertext(msg) => format!("failed to decrypt: {msg}"),
++        signal_crypto::DecryptionError::BadKeyOrIv => {
++            unreachable!("callers pass only BadCiphertext")
++        }
++    }
++}
++
+ /// Sender-side Triple Ratchet session.
+ ///
+ /// This is intentionally narrower than [`TripleRatchet`]: encrypt only
+@@ -287,7 +304,8 @@ impl TripleRatchet {
+             message_keys.iv(),
+         ) {
+             Ok(ptext) => ptext,
+-            Err(signal_crypto::DecryptionError::BadKeyOrIv) => {
++            // The guard tests the variant without expanding the error here.
++            Err(decryption_error) if is_bad_key_or_iv(&decryption_error) => {
+                 log::warn!(
+                     "{current_or_previous_for_logging} session state corrupt for {sender_address}",
+                 );
+@@ -295,10 +313,10 @@ impl TripleRatchet {
+                     "invalid receiver chain message keys",
+                 ));
+             }
+-            Err(signal_crypto::DecryptionError::BadCiphertext(msg)) => {
++            Err(decryption_error) => {
+                 return Err(SignalProtocolError::InvalidMessage(
+                     original_message_type,
+-                    format!("failed to decrypt: {msg}"),
++                    decrypt_failure_message(decryption_error),
+                 ));
+             }
+         };

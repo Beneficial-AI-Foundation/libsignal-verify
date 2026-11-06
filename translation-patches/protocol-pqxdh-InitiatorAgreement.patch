@@ -1,0 +1,22 @@
+Translation patch: libsignal_protocol::pqxdh::InitiatorAgreement
+
+Change: the fields `keys` and `kyber_ciphertext` become `pub(crate)`.
+Why: `initialize_alice_session` destructures the result of `pqxdh_initiate` directly instead of calling the excluded `Handshake::initiate` (protocol-ratchet-pqxdh_calls.patch).
+Behaviour: identical. Only the visibility changes.
+
+diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+--- a/rust/protocol/src/pqxdh.rs
++++ b/rust/protocol/src/pqxdh.rs
+@@ -102,8 +102,10 @@ impl HandshakeKeys {
+ /// Contains the derived handshake keys and the KEM ciphertext that the
+ /// recipient needs to complete the agreement.
+ pub(crate) struct InitiatorAgreement {
+-    keys: HandshakeKeys,
+-    kyber_ciphertext: kem::SerializedCiphertext,
++    // pub(crate) so callers can destructure directly instead of going through
++    // the excluded `Handshake::initiate` trait method (see ratchet.rs).
++    pub(crate) keys: HandshakeKeys,
++    pub(crate) kyber_ciphertext: kem::SerializedCiphertext,
+ }
+ 
+ /// Parameters for the initiator side of a PQXDH key agreement.

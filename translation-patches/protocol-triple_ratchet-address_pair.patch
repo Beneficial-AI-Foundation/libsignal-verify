@@ -1,0 +1,37 @@
+Translation patch: libsignal_protocol::triple_ratchet::OutgoingTripleRatchet::encrypt
+
+Change: `local_address.map(|addr| (addr, remote_address))` becomes a call of the new function `address_pair`, whose body is the equivalent `match`.
+Why: Aeneas cannot end the borrows of a closure that returns two references, nor join the branches of the same `match` inline.
+Behaviour: identical.
+
+diff --git a/rust/protocol/src/triple_ratchet.rs b/rust/protocol/src/triple_ratchet.rs
+--- a/rust/protocol/src/triple_ratchet.rs
++++ b/rust/protocol/src/triple_ratchet.rs
+@@ -24,6 +24,18 @@ use crate::{
+     SignalProtocolError,
+ };
+ 
++// Pair the addresses in a helper: Aeneas cannot end the borrows of a closure
++// returning two references, nor join the branches of an inline match.
++fn address_pair<'a>(
++    local_address: Option<&'a ProtocolAddress>,
++    remote_address: &'a ProtocolAddress,
++) -> Option<(&'a ProtocolAddress, &'a ProtocolAddress)> {
++    match local_address {
++        Some(addr) => Some((addr, remote_address)),
++        None => None,
++    }
++}
++
+ /// Sender-side Triple Ratchet session.
+ ///
+ /// This is intentionally narrower than [`TripleRatchet`]: encrypt only
+@@ -113,7 +125,7 @@ impl OutgoingTripleRatchet {
+             SignalProtocolError::InvalidSessionStructure("invalid sender chain message keys")
+         })?;
+ 
+-        let addresses = local_address.map(|addr| (addr, remote_address));
++        let addresses = address_pair(local_address, remote_address);
+ 
+         let message = SignalMessage::new(
+             self.session_version,

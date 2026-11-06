@@ -1,0 +1,17 @@
+Translation patch: impl rand::distr::Distribution<Timestamp> for rand::distr::StandardUniform
+
+Change: under the `extraction` feature, the impl is left out.
+Why: not recorded in the source or the extraction notes.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+
+diff --git a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
+--- a/rust/protocol/src/timestamp.rs
++++ b/rust/protocol/src/timestamp.rs
+@@ -34,6 +34,7 @@ impl From<Timestamp> for std::time::SystemTime {
+     }
+ }
+ 
++#[cfg(not(feature = "extraction"))]
+ impl rand::distr::Distribution<Timestamp> for rand::distr::StandardUniform {
+     fn sample<R: rand::prelude::Rng + ?Sized>(&self, rng: &mut R) -> Timestamp {
+         Timestamp(Self::sample(self, rng))
