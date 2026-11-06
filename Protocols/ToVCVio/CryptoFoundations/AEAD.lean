@@ -378,8 +378,10 @@ theorem ctxtToDec_decBound {aead : Scheme ProbComp Msg Key AD C}
 forwarded and logged until the reduction captures `B`'s checking query number `j` (counted from
 0); after the capture they are answered with `fallback.2`, so the plain game's log stops
 growing. Uniform queries are forwarded at every stage. Checking queries are answered from the
-log, which is correct for a perfectly correct scheme up to the first fresh valid query. The
-reduction outputs the captured pair, or `fallback` if there is none. -/
+log. For a perfectly correct scheme these answers agree with the real oracle as long as nothing
+is captured and no fresh valid pair has been queried. After a capture the log stops growing, so
+later answers can differ from the real oracle. The bound does not depend on them. The reduction
+outputs the captured pair, or `fallback` if there is none. -/
 
 /-- The state of a guessing reduction: its copy `log` of the encryption log, the number `seen`
 of checking queries so far, and the captured checking query `guess`. -/
