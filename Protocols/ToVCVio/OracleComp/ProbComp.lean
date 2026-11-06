@@ -8,8 +8,7 @@ import VCVio.OracleComp.ProbComp
 /-!
 # Nonempty result types of `ProbComp`
 
-A `ProbComp` computation always has an output, so its result type is nonempty. The hop-4 proof of
-the PQXDH model uses this to show that a bound on a key generator's outputs is nonnegative.
+A `ProbComp` computation always has an output, so its result type is nonempty.
 
 The lemma statements and proofs in this file are AI-written.
 -/

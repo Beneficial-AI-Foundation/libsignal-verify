@@ -127,17 +127,17 @@ def headBundle (e : Option (Message G PQPK CT S C IdC IdK × ℕ)) :
   | _ => none
 
 /-- `pqpkGuessed` as a function of the first entries of the transcripts. -/
-def pgHeads [DecidableEq PQPK] (hc : Option (Message G PQPK CT S C IdC IdK × ℕ))
+def pqpkGuessedOfHeads [DecidableEq PQPK] (hc : Option (Message G PQPK CT S C IdC IdK × ℕ))
     (hs : List (Option (Message G PQPK CT S C IdC IdK × ℕ))) : Bool :=
   !decide ((hs.filterMap headBundle).map (·.pqpkB.1)).Nodup ||
     ((headBundle hc).any fun b => (hc.map Prod.snd).any fun tc =>
       hs.any fun e => ((headBundle e).any fun b' => decide (b.pqpkB.1 = b'.pqpkB.1)) &&
         (e.map Prod.snd).any fun ti => decide (tc < ti))
 
-theorem badEnv_eq_pgHeads [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK)) :
-    badEnv P msg hasOPK env = pgHeads (env.challenge.transcript).entries.head?
+theorem badEnv_eq_pqpkGuessedOfHeads [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK)) :
+    badEnv P msg hasOPK env = pqpkGuessedOfHeads (env.challenge.transcript).entries.head?
       (env.tSessions.map (·.transcript.entries.head?)) := by
-  simp only [badEnv, envResult, pqpkGuessed, pgHeads, oracleBundles, challengeBundle,
+  simp only [badEnv, envResult, pqpkGuessed, pqpkGuessedOfHeads, oracleBundles, challengeBundle,
     transcriptBundle, transcriptStart, List.filterMap_map, List.any_map]
   rfl
 
@@ -151,7 +151,7 @@ theorem badEnv_set_of_head [DecidableEq PQPK] (env : Env (uakeInitiator P msg ha
         badEnv P msg hasOPK env ∧
       (env.tSessions.set sid t').length = env.tSessions.length := by
   refine ⟨?_, by simp⟩
-  rw [badEnv_eq_pgHeads, badEnv_eq_pgHeads]
+  rw [badEnv_eq_pqpkGuessedOfHeads, badEnv_eq_pqpkGuessedOfHeads]
   congr 1
   rw [List.map_set]
   obtain ⟨hlt, hget⟩ := List.getElem?_eq_some_iff.1 hs
@@ -159,9 +159,8 @@ theorem badEnv_set_of_head [DecidableEq PQPK] (env : Env (uakeInitiator P msg ha
     (i := sid) (by simpa using hlt)
   simpa [hget, ht'] using h'
 
-/-- Extending the challenge transcript by entries stamped from the current clock on changes
-neither the bad event nor the sessions: a newly set challenge head is later than every session
-head, so it predicts no existing session. -/
+/-- Under `env.SessionsStarted`, extending the challenge transcript by `(w, env.clock) :: rest`
+preserves `badEnv` and the number of sessions. -/
 theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK))
     (h : env.SessionsStarted) (c : ℕ) (st : (uakeInitiator P msg hasOPK).U.State)
     (tr : Transcript (Message G PQPK CT S C IdC IdK)) (d : Bool)
@@ -170,11 +169,14 @@ theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P m
     badEnv P msg hasOPK ⟨c, ⟨st, tr⟩, d, env.tSessions⟩ = badEnv P msg hasOPK env ∧
       env.tSessions.length = env.tSessions.length := by
   refine ⟨?_, rfl⟩
-  rw [badEnv_eq_pgHeads, badEnv_eq_pgHeads, htr]
+  -- The challenge head changes only when the old transcript is empty. The new head is
+  -- `(w, env.clock)`, and by `h` it is later than every session head, so it predicts no
+  -- existing session.
+  rw [badEnv_eq_pqpkGuessedOfHeads, badEnv_eq_pqpkGuessedOfHeads, htr]
   rcases hc : (env.challenge.transcript).entries with _ | ⟨e, es⟩
   · cases w with
     | bundle b =>
-      simp only [List.nil_append, List.head?_cons, List.head?_nil, pgHeads, headBundle,
+      simp only [List.nil_append, List.head?_cons, List.head?_nil, pqpkGuessedOfHeads, headBundle,
         Option.any_some, Option.map_some, Option.map_none, Option.any_none, Bool.or_false]
       refine (fun X Y (hY : Y = false) => by simp [hY] :
         ∀ X Y : Bool, Y = false → (X || Y) = X) _ _ ?_
@@ -183,8 +185,8 @@ theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P m
       obtain ⟨s, hs, rfl⟩ := List.mem_map.1 hx
       obtain ⟨e', es', he', hlt⟩ := h s hs
       simp [he', Nat.not_lt.2 hlt.le]
-    | initial _ => simp [pgHeads, headBundle]
-    | confirmation _ => simp [pgHeads, headBundle]
+    | initial _ => simp [pqpkGuessedOfHeads, headBundle]
+    | confirmation _ => simp [pqpkGuessedOfHeads, headBundle]
   · simp
 
 theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)

@@ -13,7 +13,7 @@ import Protocols.ToVCVio.OracleComp.ProbComp
 `probEvent_bind_le_tsum` bounds an event after a bind by the expected value of any pointwise
 bound on the continuation. `probEvent_fst_mem_finset_le` bounds the chance that a drawn pair's
 first component lands in a finite set, and `nonneg_of_probOutput_le` says that a bound on
-every output probability is nonnegative. The hop-4 proof of the PQXDH model uses all three.
+every output probability is nonnegative.
 
 The lemma statements and proofs in this file are AI-written.
 -/

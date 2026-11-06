@@ -209,16 +209,10 @@ lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
   sorry
 
 omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
-/-- Hop 4 (KEM-key guessing): the bad event `pqpkGuessed` has probability at most
-  `q ^ 2 * εpk`.
-
-  Each T session draws its KEM public key afresh from `P.pqkem.keygen`, after the keys of the
-  earlier sessions and the key of any bundle the challenge has accepted are fixed, so the draw
-  of the `j`-th session hits one of at most `j` known keys with probability at most `j * εpk`.
-  The proof applies `KeyGuessing.probEvent_badEnv_le`, which bounds the simulated challenge stage
-  by the potential `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings. That is
-  `εpk * q ^ 2` at the start. Only the challenge-stage half of `hq` is used. The statement needs
-  no `SampleableType K` instance.
+/-- Hop 4 (KEM-key guessing): if `A.OpensAtMost q` and every public-key output of
+  `P.pqkem.keygen` has probability at most `εpk`, then
+  `pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk`. The statement needs no
+  `SampleableType K` instance.
 
   Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. -/
 lemma pqpkGuessedProb_le
@@ -226,6 +220,12 @@ lemma pqpkGuessedProb_le
     (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
+  -- Each T session draws its KEM public key afresh from `P.pqkem.keygen`, after the keys of the
+  -- earlier sessions and the key of any bundle the challenge has accepted are fixed. So the draw
+  -- of the `j`-th session hits one of at most `j` known keys with probability at most `j * εpk`.
+  -- `KeyGuessing.probEvent_badEnv_le` bounds the simulated challenge stage by the potential
+  -- `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings. That is `εpk * q ^ 2`
+  -- at the start. Only the challenge-stage half of `hq` is used.
   have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
   have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
     (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)

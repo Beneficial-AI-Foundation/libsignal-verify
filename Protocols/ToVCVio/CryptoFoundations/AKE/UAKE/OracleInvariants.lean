@@ -18,8 +18,6 @@ This file states, for any scheme over `ProbComp`:
   `Env.sessionsStarted_clock_mono` show that extending a session's transcript and advancing the
   clock keep it.
 
-The hop-4 proof of the PQXDH model uses these facts.
-
 The lemma statements and proofs in this file are AI-written.
 -/
 
