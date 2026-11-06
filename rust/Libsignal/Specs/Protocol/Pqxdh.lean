@@ -11,8 +11,7 @@ import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.Derive
 
 This file freezes the specifications of the items of `rust/protocol/src/pqxdh.rs`. Each theorem
 is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on. A
-definition, including the two extracted entry points, has the axiom check only; its body is not
-restated.
+definition, including the two extracted entry points, has only the axiom check.
 
 The closures of `pqxdh_initiate` and `pqxdh_accept` list the logical axioms of Lean, the opaque
 primitives and backend items of the extraction that the two functions call, and the
