@@ -4,7 +4,8 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
-import Protocols.ToVCVio.OracleComp.ProbComp
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OracleInvariants
+import Protocols.ToVCVio.EvalDist.Monad.Basic
 import Protocols.ToVCVio.OracleComp.QueryTracking.QueryBound
 
 /-!
@@ -22,7 +23,12 @@ the budget and `n` sessions open, the probability of ending in the bad event is 
 single public key. The bound for an arbitrary stateful oracle implementation,
 `OracleComp.probEvent_simulateQ_bad_le`, is in
 `Protocols/ToVCVio/OracleComp/QueryTracking/QueryBound.lean`. This file instantiates it with the
-UAKE oracle.
+UAKE oracle. The facts about that oracle that hold for every scheme (`Env.openNext`,
+`Env.SessionsStarted` and their lemmas) are in
+`Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/OracleInvariants.lean`. What stays here depends on
+PQXDH: the bad event `badEnv`, the key set `keySet`, and the proofs that the oracle keeps
+`SessionsStarted`, changes the bad event only at `openT`, and hits `keySet` with probability at
+most `ε` per key.
 
 The lemma statements and proofs in this file are AI-written.
 -/
@@ -31,36 +37,6 @@ open OracleSpec OracleComp AKE AKE.UAKE
 open scoped ENNReal
 
 namespace Protocols.Models.PQXDH.KeyGuessing
-
-section Keygen
-
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
-  (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-
-/-- The pointwise bound on the public-key marginal of `keygen` forces `0 ≤ εpk`. -/
-theorem εpk_nonneg {εpk : ℝ}
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
-    0 ≤ εpk := by
-  obtain ⟨kp⟩ := ProbComp.nonempty_of_probComp P.pqkem.keygen
-  exact le_trans ENNReal.toReal_nonneg (hpk kp.1)
-
-/-- A fresh public key lands in a fixed finite set with probability at most `|T| * ε`. -/
-theorem probEvent_keygen_mem_le (T : Finset PQPK) (ε : ℝ≥0∞)
-    (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε) :
-    Pr[ fun kp => kp.1 ∈ T | P.pqkem.keygen] ≤ ε * (T.card : ℝ≥0∞) := by
-  calc Pr[ fun kp => kp.1 ∈ T | P.pqkem.keygen]
-      = Pr[ fun pk => ∃ x ∈ T, pk = x | Prod.fst <$> P.pqkem.keygen] := by
-        rw [probEvent_map]
-        congr 1
-        ext kp
-        simp
-    _ ≤ ∑ x ∈ T, Pr[ fun pk => pk = x | Prod.fst <$> P.pqkem.keygen] :=
-        probEvent_exists_finset_le_sum _ _ _
-    _ ≤ ∑ _x ∈ T, ε :=
-        Finset.sum_le_sum fun x _ => by rw [probEvent_eq_eq_probOutput]; exact hpk x
-    _ = ε * (T.card : ℝ≥0∞) := by rw [Finset.sum_const, nsmul_eq_mul, mul_comm]
-
-end Keygen
 
 section Model
 
@@ -84,26 +60,12 @@ def envResult (env : Env (uakeInitiator P msg hasOPK)) :
 def badEnv [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK)) : Bool :=
   pqpkGuessed P msg hasOPK (envResult P msg hasOPK env)
 
-/-- Every T session's transcript is nonempty and starts strictly before the clock. -/
-def Inv (env : Env (uakeInitiator P msg hasOPK)) : Prop :=
-  ∀ s ∈ env.tSessions, ∃ e es, s.transcript.entries = e :: es ∧ e.2 < env.clock
-
 /-- The KEM public keys a newly opened session could repeat: those of the open sessions and
 that of the bundle the challenge has accepted, if any. -/
 def keySet [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK)) : Finset PQPK :=
   ((oracleBundles P msg hasOPK (envResult P msg hasOPK env)).map (·.pqpkB.1) ++
     ((challengeBundle P msg hasOPK (envResult P msg hasOPK env)).map
       (·.pqpkB.1)).toList).toFinset
-
-/-- The environment after `openT` received the init result `r`. -/
-def openNext (env : Env (uakeInitiator P msg hasOPK))
-    (r : Party.InitResult (uakeInitiator P msg hasOPK).T.State
-      (Message G PQPK CT S C IdC IdK)) :
-    Env (uakeInitiator P msg hasOPK) :=
-  { env with
-    clock := (recordOpt ⟨[]⟩ r.opening env.clock).2
-    tSessions := env.tSessions ++
-      [⟨r.state, (recordOpt ⟨[]⟩ r.opening env.clock).1, none, false⟩] }
 
 theorem keySet_card_le [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK)) :
     (keySet P msg hasOPK env).card ≤ env.tSessions.length + 1 := by
@@ -124,11 +86,11 @@ theorem keySet_card_le [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK
 theorem mem_keySet_of_badEnv_openNext [DecidableEq PQPK]
     (env : Env (uakeInitiator P msg hasOPK)) (hbad : badEnv P msg hasOPK env = false)
     (st : (uakeInitiator P msg hasOPK).T.State) (bd : PreKeyBundle G PQPK S IdC IdK)
-    (h : badEnv P msg hasOPK (openNext P msg hasOPK env (.speakFirst st (.bundle bd))) = true) :
+    (h : badEnv P msg hasOPK (env.openNext (.speakFirst st (.bundle bd))) = true) :
     bd.pqpkB.1 ∈ keySet P msg hasOPK env := by
   simp only [badEnv, pqpkGuessed, oracleBundles, transcriptBundle, envResult, List.filterMap_map,
     Function.comp_apply, transcriptStart, List.any_map, challengeBundle, Bool.or_eq_false_iff,
-    Bool.not_eq_eq_eq_not, Bool.not_false, decide_eq_true_eq, openNext, recordOpt,
+    Bool.not_eq_eq_eq_not, Bool.not_false, decide_eq_true_eq, Env.openNext, recordOpt,
     Party.InitResult.opening, recordOne, List.nil_append, Party.InitResult.state, List.map_append,
     List.map_cons, List.map_nil, List.filterMap_append, List.head?_cons, Option.some.injEq,
     List.filterMap_cons_some, List.filterMap_nil, List.nodup_append, List.nodup_cons,
@@ -155,41 +117,6 @@ theorem mem_keySet_of_badEnv_openNext [DecidableEq PQPK]
         · exact h1
       | initial _ => simp [hh] at h
       | confirmation _ => simp [hh] at h
-
-theorem oracle_openT_run (tk : RecipientIdentity F G SPK SSK S)
-    (env : Env (uakeInitiator P msg hasOPK)) :
-    (oracle P msg hasOPK tk (Sum.inr .openT)).run env =
-      ((uakeInitiator P msg hasOPK).T.init tk >>= fun r =>
-        pure ((env.tSessions.length, r.opening), openNext P msg hasOPK env r) :
-        ProbComp ((unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)).Range
-          (Sum.inr .openT) × Env (uakeInitiator P msg hasOPK))) := by
-  simp [oracle, oracleImpl, opImpl, openNext]
-
-/-- `Inv` survives replacing session `sid` by a session whose transcript extends the old one,
-while the clock does not decrease. -/
-theorem inv_set_extend (env : Env (uakeInitiator P msg hasOPK)) (h : Inv P msg hasOPK env)
-    {sid : ℕ} {t : TSession (uakeInitiator P msg hasOPK)} (hs : env.tSessions[sid]? = some t)
-    (t' : TSession (uakeInitiator P msg hasOPK)) (ext : List (Message G PQPK CT S C IdC IdK × ℕ))
-    (hext : t'.transcript.entries = t.transcript.entries ++ ext) (c : ℕ) (hc : env.clock ≤ c)
-    (ch : Session (uakeInitiator P msg hasOPK).U.State (Message G PQPK CT S C IdC IdK))
-    (d : Bool) :
-    Inv P msg hasOPK ⟨c, ch, d, env.tSessions.set sid t'⟩ := by
-  intro s hs'
-  rcases List.mem_or_eq_of_mem_set hs' with hs' | rfl
-  · obtain ⟨e, es, he, hlt⟩ := h s hs'
-    exact ⟨e, es, he, by simp only; omega⟩
-  · obtain ⟨e, es, he, hlt⟩ := h t (List.mem_of_getElem? hs)
-    exact ⟨e, es ++ ext, by rw [hext, he]; rfl, by simp only; omega⟩
-
-/-- `Inv` survives a non-decreasing clock when the sessions are unchanged. -/
-theorem inv_clock_mono (env : Env (uakeInitiator P msg hasOPK)) (h : Inv P msg hasOPK env)
-    (c : ℕ) (hc : env.clock ≤ c)
-    (ch : Session (uakeInitiator P msg hasOPK).U.State (Message G PQPK CT S C IdC IdK))
-    (d : Bool) :
-    Inv P msg hasOPK ⟨c, ch, d, env.tSessions⟩ := by
-  intro s hs
-  obtain ⟨e, es, he, hlt⟩ := h s hs
-  exact ⟨e, es, he, by simp only; omega⟩
 
 /-- The bundle carried by a transcript's first entry, read from that entry alone. -/
 def headBundle (e : Option (Message G PQPK CT S C IdC IdK × ℕ)) :
@@ -235,7 +162,7 @@ theorem badEnv_set_of_head [DecidableEq PQPK] (env : Env (uakeInitiator P msg ha
 neither the bad event nor the sessions: a newly set challenge head is later than every session
 head, so it predicts no existing session. -/
 theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P msg hasOPK))
-    (h : Inv P msg hasOPK env) (c : ℕ) (st : (uakeInitiator P msg hasOPK).U.State)
+    (h : env.SessionsStarted) (c : ℕ) (st : (uakeInitiator P msg hasOPK).U.State)
     (tr : Transcript (Message G PQPK CT S C IdC IdK)) (d : Bool)
     (w : Message G PQPK CT S C IdC IdK) (rest : List (Message G PQPK CT S C IdC IdK × ℕ))
     (htr : tr.entries = (env.challenge.transcript).entries ++ (w, env.clock) :: rest) :
@@ -260,8 +187,8 @@ theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P m
   · simp
 
 theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
-    (env : Env (uakeInitiator P msg hasOPK)) (h : Inv P msg hasOPK env) :
-    ∀ z ∈ support ((oracle P msg hasOPK tk t).run env), Inv P msg hasOPK z.2 := by
+    (env : Env (uakeInitiator P msg hasOPK)) (h : env.SessionsStarted) :
+    ∀ z ∈ support ((oracle P msg hasOPK tk t).run env), z.2.SessionsStarted := by
   intro z hz
   rcases t with n | op
   · simp only [add_apply_inl, oracle, oracleImpl, HasQuery.toQueryImpl_apply,
@@ -271,7 +198,7 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
     exact h
   · cases op with
     | openT =>
-      rw [oracle_openT_run, mem_support_bind_iff] at hz
+      rw [oracleImpl_openT_run, mem_support_bind_iff] at hz
       obtain ⟨r, hr, hz⟩ := hz
       have hinit : (uakeInitiator P msg hasOPK).T.init tk = (recipient P hasOPK).init tk := rfl
       rw [hinit] at hr
@@ -284,7 +211,7 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
       simp only [support_pure, Set.mem_singleton_iff] at hz
       subst hz
       intro s hs
-      simp only [openNext, Party.InitResult.opening, recordOpt, recordOne, List.nil_append,
+      simp only [Env.openNext, Party.InitResult.opening, recordOpt, recordOne, List.nil_append,
         Party.InitResult.state, List.mem_append, List.mem_singleton] at hs ⊢
       rcases hs with hs | rfl
       · obtain ⟨e, es, he, hlt⟩ := h s hs
@@ -312,14 +239,14 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
             · simp only [Bool.false_eq_true, ↓reduceIte, StateT.run_map, StateT.run_set, map_pure,
                 support_pure, Set.mem_singleton_iff] at hz
               subst hz
-              exact inv_set_extend P msg hasOPK env h hs _ _ (by simp [recordOne]; rfl) _
+              exact env.sessionsStarted_set_extend h hs _ _ (by simp [recordOne]; rfl) _
                 (by simp [recordOne]; omega) _ _
             · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
                 bind_pure_comp, StateT.run_map, StateT.run_set, map_pure, Functor.map_map,
                 support_map, Set.mem_image] at hz
               obtain ⟨y, -, hz⟩ := hz
               subst hz
-              exact inv_set_extend P msg hasOPK env h hs _ _ (by simp [recordOne]; rfl) _
+              exact env.sessionsStarted_set_extend h hs _ _ (by simp [recordOne]; rfl) _
                 (by simp [recordOne]; omega) _ _
           | complete st' =>
             simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self, bind_pure_comp,
@@ -327,7 +254,7 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
               at hz
             obtain ⟨y, -, hz⟩ := hz
             subst hz
-            exact inv_set_extend P msg hasOPK env h hs _ _ (by simp [recordOne]; rfl) _
+            exact env.sessionsStarted_set_extend h hs _ _ (by simp [recordOne]; rfl) _
               (by simp [recordOne]) _ _
         · simp only [add_apply_inr, bind_pure_comp, pure_bind, StateT.run_bind, StateT.run_get,
             hs, hk, StateT.run_pure, support_pure] at hz
@@ -372,16 +299,16 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
           simp only [StateT.run_map, StateT.run_set, map_pure, support_pure,
             Set.mem_singleton_iff] at hz
           subst hz
-          exact inv_clock_mono P msg hasOPK env h _ (by simp [recordOne]; omega) _ _
+          exact env.sessionsStarted_clock_mono h _ (by simp [recordOne]; omega) _ _
         | complete st' =>
           simp only [StateT.run_map, StateT.run_set, map_pure, support_pure,
             Set.mem_singleton_iff] at hz
           subst hz
-          exact inv_clock_mono P msg hasOPK env h _ (by simp [recordOne]) _ _
+          exact env.sessionsStarted_clock_mono h _ (by simp [recordOne]) _ _
 
 theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (t)
     (ht : t ≠ Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
-    (h : Inv P msg hasOPK env) :
+    (h : env.SessionsStarted) :
     ∀ z ∈ support ((oracle P msg hasOPK tk t).run env),
       badEnv P msg hasOPK z.2 = badEnv P msg hasOPK env ∧
         z.2.tSessions.length = env.tSessions.length := by
@@ -479,18 +406,6 @@ theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (t
           subst hz
           exact badEnv_challenge_append P msg hasOPK env h _ _ _ _ w [] (by simp [recordOne])
 
-theorem oracle_open_count (tk : RecipientIdentity F G SPK SSK S) (t)
-    (ht : t = Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK)) :
-    ∀ z ∈ support ((oracle P msg hasOPK tk t).run env),
-      z.2.tSessions.length = env.tSessions.length + 1 := by
-  subst ht
-  intro z hz
-  rw [oracle_openT_run, mem_support_bind_iff] at hz
-  obtain ⟨r, -, hz⟩ := hz
-  simp only [support_pure, Set.mem_singleton_iff] at hz
-  subst hz
-  simp [openNext]
-
 theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (ε : ℝ≥0∞)
     (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε) (t)
     (ht : t = Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
@@ -498,9 +413,9 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (ε
     Pr[ fun z => badEnv P msg hasOPK z.2 = true | (oracle P msg hasOPK tk t).run env] ≤
       ε * ((env.tSessions.length + 1 : ℕ) : ℝ≥0∞) := by
   subst ht
-  rw [oracle_openT_run]
+  rw [oracleImpl_openT_run]
   refine (probEvent_bind_le_probEvent
-    (p := fun r => badEnv P msg hasOPK (openNext P msg hasOPK env r) = true)
+    (p := fun r => badEnv P msg hasOPK (env.openNext r) = true)
     fun r _ hr => by simp [probEvent_pure, hr]).trans ?_
   have hinit : (uakeInitiator P msg hasOPK).T.init tk = (recipient P hasOPK).init tk := rfl
   rw [hinit]
@@ -518,7 +433,7 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (ε
       obtain ⟨_, _, rfl⟩ := hbd
       exact hmem
     · exact le_rfl
-  · exact (probEvent_keygen_mem_le P _ ε hpk).trans
+  · exact (probEvent_fst_mem_finset_le _ _ ε hpk).trans
       (by gcongr; exact_mod_cast keySet_card_le P msg hasOPK env)
 
 /-- The potential bound for the UAKE oracle, for any budget predicate that holds exactly at
@@ -529,16 +444,16 @@ theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G SPK S
     {_ : DecidablePred p} (hp : ∀ t, p t ↔ t = Sum.inr .openT) {α : Type}
     (oa : OracleComp (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)) α) (b : ℕ)
     (hb : oa.IsQueryBoundP p b)
-    (env : Env (uakeInitiator P msg hasOPK)) (h : Inv P msg hasOPK env) :
+    (env : Env (uakeInitiator P msg hasOPK)) (h : env.SessionsStarted) :
     Pr[ fun z => badEnv P msg hasOPK z.2 = true |
         (simulateQ (oracle P msg hasOPK tk) oa).run env] ≤
       (if badEnv P msg hasOPK env then 1 else 0) +
         ε * ((b * (env.tSessions.length + b) : ℕ) : ℝ≥0∞) :=
   probEvent_simulateQ_bad_le (oracle P msg hasOPK tk) p
-    (badEnv P msg hasOPK) (fun env => env.tSessions.length) (Inv P msg hasOPK) ε
+    (badEnv P msg hasOPK) (fun env => env.tSessions.length) Env.SessionsStarted ε
     (fun t env h => oracle_inv P msg hasOPK tk t env h)
     (fun t env ht h => oracle_free P msg hasOPK tk t (fun e => ht ((hp t).2 e)) env h)
-    (fun t env ht _ => oracle_open_count P msg hasOPK tk t ((hp t).1 ht) env)
+    (fun t env ht _ => oracleImpl_openT_count _ tk t ((hp t).1 ht) env)
     (fun t env ht _ hbad => oracle_hit P msg hasOPK tk ε hpk t ((hp t).1 ht) env hbad)
     oa b hb env h
 
@@ -549,7 +464,7 @@ theorem pqpkGuessedProb_le_bound [DecidableEq PQPK] [SampleableType K]
     (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
-  have hε0 : 0 ≤ εpk := εpk_nonneg P hpk
+  have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
   have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
     (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
   have key : Pr[= true | pqpkGuessedExp P msg hasOPK A] ≤
