@@ -76,13 +76,13 @@ def kdfInput (dh1 dh2 dh3 : Aeneas.Std.Slice Aeneas.Std.U8)
 `SecurityDefs.lean`, which takes 32-byte keys. -/
 def kdfInputSliceBytes (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : Slice U8) :
     List U8 :=
-  List.replicate 32 255#u8 ++ dh1.val ++ dh2.val ++ dh3.val ++ (dh4.map (·.val)).getD [] ++
-    ss.val
+  let dh4Bytes := match dh4 with
+    | none => []
+    | some d => d.val
+  List.replicate 32 255#u8 ++ dh1.val ++ dh2.val ++ dh3.val ++ dh4Bytes ++ ss.val
 
-/-- **The content of the KDF input.** For any slices, if the assembled bytes fit in `usize`,
-`kdfInput` succeeds and returns exactly `kdfInputSliceBytes`: the `0xFF` prefix, the DH outputs
-in the order DH1, DH2, DH3, DH4 (when present), then the KEM secret. The only premise is the
-bound on the total length; no length of a DH output or of the secret is assumed. -/
+/-- For slices of any length, if the assembled byte list has length at most `Usize.max`,
+`kdfInput` succeeds and returns `kdfInputSliceBytes`. -/
 @[step]
 theorem kdfInput_spec (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : Slice U8)
     (h_len : (kdfInputSliceBytes dh1 dh2 dh3 dh4 ss).length ≤ Usize.max) :
@@ -94,14 +94,13 @@ theorem kdfInput_spec (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : S
   have h_nil : ∀ j, (Vec.with_capacity U8 j).val = [] := fun _ => rfl
   open Aeneas.Std.alloc.vec in
   rcases dh4 with _ | d <;>
-    simp only [kdfInputSliceBytes, Option.map, Option.getD, List.length_append,
-      List.length_replicate, List.append_nil] at h_len <;>
+    simp only [kdfInputSliceBytes, List.length_append, List.length_replicate,
+      List.append_nil] at h_len <;>
     unfold kdfInput <;> step* <;>
     simp [kdfInputSliceBytes, Vec.deref, Slice.from_val, *]
 
-/-- **The KDF input for 32-byte components.** When the DH outputs and the KEM secret are 32-byte
-arrays, `kdfInput` succeeds, returns `kdfInputSliceBytes`, and has 160 bytes without a fourth DH
-output and 192 bytes with one. -/
+/-- For DH outputs and a KEM secret given as 32-byte arrays, `kdfInput` succeeds and returns
+`kdfInputSliceBytes`, of length 160 without the fourth DH output and 192 with it. -/
 theorem kdfInput_fixed_spec (dh1 dh2 dh3 : Array U8 32#usize) (dh4 : Option (Array U8 32#usize))
     (ss : Array U8 32#usize) :
     kdfInput dh1.to_slice dh2.to_slice dh3.to_slice (dh4.map (·.to_slice)) ss.to_slice
