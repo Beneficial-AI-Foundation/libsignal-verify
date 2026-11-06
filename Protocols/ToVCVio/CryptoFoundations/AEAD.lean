@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
-Authors: Ben Hamlin
+Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
@@ -10,6 +11,34 @@ import VCVio.OracleComp.QueryTracking.QueryBound
 import VCVio.OracleComp.SimSemantics.Append
 import VCVio.OracleComp.SimSemantics.SimulateQ
 import VCVio.OracleComp.SimSemantics.StateT.StateProjection
+
+/-!
+# AEAD security notions
+
+An AEAD scheme (`Scheme`) with its correctness experiment (`PerfectlyCorrect`), the multi-query
+IND-CPA game, and three ciphertext-integrity games: the plain game (`INT_CTXT_Game`, the
+adversary outputs one forgery), the verification game (`INT_CTXT_VF_Game`, the adversary queries
+a verification oracle) and the decryption game (`INT_CTXT_D_Game`, it queries a decryption
+oracle). Four lemmas relate the integrity games. The PQXDH model's security theorems assume a
+bound on `INT_CTXT_D_Advantage` directly and use none of the four lemmas.
+
+The file repairs three issues of the ported definitions:
+
+* #31: the IND-CPA challenge takes only equal-length message pairs (`EqualLengthChallenge`).
+  IND-CPA is kept as a reference notion; production's deterministic message encryption cannot
+  instantiate it (see `IND_CPA_Adversary`).
+* #33: each lemma bounds a named reduction (`ctxtToVf`, `ctxtToDec`, `vfToCtxt`, `decToCtxt`)
+  in place of an existential, and lemmas count the reductions' encryption and checking queries.
+  The reductions' running time and uniform queries are not counted; cost accounting is #41's.
+* #32: the two multiplicative lemmas take an explicit `fallback : AD × C`, the reduction's
+  output when it captures nothing, so the empty-`AD × C` counterexample has no instance.
+
+secure-messaging's one-time IND-CCA notion (secure-messaging `8369ee7`,
+`SecureMessaging/AEAD/Defs.lean`: `OneTimeCCAAdversary`, `aeadSecurityImpl`, `securityExp`)
+refuses decryption of the challenge pair. It is the recorded Gate S instantiation route, not an
+M1 obligation. An adapter must keep the scheme's key generation (`AEADScheme.keygen` there) and
+assume `PerfectlyCorrect`.
+-/
 
 open OracleSpec OracleComp
 open scoped ENNReal

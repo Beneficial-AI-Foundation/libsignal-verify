@@ -54,3 +54,17 @@ Prints the axiom closures recorded in `Protocols/LEDGER.md`. Run from the reposi
 #print axioms Protocols.PQXDH.alwaysPanic_fails
 #print axioms Protocols.PQXDH.alwaysError_fails
 #print axioms Protocols.PQXDH.alwaysDiverge_fails
+
+-- AEAD lemmas: the four integrity lemmas, the two advantage equalities and the query bounds.
+#print axioms AEAD.INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage
+#print axioms AEAD.INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage
+#print axioms AEAD.INT_CTXT_Advantage_le_INT_CTXT_D_Advantage
+#print axioms AEAD.INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage
+#print axioms AEAD.INT_CTXT_VF_Advantage_ctxtToVf
+#print axioms AEAD.INT_CTXT_D_Advantage_ctxtToDec
+#print axioms AEAD.ctxtToVf_encBound
+#print axioms AEAD.ctxtToVf_vfBound
+#print axioms AEAD.ctxtToDec_encBound
+#print axioms AEAD.ctxtToDec_decBound
+#print axioms AEAD.vfToCtxt_encBound
+#print axioms AEAD.decToCtxt_encBound
