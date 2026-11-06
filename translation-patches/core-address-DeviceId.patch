@@ -2,7 +2,7 @@ Translation patch: libsignal_core::address::DeviceId
 
 Change: `DeviceId(NonZeroU8)` becomes `DeviceId { id: NonZeroU8 }`. Every use of `.0` and of the constructor follows.
 Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
-Behaviour: identical. The field is private, so only its name changes.
+Behaviour: same values. The field is private. The derived `Debug` output changes from `DeviceId(…)` to `DeviceId { id: … }`.
 
 diff --git a/rust/core/src/address.rs b/rust/core/src/address.rs
 --- a/rust/core/src/address.rs
