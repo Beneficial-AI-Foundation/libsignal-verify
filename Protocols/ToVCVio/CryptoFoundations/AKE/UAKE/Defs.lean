@@ -359,7 +359,10 @@ def Exp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLift m)
   "bool-biased" advantage, i.e., the amount by which its probability of winning
   differs from a fair coin flip. The paper's game is total: for a coherent runtime,
   this value measures security only when the experiment loses no mass against the adversary.
-  `Scheme.Admissible` does not imply that. -/
+  `Scheme.Admissible` does not imply that. Under the `ProbComp` runtime, which loses no mass,
+  this value is half the real-versus-random advantage `distAdvantage`
+  (`advantage_eq_distAdvantage_div_two` in `UAKE/DistAdvantage.lean`). Issues #29 and #30
+  track lost mass and the factor of two against VCVio's `boolBiasAdvantage` for Gate S. -/
 noncomputable def advantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m)
     (A : Adversary proto) : ℝ :=
