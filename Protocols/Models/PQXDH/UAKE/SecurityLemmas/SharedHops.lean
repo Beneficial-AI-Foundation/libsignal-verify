@@ -6,6 +6,7 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.KeyGuessing
 
 /-!
 # Shared Security Hops
@@ -208,26 +209,22 @@ lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
   sorry
 
 omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
-/-- Hop 4 (KEM-key guessing): the bad event `pqpkGuessed` is a union of
-  pairwise guessing events on `P.pqkem.keygen`, so its probability is
-  bounded by the number of pairs times the per-pair guessing bound `εpk`.
+/-- Hop 4 (KEM-key guessing): the bad event `pqpkGuessed` has probability at most
+  `q ^ 2 * εpk`.
 
-  Intended proof: with at most `q` sessions, the collision part is a union
-  over at most `q * (q - 1) / 2` unordered session pairs; conditioning on
-  the earlier key generation, the later one hits it with probability at most
-  `εpk` by `hpk`. The prediction part is a union over at most `q` pairs of
-  the accepted bundle and a later-opened session; the accepted bundle's key
-  is determined strictly before that session's key generation, so `hpk`
-  applies again. In total `q * (q + 1) / 2 ≤ q ^ 2` pairs (for `q = 0` both
-  sides vanish).
+  Each T session draws its KEM public key afresh from `P.pqkem.keygen`, after the keys of the
+  earlier sessions and the key of any bundle the challenge has accepted are fixed, so the draw
+  of the `j`-th session hits one of at most `j` known keys with probability at most `j * εpk`.
+  The proof, `KeyGuessing.pqpkGuessedProb_le_bound`, bounds the simulated challenge stage by the
+  potential `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings, which is
+  `εpk * q ^ 2` at the start. Only the challenge-stage half of `hq` is used.
 
-  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. A proof would be the
-  union bound described above over at most `q ^ 2` session pairs, each bounded by `hpk`. -/
+  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. -/
 lemma pqpkGuessedProb_le
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
-  sorry
+  exact KeyGuessing.pqpkGuessedProb_le_bound P msg hasOPK A q hq εpk hpk
 
 end Protocols.Models.PQXDH
