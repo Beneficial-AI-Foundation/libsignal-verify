@@ -6,7 +6,11 @@ project root. The files listed here were ported from other projects and keep the
 ## Galois Inc., libsignal-docs-and-models
 
 - Source: <https://github.com/GaloisInc/libsignal-docs-and-models>, commit
-  `f8625935808bff4a85f9a59f751dac81d03384ca`.
+  `e82e566ff4f1db69b2638c5813249a4d4497b14f`.
+- Ported through the Beneficial AI Foundation fork <https://github.com/Beneficial-AI-Foundation/PQXDH-model>,
+  commit `f8625935808bff4a85f9a59f751dac81d03384ca`. That commit is the one commit after `e82e566ff4` and
+  exists only in the fork. It changes CI, blueprint, documentation, Lake and script files and none of the
+  files listed below, so each listed file is the same at both commits.
 - Copyright (c) 2026 Galois Inc. Author Ben Hamlin.
 - Licence: Apache License 2.0, text in `LICENSES/Apache-2.0.txt`.
 - The source repository has no NOTICE file.
