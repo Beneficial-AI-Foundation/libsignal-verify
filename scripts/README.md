@@ -70,7 +70,13 @@ A lock prevents concurrent installs. Each install is staged and then renamed int
 
 Each run first copies the Cargo workspace (the root `Cargo.toml`, `Cargo.lock` and `rust-toolchain`, and `rust/` without `rust/Libsignal/`) to `.aeneas/work/` and applies the translation patches there in file-name order. Charon runs in that copy as `charon cargo --preset=aeneas --sysroot=default`. Aeneas, Charon and `charon-driver` come from one installation with no `PATH` fallback. Aeneas emits non-module Lean files (`-use-lean-modules false`) to match the maintained external models.
 
-The extractor enables `-emit-json` centrally for every profile. Each run writes its command, LLBC, translation metadata, output hashes and logs to `.logs/<profile>/<timestamp>/`. Generated files are copied into `rust/Libsignal/Translated/` only after Charon reports no errors, the required roots have transparent bodies, Aeneas succeeds and every `required` tweak matches. The hand-maintained `TypesExternal.lean` and `FunsExternal.lean` are never overwritten; Aeneas writes `*_Template.lean` beside them. The Cargo cache is `.aeneas/work/.aeneas/cargo/<aeneas-commit>/<platform>/` unless `CARGO_TARGET_DIR` is set. It sits inside the work copy at the path it would have inside the repository, because Charon records the files that build scripts generate (the protobuf code) relative to its working directory, and Aeneas orders declarations by that path. Moving the cache changes the order of declarations in `Types.lean`. The run records the applied patches and their SHA-256 in `command.json` and `result.json`.
+The extractor enables `-emit-json` centrally for every profile. Each run writes its command, LLBC, translation metadata, output hashes and logs to `.logs/<profile>/<timestamp>/`.
+
+Generated files are copied into `rust/Libsignal/Translated/` only after Charon reports no errors, the required roots have transparent bodies, Aeneas succeeds and every `required` tweak matches. The hand-maintained `TypesExternal.lean` and `FunsExternal.lean` are never overwritten; Aeneas writes `*_Template.lean` beside them.
+
+The Cargo cache is `.aeneas/work/.aeneas/cargo/<aeneas-commit>/<platform>/` unless `CARGO_TARGET_DIR` is set. It sits inside the work copy at the path it would have inside the repository, because Charon records the files that build scripts generate (the protobuf code) relative to its working directory, and Aeneas orders declarations by that path. Moving the cache changes the order of declarations in `Types.lean`.
+
+The run records the applied patches and their SHA-256 in `command.json` and `result.json`.
 
 ### Configuration
 

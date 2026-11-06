@@ -28,4 +28,11 @@ Patches apply in file-name order. Most also apply alone to upstream. A patch tha
 - `npm run patches-check` (CI job "Check translation patches") fails when `rust/` differs from upstream, a header field is missing, a patch does not apply after exactly the patches its `Applies after:` line names, or the series does not apply in order and revert in reverse order.
 - The extraction job ("Check Aeneas Extraction") runs `npm run aeneas-extract` and fails when the generated Lean differs from the committed files.
 
-To add or change a patch, edit the file in `.aeneas/work/` after a run, write the diff with paths `a/rust/…` and `b/rust/…` against the tree the earlier patches produce, add the header, and run both checks. The reasons are also indexed in [`extraction-notes.md`](../extraction-notes.md#source-modifications).
+To add or change a patch after a run:
+
+1. Edit the file in `.aeneas/work/`.
+2. Write the diff with paths `a/rust/…` and `b/rust/…` against the tree the earlier patches produce.
+3. Add the header.
+4. Run both checks.
+
+The reasons are also indexed in [`extraction-notes.md`](../extraction-notes.md#source-modifications).

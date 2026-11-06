@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::storage::traits (the seven store traits)
 
-Change: under the `extraction` feature, `IdentityKeyStore`, `PreKeyStore`, `SignedPreKeyStore`, `KyberPreKeyStore`, `SessionStore`, `SenderKeyStore` and `ProtocolStore` are left out. One patch for the file, because the same gate goes on each trait for the same reason.
+Change: under the `extraction` feature, `IdentityKeyStore`, `PreKeyStore`, `SignedPreKeyStore`, `KyberPreKeyStore`, `SessionStore`, `SenderKeyStore` and `ProtocolStore` are left out.
 Why: Charon's hax frontend panics on the `#[async_trait]` store traits when `--start-from-pub` roots them, so the extraction leaves out the store-using layer. The protocol and crypto core does not use it.
 Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
 
