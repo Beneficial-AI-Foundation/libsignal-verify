@@ -20,5 +20,5 @@ the namespace `PQXDH` renamed `Protocols.Models.PQXDH`: the protocol procedures 
 in `Basic`, the two UAKE schemes `uakeInitiator` and `uakeRecipient` in `UAKE.Defs`, their
 perfect correctness in `UAKE.Correctness` and their well-formedness in `UAKE.WellFormed`, with
 the supporting lemmas in `UAKE.CorrectnessLemmas` and `UAKE.WellFormedLemmas`, the game hops
-in `UAKE.SecurityLemmas`, six of them admitted, and the two security theorems
+in `UAKE.SecurityLemmas`, five of them admitted, and the two security theorems
 `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` in `UAKE.Security`. -/
