@@ -707,6 +707,323 @@ theorem vfToCtxt_encBound {aead : Scheme ProbComp Msg Key AD C}
     · simp [vfGuessImpl, hg]
   · simp [vfGuessImpl]
 
+/-- The message of the first entry of the log `L` whose pair is `p`, or `none`. The decryption
+reduction answers decryption queries with it. -/
+def logLookup (L : List (AD × Msg × C)) (p : AD × C) : Option Msg :=
+  (L.find? fun e => decide ((e.1, e.2.2) = p)).map fun e => e.2.1
+
+/-- The handler of `decToCtxtAt fallback j`: as `vfGuessImpl`, with a log of encryption
+queries and their answers, and decryption queries answered by `logLookup`. -/
+def decGuessImpl (fallback : AD × C) (j : ℕ) :
+    QueryImpl (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg)))
+      (StateT (GuessState (AD × Msg × C) (AD × C)) (OracleComp (unifSpec + ((AD × Msg) →ₒ C))))
+  | .inl n => liftM (OracleSpec.query (spec := unifSpec + ((AD × Msg) →ₒ C)) (.inl n))
+  | .inr (.inl x) => do
+      let s ← get
+      match s.guess with
+      | none =>
+        let c : C ← liftM (OracleSpec.query (spec := unifSpec + ((AD × Msg) →ₒ C)) (.inr x))
+        set { s with log := s.log ++ [(x.1, x.2, c)] }
+        pure c
+      | some _ => pure fallback.2
+  | .inr (.inr p) => do
+      let s ← get
+      set { s with seen := s.seen + 1, guess := s.guess.or (if s.seen = j then some p else none) }
+      pure (logLookup s.log p)
+
+/-- The plain adversary that runs `B` with `decGuessImpl fallback j` and outputs the captured
+pair, or `fallback` if `B` makes at most `j` decryption queries. -/
+def decToCtxtAt {aead : Scheme ProbComp Msg Key AD C} (fallback : AD × C) (j : ℕ)
+    (B : INT_CTXT_D_Adversary aead) : INT_CTXT_Adversary aead :=
+  ⟨(fun r => r.2.guess.getD fallback) <$>
+    (simulateQ (decGuessImpl fallback j) B.run).run ⟨[], 0, none⟩⟩
+
+/-- The plain adversary that draws an index `i` uniformly from `[0, v - 1]` and runs
+`decToCtxtAt fallback i B`. -/
+def decToCtxt {aead : Scheme ProbComp Msg Key AD C} (fallback : AD × C) (v : ℕ)
+    (B : INT_CTXT_D_Adversary aead) : INT_CTXT_Adversary aead :=
+  ⟨do
+    let i : Fin (v - 1 + 1) ←
+      liftM (OracleSpec.query (spec := unifSpec + ((AD × Msg) →ₒ C)) (.inl (v - 1)))
+    (decToCtxtAt fallback i.val B).run⟩
+
+/-- One step of `decGuessImpl` run inside the plain game. -/
+private def decGuessGameImpl (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C) (j : ℕ)
+    (k : Key) : QueryImpl (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg)))
+      (StateT (GuessState (AD × Msg × C) (AD × C) × List (AD × C)) ProbComp) := fun q =>
+  StateT.mk fun sc => (fun r => (r.1.1, r.1.2, r.2)) <$>
+    (simulateQ (withUnif (ctxtImpl aead k)) ((decGuessImpl fallback j q).run sc.1)).run sc.2
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem decGuessGameImpl_unif (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C)
+    (j : ℕ) (k : Key) (n : ℕ) (g : GuessState (AD × Msg × C) (AD × C)) (L : List (AD × C)) :
+    ((decGuessGameImpl aead fallback j k) (.inl n)).run (g, L) =
+      (liftM (OracleSpec.query (spec := unifSpec) n) : ProbComp
+        ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range (.inl n))) >>=
+        fun u => pure (u, (g, L)) := by
+  have h : ((decGuessGameImpl aead fallback j k) (.inl n)).run (g, L) =
+      (fun u => (u, (g, L))) <$> (liftM (OracleSpec.query (spec := unifSpec) n) : ProbComp _) := by
+    simp [decGuessGameImpl, decGuessImpl, withUnif]
+  rw [h, map_eq_bind_pure_comp]; rfl
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem decGuessGameImpl_enc_none (aead : Scheme ProbComp Msg Key AD C)
+    (fallback : AD × C) (j : ℕ) (k : Key) (x : AD × Msg) (g : GuessState (AD × Msg × C) (AD × C))
+    (hg : g.guess = none) (L : List (AD × C)) :
+    ((decGuessGameImpl aead fallback j k) (.inr (.inl x))).run (g, L) =
+      (@id (ProbComp
+          ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range (.inr (.inl x))))
+        (aead.encrypt k x.1 x.2)) >>= fun c =>
+        pure (c, ({ g with log := g.log ++ [(x.1, x.2, @id C c)] }, L ++ [(x.1, @id C c)])) := by
+  have h : ((decGuessGameImpl aead fallback j k) (.inr (.inl x))).run (g, L) =
+      (fun c => (c, ({ g with log := g.log ++ [(x.1, x.2, c)] }, L ++ [(x.1, c)]))) <$>
+        aead.encrypt k x.1 x.2 := by
+    simp [decGuessGameImpl, decGuessImpl, withUnif, ctxtImpl, hg]
+  rw [h, map_eq_bind_pure_comp]; rfl
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem decGuessGameImpl_enc_some (aead : Scheme ProbComp Msg Key AD C)
+    (fallback : AD × C) (j : ℕ) (k : Key) (x : AD × Msg) (g : GuessState (AD × Msg × C) (AD × C))
+    (p : AD × C) (hg : g.guess = some p) (L : List (AD × C)) :
+    ((decGuessGameImpl aead fallback j k) (.inr (.inl x))).run (g, L) =
+      pure (fallback.2, (g, L)) := by
+  simp [decGuessGameImpl, decGuessImpl, hg]
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem decGuessGameImpl_dec (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C)
+    (j : ℕ) (k : Key) (p : AD × C) (g : GuessState (AD × Msg × C) (AD × C))
+    (L : List (AD × C)) :
+    ((decGuessGameImpl aead fallback j k) (.inr (.inr p))).run (g, L) =
+      pure (@id ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range
+          (.inr (.inr p))) (logLookup g.log p),
+        (⟨g.log, g.seen + 1, g.guess.or (if g.seen = j then some p else none)⟩, L)) := by
+  simp [decGuessGameImpl, decGuessImpl]
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem ctxtDecImpl_unif (aead : Scheme ProbComp Msg Key AD C) (k : Key) (n : ℕ)
+    (s : List (AD × C) × Bool) :
+    ((withUnif (ctxtDecImpl aead k)) (.inl n)).run s =
+      (liftM (OracleSpec.query (spec := unifSpec) n) : ProbComp
+        ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range (.inl n))) >>=
+        fun u => pure (u, s) := by
+  have h : ((withUnif (ctxtDecImpl aead k)) (.inl n)).run s =
+      (fun u => (u, s)) <$> (liftM (OracleSpec.query (spec := unifSpec) n) : ProbComp _) := by
+    simp [withUnif]
+  rw [h, map_eq_bind_pure_comp]; rfl
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem ctxtDecImpl_enc (aead : Scheme ProbComp Msg Key AD C) (k : Key) (x : AD × Msg)
+    (L : List (AD × C)) (b : Bool) :
+    ((withUnif (ctxtDecImpl aead k)) (.inr (.inl x))).run (L, b) =
+      (@id (ProbComp
+          ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range (.inr (.inl x))))
+        (aead.encrypt k x.1 x.2)) >>= fun c => pure (c, (L ++ [(x.1, @id C c)], b)) := by
+  have h : ((withUnif (ctxtDecImpl aead k)) (.inr (.inl x))).run (L, b) =
+      (fun c => (c, (L ++ [(x.1, c)], b))) <$> aead.encrypt k x.1 x.2 := by
+    simp [withUnif, ctxtDecImpl]
+  rw [h, map_eq_bind_pure_comp]; rfl
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem ctxtDecImpl_dec (aead : Scheme ProbComp Msg Key AD C) (k : Key) (p : AD × C)
+    (L : List (AD × C)) (b : Bool) :
+    ((withUnif (ctxtDecImpl aead k)) (.inr (.inr p))).run (L, b) =
+      pure (@id ((unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))).Range
+          (.inr (.inr p))) (aead.decrypt k p.1 p.2),
+        (L, b || ((aead.decrypt k p.1 p.2).isSome && decide (p ∉ L)))) := by
+  simp [withUnif, ctxtDecImpl]
+
+omit [DecidableEq Msg] [SampleableType Key] in
+/-- If every entry of `R` decrypts to its own message, `logLookup` answers like decryption on
+a logged pair and on a pair that does not decrypt. -/
+private theorem logLookup_eq (aead : Scheme ProbComp Msg Key AD C) (k : Key)
+    (R : List (AD × Msg × C)) (hR : ∀ e ∈ R, aead.decrypt k e.1 e.2.2 = some e.2.1)
+    (p : AD × C) (h : p ∈ R.map (fun e => (e.1, e.2.2)) ∨ aead.decrypt k p.1 p.2 = none) :
+    logLookup R p = aead.decrypt k p.1 p.2 := by
+  unfold logLookup
+  cases hfind : R.find? (fun e => decide ((e.1, e.2.2) = p)) with
+  | none =>
+    rw [Option.map_none]
+    rcases h with h | h
+    · obtain ⟨e, he, rfl⟩ := List.mem_map.1 h
+      exact absurd (by simp) (List.find?_eq_none.1 hfind e he)
+    · exact h.symm
+  | some e =>
+    have he := List.mem_of_find?_eq_some hfind
+    have hp : (e.1, e.2.2) = p := by simpa using List.find?_some hfind
+    subst hp
+    exact (hR e he).symm
+
+/-- The plain game's win event, read off a final state of `decGuessGameImpl`. -/
+private def decWin (aead : Scheme ProbComp Msg Key AD C) (k : Key) (fallback : AD × C)
+    (s : GuessState (AD × Msg × C) (AD × C) × List (AD × C)) : Bool :=
+  (aead.decrypt k (s.1.guess.getD fallback).1 (s.1.guess.getD fallback).2).isSome &&
+    decide (s.1.guess.getD fallback ∉ s.2)
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem decGuessGame_capture (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C)
+    (j : ℕ) (k : Key) {α : Type}
+    (oa : OracleComp (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))) α)
+    (g : GuessState (AD × Msg × C) (AD × C)) (p : AD × C) (hg : g.guess = some p)
+    (L : List (AD × C)) (hp : (aead.decrypt k p.1 p.2).isSome) (hpL : p ∉ L) :
+    Pr[fun z => decWin aead k fallback z.2 = true |
+      (simulateQ (decGuessGameImpl aead fallback j k) oa).run (g, L)] = 1 := by
+  rw [probEvent_eq_one_iff]
+  refine ⟨by simp, fun z hz => ?_⟩
+  have hinv := simulateQ_run_preserves_inv_of_query (decGuessGameImpl aead fallback j k)
+    (fun s => s.1.guess = some p ∧ s.2 = L) (fun t s hs y hy => ?_) oa (g, L) ⟨hg, rfl⟩ z hz
+  · obtain ⟨h1, h2⟩ := hinv
+    simp [decWin, h1, h2, hp, hpL]
+  · obtain ⟨g', L'⟩ := s
+    obtain ⟨hs1, hs2⟩ := hs
+    rcases t with n | x | q
+    · rw [decGuessGameImpl_unif] at hy
+      obtain ⟨u, rfl⟩ : y ∈ Set.range fun u => (u, g', L') := by simpa using hy
+      exact ⟨hs1, hs2⟩
+    · rw [decGuessGameImpl_enc_some aead fallback j k x g' p hs1] at hy
+      obtain rfl : y = (fallback.2, (g', L')) := hy
+      exact ⟨hs1, hs2⟩
+    · rw [decGuessGameImpl_dec] at hy
+      obtain rfl : y = (logLookup g'.log q,
+          (⟨g'.log, g'.seen + 1, g'.guess.or (if g'.seen = j then some q else none)⟩, L')) := hy
+      exact ⟨by rw [show g'.guess = some p from hs1]; rfl, hs2⟩
+
+/-- The core bound for the decryption game, as `vfGuessGame_core`, with a log `R` of
+encryption queries whose entries decrypt to their own messages. -/
+private theorem decGuessGame_core (aead : Scheme ProbComp Msg Key AD C)
+    (hcorrect : PerfectlyCorrect aead) (fallback : AD × C) (k : Key) {α : Type}
+    (oa : OracleComp (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg))) α) :
+    ∀ (n c : ℕ) (R : List (AD × Msg × C)), oa.IsQueryBoundP (· matches Sum.inr (Sum.inr _)) n →
+      (∀ e ∈ R, aead.decrypt k e.1 e.2.2 = some e.2.1) →
+      Pr[fun z => z.2.2 = true | (simulateQ (withUnif (ctxtDecImpl aead k)) oa).run
+          (R.map (fun e => (e.1, e.2.2)), false)] ≤
+        ∑ i ∈ Finset.range n, Pr[fun z => decWin aead k fallback z.2 = true |
+          (simulateQ (decGuessGameImpl aead fallback (c + i) k) oa).run
+            (⟨R, c, none⟩, R.map (fun e => (e.1, e.2.2)))] := by
+  induction oa using OracleComp.inductionOn with
+  | pure x =>
+    intro n c R _ _
+    simp
+  | query_bind t mx ih =>
+    intro n c R hb hR
+    rw [isQueryBoundP_query_bind_iff] at hb
+    simp only [simulateQ_bind, StateT.run_bind, simulateQ_spec_query]
+    rcases t with u | x | p
+    · rw [ctxtDecImpl_unif]
+      simp only [decGuessGameImpl_unif, bind_assoc, pure_bind]
+      exact probEvent_bind_le_sum fun u _ => ih u n c R (by simpa using hb.2 u) hR
+    · rw [ctxtDecImpl_enc]
+      simp only [decGuessGameImpl_enc_none, bind_assoc, pure_bind]
+      refine probEvent_bind_le_sum fun cc hcc => ?_
+      have hR' : ∀ e ∈ R ++ [(x.1, x.2, @id C cc)], aead.decrypt k e.1 e.2.2 = some e.2.1 := by
+        intro e he
+        rcases List.mem_append.1 he with he | he
+        · exact hR e he
+        · obtain rfl := List.mem_singleton.1 he
+          exact decrypt_eq_of_mem_support_encrypt hcorrect k x.1 x.2 hcc
+      simpa using ih cc n c (R ++ [(x.1, x.2, @id C cc)]) (by simpa using hb.2 cc) hR'
+    · rw [ctxtDecImpl_dec]
+      simp only [decGuessGameImpl_dec, pure_bind]
+      have hn : 0 < n := by simpa using hb.1
+      obtain ⟨n', rfl⟩ : ∃ n', n = n' + 1 := ⟨n - 1, by omega⟩
+      by_cases hfresh : (aead.decrypt k p.1 p.2).isSome = true ∧
+          p ∉ R.map (fun e => (e.1, e.2.2))
+      · refine le_trans ?_
+          (Finset.single_le_sum (fun i _ => zero_le) (Finset.mem_range.2 (Nat.succ_pos n')))
+        refine le_trans probEvent_le_one (le_of_eq ?_)
+        exact (decGuessGame_capture aead fallback (c + 0) k _ _ p (by simp) _
+          hfresh.1 hfresh.2).symm
+      · have hans : aead.decrypt k p.1 p.2 = logLookup R p := by
+          refine (logLookup_eq aead k R hR p ?_).symm
+          by_cases hpL : p ∈ R.map (fun e => (e.1, e.2.2))
+          · exact Or.inl hpL
+          · right
+            simpa [hpL] using hfresh
+        have hflag : (false || ((aead.decrypt k p.1 p.2).isSome &&
+            decide (p ∉ R.map (fun e => (e.1, e.2.2))))) = false := by
+          simpa [Bool.and_eq_true] using hfresh
+        rw [hflag, hans, Finset.sum_range_succ']
+        refine le_add_right ((ih (logLookup R p) n' (c + 1) R (by simpa using hb.2 _) hR).trans
+          (le_of_eq (Finset.sum_congr rfl fun i _ => ?_)))
+        have h1 : c + 1 + i = c + (i + 1) := by omega
+        have h2 : ¬ c = c + (i + 1) := by omega
+        rw [h1, if_neg h2]
+        rfl
+
+omit [DecidableEq Msg] in
+private theorem INT_CTXT_D_Game_eq (aead : Scheme ProbComp Msg Key AD C)
+    (B : INT_CTXT_D_Adversary aead) :
+    INT_CTXT_D_Game aead B = ($ᵗ Key : ProbComp Key) >>= fun k =>
+      (fun z => z.2.2) <$> (simulateQ (withUnif (ctxtDecImpl aead k)) B.run).run ([], false) := by
+  unfold INT_CTXT_D_Game
+  refine bind_congr fun k => ?_
+  rw [map_eq_bind_pure_comp]
+  rfl
+
+omit [DecidableEq Msg] in
+private theorem INT_CTXT_Game_decToCtxtAt_eq (aead : Scheme ProbComp Msg Key AD C)
+    (fallback : AD × C) (j : ℕ) (B : INT_CTXT_D_Adversary aead) :
+    INT_CTXT_Game aead (decToCtxtAt fallback j B) = ($ᵗ Key : ProbComp Key) >>= fun k =>
+      (fun z => decWin aead k fallback z.2) <$>
+        (simulateQ (decGuessGameImpl aead fallback j k) B.run).run (⟨[], 0, none⟩, []) := by
+  unfold INT_CTXT_Game decToCtxtAt
+  refine bind_congr fun k => ?_
+  rw [simulateQ_map, StateT.run_map, simulateQ_StateT_StateT_compose (decGuessImpl fallback j)
+    (withUnif (ctxtImpl aead k)) (decGuessGameImpl aead fallback j k) (fun q s c => by
+      simp [decGuessGameImpl, StateT.mk]) B.run ⟨[], 0, none⟩ []]
+  simp [decWin, map_eq_bind_pure_comp]
+
+omit [DecidableEq Msg] [SampleableType Key] in
+private theorem run_decToCtxt_succ (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C)
+    (v' : ℕ) (B : INT_CTXT_D_Adversary aead) (k : Key) :
+    (simulateQ (withUnif (ctxtImpl aead k)) (decToCtxt fallback (v' + 1) B).run).run [] =
+      (liftM (OracleSpec.query (spec := unifSpec) v') : ProbComp (Fin (v' + 1))) >>= fun i =>
+        (simulateQ (withUnif (ctxtImpl aead k)) (decToCtxtAt fallback i.val B).run).run [] := by
+  simp [decToCtxt, withUnif]
+
+omit [DecidableEq Msg] in
+/-- The plain game of `decToCtxt fallback (v' + 1) B` averages the plain games of the
+fixed-index reductions. -/
+private theorem probOutput_INT_CTXT_Game_decToCtxt_succ (aead : Scheme ProbComp Msg Key AD C)
+    (fallback : AD × C) (v' : ℕ) (B : INT_CTXT_D_Adversary aead) :
+    Pr[= true | INT_CTXT_Game aead (decToCtxt fallback (v' + 1) B)] =
+      ∑ i ∈ Finset.range (v' + 1), (v' + 1 : ℝ≥0∞)⁻¹ *
+        Pr[= true | INT_CTXT_Game aead (decToCtxtAt fallback i B)] := by
+  rw [INT_CTXT_Game_eq]
+  simp only [run_decToCtxt_succ, map_bind]
+  rw [probOutput_bind_bind_swap, probOutput_bind_eq_tsum, tsum_fintype,
+    ← Fin.sum_univ_eq_sum_range]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [probOutput_query, INT_CTXT_Game_eq]
+  simp
+
+private theorem probOutput_INT_CTXT_D_Game_le_sum (aead : Scheme ProbComp Msg Key AD C)
+    (hcorrect : PerfectlyCorrect aead) (fallback : AD × C) (B : INT_CTXT_D_Adversary aead)
+    (v : ℕ) (hv : B.run.IsQueryBoundP (· matches Sum.inr (Sum.inr _)) v) :
+    Pr[= true | INT_CTXT_D_Game aead B] ≤
+      ∑ i ∈ Finset.range v, Pr[= true | INT_CTXT_Game aead (decToCtxtAt fallback i B)] := by
+  simp only [INT_CTXT_D_Game_eq, INT_CTXT_Game_decToCtxtAt_eq, ← probEvent_eq_eq_probOutput]
+  refine probEvent_bind_le_sum fun k _ => ?_
+  simp only [probEvent_map, Function.comp_def]
+  simpa using decGuessGame_core aead hcorrect fallback k B.run v 0 [] hv (by simp)
+
+omit [DecidableEq Msg] [SampleableType Key] in
+/-- `decToCtxt fallback v B` makes at most as many encryption queries as `B`. -/
+theorem decToCtxt_encBound {aead : Scheme ProbComp Msg Key AD C}
+    (fallback : AD × C) (v : ℕ) (B : INT_CTXT_D_Adversary aead) {e : ℕ}
+    (he : B.run.IsQueryBoundP (· matches Sum.inr (Sum.inl _)) e) :
+    (decToCtxt fallback v B).run.IsQueryBoundP (· matches Sum.inr _) e := by
+  refine (isQueryBoundP_query_bind_iff _ _ _ _).2 ⟨by simp, fun i => ?_⟩
+  simp only [decToCtxtAt, isQueryBoundP_map_iff]
+  refine IsQueryBoundP.simulateQ_run_StateT_of_step he (fun t s => ?_) _
+  rcases t with n | x | p
+  · simpa [decGuessImpl] using (isQueryBoundP_query_iff
+      (spec := unifSpec + ((AD × Msg) →ₒ C)) (· matches Sum.inr _) (.inl n) 0).2 (by simp)
+  · rcases hg : s.guess with _ | q
+    · simpa [decGuessImpl, hg] using (isQueryBoundP_query_iff
+        (spec := unifSpec + ((AD × Msg) →ₒ C)) (· matches Sum.inr _) (.inr x) 1).2 (by simp)
+    · simp [decGuessImpl, hg]
+  · simp [decGuessImpl]
+
 /-! ## The four lemmas -/
 
 omit [DecidableEq Msg] in
@@ -764,14 +1081,37 @@ theorem INT_CTXT_Advantage_le_INT_CTXT_D_Advantage
     INT_CTXT_Advantage aead A ≤ INT_CTXT_D_Advantage aead (ctxtToDec A) :=
   (INT_CTXT_D_Advantage_ctxtToDec aead A).ge
 
-/-- The decryption-oracle variant loses at most the query bound `v`. No PQXDH theorem uses this
-lemma. A proof follows `INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`. -/
+/-- The decryption-oracle variant loses at most the query bound `v`. The reduction
+`decToCtxt fallback v B` works as `vfToCtxt`: it guesses which of `B`'s at most `v` decryption
+queries is the first fresh valid one, and answers the earlier ones with `logLookup`, which
+`hcorrect` makes agree with decryption on logged pairs. `fallback` plays the same role as in
+`INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`, and the #32 counterexample has no instance
+for the same reason. No PQXDH theorem uses this lemma; the PQXDH security theorems assume a
+bound on `INT_CTXT_D_Advantage` directly. -/
 theorem INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (hcorrect : PerfectlyCorrect aead)
-    (B : INT_CTXT_D_Adversary aead) (v : ℕ)
+    (fallback : AD × C) (B : INT_CTXT_D_Adversary aead) (v : ℕ)
     (hv : B.run.IsQueryBoundP (· matches Sum.inr (Sum.inr _)) v) :
-    ∃ A : INT_CTXT_Adversary aead,
-      INT_CTXT_D_Advantage aead B ≤ (v : ℝ) * INT_CTXT_Advantage aead A := by
-  sorry
+    INT_CTXT_D_Advantage aead B ≤ (v : ℝ) * INT_CTXT_Advantage aead (decToCtxt fallback v B) := by
+  have key := probOutput_INT_CTXT_D_Game_le_sum aead hcorrect fallback B v hv
+  unfold INT_CTXT_D_Advantage INT_CTXT_Advantage
+  cases v with
+  | zero =>
+    simp only [Finset.range_zero, Finset.sum_empty, nonpos_iff_eq_zero] at key
+    simp [key]
+  | succ v' =>
+    rw [probOutput_INT_CTXT_Game_decToCtxt_succ, ← Finset.mul_sum] at *
+    have hne : (v' + 1 : ℝ≥0∞) ≠ 0 := by simp
+    have hsum : ∑ i ∈ Finset.range (v' + 1),
+        Pr[= true | INT_CTXT_Game aead (decToCtxtAt fallback i B)] =
+        (v' + 1 : ℝ≥0∞) * ((v' + 1 : ℝ≥0∞)⁻¹ * ∑ i ∈ Finset.range (v' + 1),
+          Pr[= true | INT_CTXT_Game aead (decToCtxtAt fallback i B)]) := by
+      rw [← mul_assoc, ENNReal.mul_inv_cancel hne (by simp), one_mul]
+    calc (Pr[= true | INT_CTXT_D_Game aead B]).toReal
+        ≤ ((v' + 1 : ℝ≥0∞) * ((v' + 1 : ℝ≥0∞)⁻¹ * ∑ i ∈ Finset.range (v' + 1),
+          Pr[= true | INT_CTXT_Game aead (decToCtxtAt fallback i B)])).toReal :=
+          ENNReal.toReal_mono (ENNReal.mul_ne_top (by simp) (ENNReal.mul_ne_top (by simp)
+            (ENNReal.sum_ne_top.2 fun _ _ => probOutput_ne_top))) (key.trans hsum.le)
+      _ = _ := by rw [ENNReal.toReal_mul]; push_cast; rfl
 
 end AEAD
