@@ -36,23 +36,43 @@ def CorrectExp (aead : Scheme ProbComp Msg Key AD C) (msg : Msg) (ad : AD) : Pro
 def PerfectlyCorrect (aead : Scheme ProbComp Msg Key AD C) : Prop :=
   ∀ msg ad, Pr[= true | CorrectExp aead msg ad] = 1
 
-structure IND_CPA_Adversary (_aead : Scheme ProbComp Msg Key AD C) where
-  run : OracleComp (unifSpec + ((AD × Msg × Msg) →ₒ C)) Bool
+/-- A challenge query of the IND-CPA game: associated data and two messages with the same
+public length `msgLen`. A message type of fixed length uses `msgLen := fun _ => 0`. -/
+structure EqualLengthChallenge (AD Msg : Type) (msgLen : Msg → ℕ) where
+  ad : AD
+  m₀ : Msg
+  m₁ : Msg
+  sameLength : msgLen m₀ = msgLen m₁
 
-def cpaImpl (aead : Scheme ProbComp Msg Key AD C) (k : Key) (b : Bool) :
-    QueryImpl (unifSpec + ((AD × Msg × Msg) →ₒ C)) ProbComp :=
+/-- An adversary in the multi-query IND-CPA game with equal-length challenge pairs.
+
+A perfectly correct deterministic encryption algorithm does not satisfy this notion when two
+distinct messages `m` and `m'` have the same length: query `(ad, m, m)` and then `(ad, m, m')`
+with the same associated data `ad`, and compare the two ciphertexts. Production encrypts each
+message with AES-256-CBC under a key and an IV that both come from the message keys
+(`rust/protocol/src/triple_ratchet.rs:161`, `rust/protocol/src/session_cipher_legacy.rs:80`), so
+production cannot instantiate this notion. No PQXDH theorem uses it. It is kept, repaired, as a
+reference. -/
+structure IND_CPA_Adversary (_aead : Scheme ProbComp Msg Key AD C) (msgLen : Msg → ℕ) where
+  run : OracleComp (unifSpec + (EqualLengthChallenge AD Msg msgLen →ₒ C)) Bool
+
+/-- The IND-CPA challenge oracle encrypts the left or the right message of an equal-length
+pair, as the hidden bit `b` says. -/
+def cpaImpl (aead : Scheme ProbComp Msg Key AD C) (msgLen : Msg → ℕ) (k : Key) (b : Bool) :
+    QueryImpl (unifSpec + (EqualLengthChallenge AD Msg msgLen →ₒ C)) ProbComp :=
   (HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)) +
-    fun p : AD × Msg × Msg => (aead.encrypt k p.1 (if b then p.2.2 else p.2.1) : ProbComp C)
+    fun q : EqualLengthChallenge AD Msg msgLen =>
+      (aead.encrypt k q.ad (if b then q.m₁ else q.m₀) : ProbComp C)
 
-def IND_CPA_Game (aead : Scheme ProbComp Msg Key AD C)
-    (A : IND_CPA_Adversary aead) : ProbComp Bool := do
+def IND_CPA_Game {msgLen : Msg → ℕ} (aead : Scheme ProbComp Msg Key AD C)
+    (A : IND_CPA_Adversary aead msgLen) : ProbComp Bool := do
   let k ← $ᵗ Key
   let b ← $ᵗ Bool
-  let b' ← simulateQ (cpaImpl aead k b) A.run
+  let b' ← simulateQ (cpaImpl aead msgLen k b) A.run
   pure (b' == b)
 
-noncomputable def IND_CPA_Advantage (aead : Scheme ProbComp Msg Key AD C)
-    (A : IND_CPA_Adversary aead) : ℝ :=
+noncomputable def IND_CPA_Advantage {msgLen : Msg → ℕ} (aead : Scheme ProbComp Msg Key AD C)
+    (A : IND_CPA_Adversary aead msgLen) : ℝ :=
   |(Pr[= true | IND_CPA_Game aead A]).toReal - 1 / 2|
 
 def ctxtImpl (aead : Scheme ProbComp Msg Key AD C) (k : Key) :
