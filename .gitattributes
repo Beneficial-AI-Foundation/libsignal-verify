@@ -13,4 +13,4 @@ acknowledgments/acknowledgments.*.hbs merge text=auto
 **/*.ts.in linguist-language=TypeScript
 
 # Unified diffs retain original whitespace in context and removed lines.
-src-modifications.diff whitespace=-blank-at-eol
+translation-patches/*.patch whitespace=-blank-at-eol

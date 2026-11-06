@@ -19,7 +19,7 @@ lake build Libsignal
 | `npm run aeneas-extract:crypto-cbc` | Runs the narrower CBC diagnostic without replacing canonical crypto output |
 | `npm run aeneas-install -- --release` | Installs the configured release bundle; `--archive <path>` supplies a local copy, still checked against the pinned SHA-256 |
 | `npm run aeneas-install -- --source` | Builds the pinned Aeneas commit and its Charon pin from source; never used as a fallback |
-| `npm run src-diff` | Regenerates `src-modifications.diff` against the pinned upstream libsignal commit; needs GNU diff (`gdiff` on macOS, from Homebrew `diffutils`) |
+| `npm run patches-check` | Checks that `rust/` is the pinned upstream libsignal commit and that the translation patches apply (see [`translation-patches/README.md`](../translation-patches/README.md)) |
 | `npm run typecheck` | Type-checks the scripts |
 
 ## Checks
@@ -42,7 +42,7 @@ The Lean Build workflow also runs two checks:
 
 The `crypto` profile retains opaque AES/CTR/GHASH/hash boundaries and excludes HPKE. Its two GCM constructors are translated around the shared external `setup_gcm` operation. It translates the surrounding AES-GCM and MAC operations; it is not a verification of the underlying primitives. The narrower `crypto-cbc` profile adds `cbc.yml` for diagnosis only.
 
-The `protocol` profile builds with the crate's `extraction` feature. Every Rust change made for extraction is listed in [`extraction-notes.md`](../extraction-notes.md) and [`src-modifications.diff`](../src-modifications.diff); each profile's YAML lists its opaque and excluded items with the reason.
+The `crypto` and `protocol` profiles build with the crate's `extraction` feature. The committed `rust/` tree is upstream libsignal. Every Rust change made for extraction is a patch in [`translation-patches/`](../translation-patches/), indexed in [`extraction-notes.md`](../extraction-notes.md#source-modifications); each profile's YAML lists its opaque and excluded items with the reason.
 
 ## Developer reference
 
@@ -68,9 +68,9 @@ A lock prevents concurrent installs. Each install is staged and then renamed int
 
 ### Extraction runs
 
-Charon runs as `charon cargo --preset=aeneas --sysroot=default`. Aeneas, Charon and `charon-driver` come from one installation with no `PATH` fallback. Aeneas emits non-module Lean files (`-use-lean-modules false`) to match the maintained external models.
+Each run first copies the Cargo workspace (the root `Cargo.toml`, `Cargo.lock` and `rust-toolchain`, and `rust/` without `rust/Libsignal/`) to `.aeneas/work/` and applies the translation patches there in file-name order. Charon runs in that copy as `charon cargo --preset=aeneas --sysroot=default`. Aeneas, Charon and `charon-driver` come from one installation with no `PATH` fallback. Aeneas emits non-module Lean files (`-use-lean-modules false`) to match the maintained external models.
 
-The extractor enables `-emit-json` centrally for every profile. Each run writes its command, LLBC, translation metadata, output hashes and logs to `.logs/<profile>/<timestamp>/`. Generated files are copied into `rust/Libsignal/Translated/` only after Charon reports no errors, the required roots have transparent bodies, Aeneas succeeds and every `required` tweak matches. The hand-maintained `TypesExternal.lean` and `FunsExternal.lean` are never overwritten; Aeneas writes `*_Template.lean` beside them. The Cargo cache is `.aeneas/cargo/<aeneas-commit>/<platform>/` unless `CARGO_TARGET_DIR` is set.
+The extractor enables `-emit-json` centrally for every profile. Each run writes its command, LLBC, translation metadata, output hashes and logs to `.logs/<profile>/<timestamp>/`. Generated files are copied into `rust/Libsignal/Translated/` only after Charon reports no errors, the required roots have transparent bodies, Aeneas succeeds and every `required` tweak matches. The hand-maintained `TypesExternal.lean` and `FunsExternal.lean` are never overwritten; Aeneas writes `*_Template.lean` beside them. The Cargo cache is `.aeneas/work/.aeneas/cargo/<aeneas-commit>/<platform>/` unless `CARGO_TARGET_DIR` is set. It sits inside the work copy at the path it would have inside the repository, because Charon records the files that build scripts generate (the protobuf code) relative to its working directory, and Aeneas orders declarations by that path. Moving the cache changes the order of declarations in `Types.lean`. The run records the applied patches and their SHA-256 in `command.json` and `result.json`.
 
 ### Configuration
 
