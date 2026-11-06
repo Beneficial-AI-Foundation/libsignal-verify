@@ -957,6 +957,47 @@ info: 'Protocols.PQXDH.deriveKeysTotal' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveKeysTotal
 
+open Aeneas Aeneas.Std Result in
+recall Protocols.PQXDH.kdfInput_spec (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8))
+    (ss : Slice U8) (h_len : (kdfInputSliceBytes dh1 dh2 dh3 dh4 ss).length ≤ Usize.max) :
+    kdfInput dh1 dh2 dh3 dh4 ss ⦃ inp => inp.val = kdfInputSliceBytes dh1 dh2 dh3 dh4 ss ⦄
+
+/--
+info: 'Protocols.PQXDH.kdfInput_spec' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfInput_spec
+
+open Aeneas Aeneas.Std Result in
+recall Protocols.PQXDH.kdfInput_fixed_spec (dh1 dh2 dh3 : Array U8 32#usize)
+    (dh4 : Option (Array U8 32#usize)) (ss : Array U8 32#usize) :
+    kdfInput dh1.to_slice dh2.to_slice dh3.to_slice (dh4.map (·.to_slice)) ss.to_slice
+      ⦃ inp =>
+        inp.val = kdfInputSliceBytes dh1.to_slice dh2.to_slice dh3.to_slice
+          (dh4.map (·.to_slice)) ss.to_slice ∧
+        inp.length = if dh4.isSome then 192 else 160 ⦄
+
+/--
+info: 'Protocols.PQXDH.kdfInput_fixed_spec' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfInput_fixed_spec
+
+/--
+info: 'Protocols.PQXDH.kdfInputSliceBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfInputSliceBytes
+
 /--
 info: 'Protocols.PQXDH.deriveHK' depends on axioms:
  [propext,
