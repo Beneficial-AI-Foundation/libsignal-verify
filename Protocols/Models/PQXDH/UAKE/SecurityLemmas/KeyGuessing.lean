@@ -4,6 +4,8 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
+import Protocols.ToVCVio.OracleComp.ProbComp
+import Protocols.ToVCVio.OracleComp.QueryTracking.QueryBound
 
 /-!
 # The KEM-key guessing bound (hop 4)
@@ -17,9 +19,10 @@ at most `n + 1` known keys, where `n` is the number of sessions opened so far.
 The argument is a potential bound on the simulated challenge stage: with `b` openings left in
 the budget and `n` sessions open, the probability of ending in the bad event is at most
 `ε * b * (n + b)` when the current state is not bad, where `ε` bounds the probability of any
-single public key. It is proved for an arbitrary stateful oracle implementation
-(`probEvent_simulateQ_bad_le`) and instantiated with the UAKE oracle. The bound depends only
-on the current state and the remaining budget, so adaptive stopping needs no extra argument.
+single public key. The bound for an arbitrary stateful oracle implementation,
+`OracleComp.probEvent_simulateQ_bad_le`, is in
+`Protocols/ToVCVio/OracleComp/QueryTracking/QueryBound.lean`. This file instantiates it with the
+UAKE oracle.
 
 The lemma statements and proofs in this file are AI-written.
 -/
@@ -29,99 +32,16 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH.KeyGuessing
 
-section Potential
-
-/-- A bind is bounded by the expected value of any pointwise bound on its continuation. -/
-theorem probEvent_bind_le_tsum {α β : Type} {mx : ProbComp α} {my : α → ProbComp β}
-    {q : β → Prop} (g : α → ℝ≥0∞) (h : ∀ x ∈ support mx, Pr[ q | my x] ≤ g x) :
-    Pr[ q | mx >>= my] ≤ ∑' x, Pr[= x | mx] * g x := by
-  rw [probEvent_bind_eq_tsum]
-  refine ENNReal.tsum_le_tsum fun x => ?_
-  by_cases hx : x ∈ support mx
-  · exact mul_le_mul' le_rfl (h x hx)
-  · simp [probOutput_eq_zero_of_not_mem_support hx]
-
-variable {ι : Type} {spec : OracleSpec ι} {σ : Type}
-
-/-- Potential bound for a bad event of a simulated oracle computation. Queries in `isOpen`
-consume the budget `b`, raise `count` by one, and from a good state reach a bad state with
-probability at most `ε * (count + 1)`. Other queries change neither `bad` nor `count`. Then,
-from a state satisfying `inv`, the run ends bad with probability at most
-`1{bad} + ε * b * (count + b)`. -/
-theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
-    (isOpen : ι → Prop) [DecidablePred isOpen] (bad : σ → Bool) (count : σ → ℕ)
-    (inv : σ → Prop) (ε : ℝ≥0∞)
-    (h_inv : ∀ t s, inv s → ∀ z ∈ support ((impl t).run s), inv z.2)
-    (h_free : ∀ t s, ¬ isOpen t → inv s → ∀ z ∈ support ((impl t).run s),
-      bad z.2 = bad s ∧ count z.2 = count s)
-    (h_open : ∀ t s, isOpen t → inv s → ∀ z ∈ support ((impl t).run s),
-      count z.2 = count s + 1)
-    (h_hit : ∀ t s, isOpen t → inv s → bad s = false →
-      Pr[ fun z => bad z.2 = true | (impl t).run s] ≤ ε * ((count s + 1 : ℕ) : ℝ≥0∞))
-    {α : Type} (oa : OracleComp spec α) :
-    ∀ b : ℕ, oa.IsQueryBoundP isOpen b → ∀ s, inv s →
-      Pr[ fun z => bad z.2 = true | (simulateQ impl oa).run s] ≤
-        (if bad s then 1 else 0) + ε * ((b * (count s + b) : ℕ) : ℝ≥0∞) := by
-  induction oa using OracleComp.inductionOn with
-  | pure a =>
-    intro b _ s _
-    rw [simulateQ_pure, StateT.run_pure, probEvent_pure]
-    exact le_add_right (by split_ifs <;> simp_all)
-  | query_bind t k ih =>
-    intro b hb s hs
-    rw [isQueryBoundP_query_bind_iff] at hb
-    obtain ⟨hvalid, hcont⟩ := hb
-    rw [simulateQ_bind, simulateQ_spec_query, StateT.run_bind]
-    by_cases ht : isOpen t
-    · obtain ⟨b', rfl⟩ : ∃ b', b = b' + 1 :=
-        ⟨b - 1, by have := hvalid.resolve_left (not_not.mpr ht); omega⟩
-      simp only [ht, if_true, Nat.add_sub_cancel] at hcont
-      cases hbad : bad s
-      · refine le_add_left ?_
-        calc Pr[ fun z => bad z.2 = true |
-              (impl t).run s >>= fun p => (simulateQ impl (k p.1)).run p.2]
-            ≤ ∑' z, Pr[= z | (impl t).run s] * ((if bad z.2 then 1 else 0) +
-                ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞)) := by
-              refine probEvent_bind_le_tsum _ fun z hz => ?_
-              have h1 := ih z.1 b' (hcont z.1) z.2 (h_inv t s hs z hz)
-              rwa [h_open t s ht hs z hz] at h1
-          _ ≤ Pr[ fun z => bad z.2 = true | (impl t).run s] +
-                ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞) := by
-              simp only [mul_add, ENNReal.tsum_add, mul_ite, mul_one, mul_zero]
-              rw [← probEvent_eq_tsum_ite, ENNReal.tsum_mul_right]
-              exact add_le_add le_rfl (mul_le_of_le_one_left zero_le
-                (tsum_probOutput_le_one (mx := (impl t).run s)))
-          _ ≤ ε * ((count s + 1 : ℕ) : ℝ≥0∞) + ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞) := by
-              gcongr; exact h_hit t s ht hs hbad
-          _ ≤ ε * (((b' + 1) * (count s + (b' + 1)) : ℕ) : ℝ≥0∞) := by
-              rw [← mul_add, ← Nat.cast_add]
-              gcongr
-              nlinarith
-      · exact le_add_right (by simp)
-    · simp only [ht, if_false] at hcont
-      refine probEvent_bind_le_of_forall_le fun z hz => ?_
-      obtain ⟨hbad, hcount⟩ := h_free t s ht hs z hz
-      have h1 := ih z.1 b (hcont z.1) z.2 (h_inv t s hs z hz)
-      rwa [hbad, hcount] at h1
-
-end Potential
-
 section Keygen
 
 variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
 
-/-- A `ProbComp` computation has an output, so its result type is nonempty. -/
-theorem nonempty_of_probComp {α : Type} (oa : ProbComp α) : Nonempty α := by
-  induction oa using ProbComp.inductionOn with
-  | pure a => exact ⟨a⟩
-  | query_bind n mx ih => exact ih 0
-
 /-- The pointwise bound on the public-key marginal of `keygen` forces `0 ≤ εpk`. -/
 theorem εpk_nonneg {εpk : ℝ}
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
     0 ≤ εpk := by
-  obtain ⟨kp⟩ := nonempty_of_probComp P.pqkem.keygen
+  obtain ⟨kp⟩ := ProbComp.nonempty_of_probComp P.pqkem.keygen
   exact le_trans ENNReal.toReal_nonneg (hpk kp.1)
 
 /-- A fresh public key lands in a fixed finite set with probability at most `|T| * ε`. -/

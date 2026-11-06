@@ -14,6 +14,9 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 import Protocols.ToVCVio.CryptoFoundations.KEMCorrectness
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
+import Protocols.ToVCVio.EvalDist.Monad.Basic
+import Protocols.ToVCVio.OracleComp.ProbComp
+import Protocols.ToVCVio.OracleComp.QueryTracking.QueryBound
 import Protocols.ToVCVio.OracleComp.QueryTracking.Structures
 
 /-! # Material staged for VCVio
@@ -22,7 +25,9 @@ Definitions and lemmas written for the PQXDH model that belong in VCVio rather t
 the UAKE notion of Dodis and Fiore 2017 with its transport along party simulations, AEAD
 games, strong unforgeability for signatures, nominal and gap Diffie-Hellman, and a query-log
 helper. The files keep the module paths and namespaces of PQXDH-model at f862593, minus its
-`ToVCVio` root. VCVio's PR #476 (merged 2026-10-20, merge commit `abed2e31`) carries the UAKE
+`ToVCVio` root. Three files are new here and follow VCVio's module paths: `EvalDist/Monad/Basic`,
+`OracleComp/ProbComp` and `OracleComp/QueryTracking/QueryBound` hold the probability lemmas of
+the hop-4 proof, among them a potential bound for bad events of simulated computations. VCVio's PR #476 (merged 2026-10-20, merge commit `abed2e31`) carries the UAKE
 files on the Lean module system and the measure-only probability API, neither available at the
 pinned VCVio. The UAKE source files are unchanged between the captured PR head `17b53734` and
 the merge. The pin remains `cbd4144b`; advancing it requires a separate API migration.
