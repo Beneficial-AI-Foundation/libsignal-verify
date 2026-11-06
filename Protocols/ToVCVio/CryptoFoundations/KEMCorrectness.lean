@@ -52,7 +52,7 @@ theorem correctnessError_eq_zero_iff_perfectlyCorrect (kem : KEMScheme m K PK SK
     (runtime : ProbCompRuntime m) :
     kem.correctnessError runtime = 0 ↔ kem.PerfectlyCorrect runtime := by
   rw [correctnessError, PerfectlyCorrect, tsub_eq_zero_iff_le]
-  exact ⟨fun h => le_antisymm probOutput_le_one h, fun h => h.ge⟩
+  exact ⟨fun h => le_antisymm (MeasureTheory.measure_le_one _ _) h, fun h => h.ge⟩
 
 /-- A `δ`-correct KEM's correctness experiment succeeds with probability at least `1 - δ`. -/
 theorem one_sub_le_probOutput_of_deltaCorrect {kem : KEMScheme m K PK SK C}

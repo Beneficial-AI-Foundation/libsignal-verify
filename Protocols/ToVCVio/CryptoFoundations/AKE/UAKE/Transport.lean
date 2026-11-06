@@ -158,42 +158,49 @@ lemma opImpl_transport
       simp only [opImpl, StateT.run_bind, StateT.run_get, pure_bind,
         Env.transport, List.getElem?_map]
       cases hs : e.tSessions[sid]? with
-      | none => simp [Env.transport]
+      | none => simp only [StateT.run, pure, StateT.pure, map_pure]; rfl
       | some t =>
           simp only [Option.map_some]
           cases hk : t.key with
-          | none => simp [Env.transport]
+          | none => simp only [StateT.run, pure, StateT.pure, map_pure]; rfl
           | some key =>
               simp only [StateT.run_bind, StateT.run_set,
                 StateT.run_pure, pure_bind, map_pure]
+              simp only [StateT.run, pure, StateT.pure, map_pure]
               exact congrArg pure (Prod.ext rfl (by simp [Env.transport, List.map_set]))
   | openT =>
       simp only [opImpl, StateT.run_bind, StateT.run_monadLift, StateT.run_get,
         StateT.run_set, StateT.run_pure, monadLift_self, bind_assoc, pure_bind,
         hT.init_eq tk, bind_map_left, map_bind, map_pure]
       refine bind_congr fun r => ?_
-      cases r <;> simp [Party.InitResult.map, Env.transport, List.map_append]
+      cases r <;> simp only [Party.InitResult.map, StateT.run, pure, StateT.pure,
+        map_pure] <;>
+        exact congrArg pure (Prod.ext (by simp only [Env.transport, List.length_map]; rfl)
+          (by simp [Env.transport]))
   | stepT sid w =>
       simp only [opImpl, StateT.run_bind, StateT.run_get, pure_bind,
         Env.transport, List.getElem?_map]
       cases hs : e.tSessions[sid]? with
-      | none => simp [Env.transport]
+      | none => simp only [StateT.run, pure, StateT.pure, map_pure]; rfl
       | some t =>
         simp only [Option.map_some]
         cases hk : t.key with
-        | some k => simp [Env.transport]
+        | some k => simp only [StateT.run, pure, StateT.pure, map_pure]; rfl
         | none =>
           simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self,
             bind_assoc, pure_bind, hT.step_eq t.state w, bind_map_left, map_bind]
           refine bind_congr fun sr => ?_
           cases sr with
-          | reject => simp [Party.StepResult.map, Env.transport]
+          | reject =>
+              simp only [Party.StepResult.map, StateT.run, pure, StateT.pure, map_pure]
+              rfl
           | acceptAndSend st' w' done =>
               cases done with
               | false =>
                   simp only [Party.StepResult.map, reduceCtorEq, reduceIte,
                     StateT.run_bind, StateT.run_set, StateT.run_pure, pure_bind,
                     map_pure]
+                  simp only [StateT.run, pure, StateT.pure, map_pure]
                   exact congrArg pure (Prod.ext rfl (by simp [Env.transport,
                     List.map_set]))
               | true =>
@@ -202,6 +209,7 @@ lemma opImpl_transport
                     monadLift_self, bind_assoc, pure_bind, hT.output_eq st',
                     map_bind, map_pure]
                   refine bind_congr fun key => ?_
+                  simp only [StateT.run, pure, StateT.pure, map_pure]
                   exact congrArg pure (Prod.ext rfl (by simp [Env.transport,
                     List.map_set]))
           | complete st' =>
@@ -209,26 +217,33 @@ lemma opImpl_transport
                 StateT.run_set, StateT.run_pure, monadLift_self, bind_assoc,
                 pure_bind, hT.output_eq st', map_bind, map_pure]
               refine bind_congr fun key => ?_
+              simp only [StateT.run, pure, StateT.pure, map_pure]
               exact congrArg pure (Prod.ext rfl (by simp [Env.transport,
                 List.map_set]))
   | stepChallenge w =>
       simp only [opImpl, StateT.run_bind, StateT.run_get, pure_bind, Env.transport]
       cases hd : e.challengeDone with
-      | true => simp [hd, Env.transport]
+      | true =>
+          simp only [hd, reduceIte, StateT.run, pure, StateT.pure, map_pure]
+          exact congrArg pure (Prod.ext rfl (by simp [Env.transport, hd]))
       | false =>
           simp only [Bool.false_eq_true, if_false, StateT.run_bind,
             StateT.run_monadLift, monadLift_self, bind_assoc, pure_bind,
             hU.step_eq e.challenge.state w, bind_map_left, map_bind]
           refine bind_congr fun sr => ?_
           cases sr with
-          | reject => simp [Party.StepResult.map, Env.transport, hd]
+          | reject =>
+              simp only [Party.StepResult.map, StateT.run, pure, StateT.pure, map_pure]
+              exact congrArg pure (Prod.ext rfl (by simp [Env.transport, hd]))
           | acceptAndSend st' w' done =>
               simp only [Party.StepResult.map, StateT.run_bind, StateT.run_set,
                 StateT.run_pure, pure_bind, map_pure]
+              simp only [StateT.run, pure, StateT.pure, map_pure]
               exact congrArg pure (Prod.ext rfl (by simp [Env.transport]))
           | complete st' =>
               simp only [Party.StepResult.map, StateT.run_bind, StateT.run_set,
                 StateT.run_pure, pure_bind, map_pure]
+              simp only [StateT.run, pure, StateT.pure, map_pure]
               exact congrArg pure (Prod.ext rfl (by simp [Env.transport]))
 
 variable (lift : ProbCompLift m)

@@ -85,7 +85,7 @@ theorem kyberKem_correctExp_sound (P : Params Rand Msg C IdC IdK)
     ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ (ss ct : Slice U8) (r' : Rand),
       kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key r = .ok (.Ok (ss, ct), r') ∧
         kem.KeySecret.decapsulate kp.secret_key ct = .ok (.Ok ss) := by
-  simp only [KEMScheme.CorrectExp, kyberKem, bind_pure_comp, bind_assoc, bind_map_left,
+  simp only [KEMScheme.correctnessExperiment, kyberKem, bind_pure_comp, bind_assoc, bind_map_left,
     support_bind, ExceptT.support_liftM, ExceptT.mem_support_iff, support_map, Set.mem_iUnion,
     Set.mem_image, decide_eq_true_eq, exists_eq_right, exists_prop, Prod.exists,
     exists_and_right] at h

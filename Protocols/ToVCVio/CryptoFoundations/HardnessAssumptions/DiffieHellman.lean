@@ -51,20 +51,22 @@ lemma ddhExpReal_eq_nominalDDHExpReal (g : G) (A : _root_.DiffieHellman.DDHAdver
     _root_.DiffieHellman.ddhRealExperiment g A
       = nominalDDHExpReal (groupKeygen (F := F) g) Prod.fst
         (fun kp pk => kp.2 • pk) (A g) := by
-  simp [_root_.DiffieHellman.ddhExpReal, nominalDDHExpReal, groupKeygen, smul_smul]
+  simp [_root_.DiffieHellman.ddhRealExperiment, nominalDDHExpReal, groupKeygen, smul_smul]
 
 lemma ddhExpRand_eq_nominalDDHExpRand (g : G) (A : _root_.DiffieHellman.DDHAdversary F G) :
     _root_.DiffieHellman.ddhRandomExperiment g A
       = nominalDDHExpRand (groupKeygen (F := F) g) Prod.fst (A g) := by
-  simp [_root_.DiffieHellman.ddhExpRand, nominalDDHExpRand, groupKeygen]
+  simp [_root_.DiffieHellman.ddhRandomExperiment, nominalDDHExpRand, groupKeygen]
 
 lemma ddhDistAdvantage_eq_nominalDDHDistAdvantage (g : G)
     (A : _root_.DiffieHellman.DDHAdversary F G) :
     (_root_.DiffieHellman.ddhAdvantage g A).toReal
       = nominalDDHDistAdvantage (groupKeygen (F := F) g) Prod.fst
         (fun kp pk => kp.2 • pk) (A g) := by
-  unfold _root_.DiffieHellman.ddhDistAdvantage nominalDDHDistAdvantage
-  rw [ddhExpReal_eq_nominalDDHExpReal, ddhExpRand_eq_nominalDDHExpRand]
+  unfold _root_.DiffieHellman.ddhAdvantage nominalDDHDistAdvantage
+  rw [MeasureTheory.Measure.toReal_boolDist, ddhExpReal_eq_nominalDDHExpReal,
+    ddhExpRand_eq_nominalDDHExpRand, prEvent_eq_evalDist_singleton,
+    prEvent_eq_evalDist_singleton]
 
 end Nominal
 

@@ -51,11 +51,10 @@ structure RuntimeCoherent (runtime : ProbCompRuntime m) : Prop where
     ∀ᵐ x ∂𝒟[mx], x ∈ support mx
 
 /-- The canonical runtime of `ProbComp` is coherent. -/
-theorem runtimeCoherent_probComp : RuntimeCoherent ProbCompRuntime.probComp where
-  lawful := inferInstance
-  evalDist_eq _ := rfl
-  lift_evalDist_eq _ := rfl
-  support_evalDist_subset mx := (support_eq_SPMF_support mx).symm.subset
+theorem runtimeCoherent_probComp : RuntimeCoherent ProbCompRuntime.probComp := by
+  refine ⟨inferInstance, inferInstance, fun _ => rfl, fun _ => rfl, ?_⟩
+  intro α _ _ mx
+  exact evalDist.ae_of_forall_mem_support mx _ MeasurableSet.of_discrete fun _ hx ↦ hx
 
 /-- Under a coherent runtime, a property of every possible output holds almost surely for
 the outputs the runtime observes. -/
@@ -64,6 +63,6 @@ theorem RuntimeCoherent.forall_mem_support_evalDist {runtime : ProbCompRuntime m
     (mx : m α) {p : α → Prop}
     (hp : ∀ x ∈ support mx, p x) : ∀ᵐ x ∂runtime.evalDist mx, p x := by
   rw [h.evalDist_eq]
-  exact fun x hx => hp x (h.support_evalDist_subset mx hx)
+  filter_upwards [h.ae_mem_support mx] with x hx using hp x hx
 
 end AKE.UAKE

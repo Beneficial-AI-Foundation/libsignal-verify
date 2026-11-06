@@ -108,8 +108,13 @@ theorem liftResult_bind (x : Result α) (f : α → Result β) :
 functional-correctness specification of extracted code is used inside a protocol model. -/
 theorem liftResult_eq_pure_of_spec {x : Result α} {a : α} (h : x ⦃ (· = a) ⦄) :
     liftResult (O := O) x = pure a := by
-  obtain ⟨y, rfl, rfl⟩ := WP.spec_imp_exists h
-  simp
+  cases x using Result.cases with
+  | ret b =>
+    rw [WP.spec_ok] at h
+    subst h
+    simp
+  | vis i k => exact ((WP.spec_vis i k).mp h).elim
+  | div => exact (WP.spec_div.mp h).elim
 
 /-- The possible outputs of a lifted computation are exactly the values it returns: a panic or
 divergence has no possible output. -/
@@ -142,45 +147,111 @@ noncomputable def rustRuntime : ProbCompRuntime (RustOracleComp unifSpec) where
 /-- `rustRuntime` is coherent. It reads every computation through the native distribution of
 `RustOracleComp unifSpec`, a lift of public randomness keeps its distribution, and every output of
 positive probability is a possible output. -/
-theorem rustRuntime_coherent : AKE.UAKE.RuntimeCoherent rustRuntime where
-  lawful := inferInstance
-  evalDist_eq _ := rfl
-  lift_evalDist_eq mx := by
-    change 𝒟[(liftM mx : ExceptT Fault ProbComp _)] = 𝒟[mx]
-    exact SPMF.ext (ExceptT.probOutput_liftM mx)
-  support_evalDist_subset mx := (support_eq_SPMF_support mx).symm.subset
+theorem rustRuntime_coherent : AKE.UAKE.RuntimeCoherent rustRuntime := by
+  refine
+    { lawfulAttach := inferInstance
+      lawful := inferInstance
+      evalDist_eq := fun _ => rfl
+      lift_evalDist_eq := ?_
+      ae_mem_support := ?_ }
+  · intro α _ mx
+    exact ExceptT.evalDist_liftM mx
+  · intro α _ _ mx
+    exact evalDist.ae_of_forall_mem_support mx _ MeasurableSet.of_discrete fun _ hx ↦ hx
 
 /-- Fault erasure for outputs: the runtime gives an output `a` the probability that the
 computation returns `a` without a fault. -/
 theorem probOutput_rustRuntime [MeasurableSpace α] [MeasurableSingletonClass α]
     (mx : RustOracleComp unifSpec α) (a : α) :
-    rustRuntime.evalDist mx {a} = Pr{let r ← mx.run}[r = Except.ok a] :=
-  ExceptT.probOutput_eq mx a
+    rustRuntime.evalDist mx {a} = Pr{let r ← mx.run}[r = Except.ok a] := by
+  change evalDist mx {a} = _
+  rw [ExceptT.evalDist_apply, Set.image_singleton]
+  have hs : MeasurableSet ({Except.ok a} : Set (Except Fault α)) := by
+    change MeasurableSet ((Except.error : Fault → Except Fault α) ⁻¹' {Except.ok a}) ∧
+      MeasurableSet ((Except.ok : α → Except Fault α) ⁻¹' {Except.ok a})
+    refine ⟨?_, ?_⟩
+    · convert MeasurableSet.empty
+      ext e
+      simp
+    · convert measurableSet_singleton a
+      ext x
+      simp
+  rw [prEvent_eq_evalDist (ExceptT.run mx) (fun r => r = Except.ok a)
+    (measurableSet_setOfPred.mp hs)]
+  rfl
 
 /-- Fault erasure for missing mass: the probability that the runtime returns no value is the
 probability of a fault. No other mass is lost. -/
 theorem probFailure_rustRuntime [MeasurableSpace α] (mx : RustOracleComp unifSpec α) :
     rustRuntime.prFail mx = Pr{let r ← mx.run}[r.toBool = false] := by
-  change prFail mx = _
-  rw [ExceptT.probFailure_eq, probFailure_eq_zero, zero_add]
-  congr 1
-  funext r
-  cases r <;> simp [Except.toBool]
+  change 1 - evalDist mx Set.univ = _
+  rw [ExceptT.evalDist_apply_univ]
+  have hr : MeasurableSet (Set.range (Except.ok : α → Except Fault α)) := by
+    change MeasurableSet ((Except.error : Fault → Except Fault α) ⁻¹' Set.range Except.ok) ∧
+      MeasurableSet ((Except.ok : α → Except Fault α) ⁻¹' Set.range Except.ok)
+    refine ⟨?_, ?_⟩
+    · convert MeasurableSet.empty
+      ext e
+      simp
+    · convert MeasurableSet.univ
+      ext x
+      simp
+  have hc : {r : Except Fault α | r.toBool = false} = (Set.range Except.ok)ᶜ := by
+    ext r
+    cases r <;> simp [Except.toBool]
+  have hs : MeasurableSet {r : Except Fault α | r.toBool = false} := hc ▸ hr.compl
+  rw [prEvent_eq_evalDist (ExceptT.run mx) (fun r => r.toBool = false)
+    (measurableSet_setOfPred.mp hs)]
+  change _ = 𝒟[ExceptT.run mx] {r : Except Fault α | r.toBool = false}
+  rw [hc, MeasureTheory.prob_compl_eq_one_sub hr]
 
 /-- An output has probability `0` exactly when it is not a possible output. -/
 theorem probOutput_rustRuntime_eq_zero_iff [MeasurableSpace α] [MeasurableSingletonClass α]
     (mx : RustOracleComp unifSpec α) (a : α) :
     rustRuntime.evalDist mx {a} = 0 ↔ a ∉ support mx := by
-  rw [probOutput_rustRuntime, probOutput_eq_zero_iff, ExceptT.mem_support_iff]
+  rw [probOutput_rustRuntime, prEvent_eq_zero_iff, ExceptT.mem_support_iff]
+  exact ⟨fun h hm ↦ h _ hm rfl, fun h x hx hxa ↦ h (hxa ▸ hx)⟩
 
 /-- A panic has no output: every value has probability `0`. -/
 @[simp] theorem probOutput_rustRuntime_liftResult_fail [MeasurableSpace α] (e : Error) (a : α) :
     rustRuntime.evalDist (liftResult (Result.fail e : Result α)) {a} = 0 := by
-  simp [probOutput_rustRuntime, liftResult_fail]
+  rw [liftResult_fail]
+  change evalDist (throw (Fault.panic e) : RustOracleComp unifSpec α) {a} = 0
+  rw [ExceptT.evalDist_apply]
+  have hr : MeasurableSet (Set.range (Except.ok : α → Except Fault α)) := by
+    change MeasurableSet ((Except.error : Fault → Except Fault α) ⁻¹' Set.range Except.ok) ∧
+      MeasurableSet ((Except.ok : α → Except Fault α) ⁻¹' Set.range Except.ok)
+    refine ⟨?_, ?_⟩
+    · convert MeasurableSet.empty
+      ext e
+      simp
+    · convert MeasurableSet.univ
+      ext x
+      simp
+  refine MeasureTheory.measure_mono_null (Set.image_subset_range _ _) ?_
+  simp only [ExceptT.run_throw, evalDist_pure]
+  rw [MeasureTheory.Measure.dirac_apply' _ hr]
+  simp
 
 /-- Divergence has no output: every value has probability `0`. -/
 @[simp] theorem probOutput_rustRuntime_liftResult_div [MeasurableSpace α] (a : α) :
     rustRuntime.evalDist (liftResult (Result.div : Result α)) {a} = 0 := by
-  simp [probOutput_rustRuntime, liftResult_div, RustOracleComp.div]
+  rw [liftResult_div, RustOracleComp.div]
+  change evalDist (throw Fault.divergence : RustOracleComp unifSpec α) {a} = 0
+  rw [ExceptT.evalDist_apply]
+  have hr : MeasurableSet (Set.range (Except.ok : α → Except Fault α)) := by
+    change MeasurableSet ((Except.error : Fault → Except Fault α) ⁻¹' Set.range Except.ok) ∧
+      MeasurableSet ((Except.ok : α → Except Fault α) ⁻¹' Set.range Except.ok)
+    refine ⟨?_, ?_⟩
+    · convert MeasurableSet.empty
+      ext e
+      simp
+    · convert MeasurableSet.univ
+      ext x
+      simp
+  refine MeasureTheory.measure_mono_null (Set.image_subset_range _ _) ?_
+  simp only [ExceptT.run_throw, evalDist_pure]
+  rw [MeasureTheory.Measure.dirac_apply' _ hr]
+  simp
 
 end Protocols.Realization

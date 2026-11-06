@@ -120,14 +120,14 @@ theorem initiate_eq_none (hE : E.NeverAgrees) (p : InitiatorParameters Msg)
   split_ifs at hx
   · simpa using hx
   simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨_, -, _, -, _, -, hx⟩ := hx
+  obtain ⟨_, -, _, -, hx⟩ := hx
   split_ifs at hx
   · simpa using hx
   simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨_, -, _, -, _, -, hx⟩ := hx
+  obtain ⟨_, -, _, -, hx⟩ := hx
   split_ifs at hx
   · simpa using hx
-  simp only [pure_bind, support_bind, Set.mem_iUnion, exists_prop] at hx
+  simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
   obtain ⟨_, -, ⟨res, R'⟩, hres, hx⟩ := hx
   rw [mem_support_liftResult] at hres
   rcases res with ag | e
