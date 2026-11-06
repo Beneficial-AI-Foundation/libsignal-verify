@@ -15,29 +15,28 @@ import VCVio.OracleComp.SimSemantics.StateT.StateProjection
 /-!
 # AEAD security notions
 
-An AEAD scheme (`Scheme`) with its correctness experiment (`PerfectlyCorrect`), the multi-query
+An AEAD scheme (`Scheme`) with its correctness condition (`PerfectlyCorrect`), the multi-query
 IND-CPA game, and three ciphertext-integrity games: the plain game (`INT_CTXT_Game`, the
 adversary outputs one forgery), the verification game (`INT_CTXT_VF_Game`, the adversary queries
 a verification oracle) and the decryption game (`INT_CTXT_D_Game`, it queries a decryption
 oracle). Four lemmas relate the integrity games. The PQXDH model's security theorems assume a
 bound on `INT_CTXT_D_Advantage` directly and use none of the four lemmas.
 
-The file repairs three issues of the ported definitions:
+The IND-CPA challenge takes equal-length message pairs (`EqualLengthChallenge`, #31). IND-CPA
+is a reference notion: production's deterministic message encryption cannot instantiate it (see
+`IND_CPA_Adversary`).
 
-* #31: the IND-CPA challenge takes only equal-length message pairs (`EqualLengthChallenge`).
-  IND-CPA is kept as a reference notion; production's deterministic message encryption cannot
-  instantiate it (see `IND_CPA_Adversary`).
-* #33: each lemma bounds a named reduction (`ctxtToVf`, `ctxtToDec`, `vfToCtxt`, `decToCtxt`)
-  in place of an existential, and lemmas count the reductions' encryption and checking queries.
-  The reductions' running time and uniform queries are not counted; cost accounting is #41's.
-* #32: the two multiplicative lemmas take an explicit `fallback : AD × C`, the reduction's
-  output when it captures nothing, so the empty-`AD × C` counterexample has no instance.
+Each integrity lemma bounds an explicit reduction: `ctxtToVf`, `ctxtToDec`, `vfToCtxt` or
+`decToCtxt` (#33). Further lemmas bound the reductions' encryption and checking queries. The
+reductions' running time and uniform queries are not counted; cost accounting is left to #41.
+The two multiplicative lemmas take `fallback : AD × C`, the reduction's output when it captures
+nothing (#32). So they have no instance when `AD × C` is empty.
 
 secure-messaging's one-time IND-CCA notion (secure-messaging `8369ee7`,
 `SecureMessaging/AEAD/Defs.lean`: `OneTimeCCAAdversary`, `aeadSecurityImpl`, `securityExp`)
-refuses decryption of the challenge pair. It is the recorded Gate S instantiation route, not an
-M1 obligation. An adapter must keep the scheme's key generation (`AEADScheme.keygen` there) and
-assume `PerfectlyCorrect`.
+refuses decryption of the challenge pair. It is the planned route for a later instantiation. An
+adapter must keep the scheme's key generation (`AEADScheme.keygen` there) and assume
+`PerfectlyCorrect`.
 -/
 
 open OracleSpec OracleComp
@@ -82,8 +81,7 @@ distinct messages `m` and `m'` have the same length: for some associated data `a
 `(ad, m, m)` and then `(ad, m, m')`, and compare the two ciphertexts. Production encrypts each
 message with AES-256-CBC under a key and an IV that both come from the message keys
 (`rust/protocol/src/triple_ratchet.rs:161`, `rust/protocol/src/session_cipher_legacy.rs:80`), so
-production cannot instantiate this notion. No PQXDH theorem uses it. It is kept, repaired, as a
-reference. -/
+production cannot instantiate this reference notion. No PQXDH theorem uses it. -/
 structure IND_CPA_Adversary (_aead : Scheme ProbComp Msg Key AD C) (msgLen : Msg → ℕ) where
   run : OracleComp (unifSpec + (EqualLengthChallenge AD Msg msgLen →ₒ C)) Bool
 
@@ -427,7 +425,9 @@ def vfToCtxt {aead : Scheme ProbComp Msg Key AD C} (fallback : AD × C) (v : ℕ
     (vfToCtxtAt fallback i.val B).run⟩
 
 /-- One step of `vfGuessImpl` run inside the plain game: the state pairs the reduction's state
-with the plain game's encryption log. -/
+with the plain game's encryption log. The final map reorders `((answer, state), log)` into
+`(answer, state, log)`; it is the inverse of the reordering in
+`simulateQ_StateT_StateT_compose`. -/
 private def vfGuessGameImpl (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C) (j : ℕ)
     (k : Key) : QueryImpl (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Bool)))
       (StateT (GuessState (AD × C) (AD × C) × List (AD × C)) ProbComp) := fun q =>
@@ -738,10 +738,12 @@ theorem vfToCtxt_encBound {aead : Scheme ProbComp Msg Key AD C}
     · simp [vfGuessImpl, hg]
   · simp [vfGuessImpl]
 
-/-- The message of the first entry of the log `L` whose pair is `p`, or `none`. The decryption
-reduction answers decryption queries with it. -/
+/-- The message `msg` of the first entry `(ad, msg, c)` of the log `L` with `(ad, c) = p`, or
+`none`. The decryption reduction answers decryption queries with it. -/
 def logLookup (L : List (AD × Msg × C)) (p : AD × C) : Option Msg :=
-  (L.find? fun e => decide ((e.1, e.2.2) = p)).map fun e => e.2.1
+  match L.find? fun (ad, _, c) => decide ((ad, c) = p) with
+  | some (_, msg, _) => some msg
+  | none => none
 
 /-- The handler of `decToCtxtAt fallback j`: as `vfGuessImpl`, with a log of encryption
 queries and their answers, and decryption queries answered by `logLookup`. -/
@@ -778,7 +780,7 @@ def decToCtxt {aead : Scheme ProbComp Msg Key AD C} (fallback : AD × C) (v : �
       liftM (OracleSpec.query (spec := unifSpec + ((AD × Msg) →ₒ C)) (.inl (v - 1)))
     (decToCtxtAt fallback i.val B).run⟩
 
-/-- One step of `decGuessImpl` run inside the plain game. -/
+/-- One step of `decGuessImpl` run inside the plain game, reordered as in `vfGuessGameImpl`. -/
 private def decGuessGameImpl (aead : Scheme ProbComp Msg Key AD C) (fallback : AD × C) (j : ℕ)
     (k : Key) : QueryImpl (unifSpec + (((AD × Msg) →ₒ C) + ((AD × C) →ₒ Option Msg)))
       (StateT (GuessState (AD × Msg × C) (AD × C) × List (AD × C)) ProbComp) := fun q =>
@@ -871,18 +873,17 @@ private theorem logLookup_eq (aead : Scheme ProbComp Msg Key AD C) (k : Key)
     (p : AD × C) (h : p ∈ R.map (fun e => (e.1, e.2.2)) ∨ aead.decrypt k p.1 p.2 = none) :
     logLookup R p = aead.decrypt k p.1 p.2 := by
   unfold logLookup
-  cases hfind : R.find? (fun e => decide ((e.1, e.2.2) = p)) with
-  | none =>
-    rw [Option.map_none]
-    rcases h with h | h
-    · obtain ⟨e, he, rfl⟩ := List.mem_map.1 h
-      exact absurd (by simp) (List.find?_eq_none.1 hfind e he)
-    · exact h.symm
-  | some e =>
+  split
+  next ad m c hfind =>
     have he := List.mem_of_find?_eq_some hfind
-    have hp : (e.1, e.2.2) = p := by simpa using List.find?_some hfind
+    have hp : (ad, c) = p := by simpa using List.find?_some hfind
     subst hp
-    exact (hR e he).symm
+    exact (hR _ he).symm
+  next hfind =>
+    rcases h with h | h
+    · obtain ⟨⟨ad, m, c⟩, he, rfl⟩ := List.mem_map.1 h
+      exact absurd (by simp) (List.find?_eq_none.1 hfind _ he)
+    · exact h.symm
 
 /-- The plain game's win event, read off a final state of `decGuessGameImpl`. -/
 private def decWin (aead : Scheme ProbComp Msg Key AD C) (k : Key) (fallback : AD × C)
@@ -1066,16 +1067,15 @@ theorem INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage
     INT_CTXT_Advantage aead A ≤ INT_CTXT_VF_Advantage aead (ctxtToVf A) :=
   (INT_CTXT_VF_Advantage_ctxtToVf aead A).ge
 
-/-- The verification-oracle variant loses at most the query bound `v`. The reduction
-`vfToCtxt fallback v B` guesses which of `B`'s at most `v` verification queries is the first
-fresh valid one and outputs it; `hcorrect` lets it answer the earlier verification queries from
-its log, since logged pairs decrypt. It outputs `fallback` when it captures nothing, and answers
-encryption queries after the capture with `fallback.2`.
+/-- If `aead` is perfectly correct and `B` makes at most `v` verification queries, then for
+every `fallback : AD × C`,
+`INT_CTXT_VF_Advantage aead B ≤ v * INT_CTXT_Advantage aead (vfToCtxt fallback v B)`.
 
-The explicit `fallback : AD × C` repairs #32: the earlier statement asserted that some plain
-adversary exists, which is false when `AD × C` is empty (no adversary can output a forgery).
-This statement bounds a named reduction instead, and has no instance at an empty `AD × C`. No
-PQXDH theorem uses this lemma. -/
+The reduction `vfToCtxt fallback v B` guesses which of `B`'s verification queries is the first
+fresh valid one and outputs it. `hcorrect` lets it answer the earlier verification queries from
+its log, since logged pairs decrypt. It outputs `fallback` when it captures nothing, and answers
+encryption queries after the capture with `fallback.2`. The lemma has no instance when
+`AD × C` is empty. No PQXDH theorem uses this lemma. -/
 theorem INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (hcorrect : PerfectlyCorrect aead)
     (fallback : AD × C) (B : INT_CTXT_VF_Adversary aead) (v : ℕ)
@@ -1112,13 +1112,16 @@ theorem INT_CTXT_Advantage_le_INT_CTXT_D_Advantage
     INT_CTXT_Advantage aead A ≤ INT_CTXT_D_Advantage aead (ctxtToDec A) :=
   (INT_CTXT_D_Advantage_ctxtToDec aead A).ge
 
-/-- The decryption-oracle variant loses at most the query bound `v`. The reduction
-`decToCtxt fallback v B` works as `vfToCtxt`: it guesses which of `B`'s at most `v` decryption
-queries is the first fresh valid one, and answers the earlier ones with `logLookup`, which
-`hcorrect` makes agree with decryption on logged pairs. `fallback` plays the same role as in
-`INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`, and the #32 counterexample has no instance
-for the same reason. No PQXDH theorem uses this lemma; the PQXDH security theorems assume a
-bound on `INT_CTXT_D_Advantage` directly. -/
+/-- If `aead` is perfectly correct and `B` makes at most `v` decryption queries, then for every
+`fallback : AD × C`,
+`INT_CTXT_D_Advantage aead B ≤ v * INT_CTXT_Advantage aead (decToCtxt fallback v B)`.
+
+The reduction `decToCtxt fallback v B` works as `vfToCtxt`: it guesses which of `B`'s
+decryption queries is the first fresh valid one, and answers the earlier ones with `logLookup`,
+which `hcorrect` makes agree with decryption on logged pairs. `fallback` plays the same role as
+in `INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`, so the lemma has no instance when
+`AD × C` is empty. No PQXDH theorem uses this lemma. The PQXDH security theorems assume a bound
+on `INT_CTXT_D_Advantage` directly. -/
 theorem INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage
     (aead : Scheme ProbComp Msg Key AD C) (hcorrect : PerfectlyCorrect aead)
     (fallback : AD × C) (B : INT_CTXT_D_Adversary aead) (v : ℕ)

@@ -97,9 +97,9 @@ stubs". The fixtures are proved and depend on no `sorryAx`.
 
 ## AEAD lemmas
 
-The four integrity lemmas of `Protocols/ToVCVio/CryptoFoundations/AEAD.lean`, repaired as ruled in Q14 (#31,
-#32, #33) and proved, with the two advantage equalities and the six query-bound lemmas of their reductions. No
-PQXDH theorem uses them: both security theorems assume a bound on `INT_CTXT_D_Advantage` directly.
+The four integrity lemmas of `Protocols/ToVCVio/CryptoFoundations/AEAD.lean`, repaired and proved
+(#31, #32, #33), with the two advantage equalities and the six query-bound lemmas of their reductions.
+No PQXDH theorem uses them: both security theorems assume a bound on `INT_CTXT_D_Advantage` directly.
 
 | Declaration | File | Axioms |
 | --- | --- | --- |
