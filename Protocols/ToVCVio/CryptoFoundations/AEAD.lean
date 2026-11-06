@@ -78,8 +78,8 @@ structure EqualLengthChallenge (AD Msg : Type) (msgLen : Msg → ℕ) where
 /-- An adversary in the multi-query IND-CPA game with equal-length challenge pairs.
 
 A perfectly correct deterministic encryption algorithm does not satisfy this notion when two
-distinct messages `m` and `m'` have the same length: query `(ad, m, m)` and then `(ad, m, m')`
-with the same associated data `ad`, and compare the two ciphertexts. Production encrypts each
+distinct messages `m` and `m'` have the same length: for some associated data `ad`, query
+`(ad, m, m)` and then `(ad, m, m')`, and compare the two ciphertexts. Production encrypts each
 message with AES-256-CBC under a key and an IV that both come from the message keys
 (`rust/protocol/src/triple_ratchet.rs:161`, `rust/protocol/src/session_cipher_legacy.rs:80`), so
 production cannot instantiate this notion. No PQXDH theorem uses it. It is kept, repaired, as a
