@@ -208,16 +208,17 @@ lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
     sigForgeProb P msg hasOPK A ≤ εsig := by
   sorry
 
-omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
+omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
 /-- Hop 4 (KEM-key guessing): the bad event `pqpkGuessed` has probability at most
   `q ^ 2 * εpk`.
 
   Each T session draws its KEM public key afresh from `P.pqkem.keygen`, after the keys of the
   earlier sessions and the key of any bundle the challenge has accepted are fixed, so the draw
   of the `j`-th session hits one of at most `j` known keys with probability at most `j * εpk`.
-  The proof, `KeyGuessing.pqpkGuessedProb_le_bound`, bounds the simulated challenge stage by the
-  potential `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings, which is
-  `εpk * q ^ 2` at the start. Only the challenge-stage half of `hq` is used.
+  The proof applies `KeyGuessing.probEvent_badEnv_le`, which bounds the simulated challenge stage
+  by the potential `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings. That is
+  `εpk * q ^ 2` at the start. Only the challenge-stage half of `hq` is used. The statement needs
+  no `SampleableType K` instance.
 
   Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. -/
 lemma pqpkGuessedProb_le
@@ -225,6 +226,42 @@ lemma pqpkGuessedProb_le
     (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
-  exact KeyGuessing.pqpkGuessedProb_le_bound P msg hasOPK A q hq εpk hpk
+  have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
+  have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
+    (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
+  have key : Pr[= true | pqpkGuessedExp P msg hasOPK A] ≤
+      ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) := by
+    rw [← probEvent_eq_eq_probOutput]
+    simp only [pqpkGuessedExp, challengePhase, bind_assoc]
+    refine probEvent_bind_le_of_forall_le fun ukt _ => ?_
+    have hinit : (uakeInitiator P msg hasOPK).U.init ukt.1 = pure (.waitForMsg (.inl ukt.1)) :=
+      rfl
+    simp only [challengeSession, bind_assoc, hinit, pure_bind, Party.InitResult.opening,
+      Party.InitResult.state, recordOpt]
+    refine (probEvent_bind_le_probEvent
+      (p := fun z => KeyGuessing.badEnv P msg hasOPK z.2 = true)
+      fun z _ hz => le_antisymm (probEvent_bind_le_of_forall_le fun k0 _ => ?_) zero_le).trans ?_
+    · have hk : pqpkGuessed P msg hasOPK
+          ⟨k0.join, z.2.challenge.transcript, z.2.tSessions.map (·.transcript)⟩ =
+            KeyGuessing.badEnv P msg hasOPK z.2 := rfl
+      simp [hk, hz]
+    · refine (KeyGuessing.probEvent_badEnv_le P msg hasOPK ukt.2 _ hpk' ?_ _ q (hq.1 _ _) _
+        ?_).trans ?_
+      · intro t
+        rcases t with n | op
+        · simp
+        · cases op <;> simp
+      · intro s hs
+        simp at hs
+      · simp [KeyGuessing.badEnv, KeyGuessing.envResult, pqpkGuessed, oracleBundles,
+          challengeBundle, transcriptBundle]
+  have hfin : ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) ≠ ⊤ :=
+    ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.natCast_ne_top _)
+  calc pqpkGuessedProb P msg hasOPK A
+      ≤ (ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞)).toReal := ENNReal.toReal_mono hfin key
+    _ = (q : ℝ) ^ 2 * εpk := by
+      rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hε0, ENNReal.toReal_natCast]
+      push_cast
+      ring
 
 end Protocols.Models.PQXDH

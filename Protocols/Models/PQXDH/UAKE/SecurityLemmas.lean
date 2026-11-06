@@ -43,8 +43,8 @@ theorem):
   cores.
 
 The games and event predicates live in `SecurityLemmas/Games.lean`. Hops 1
-and 2 are proven; they are purely probabilistic. Hop 4 is proven in
-`SecurityLemmas/KeyGuessing.lean` by a union bound over the fresh key draws. Hop 3 is
+and 2 are proven; they are purely probabilistic. Hop 4 is proven by a union bound over the
+fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is
 deferred as reduction work, with the intended reduction recorded in its doc
 comment. The GapDH cores idealize the KDF outputs on the challenge
 session's key material, which requires the KDF to be a programmable random

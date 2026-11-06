@@ -11,7 +11,8 @@ import Protocols.ToVCVio.OracleComp.QueryTracking.QueryBound
 /-!
 # The KEM-key guessing bound (hop 4)
 
-The proof of `Protocols.Models.PQXDH.pqpkGuessedProb_le`. The bad event `pqpkGuessed` asks whether a
+The lemmas behind `Protocols.Models.PQXDH.pqpkGuessedProb_le`, which `SharedHops.lean` proves
+with `probEvent_badEnv_le`. The bad event `pqpkGuessed` asks whether a
 T session's KEM public key repeats an earlier session's key or the key of a bundle that the
 challenge session accepted before that session was opened. Each session draws its key afresh
 from `P.pqkem.keygen`, after everything it is compared with is already fixed, so each draw hits
@@ -28,7 +29,7 @@ UAKE oracle. The facts about that oracle that hold for every scheme (`Env.openNe
 `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/OracleInvariants.lean`. What stays here depends on
 PQXDH: the bad event `badEnv`, the key set `keySet`, and the proofs that the oracle keeps
 `SessionsStarted`, changes the bad event only at `openT`, and hits `keySet` with probability at
-most `ε` per key.
+most `ε` per key. `probEvent_badEnv_le` puts them together.
 
 The lemma statements and proofs in this file are AI-written.
 -/
@@ -88,18 +89,18 @@ theorem mem_keySet_of_badEnv_openNext [DecidableEq PQPK]
     (st : (uakeInitiator P msg hasOPK).T.State) (bd : PreKeyBundle G PQPK S IdC IdK)
     (h : badEnv P msg hasOPK (env.openNext (.speakFirst st (.bundle bd))) = true) :
     bd.pqpkB.1 ∈ keySet P msg hasOPK env := by
+  -- Each lemma in this list is needed: removing any single one breaks the steps below.
   simp only [badEnv, pqpkGuessed, oracleBundles, transcriptBundle, envResult, List.filterMap_map,
-    Function.comp_apply, transcriptStart, List.any_map, challengeBundle, Bool.or_eq_false_iff,
+    Function.comp_apply, transcriptStart, challengeBundle, Bool.or_eq_false_iff,
     Bool.not_eq_eq_eq_not, Bool.not_false, decide_eq_true_eq, Env.openNext, recordOpt,
-    Party.InitResult.opening, recordOne, List.nil_append, Party.InitResult.state, List.map_append,
-    List.map_cons, List.map_nil, List.filterMap_append, List.head?_cons, Option.some.injEq,
+    Party.InitResult.opening, recordOne, List.nil_append, List.map_append, List.map_cons,
+    List.map_nil, List.filterMap_append, List.head?_cons, Option.some.injEq,
     List.filterMap_cons_some, List.filterMap_nil, List.nodup_append, List.nodup_cons,
-    List.not_mem_nil, not_false_eq_true, List.nodup_nil, and_self, List.mem_map, List.mem_filterMap,
-    List.mem_cons, or_false, ne_eq, forall_eq, forall_exists_index, and_imp, true_and,
-    List.any_append, List.any_cons, Option.any_some, Option.map_some, List.any_nil, Bool.or_false,
-    Bool.or_eq_true, Bool.not_true, decide_eq_false_iff_not, not_and, not_forall,
-    Decidable.not_not, keySet, List.toFinset_append, Finset.mem_union,
-    List.mem_toFinset, Option.mem_toList, Option.map_eq_some_iff] at hbad h ⊢
+    List.not_mem_nil, not_false_eq_true, List.nodup_nil, List.mem_map, List.mem_filterMap,
+    List.mem_cons, or_false, forall_eq, forall_exists_index, and_imp, true_and, List.any_append,
+    List.any_cons, List.any_nil, Bool.or_false, Bool.or_eq_true, Bool.not_true,
+    decide_eq_false_iff_not, not_and, not_forall, Decidable.not_not, keySet,
+    List.toFinset_append, Finset.mem_union, List.mem_toFinset, Option.mem_toList] at hbad h ⊢
   rcases h with h | h
   · obtain ⟨x, y, s, hs, hy, hyx, rfl⟩ := h hbad.1
     exact Or.inl ⟨y, ⟨s, hs, hy⟩, hyx⟩
@@ -110,8 +111,8 @@ theorem mem_keySet_of_badEnv_openNext [DecidableEq PQPK]
     · cases m with
       | bundle b =>
         simp only [hh, Option.map_some, Option.any_some, Bool.or_eq_true, List.any_eq_true,
-          Function.comp_apply, Bool.and_eq_true, decide_eq_true_eq, List.any_eq_false, not_and,
-          Bool.not_eq_true, Option.some.injEq, exists_eq_left'] at h h2 ⊢
+          Bool.and_eq_true, decide_eq_true_eq, List.any_eq_false, not_and, Bool.not_eq_true,
+          Option.some.injEq] at h h2 ⊢
         rcases h with ⟨x, hx, h1, h3⟩ | ⟨h1, -⟩
         · simp [h2 x hx h1] at h3
         · exact h1
@@ -456,48 +457,6 @@ theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G SPK S
     (fun t env ht _ => oracleImpl_openT_count _ tk t ((hp t).1 ht) env)
     (fun t env ht _ hbad => oracle_hit P msg hasOPK tk ε hpk t ((hp t).1 ht) env hbad)
     oa b hb env h
-
-/-- Hop 4: the KEM-key guessing bound. It carries `[SampleableType K]` only so that its
-signature matches `Protocols.Models.PQXDH.pqpkGuessedProb_le`, which delegates to it. -/
-theorem pqpkGuessedProb_le_bound [DecidableEq PQPK] [SampleableType K]
-    (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
-    (εpk : ℝ)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
-    pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
-  have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
-  have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
-    (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
-  have key : Pr[= true | pqpkGuessedExp P msg hasOPK A] ≤
-      ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) := by
-    rw [← probEvent_eq_eq_probOutput]
-    simp only [pqpkGuessedExp, challengePhase, bind_assoc]
-    refine probEvent_bind_le_of_forall_le fun ukt _ => ?_
-    have hinit : (uakeInitiator P msg hasOPK).U.init ukt.1 = pure (.waitForMsg (.inl ukt.1)) :=
-      rfl
-    simp only [challengeSession, bind_assoc, hinit, pure_bind, Party.InitResult.opening,
-      Party.InitResult.state, recordOpt]
-    refine (probEvent_bind_le_probEvent (p := fun z => badEnv P msg hasOPK z.2 = true)
-      fun z _ hz => le_antisymm (probEvent_bind_le_of_forall_le fun k0 _ => ?_) zero_le).trans ?_
-    · have hk : pqpkGuessed P msg hasOPK
-          ⟨k0.join, z.2.challenge.transcript, z.2.tSessions.map (·.transcript)⟩ =
-            badEnv P msg hasOPK z.2 := rfl
-      simp [hk, hz]
-    · refine (probEvent_badEnv_le P msg hasOPK ukt.2 _ hpk' ?_ _ q (hq.1 _ _) _ ?_).trans ?_
-      · intro t
-        rcases t with n | op
-        · simp
-        · cases op <;> simp
-      · intro s hs
-        simp at hs
-      · simp [badEnv, envResult, pqpkGuessed, oracleBundles, challengeBundle, transcriptBundle]
-  have hfin : ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) ≠ ⊤ :=
-    ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.natCast_ne_top _)
-  calc pqpkGuessedProb P msg hasOPK A
-      ≤ (ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞)).toReal := ENNReal.toReal_mono hfin key
-    _ = (q : ℝ) ^ 2 * εpk := by
-      rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hε0, ENNReal.toReal_natCast]
-      push_cast
-      ring
 
 end Model
 
