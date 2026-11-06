@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::pqxdh::HandshakeKeys::derive_with_label
 
-Change: `derive_arrays` is replaced by a zeroed 96-byte buffer filled by `crate::crypto::hkdf_sha256(None, secret_input, label, ..)`, then split into three 32-byte arrays; the now unused `use libsignal_core::derive_arrays` goes.
-Why: the zerocopy layout traits behind `derive_arrays` are excluded, and their impls trigger an Aeneas pre-pass error; keeping them exposes pointer operations Aeneas does not support.
-Behaviour: identical; the same HKDF call and label fill the same 96 bytes, split in the same order, with the same `expect`.
+Change: `derive_arrays` is replaced by a zeroed 96-byte buffer filled by `crate::crypto::hkdf_sha256(None, secret_input, label, ..)`, then split into three 32-byte arrays. The `use libsignal_core::derive_arrays`, now unused, is removed.
+Why: the zerocopy layout traits behind `derive_arrays` are excluded, and their impls trigger an Aeneas pre-pass error. Keeping them exposes pointer operations Aeneas does not support.
+Behaviour: identical. The same HKDF call and label fill the same 96 bytes, split in the same order, with the same `expect`.
 Relies on: protocol-crypto-hkdf_sha256.patch
 
 diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs

@@ -1,7 +1,7 @@
 Translation patch: libsignal_protocol::double_ratchet::RatchetState::take_skipped_key
 
 Change: `MessageKeyGenerator::from_pb(key_pb).map(Some).map_err(InvalidSessionError)` moves unchanged into the new function `skipped_key_from_pb`.
-Why: `from_pb` is opaque and returns a `&'static str` error; moving it into `InvalidSessionError` in translated code needs a loan for the static borrow, which Aeneas does not have. The helper is opaque in the extraction (`aeneas-config.protocol.yml`).
+Why: `from_pb` is opaque and returns a `&'static str` error. Moving it into `InvalidSessionError` in translated code needs a loan for the static borrow, which Aeneas does not have. The helper is opaque in the extraction (`aeneas-config.protocol.yml`).
 Behaviour: identical.
 Applies after: protocol-double_ratchet-error_messages.patch, protocol-double_ratchet-logging.patch (their lines are this patch's context).
 

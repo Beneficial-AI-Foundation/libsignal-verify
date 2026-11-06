@@ -160,7 +160,7 @@ Contains:
 
 ## Source modifications
 
-The committed `rust/` tree is upstream libsignal at `upstream.commit` in `rust/aeneas-config.yml`. Every change made for extraction is a patch in [`translation-patches/`](translation-patches/), applied only to the work copy that Charon reads. Each patch header gives the change, the reason and the effect on the production build; this section indexes them. Items that a profile makes opaque or excludes in its YAML need no source change and are listed there, not here.
+The committed `rust/` tree is upstream libsignal at `upstream.commit` in `rust/aeneas-config.yml`. Every change made for extraction is a patch in [`translation-patches/`](translation-patches/), applied only to the work copy that Charon reads. Each patch header gives the change, the reason and the effect on the production build. This section indexes the patches. Items that a profile makes opaque or excludes in its YAML need no source change. The YAML lists them with the reason.
 
 The correspondence claims concern protocol values and cryptographic operation order, not identical memory layout or logging locations. To revert a patch, delete it and require clean Charon LLBC, Aeneas generation of the same roots, `lake build Libsignal` and the production Rust build.
 
@@ -215,7 +215,7 @@ Each workaround has a comment in the patched source naming the limitation.
 
 ### Outside `rust/`
 
-The root `Cargo.toml` adds `exclude = [".aeneas"]`, so Cargo does not treat the work copy in `.aeneas/work/` as part of the repository's workspace. It is a project file, not a patch.
+The root `Cargo.toml` adds `exclude = [".aeneas"]`, so Cargo does not treat the work copy in `.aeneas/work/` as part of the repository's workspace.
 
 The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
 

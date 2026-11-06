@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::protocol::SignalMessage::compute_mac
 
-Change: the inline `Hmac::<Sha256>` with three `update` calls becomes `crate::crypto::hmac_sha256_parts(mac_key, &[sender key, receiver key, message])`, and the first 8 bytes are taken as before; the now unused `hmac` and `sha2` imports go.
+Change: the inline `Hmac::<Sha256>` with three `update` calls becomes `crate::crypto::hmac_sha256_parts(mac_key, &[sender key, receiver key, message])`, and the first 8 bytes are taken as before. The `hmac` and `sha2` imports, now unused, are removed.
 Why: see protocol-crypto-hmac_sha256_parts.patch.
-Behaviour: identical; the helper feeds the same three parts in the same order.
+Behaviour: identical. The helper feeds the same three parts in the same order.
 Relies on: protocol-crypto-hmac_sha256_parts.patch
 
 diff --git a/rust/protocol/src/protocol.rs b/rust/protocol/src/protocol.rs

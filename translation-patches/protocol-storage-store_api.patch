@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::storage (module list and re-exports)
 
-Change: under the `extraction` feature, the `inmem` module and the re-exports of the store traits and their in-memory implementations are left out; `Direction` and `IdentityChange` stay.
+Change: under the `extraction` feature, the `inmem` module and the re-exports of the store traits and their in-memory implementations are left out. `Direction` and `IdentityChange` stay.
 Why: Charon's hax frontend panics on the `#[async_trait]` store traits when `--start-from-pub` roots them, so the extraction leaves out the store-using layer. The protocol and crypto core does not use it.
 Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
 Relies on: protocol-storage_traits-store_traits.patch

@@ -4,7 +4,7 @@ The committed `rust/` tree is upstream libsignal at the commit pinned in `rust/a
 
 ## One patch per modification
 
-A patch holds one modification: a change to one item (a type, function, trait or impl) together with the edits that keep the crate compiling, such as the uses of a renamed field. A new helper goes in the same patch as its call sites when it is in the same file; a helper in another module is a patch of its own (`protocol-crypto-hkdf_sha256`, `protocol-crypto-hmac_sha256_parts`). When one file gets the same gate on several items for one reason, that is one patch (the `store_api` and `store_traits` patches).
+A patch holds one modification: a change to one item (a type, function, trait or impl) together with the edits that keep the crate compiling, such as the uses of a renamed field. A new helper goes in the same patch as its call sites when it is in the same file. A helper in another module is a patch of its own (`protocol-crypto-hkdf_sha256`, `protocol-crypto-hmac_sha256_parts`). When one file gets the same gate on several items for one reason, that is one patch (the `store_api` and `store_traits` patches).
 
 Names follow `<crate>-<module>-<item>[-<detail>].patch`. `<crate>` is `core`, `crypto` or `protocol`; `<module>` is the file under `src/`, with `/` written as `_` (`ratchet_keys` for `ratchet/keys.rs`), or `Cargo` for the manifest.
 

@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::kem::Ciphertext
 
 Change: `Ciphertext<'a> { data: &'a [u8] }` becomes `Ciphertext { data: Box<[u8]> }`: `deserialize` copies the bytes after the type byte, `serialize` reads them through `&self.data`, and `encapsulate` moves its ciphertext in.
 Why: Charon fails on a struct with a lifetime parameter in a field type (blocker catalog LIFETIME-STRUCT).
-Behaviour: same values; one extra copy of the ciphertext bytes.
+Behaviour: same values. `deserialize` makes one extra copy of the ciphertext bytes.
 
 diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
 --- a/rust/protocol/src/kem.rs

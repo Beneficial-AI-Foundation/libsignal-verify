@@ -2,7 +2,7 @@ Translation patch: libsignal-protocol `Cargo.toml`
 
 Change: adds an empty `extraction` feature.
 Why: the extraction builds the crate with this feature, which switches on the `charon` tool attributes and the `cfg` gates of the other patches.
-Behaviour: unchanged; the feature is off by default.
+Behaviour: unchanged. The feature is off by default.
 
 diff --git a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
 --- a/rust/protocol/Cargo.toml

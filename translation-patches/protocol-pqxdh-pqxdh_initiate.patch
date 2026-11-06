@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::pqxdh::pqxdh_initiate
 
 Change: the parameter `mut csprng: &mut R` becomes `csprng: &mut R`, and `encapsulate(&mut csprng)` becomes `encapsulate::<R>(&mut *csprng)`.
-Why: for a `&mut &mut R` argument Aeneas generates an ill-typed RNG state update; an explicit reborrow avoids the double borrow.
-Behaviour: identical; `encapsulate` gets the same generator.
+Why: for a `&mut &mut R` argument Aeneas generates an ill-typed RNG state update. An explicit reborrow avoids the double borrow.
+Behaviour: identical. `encapsulate` gets the same generator.
 
 diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
 --- a/rust/protocol/src/pqxdh.rs

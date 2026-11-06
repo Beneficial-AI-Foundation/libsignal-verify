@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::kem::KeyMaterial
 
-Change: under the `extraction` feature, `KeyMaterial` does not derive `derive_more::Deref` with `#[deref(forward)]`; an explicit `impl Deref<Target = [u8]>` returns `&*self.data` instead.
+Change: under the `extraction` feature, `KeyMaterial` does not derive `derive_more::Deref` with `#[deref(forward)]`. An explicit `impl Deref<Target = [u8]>` returns `&*self.data` instead.
 Why: the derived forwarding dereference gives an Aeneas type mismatch.
 Behaviour: unchanged in the production build, which does not enable the `extraction` feature. Under the feature, the explicit impl borrows the same bytes.
 

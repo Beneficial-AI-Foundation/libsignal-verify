@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::ratchet::keys::RootKey::create_chain
 
 Change: the inline `Hkdf::<Sha256>::new(..).expand(..)` becomes `crate::crypto::hkdf_sha256(..)` with the same salt, input, info and output buffer.
 Why: see protocol-crypto-hkdf_sha256.patch.
-Behaviour: identical; the helper makes the same call.
+Behaviour: identical. The helper makes the same call.
 Relies on: protocol-crypto-hkdf_sha256.patch
 
 diff --git a/rust/protocol/src/ratchet/keys.rs b/rust/protocol/src/ratchet/keys.rs

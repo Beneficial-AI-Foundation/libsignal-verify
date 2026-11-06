@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::crypto::hkdf_sha256 (new)
 
 Change: adds `hkdf_sha256(salt, input_key_material, info, output)`, which runs `hkdf::Hkdf::<Sha256>::new(salt, input_key_material).expand(info, output)`.
-Why: Charon cannot lift the generic-array associated types of `hkdf` under `--preset=aeneas`; a byte-slice helper keeps them out of the callers.
-Behaviour: unchanged; nothing calls the helper until the caller patches.
+Why: Charon cannot lift the generic-array associated types of `hkdf` under `--preset=aeneas`. A byte-slice helper keeps them out of the callers.
+Behaviour: unchanged. Nothing calls the helper until the caller patches.
 
 diff --git a/rust/protocol/src/crypto.rs b/rust/protocol/src/crypto.rs
 --- a/rust/protocol/src/crypto.rs

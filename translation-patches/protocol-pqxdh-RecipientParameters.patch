@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::pqxdh::RecipientParameters
 
-Change: `RecipientParameters<'a>` with `their_kyber_ciphertext: &'a kem::SerializedCiphertext` becomes `RecipientParameters` that owns the ciphertext. The accessor and `pqxdh_accept` borrow the field; `type RecipientParams<'a>` in the `Handshake` impl, the `BobSignalProtocolParameters` alias in `ratchet.rs` and the caller in `session.rs` (`kyber_ciphertext.clone()`) follow.
+Change: `RecipientParameters<'a>` with `their_kyber_ciphertext: &'a kem::SerializedCiphertext` becomes `RecipientParameters` that owns the ciphertext. The accessor and `pqxdh_accept` borrow the field. `type RecipientParams<'a>` in the `Handshake` impl, the `BobSignalProtocolParameters` alias in `ratchet.rs` and the caller in `session.rs` (`kyber_ciphertext.clone()`) follow.
 Why: Charon fails on a struct with a lifetime parameter in a field type (blocker catalog LIFETIME-STRUCT).
-Behaviour: same values; `process_prekey_impl` makes one extra copy of the Kyber ciphertext.
+Behaviour: same values. `process_prekey_impl` makes one extra copy of the Kyber ciphertext.
 Applies after: protocol-pqxdh-Pqxdh-Handshake.patch (their lines are this patch's context).
 
 diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs

@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::triple_ratchet::TripleRatchet::decrypt (SPQR errors)
 
-Change: `match e { spqr::Error::StateDecode => …, _ => … }` becomes `if is_state_decode(&e) { … } else { … }` with the same two results; `is_state_decode` is a new function.
+Change: `match e { spqr::Error::StateDecode => …, _ => … }` becomes `if is_state_decode(&e) { … } else { … }` with the same two results. `is_state_decode` is a new function.
 Why: `spqr::Error` has an `InvalidParams(&'static str)` variant, and matching it hits the same static-borrow defect (a crash in Aeneas's translation pass). `is_state_decode` is opaque in the extraction (`aeneas-config.protocol.yml`).
 Behaviour: identical.
 Applies after: protocol-triple_ratchet-address_pair.patch (their lines are this patch's context).

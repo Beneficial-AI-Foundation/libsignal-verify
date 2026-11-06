@@ -1,8 +1,8 @@
 Translation patch: libsignal_core::e164::E164
 
-Change: `E164(NonZeroU64)` becomes `E164 { inner: NonZeroU64 }`; `.map(Self)` becomes `.map(|inner| Self { inner })`, and the other uses follow.
+Change: `E164(NonZeroU64)` becomes `E164 { inner: NonZeroU64 }`. `.map(Self)` becomes `.map(|inner| Self { inner })`, and the other uses follow.
 Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
-Behaviour: identical; the field is private, so only its name changes.
+Behaviour: identical. The field is private, so only its name changes.
 
 diff --git a/rust/core/src/e164.rs b/rust/core/src/e164.rs
 --- a/rust/core/src/e164.rs

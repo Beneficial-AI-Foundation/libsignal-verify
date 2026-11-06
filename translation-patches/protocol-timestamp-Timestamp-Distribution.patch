@@ -1,7 +1,7 @@
 Translation patch: impl rand::distr::Distribution<Timestamp> for rand::distr::StandardUniform
 
 Change: under the `extraction` feature, the impl is left out.
-Why: not recorded in the source or the extraction notes. The impl samples a random timestamp for tests; the extraction does not need it.
+Why: not recorded in the source or the extraction notes.
 Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
 
 diff --git a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs

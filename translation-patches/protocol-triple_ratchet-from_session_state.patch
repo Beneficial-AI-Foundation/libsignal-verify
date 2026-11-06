@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::triple_ratchet::{OutgoingTripleRatchet, TripleRatchet}::from_session_state
 
-Change: the parameter `state` is renamed `session_state` in both functions; rustfmt reflows two statements.
+Change: the parameter `state` is renamed `session_state` in both functions, and rustfmt reflows two statements.
 Why: a parameter named like the `state` module shadows the module in the generated Lean ([aeneas#1098](https://github.com/AeneasVerif/aeneas/issues/1098)).
 Behaviour: identical.
 Applies after: protocol-triple_ratchet-address_pair.patch, protocol-triple_ratchet-decrypt-aes_cbc_errors.patch, protocol-triple_ratchet-decrypt-spqr_errors.patch, protocol-triple_ratchet-error_messages.patch (their lines are this patch's context).

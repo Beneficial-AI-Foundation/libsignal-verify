@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::kem::DynParameters
 
 Change: under the `extraction` feature, the trait and its blanket impl are `#[charon::exclude]`. Its three uses (`Key<Public>::encapsulate`, `Key<Secret>::decapsulate`, `Ciphertext::deserialize`) now `match` on the `KeyType` and call `<kyber1024::Parameters as Parameters>` directly, with the same error mapping as the blanket impl.
 Why: `KeyType::parameters` returns a `&'static dyn DynParameters`, and `dyn` trait dispatch does not translate (blocker catalog DYN-TRAIT).
-Behaviour: same results in the default feature set, where `Kyber1024` is the only `KeyType`; the blanket impl forwarded to the same `Parameters` functions.
+Behaviour: same results in the default feature set, where `Kyber1024` is the only `KeyType`. The blanket impl forwarded to the same `Parameters` functions.
 Relies on: the default feature set: with `kyber768` or `mlkem1024`, `KeyType` has more variants and the three `match`es are not exhaustive.
 
 diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs

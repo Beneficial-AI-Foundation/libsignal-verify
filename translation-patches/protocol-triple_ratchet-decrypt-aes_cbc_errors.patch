@@ -1,7 +1,7 @@
 Translation patch: libsignal_protocol::triple_ratchet::TripleRatchet::decrypt (AES-CBC errors)
 
-Change: the arms `Err(BadKeyOrIv)` and `Err(BadCiphertext(msg))` become `Err(e) if is_bad_key_or_iv(&e)` and `Err(e)`; the message comes from the new function `decrypt_failure_message(e)`, which matches `BadCiphertext(msg)` and formats as before. Its `BadKeyOrIv` arm is `unreachable!`, because the guard takes that variant first.
-Why: `BadCiphertext(&'static str)` comes from an opaque call; Aeneas has no loan for that static borrow, so expanding the variant or copying the field fails. `is_bad_key_or_iv` and `decrypt_failure_message` are opaque in the extraction (`aeneas-config.protocol.yml`).
+Change: the arms `Err(BadKeyOrIv)` and `Err(BadCiphertext(msg))` become `Err(e) if is_bad_key_or_iv(&e)` and `Err(e)`. The message comes from the new function `decrypt_failure_message(e)`, which matches `BadCiphertext(msg)` and formats as before. Its `BadKeyOrIv` arm is `unreachable!`, because the guard takes that variant first.
+Why: `BadCiphertext(&'static str)` comes from an opaque call. Aeneas has no loan for that static borrow, so expanding the variant or copying the field fails. `is_bad_key_or_iv` and `decrypt_failure_message` are opaque in the extraction (`aeneas-config.protocol.yml`).
 Behaviour: same results for both variants.
 Applies after: protocol-triple_ratchet-address_pair.patch (their lines are this patch's context).
 

@@ -1,8 +1,8 @@
 Translation patch: signal_crypto::aes_ctr::Aes256Ctr32
 
-Change: `Aes256Ctr32(ctr::Ctr32BE<Aes256>)` becomes `Aes256Ctr32 { inner: ctr::Ctr32BE<Aes256> }`, and the two uses follow; under the `extraction` feature the struct is also `#[charon::opaque]`.
-Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)). The opacity keeps the RustCrypto CTR state out of the translation.
-Behaviour: identical; the field is private, and the opacity attribute is active only under the `extraction` feature.
+Change: `Aes256Ctr32(ctr::Ctr32BE<Aes256>)` becomes `Aes256Ctr32 { inner: ctr::Ctr32BE<Aes256> }`, and the two uses follow. Under the `extraction` feature the struct is also `#[charon::opaque]`.
+Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)). The reason for the opacity is not recorded. The struct holds a RustCrypto CTR state.
+Behaviour: identical. The field is private, and the opacity attribute is active only under the `extraction` feature.
 Relies on: crypto-lib-register_tool.patch
 
 diff --git a/rust/crypto/src/aes_ctr.rs b/rust/crypto/src/aes_ctr.rs

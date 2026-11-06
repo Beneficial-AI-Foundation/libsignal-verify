@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::ratchet::{initialize_alice_session, initialize_bob_session}
 
-Change: `Pqxdh::initiate` and `Pqxdh::accept` become direct calls of `pqxdh_initiate` and `pqxdh_accept`; `initialize_alice_session` destructures `InitiatorAgreement { kyber_ciphertext, keys: HandshakeKeys { .. } }`. The imports follow.
+Change: `Pqxdh::initiate` and `Pqxdh::accept` become direct calls of `pqxdh_initiate` and `pqxdh_accept`. `initialize_alice_session` destructures `InitiatorAgreement { kyber_ciphertext, keys: HandshakeKeys { .. } }`. The imports follow.
 Why: the `Handshake` trait and its impl are excluded from the extraction (protocol-handshake-Handshake.patch, protocol-pqxdh-Pqxdh-Handshake.patch).
-Behaviour: identical; the trait methods only called these functions and reordered the result.
+Behaviour: identical. The trait methods only called these functions and reordered the result.
 Relies on: protocol-pqxdh-InitiatorAgreement.patch
 
 diff --git a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs

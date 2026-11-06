@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::pqxdh::InitiatorAgreement
 
 Change: the fields `keys` and `kyber_ciphertext` become `pub(crate)`.
 Why: `initialize_alice_session` destructures the result of `pqxdh_initiate` directly instead of calling the excluded `Handshake::initiate` (protocol-ratchet-pqxdh_calls.patch).
-Behaviour: identical; visibility only.
+Behaviour: identical. Only the visibility changes.
 
 diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
 --- a/rust/protocol/src/pqxdh.rs

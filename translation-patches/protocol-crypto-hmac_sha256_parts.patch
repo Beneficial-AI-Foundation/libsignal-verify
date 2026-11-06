@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::crypto::hmac_sha256_parts (new)
 
 Change: adds `hmac_sha256_parts(key, parts)`, which feeds the parts in order to one HMAC-SHA256 state and returns the 32-byte tag.
 Why: the same associated-type limitation, for an incremental `Hmac`.
-Behaviour: unchanged; nothing calls the helper until protocol-protocol-SignalMessage-compute_mac.patch.
+Behaviour: unchanged. Nothing calls the helper until protocol-protocol-SignalMessage-compute_mac.patch.
 
 diff --git a/rust/protocol/src/crypto.rs b/rust/protocol/src/crypto.rs
 --- a/rust/protocol/src/crypto.rs

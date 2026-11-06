@@ -2,7 +2,7 @@ Translation patch: libsignal_protocol::timestamp::Timestamp
 
 Change: `Timestamp(u64)` becomes `Timestamp { millis: u64 }`, and the uses follow, including the body of the `Distribution` impl.
 Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
-Behaviour: same values; the field is private. One visible difference: the serde format of `Timestamp` changes from a newtype (a bare number) to a struct with a `millis` field.
+Behaviour: same values. The field is private. The serde format of `Timestamp` changes from a newtype (a bare number) to a struct with a `millis` field.
 Applies after: protocol-timestamp-Timestamp-Distribution.patch, protocol-timestamp-Timestamp-serde.patch (their lines are this patch's context).
 
 diff --git a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs

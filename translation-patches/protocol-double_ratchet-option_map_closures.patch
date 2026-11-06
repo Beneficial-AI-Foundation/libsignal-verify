@@ -1,6 +1,6 @@
 Translation patch: libsignal_protocol::double_ratchet::RatchetState::{from_pb, apply_to_pb}
 
-Change: `.map(SenderChain::from_pb)` becomes `.map(|chain| SenderChain::from_pb(chain))`, and `.map(SenderChain::to_pb)` becomes the same closure form through a local `sender_chain_pb`; `#[allow(clippy::redundant_closure)]` keeps clippy quiet.
+Change: `.map(SenderChain::from_pb)` becomes `.map(|chain| SenderChain::from_pb(chain))`, and `.map(SenderChain::to_pb)` becomes the same closure form through a local `sender_chain_pb`. `#[allow(clippy::redundant_closure)]` stops the clippy warning.
 Why: Aeneas does not translate a function item passed to `Option::map`.
 Behaviour: identical.
 Applies after: protocol-double_ratchet-error_messages.patch (their lines are this patch's context).
