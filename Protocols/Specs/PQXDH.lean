@@ -940,7 +940,7 @@ info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
 /-! ## Score convention
 
 Under the `ProbComp` runtime, the guess-form UAKE advantage is half the real-versus-random
-advantage (ruling Q08). No statement above uses `distAdvantage`. -/
+advantage. No statement above uses `distAdvantage`. -/
 
 recall AKE.UAKE.advantage_eq_distAdvantage_div_two {K UK TK W : Type} [SampleableType K]
     [DecidableEq W] {proto : AKE.UAKE.Scheme ProbComp K UK TK W} (A : AKE.UAKE.Adversary proto) :

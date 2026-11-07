@@ -362,7 +362,7 @@ def Exp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLift m)
   `Scheme.Admissible` does not imply that. Under the `ProbComp` runtime, which loses no mass,
   this value is half the real-versus-random advantage `distAdvantage`
   (`advantage_eq_distAdvantage_div_two` in `UAKE/DistAdvantage.lean`). Issues #29 and #30
-  track lost mass and the factor of two against VCVio's `boolBiasAdvantage` for Gate S. -/
+  track lost mass and the factor of two against VCVio's `boolBiasAdvantage`. -/
 noncomputable def advantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m)
     (A : Adversary proto) : ℝ :=

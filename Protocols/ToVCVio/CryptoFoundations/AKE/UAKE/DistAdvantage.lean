@@ -11,19 +11,16 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
 /-!
 # The real-versus-random advantage of the UAKE experiment
 
-`AKE.UAKE.advantage` scores an adversary by the distance of its winning probability in `Exp`
-from one half (the guess form). This file adds the real-versus-random form that
-secure-messaging uses. `FixedBitExp` runs the experiment with the challenge bit `b` fixed and
-returns a guess. With `b = false` the adversary receives the key of the challenge session (the
-real game). With `b = true` it receives a uniform key (the random game). `distAdvantage` is the
-distance between the probabilities that the two games return `true`.
-
-`FixedBitExp` follows the three cases of `Exp`:
+`AKE.UAKE.advantage` is the distance of the adversary's winning probability in `Exp` from one
+half (the guess form). This file defines the real-versus-random form that secure-messaging uses.
+`FixedBitExp` fixes the challenge bit `b` and returns a guess: `b = false` selects the challenge
+session's key (the real game), and `b = true` selects a uniform key (the random game).
+`distAdvantage` is the distance between the probabilities that the two games return `true`.
+`FixedBitExp` keeps the three cases of `Exp`:
 * If the challenge session outputs no key, the adversary guesses with no key in both games.
-* If the challenge session accepts with no matching session of T (a forgery), `Exp` declares a
-  win and asks for no guess. `FixedBitExp` returns `b` itself, so that a forgery also counts as
-  a correct guess in the two-game form.
-* Otherwise the adversary guesses with the challenge key or with a uniform key.
+* If it accepts with no matching session of T (a forgery), `Exp` declares a win and asks for
+  no guess. `FixedBitExp` returns `b`, a correct guess in either game.
+* Otherwise the adversary guesses with the selected key.
 
 In the first and third cases, a fair coin replaces the guess when a revealed session of T
 matches the challenge transcript, as in `finalize`.
@@ -32,7 +29,7 @@ matches the challenge transcript, as in `finalize`.
 runtime. The identity needs an experiment that loses no probability mass, and `ProbComp` loses
 none. Under a runtime that can lose mass, the two forms can differ: if every run fails,
 `advantage` is 1/2 and `distAdvantage` is 0. Issues #29 (lost mass in `advantage`) and #30 (the
-factor of two against VCVio's `boolBiasAdvantage`) stay open for Gate S.
+factor of two against VCVio's `boolBiasAdvantage`) remain open.
 
 `finalizeGuess` and `FixedBitExp` follow `finalize` and `Exp`. `distAdvantage` and the proof
 follow secure-messaging's one-time AEAD game. See `Protocols/ATTRIBUTION.md`. The proofs in this
@@ -179,10 +176,11 @@ private theorem probOutput_Exp_toReal_sub_half (A : Adversary proto) :
   exact probOutput_uniformBool_branch_toReal_sub_half _ _
 
 /-- Under the `ProbComp` runtime, the guess-form advantage is half the real-versus-random
-  advantage. The proof moves the draw of the challenge bit to the start of `Exp`, splits on it,
-  and uses VCVio's `probOutput_uniformBool_branch_toReal_sub_half`. -/
+  advantage. -/
 theorem advantage_eq_distAdvantage_div_two (A : Adversary proto) :
     advantage ProbCompRuntime.probComp A = distAdvantage ProbCompRuntime.probComp A / 2 := by
+  -- `probOutput_Exp_toReal_sub_half` moves the draw of the challenge bit to the start of `Exp`,
+  -- splits on it, and uses VCVio's `probOutput_uniformBool_branch_toReal_sub_half`.
   unfold advantage distAdvantage
   simp only [probOutput_probCompRuntime_evalDist]
   rw [probOutput_Exp_toReal_sub_half, abs_div, abs_two]
