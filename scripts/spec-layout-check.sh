@@ -13,6 +13,9 @@
 # 4. In a summary, every recalled theorem also has an axiom check, and every `#print axioms`
 #    command sits directly under `#guard_msgs`.
 #
+# Rules 3 and 4 read the files with comments removed: nested `/- ... -/` blocks (doc comments
+# included) and `--` line comments. A recall or a guard inside a comment does not count.
+#
 # What the script cannot see:
 # - Rule 2 is a namespace test. It misses a std item that the extraction places in a libsignal
 #   namespace, such as `libsignal_protocol.Box.Insts.CoreConvertAsRef` (in Proofs/Std/Alloc/Boxed/).
@@ -25,19 +28,49 @@
 #   build checks both.
 # - Axiom checks of extracted definitions, such as the entry points in Specs/Protocol/Pqxdh.lean,
 #   which no proof file declares.
+# - Comment markers inside character literals. The comment filter skips string literals only.
 #
 # Run from the repository root:
 #   scripts/spec-layout-check.sh [ROOT]   checks ROOT/rust/Libsignal (ROOT defaults to .)
 #   scripts/spec-layout-check.sh --self-test
-#                                         checks that each rule passes a good tree and fails a
-#                                         tree with one planted violation
+#                                         checks that a good tree passes and that each tree with
+#                                         one planted violation fails with the expected message
 set -euo pipefail
+
+# Print a Lean file with its comments replaced by nothing, keeping one output line per input line.
+strip_comments() {
+  awk '
+    {
+      line = $0; out = ""; n = length(line); i = 1; instr = 0
+      while (i <= n) {
+        two = substr(line, i, 2); ch = substr(line, i, 1)
+        if (depth > 0) {
+          if (two == "/-") { depth++; i += 2; continue }
+          if (two == "-/") { depth--; i += 2; continue }
+          i++; continue
+        }
+        if (instr) {
+          out = out ch
+          if (ch == "\\") { out = out substr(line, i + 1, 1); i += 2; continue }
+          if (ch == "\"") instr = 0
+          i++; continue
+        }
+        if (two == "/-") { depth = 1; i += 2; continue }
+        if (two == "--") break
+        if (ch == "\"") instr = 1
+        out = out ch; i++
+      }
+      print out
+    }' "$1"
+}
 
 check() {
   local root=$1
   local lib=$root/rust/Libsignal
   local proofs=$lib/Proofs specs=$lib/Specs
   local status=0
+  local work
+  work=$(mktemp -d)
 
   local tool_dirs
   tool_dirs=$(find "$proofs" "$specs" -type d \( -iname aeneas -o -iname charon \))
@@ -60,12 +93,14 @@ check() {
     status=1
   fi
 
-  local file rel dir summary name
+  local file rel dir summary name active
   while IFS= read -r -d '' file; do
     rel=${file#"$proofs"/}
+    active=$work/proof.lean
+    strip_comments "$file" > "$active"
     local theorems defs
-    theorems=$(grep -E '^(theorem|lemma)[[:space:]]' "$file" | awk '{print $2}' || true)
-    defs=$(grep -E '^(noncomputable[[:space:]]+)?(def|abbrev|structure)[[:space:]]' "$file" \
+    theorems=$(grep -E '^(theorem|lemma)[[:space:]]' "$active" | awk '{print $2}' || true)
+    defs=$(grep -E '^(noncomputable[[:space:]]+)?(def|abbrev|structure)[[:space:]]' "$active" \
       | sed -E 's/^(noncomputable[[:space:]]+)?(def|abbrev|structure)[[:space:]]+//' \
       | awk '{print $1}' || true)
     [ -z "$theorems$defs" ] && continue
@@ -80,15 +115,17 @@ check() {
       status=1
       continue
     fi
+    strip_comments "$summary" > "$work/summary.lean"
     for name in $theorems; do
-      if ! grep -qE "^recall[[:space:]]+([^[:space:]]*\.)?${name##*.}([[:space:]]|$)" "$summary"
-      then
+      if ! grep -qE "^recall[[:space:]]+([^[:space:]]*\.)?${name##*.}([[:space:]]|$)" \
+          "$work/summary.lean"; then
         echo "Theorem $name of Proofs/$rel is not recalled in ${summary#"$lib"/}"
         status=1
       fi
     done
     for name in $defs; do
-      if ! grep -qE "^#print axioms[[:space:]]+([^[:space:]]*\.)?${name##*.}$" "$summary"; then
+      if ! grep -qE "^#print axioms[[:space:]]+([^[:space:]]*\.)?${name##*.}[[:space:]]*$" \
+          "$work/summary.lean"; then
         echo "Definition $name of Proofs/$rel has no axiom check in ${summary#"$lib"/}"
         status=1
       fi
@@ -96,15 +133,17 @@ check() {
   done < <(find "$proofs" -name '*.lean' -print0)
 
   while IFS= read -r -d '' file; do
-    for name in $(grep -E '^recall[[:space:]]' "$file" | awk '{print $2}' || true); do
-      if ! grep -qxF "#print axioms $name" "$file"; then
+    active=$work/spec.lean
+    strip_comments "$file" > "$active"
+    for name in $(grep -E '^recall[[:space:]]' "$active" | awk '{print $2}' || true); do
+      if ! grep -qE "^#print axioms[[:space:]]+${name//./\\.}[[:space:]]*$" "$active"; then
         echo "Recalled $name has no axiom check in ${file#"$lib"/}"
         status=1
       fi
     done
     local unguarded
-    unguarded=$(awk '/^#print axioms/ && prev !~ /^#guard_msgs/ {print FILENAME ":" FNR ": " $0}
-      {prev = $0}' "$file")
+    unguarded=$(awk -v f="${file#"$lib"/}" '/^#print axioms/ && prev !~ /^#guard_msgs/ {
+        print f ":" FNR ": " $0 } { prev = $0 }' "$active")
     if [ -n "$unguarded" ]; then
       echo "Axiom checks without #guard_msgs:"
       echo "$unguarded"
@@ -112,6 +151,7 @@ check() {
     fi
   done < <(find "$specs" -name '*.lean' -print0)
 
+  rm -rf "$work"
   return "$status"
 }
 
@@ -135,50 +175,73 @@ self_test() {
       > "$r/rust/Libsignal/Specs/Core/Address.lean"
   }
 
+  # expect pass LABEL TREE, or expect fail LABEL TREE MESSAGE: a failing tree must print MESSAGE.
   expect() {
-    local want=$1 label=$2 r=$3
+    local want=$1 label=$2 r=$3 message=${4:-}
     if check "$r" > "$tmp/out" 2>&1; then got=pass; else got=fail; fi
     if [ "$got" != "$want" ]; then
       echo "SELF-TEST FAILED: $label: expected $want, got $got"
       cat "$tmp/out"
       failed=1
+    elif [ -n "$message" ] && ! grep -qF -- "$message" "$tmp/out"; then
+      echo "SELF-TEST FAILED: $label: output lacks \"$message\""
+      cat "$tmp/out"
+      failed=1
     fi
   }
+
+  local spec=rust/Libsignal/Specs/Core/Address.lean
+  local proof=rust/Libsignal/Proofs/Core/Address/Kind.lean
 
   make_good "$tmp/good"
   expect pass "good tree" "$tmp/good"
 
   make_good "$tmp/r1"
   mkdir -p "$tmp/r1/rust/Libsignal/Proofs/Aeneas"
-  expect fail "rule 1, tool-named directory" "$tmp/r1"
+  expect fail "rule 1, tool-named directory" "$tmp/r1" "Directories named after a tool"
 
   make_good "$tmp/r2"
-  echo 'recall Aeneas.Std.alloc.vec.Vec.foo : True' \
-    >> "$tmp/r2/rust/Libsignal/Specs/Core/Address.lean"
-  expect fail "rule 2, std item outside Std/" "$tmp/r2"
+  printf '%s\n' 'recall Aeneas.Std.alloc.vec.Vec.foo : True' '#guard_msgs in' \
+    '#print axioms Aeneas.Std.alloc.vec.Vec.foo' >> "$tmp/r2/$spec"
+  expect fail "rule 2, std item outside Std/" "$tmp/r2" "Standard-library items outside"
 
   make_good "$tmp/r3a"
-  rm "$tmp/r3a/rust/Libsignal/Specs/Core/Address.lean"
-  expect fail "rule 3, no summary" "$tmp/r3a"
+  rm "$tmp/r3a/$spec"
+  expect fail "rule 3, no summary" "$tmp/r3a" "No summary at an ancestor"
 
   make_good "$tmp/r3b"
-  echo 'theorem raw_uuid_spec : True := trivial' \
-    >> "$tmp/r3b/rust/Libsignal/Proofs/Core/Address/Kind.lean"
-  expect fail "rule 3, theorem not recalled" "$tmp/r3b"
+  echo 'theorem raw_uuid_spec : True := trivial' >> "$tmp/r3b/$proof"
+  expect fail "rule 3, theorem not recalled" "$tmp/r3b" "Theorem raw_uuid_spec"
 
   make_good "$tmp/r3c"
-  echo 'abbrev Bytes : Type := Nat' >> "$tmp/r3c/rust/Libsignal/Proofs/Core/Address/Kind.lean"
-  expect fail "rule 3, definition without axiom check" "$tmp/r3c"
+  echo 'abbrev Bytes : Type := Nat' >> "$tmp/r3c/$proof"
+  expect fail "rule 3, definition without axiom check" "$tmp/r3c" "Definition Bytes"
+
+  make_good "$tmp/r3d"
+  printf '%s\n' '/-' 'recall libsignal_core.address.ServiceId.kind_spec : True' \
+    '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.kind_spec' '-/' \
+    '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.helper' > "$tmp/r3d/$spec"
+  expect fail "rule 3, recall inside a block comment" "$tmp/r3d" "Theorem kind_spec"
 
   make_good "$tmp/r4a"
-  printf '%s\n' 'recall libsignal_core.address.ServiceId.other : True' \
-    >> "$tmp/r4a/rust/Libsignal/Specs/Core/Address.lean"
-  expect fail "rule 4, recall without axiom check" "$tmp/r4a"
+  echo 'recall libsignal_core.address.ServiceId.other : True' >> "$tmp/r4a/$spec"
+  expect fail "rule 4, recall without axiom check" "$tmp/r4a" "Recalled"
 
   make_good "$tmp/r4b"
-  printf '%s\n' '#print axioms libsignal_core.address.ServiceId.kind' \
-    >> "$tmp/r4b/rust/Libsignal/Specs/Core/Address.lean"
-  expect fail "rule 4, axiom check without #guard_msgs" "$tmp/r4b"
+  echo '#print axioms libsignal_core.address.ServiceId.kind' >> "$tmp/r4b/$spec"
+  expect fail "rule 4, axiom check without #guard_msgs" "$tmp/r4b" "without #guard_msgs"
+
+  make_good "$tmp/r4c"
+  printf '%s\n' 'recall libsignal_core.address.ServiceId.kind_spec : True' '/-' \
+    '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.kind_spec' '-/' \
+    '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.helper' > "$tmp/r4c/$spec"
+  expect fail "rule 4, axiom check inside a block comment" "$tmp/r4c" "Recalled"
+
+  make_good "$tmp/r4d"
+  printf '%s\n' 'recall libsignal_core.address.ServiceId.kind_spec : True' \
+    '#guard_msgs in -- the guard' '#print axioms libsignal_core.address.ServiceId.kind_spec' \
+    '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.helper' > "$tmp/r4d/$spec"
+  expect pass "rule 4, trailing line comment after an active guard" "$tmp/r4d"
 
   if [ "$failed" -eq 0 ]; then echo "Self-test OK"; fi
   return "$failed"
