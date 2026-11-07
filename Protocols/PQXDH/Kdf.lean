@@ -93,6 +93,10 @@ def DeriveKeysTotal : Prop :=
   ∀ (dh1 dh2 dh3 : ECPub) (dh4 : Option ECPub) (ss : Key),
     ∃ hk, deriveHK dh1 dh2 dh3 dh4 ss = .ok hk
 
+theorem deriveKeysTotal_spec_ok {α : Type} {m : Aeneas.Std.Result α} {p : α → Prop}
+    (h : Aeneas.Std.WP.spec m p) : ∃ v, m = .ok v ∧ p v := by
+  cases m <;> simp_all
+
 /-- **`deriveHK` is total under the HKDF contract**: for any MAC interface `H` and under
 `HkdfSha256Contract H`, `deriveHK` succeeds on all public keys, with or without the fourth DH
 output, and every 32-byte shared secret. The assembled input has at most 192 bytes, so no append
@@ -111,9 +115,9 @@ theorem deriveKeysTotal
       have h_cap : ∀ j, (alloc.vec.Vec.with_capacity U8 j).length = 0 := fun _ => rfl
       unfold kdfInput
       rcases dh4 with _ | d <;> dsimp only [Option.map] <;> step*
-    obtain ⟨inp, h_eq, -⟩ := WP.spec_imp_exists h
+    obtain ⟨inp, h_eq, -⟩ := deriveKeysTotal_spec_ok h
     exact ⟨inp, h_eq⟩
-  obtain ⟨keys, h_keys, -⟩ := WP.spec_imp_exists (pqxdh.HandshakeKeys.derive_spec H h_hkdf inp)
+  obtain ⟨keys, h_keys, -⟩ := deriveKeysTotal_spec_ok (pqxdh.HandshakeKeys.derive_spec H h_hkdf inp)
   refine ⟨keys, ?_⟩
   rcases dh4 with _ | d <;> simp_all [deriveHK, pubSlice, sliceOfKey, lift, pure_tc_eq]
 

@@ -424,7 +424,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
   "alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, alloc::alloc::Global>}::with_capacity"]
 axiom alloc.collections.vec_deque.VecDequeTGlobal.with_capacity
   (T : Type) :
-  Std.Usize → Result (alloc.collections.vec_deque.VecDeque T Global)
+  Std.Usize → Result (alloc.collections.vec_deque.VecDeque T alloc.alloc.Global)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::len]:
     Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1808:4-1808:30
@@ -1719,6 +1719,17 @@ noncomputable def double_ratchet.skipped_key_from_pb
   ok (match r with
     | .Ok key => .Ok (some key)
     | .Err message => .Err message)
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 320:4-369:5 -/
+-- Opaque since Aeneas de16f3c, which fails on its body ("Unreachable").
+-- Aeneas 0855ce1 translated it. See `aeneas-config.protocol.yml`.
+axiom double_ratchet.RatchetState.dh_ratchet_step
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) :
+  double_ratchet.RatchetState → libsignal_core.curve.PublicKey → R →
+    Result ((core.result.Result ratchet.keys.ChainKey
+    error.SignalProtocolError) × double_ratchet.RatchetState × R)
 
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::ChainKey}::calculate_base_material]:
     Source: 'rust/protocol/src/ratchet/keys.rs', lines 183:4-186:5 -/

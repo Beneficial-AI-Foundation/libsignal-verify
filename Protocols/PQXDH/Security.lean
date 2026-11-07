@@ -101,10 +101,11 @@ theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
     (hodh : ∀ D : PqxdhODHAdversary, pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPub,
+      (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
       εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk +
-        (Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)]).toReal := by
+        (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal := by
   sorry
 
 /-- Security of the Full realization in the post-quantum setting: for every adversary that opens
@@ -127,13 +128,15 @@ theorem uakeInitiator_secure_pq (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
     (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
-    (hkem : ∀ B : K.IND_CCA_Adversary, K.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+    (hkem : ∀ B : K.IND_CCA_Adversary,
+      (K.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ D, (kdfPRF H).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
+    (hkdf : ∀ D, ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPub,
+      (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk +
-        (Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)]).toReal := by
+        (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal := by
   sorry
 
 omit [DecidableEq C] in
@@ -151,7 +154,7 @@ theorem fullExp_noLostMass (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK :
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
     (hA : Adversary.SendsFittingMessages A) :
-    Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)] = 0 := by
+    rustRuntime.prFail (fullExp P msg hasOPK A) = 0 := by
   sorry
 
 /-- Classical security without the fault term: the bound of `uakeInitiator_secure_dh` holds
@@ -170,7 +173,8 @@ theorem uakeInitiator_secure_dh_total (P : Params Rand Msg C IdC IdK) (msg : Msg
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
     (hodh : ∀ D : PqxdhODHAdversary, pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPub,
+      (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
       εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h := uakeInitiator_secure_dh P msg hasOPK H hC hEC hPQ A q hq εsig εodh εaead εpk
@@ -193,10 +197,12 @@ theorem uakeInitiator_secure_pq_total (P : Params Rand Msg C IdC IdK) (msg : Msg
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
-    (hkem : ∀ B : K.IND_CCA_Adversary, K.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+    (hkem : ∀ B : K.IND_CCA_Adversary,
+      (K.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hkdf : ∀ D, (kdfPRF H).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPub, (Pr[= pk | (·.public_key) <$> P.pqKeygen]).toReal ≤ εpk) :
+    (hkdf : ∀ D, ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPub,
+      (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
     fullAdvantage P msg hasOPK A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h := uakeInitiator_secure_pq P msg hasOPK H hC hEC hPQ K hK A q hq εsig εkem εaead εkdf

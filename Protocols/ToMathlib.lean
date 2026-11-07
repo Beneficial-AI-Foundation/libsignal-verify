@@ -21,3 +21,4 @@ instance instLawfulMonadLiftWriterTAppend {ω : Type} {m : Type → Type}
   monadLift_bind {α β} x y := by
     change WriterT.mk _ = WriterT.mk _
     simp [WriterT.monadLift_def', WriterT.mk, WriterT.run]
+    rfl

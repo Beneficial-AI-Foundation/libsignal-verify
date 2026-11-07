@@ -13,12 +13,13 @@ maxRecDepth = 10000
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "nightly-2026.09.30-0855ce1"
+rev = "nightly-2026.10.30-de16f3c"
 
+# VCVio tag v4.35.0.
 [[require]]
 name = "VCVio"
 git = "https://github.com/Verified-zkEVM/VCV-io"
-rev = "cbd4144b51d92da00dd50f05e068b2348fa6e529"
+rev = "88efe9715a9fa9e7d89635c38cf70259836766c2"
 
 # The Aeneas translations + their shared externals (Libsignal.Translated.*) and
 # the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.

@@ -104,6 +104,6 @@ probability from `1/2`. Like `advantage`, it measures security only when the exp
 no probability mass against the adversary. -/
 noncomputable def partneredAdvantage [SampleableType K] [Monad m]
     (runtime : ProbCompRuntime m) (π : Partnering proto) (A : Adversary proto) : ℝ :=
-  |(Pr[= true | runtime.evalDist (PartneredExp runtime.toProbCompLift π A)]).toReal - 1 / 2|
+  |(runtime.evalDist (PartneredExp runtime.toProbCompLift π A) {true}).toReal - 1 / 2|
 
 end AKE.UAKE

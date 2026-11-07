@@ -66,7 +66,7 @@ variable {m : Type → Type} {In W Out : Type}
 /-- True if a party is well-formed, i.e., if it outputs iff the state is
   the result of an execution of the step function that returns `done = true`
   or `.complete` (assuming the state is reachable). -/
-def OutputsOnlyAtCompletion [MonadLiftT m SetM] (P : Party m In W Out) : Prop :=
+def OutputsOnlyAtCompletion [Monad m] [MonadAttach m] (P : Party m In W Out) : Prop :=
   let init_output := ∀ i r, r ∈ support (P.init i) →
     ∀ out ∈ support (P.output r.state), out = none;
   let complete_output := ∀ st w st', .complete st' ∈ support (P.step st w) →
@@ -148,7 +148,7 @@ namespace Party
 
 section Stuck
 
-variable {m : Type → Type} [Monad m] [MonadLiftT m SetM] [LawfulMonadLiftT m SetM]
+variable {m : Type → Type} [Monad m] [LawfulMonad m] [MonadAttach m] [LawfulMonadAttach m]
   {InP OutP InQ OutQ W : Type} (P : Party m InP W OutP) (Q : Party m InQ W OutQ)
 
 /-- If every step of `P` from a state satisfying `I` rejects, then an honest run that starts with
@@ -161,31 +161,28 @@ theorem runHonestLoop_fst_of_stuck (I : P.State → Prop)
   induction fuel with
   | zero =>
     intro pS qS w turn sd sent hpS x hx
-    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
-    rw [hx]
+    simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+    rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
     exact hpS
   | succ n ih =>
     intro pS qS w turn sd sent hpS x hx
     cases turn with
     | true =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, -, hx⟩ := hx
+      simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+      obtain ⟨r, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
       split at hx
       · split at hx
-        · simp only [support_pure, Set.mem_singleton_iff] at hx
-          rw [hx]
+        · rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
           exact hpS
         · exact ih _ _ _ _ _ _ hpS x hx
       all_goals
-        simp only [support_pure, Set.mem_singleton_iff] at hx
-        rw [hx]
+        rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
         exact hpS
     | false =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, hr, hx⟩ := hx
+      simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+      obtain ⟨r, hr, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
       rw [hI pS hpS w r hr] at hx
-      simp only [support_pure, Set.mem_singleton_iff] at hx
-      rw [hx]
+      rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
       exact hpS
 
 /-- If every step of `Q` from a state satisfying `I` rejects, then an honest run that starts with
@@ -198,31 +195,28 @@ theorem runHonestLoop_snd_of_stuck (I : Q.State → Prop)
   induction fuel with
   | zero =>
     intro pS qS w turn sd sent hqS x hx
-    simp only [Party.runHonestLoop, support_pure, Set.mem_singleton_iff] at hx
-    rw [hx]
+    simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+    rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
     exact hqS
   | succ n ih =>
     intro pS qS w turn sd sent hqS x hx
     cases turn with
     | true =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, hr, hx⟩ := hx
+      simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+      obtain ⟨r, hr, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
       rw [hI qS hqS w r hr] at hx
-      simp only [support_pure, Set.mem_singleton_iff] at hx
-      rw [hx]
+      rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
       exact hqS
     | false =>
-      simp only [Party.runHonestLoop, support_bind, Set.mem_iUnion, exists_prop] at hx
-      obtain ⟨r, -, hx⟩ := hx
+      simp only [Party.runHonestLoop, MonadAttach.mem_support] at hx
+      obtain ⟨r, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
       split at hx
       · split at hx
-        · simp only [support_pure, Set.mem_singleton_iff] at hx
-          rw [hx]
+        · rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
           exact hqS
         · exact ih _ _ _ _ _ _ hqS x hx
       all_goals
-        simp only [support_pure, Set.mem_singleton_iff] at hx
-        rw [hx]
+        rw [← LawfulMonadAttach.eq_of_canReturn_pure hx]
         exact hqS
 
 /-- If `P` starts in `I` and every step of `P` from `I` rejects, then `P`'s output after any
@@ -232,16 +226,21 @@ theorem runHonest_fst_of_stuck (I : P.State → Prop)
     (hInit : ∀ inP r, r ∈ support (P.init inP) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
     ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.1 ∈ support (P.output st) := by
   intro x hx
-  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨pInit, hpInit, qInit, -, ⟨pS, qS, ms⟩, hrun, pOut, hpOut, qOut, -, hx⟩ := hx
-  simp only [support_pure, Set.mem_singleton_iff] at hx
-  refine ⟨pS, ?_, by rw [hx]; exact hpOut⟩
+  simp only [Party.runHonest, MonadAttach.mem_support] at hx
+  obtain ⟨pInit, hpInit, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨qInit, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨⟨pS, qS, ms⟩, hrun, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨pOut, hpOut, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨qOut, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  have hx := LawfulMonadAttach.eq_of_canReturn_pure hx
+  refine ⟨pS, ?_, by rw [← hx]; exact hpOut⟩
   unfold Party.runHonestStart at hrun
   split at hrun
   · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
   · exact runHonestLoop_fst_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hpInit) _ hrun
-  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
-    rw [hrun.1]
+  · have hrun := LawfulMonadAttach.eq_of_canReturn_pure hrun
+    simp only [Prod.mk.injEq] at hrun
+    rw [← hrun.1]
     exact hInit _ _ hpInit
 
 /-- If `Q` starts in `I` and every step of `Q` from `I` rejects, then `Q`'s output after any
@@ -251,16 +250,21 @@ theorem runHonest_snd_of_stuck (I : Q.State → Prop)
     (hInit : ∀ inQ r, r ∈ support (Q.init inQ) → I r.state) (inP : InP) (inQ : InQ) (fuel : ℕ) :
     ∀ x ∈ support (P.runHonest Q inP inQ fuel), ∃ st, I st ∧ x.2.1 ∈ support (Q.output st) := by
   intro x hx
-  simp only [Party.runHonest, support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨pInit, -, qInit, hqInit, ⟨pS, qS, ms⟩, hrun, pOut, -, qOut, hqOut, hx⟩ := hx
-  simp only [support_pure, Set.mem_singleton_iff] at hx
-  refine ⟨qS, ?_, by rw [hx]; exact hqOut⟩
+  simp only [Party.runHonest, MonadAttach.mem_support] at hx
+  obtain ⟨pInit, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨qInit, hqInit, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨⟨pS, qS, ms⟩, hrun, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨pOut, -, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  obtain ⟨qOut, hqOut, hx⟩ := LawfulMonadAttach.canReturn_bind_imp' hx
+  have hx := LawfulMonadAttach.eq_of_canReturn_pure hx
+  refine ⟨qS, ?_, by rw [← hx]; exact hqOut⟩
   unfold Party.runHonestStart at hrun
   split at hrun
   · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
   · exact runHonestLoop_snd_of_stuck P Q I hI _ _ _ _ _ _ _ (hInit _ _ hqInit) _ hrun
-  · simp only [support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hrun
-    rw [hrun.2.1]
+  · have hrun := LawfulMonadAttach.eq_of_canReturn_pure hrun
+    simp only [Prod.mk.injEq] at hrun
+    rw [← hrun.2.1]
     exact hInit _ _ hqInit
 
 end Stuck

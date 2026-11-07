@@ -10,6 +10,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -23,7 +24,7 @@ noncomputable section
 namespace signal_crypto
 
 /-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36; this code is generated from a macro invocation at: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 370:0-370:34
     Name pattern: [subtle::ConstantTimeEq<u8>] -/
 @[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
 def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
@@ -141,7 +142,7 @@ def typenum.uint.UTerm.Insts.TypenumSealedSealed : typenum.sealed.Sealed
     Name pattern: [typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
   "typenum::sealed::Sealed<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.TypenumSealedSealed {U : Type} {B : Type}
+def typenum.uint.UInt.Insts.TypenumSealedSealed {U : Type _} {B : Type _}
   (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
   (marker_traitsBitInst : typenum.marker_traits.Bit B) : typenum.sealed.Sealed
   (typenum.uint.UInt U B) := {
@@ -210,7 +211,7 @@ def typenum.uint.UTerm.Insts.TypenumMarker_traitsUnsigned :
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 146:41-146:46
     Name pattern: [core::clone::Clone<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl "core::clone::Clone<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.CoreCloneClone {U : Type} {B : Type}
+def typenum.uint.UInt.Insts.CoreCloneClone {U : Type _} {B : Type _}
   (corecloneCloneInst : core.clone.Clone U) (corecloneCloneInst1 :
   core.clone.Clone B) : core.clone.Clone (typenum.uint.UInt U B) := {
   clone := typenum.uint.UInt.Insts.CoreCloneClone.clone corecloneCloneInst
@@ -221,7 +222,7 @@ def typenum.uint.UInt.Insts.CoreCloneClone {U : Type} {B : Type}
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/uint.rs', lines 146:48-146:52
     Name pattern: [core::marker::Copy<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl "core::marker::Copy<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.CoreMarkerCopy {U : Type} {B : Type}
+def typenum.uint.UInt.Insts.CoreMarkerCopy {U : Type _} {B : Type _}
   (coremarkerCopyInst : core.marker.Copy U) (coremarkerCopyInst1 :
   core.marker.Copy B) : core.marker.Copy (typenum.uint.UInt U B) := {
   cloneInst := typenum.uint.UInt.Insts.CoreCloneClone
@@ -233,7 +234,7 @@ def typenum.uint.UInt.Insts.CoreMarkerCopy {U : Type} {B : Type}
     Name pattern: [core::default::Default<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
   "core::default::Default<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.CoreDefaultDefault {U : Type} {B : Type}
+def typenum.uint.UInt.Insts.CoreDefaultDefault {U : Type _} {B : Type _}
   (coredefaultDefaultInst : core.default.Default U) (coredefaultDefaultInst1 :
   core.default.Default B) : core.default.Default (typenum.uint.UInt U B) := {
   default := typenum.uint.UInt.Insts.CoreDefaultDefault.default
@@ -245,8 +246,8 @@ def typenum.uint.UInt.Insts.CoreDefaultDefault {U : Type} {B : Type}
     Name pattern: [typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>] -/
 @[reducible, rust_trait_impl
   "typenum::marker_traits::Unsigned<typenum::uint::UInt<@U, @B>>"]
-def typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned {U : Type} {B : Type}
-  (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
+def typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned {U : Type _} {B :
+  Type _} (marker_traitsUnsignedInst : typenum.marker_traits.Unsigned U)
   (marker_traitsBitInst : typenum.marker_traits.Bit B) :
   typenum.marker_traits.Unsigned (typenum.uint.UInt U B) := {
   U8 := typenum.uint.UInt.Insts.TypenumMarker_traitsUnsigned.U8

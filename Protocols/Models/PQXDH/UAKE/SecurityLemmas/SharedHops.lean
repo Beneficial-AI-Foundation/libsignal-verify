@@ -36,9 +36,10 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
   of the probabilities for `b`, `c`, and `d`. -/
 private lemma probOutput_pure_le_add3 {a b c d : Bool}
     (h : a = true → (b || (c || d)) = true) :
-    Pr[= true | (pure a : ProbComp Bool)] ≤
-      Pr[= true | (pure b : ProbComp Bool)] + Pr[= true | (pure c : ProbComp Bool)] +
-        Pr[= true | (pure d : ProbComp Bool)] := by
+    Pr{let y ← (pure a : ProbComp Bool)}[y = true] ≤
+      Pr{let y ← (pure b : ProbComp Bool)}[y = true] +
+        Pr{let y ← (pure c : ProbComp Bool)}[y = true] +
+        Pr{let y ← (pure d : ProbComp Bool)}[y = true] := by
   cases a with
   | false => simp
   | true =>
@@ -80,8 +81,8 @@ lemma advantage_le_forgeProb_add_indistAdvantage
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
     UAKE.advantage ProbCompRuntime.probComp A ≤
       forgeProb P msg hasOPK A + indistAdvantage P msg hasOPK A := by
-  have hswapE : Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A] =
-      Pr[= true | (do
+  have hswapE : Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] =
+      Pr{let y ← (do
         let b ← ($ᵗ Bool : ProbComp Bool)
         let (cr, st) ← challengePhase P msg hasOPK A
         if cr.K0.isNone then
@@ -91,12 +92,12 @@ lemma advantage_le_forgeProb_add_indistAdvantage
         else do
           let K1 ← some <$> ($ᵗ K)
           finalize ProbCompRuntime.probComp.toProbCompLift A st cr b K1 :
-        ProbComp Bool)] := by
+        ProbComp Bool)}[y = true] := by
     rw [UAKE.Exp, challengePhase]
-    simp only [bind_assoc]
-    exact probOutput_bind_bind_swap _ _ _ _
-  have hswapI : Pr[= true | indistExp P msg hasOPK A] =
-      Pr[= true | (do
+    simp only [bind_assoc, map_bind]
+    exact prEvent_bind_bind_swap_of_uniform _ _ _
+  have hswapI : Pr{let y ← (indistExp P msg hasOPK A)}[y = true] =
+      Pr{let y ← (do
         let b ← ($ᵗ Bool : ProbComp Bool)
         let (cr, st) ← challengePhase P msg hasOPK A
         if cr.K0.isNone then
@@ -106,48 +107,50 @@ lemma advantage_le_forgeProb_add_indistAdvantage
         else do
           let K1 ← some <$> ($ᵗ K)
           finalize ProbCompRuntime.probComp.toProbCompLift A st cr b K1 :
-        ProbComp Bool)] := by
+        ProbComp Bool)}[y = true] := by
     rw [indistExp, challengePhase]
-    simp only [bind_assoc]
-    exact probOutput_bind_bind_swap _ _ _ _
-  have hEI : Pr[= true | indistExp P msg hasOPK A] ≤
-      Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A] := by
+    simp only [bind_assoc, map_bind]
+    exact prEvent_bind_bind_swap_of_uniform _ _ _
+  have hEI : Pr{let y ← (indistExp P msg hasOPK A)}[y = true] ≤
+      Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] := by
     rw [hswapI, hswapE]
-    refine probOutput_bind_mono fun b _ => ?_
-    refine probOutput_bind_mono fun x _ => ?_
+    refine prEvent_bind_mono_of_forall_le _ _ _ _ _ fun b => ?_
+    refine prEvent_bind_mono_of_forall_le _ _ _ _ _ fun x => ?_
     obtain ⟨cr, st⟩ := x
     rcases hk : cr.K0 with _ | k
     · simp [hk]
-    · cases hp : isPingPong cr <;> simp [hk, hp]
-  have hIE : Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A] ≤
-      Pr[= true | indistExp P msg hasOPK A] + Pr[= true | forgeExp P msg hasOPK A] := by
-    have hcoin : Pr[= true | forgeExp P msg hasOPK A] =
-        Pr[= true | ($ᵗ Bool : ProbComp Bool) >>= fun _ => forgeExp P msg hasOPK A] := by
-      rw [probOutput_bind_const, probFailure_uniformSample, tsub_zero, one_mul]
+    · cases hp : isPingPong cr <;> simp [hk, hp, Finset.filter_insert, Finset.filter_singleton]
+  have hIE : Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] ≤
+      Pr{let y ← (indistExp P msg hasOPK A)}[y = true] + Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] := by
+    have hcoin : Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] =
+        Pr{let y ← (($ᵗ Bool : ProbComp Bool) >>= fun _ => forgeExp P msg hasOPK A)}[y = true] := by
+      simp only [map_bind]
+      exact (OracleComp.prEvent_bind_const _ _).symm
     rw [hswapE, hswapI, hcoin]
-    refine probOutput_bind_congr_le_add fun b _ => ?_
+    refine prEvent_bind_le_add_of_forall_le _ _ _ _ _ _ _ fun b => ?_
     simp only [forgeExp]
-    refine probOutput_bind_congr_le_add fun x _ => ?_
+    refine prEvent_bind_le_add_of_forall_le _ _ _ _ _ _ _ fun x => ?_
     obtain ⟨cr, st⟩ := x
     rcases _hk : cr.K0 with _ | k
     · simp
     · cases _hp : isPingPong cr <;> simp
-  have h1 : (Pr[= true | indistExp P msg hasOPK A]).toReal ≤
-      (Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A]).toReal :=
-    ENNReal.toReal_mono probOutput_ne_top hEI
-  have h2 : (Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A]).toReal ≤
-      (Pr[= true | indistExp P msg hasOPK A]).toReal +
-        (Pr[= true | forgeExp P msg hasOPK A]).toReal := by
+  have h1 : (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal ≤
+      (Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal :=
+    ENNReal.toReal_mono (prEvent_ne_top _) hEI
+  have h2 : (Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal ≤
+      (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal +
+        (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal := by
     have h := ENNReal.toReal_mono
-      (ENNReal.add_ne_top.mpr ⟨probOutput_ne_top, probOutput_ne_top⟩) hIE
-    rwa [ENNReal.toReal_add probOutput_ne_top probOutput_ne_top] at h
-  rw [UAKE.advantage, probOutput_probComp_evalDist, forgeProb, indistAdvantage]
-  calc |(Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A]).toReal - 1 / 2|
-      ≤ |(Pr[= true | UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A]).toReal -
-          (Pr[= true | indistExp P msg hasOPK A]).toReal| +
-        |(Pr[= true | indistExp P msg hasOPK A]).toReal - 1 / 2| := abs_sub_le _ _ _
-    _ ≤ (Pr[= true | forgeExp P msg hasOPK A]).toReal +
-        |(Pr[= true | indistExp P msg hasOPK A]).toReal - 1 / 2| := by
+      (ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩) hIE
+    rwa [ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h
+  rw [UAKE.advantage, probOutput_probComp_evalDist, forgeProb, indistAdvantage,
+    ← prEvent_eq_evalDist_singleton]
+  calc |(Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal - 1 / 2|
+      ≤ |(Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal -
+          (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal| +
+        |(Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal - 1 / 2| := abs_sub_le _ _ _
+    _ ≤ (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal +
+        |(Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal - 1 / 2| := by
       have habs := abs_of_nonneg (sub_nonneg.mpr h1)
       linarith
 
@@ -162,23 +165,25 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
     forgeProb P msg hasOPK A ≤ sigForgeProb P msg hasOPK A +
       pqpkGuessedProb P msg hasOPK A + forgeHonestGoodProb P msg hasOPK A := by
-  have key : Pr[= true | forgeExp P msg hasOPK A] ≤
-      Pr[= true | sigForgeExp P msg hasOPK A] + Pr[= true | pqpkGuessedExp P msg hasOPK A] +
-        Pr[= true | forgeHonestGoodExp P msg hasOPK A] := by
-    simp only [forgeExp, sigForgeExp, pqpkGuessedExp, forgeHonestGoodExp,
-      probOutput_bind_eq_tsum]
-    rw [← ENNReal.tsum_add, ← ENNReal.tsum_add]
-    refine ENNReal.tsum_le_tsum fun x => ?_
-    rw [← left_distrib, ← left_distrib]
-    refine mul_le_mul' le_rfl ?_
+  have key : Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] ≤
+      Pr{let y ← (sigForgeExp P msg hasOPK A)}[y = true] + Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true] +
+        Pr{let y ← (forgeHonestGoodExp P msg hasOPK A)}[y = true] := by
+    simp only [forgeExp, sigForgeExp, pqpkGuessedExp, forgeHonestGoodExp]
+    let : MeasurableSpace (ChallengeResult (uakeInitiator P msg hasOPK) ×
+      (A.State × Env (uakeInitiator P msg hasOPK) × RecipientIdentity F G SPK SSK S)) := ⊤
+    rw [prEvent_bind_eq_lintegral_of_discrete, prEvent_bind_eq_lintegral_of_discrete,
+      prEvent_bind_eq_lintegral_of_discrete, prEvent_bind_eq_lintegral_of_discrete,
+      ← MeasureTheory.lintegral_add_left Measurable.of_discrete,
+      ← MeasureTheory.lintegral_add_left Measurable.of_discrete]
+    refine MeasureTheory.lintegral_mono fun x => ?_
     obtain ⟨cr, st⟩ := x
     exact probOutput_pure_le_add3 (forge_or_cases P msg hasOPK st.2.2 cr)
-  have h2 : Pr[= true | sigForgeExp P msg hasOPK A] +
-      Pr[= true | pqpkGuessedExp P msg hasOPK A] ≠ ⊤ :=
-    ENNReal.add_ne_top.mpr ⟨probOutput_ne_top, probOutput_ne_top⟩
-  have h3 := ENNReal.toReal_mono (ENNReal.add_ne_top.mpr ⟨h2, probOutput_ne_top⟩) key
-  rwa [ENNReal.toReal_add (ENNReal.add_ne_top.mpr ⟨probOutput_ne_top, probOutput_ne_top⟩)
-    probOutput_ne_top, ENNReal.toReal_add probOutput_ne_top probOutput_ne_top] at h3
+  have h2 : Pr{let y ← (sigForgeExp P msg hasOPK A)}[y = true] +
+      Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true] ≠ ⊤ :=
+    ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩
+  have h3 := ENNReal.toReal_mono (ENNReal.add_ne_top.mpr ⟨h2, prEvent_ne_top _⟩) key
+  rwa [ENNReal.toReal_add (ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩)
+    (prEvent_ne_top _), ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h3
 
 omit [DecidableEq CT] [DecidableEq C] in
 /-- Hop 3 (SUF-CMA): a signature forgery in the challenge phase yields a
@@ -202,7 +207,7 @@ omit [DecidableEq CT] [DecidableEq C] in
 lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig := by
   sorry
@@ -226,7 +231,7 @@ omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
 lemma pqpkGuessedProb_le
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εpk : ℝ)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
   sorry
 
