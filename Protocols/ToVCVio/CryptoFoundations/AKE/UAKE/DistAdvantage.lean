@@ -73,17 +73,13 @@ def FixedBitExp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLif
 
 /-- The real-versus-random advantage of the adversary: the distance between the probabilities
   that the random game `FixedBitExp … true` and the real game `FixedBitExp … false` return
-  `true`. It has the form of VCVio's `SPMF.boolDistAdvantage` of the two games. A run that loses
-  mass returns neither output, so under a runtime that can lose mass this value also mixes lost
-  mass into the score (#29). -/
+  `true`. It is VCVio's `SPMF.boolDistAdvantage` of the two games. A run that loses mass returns
+  neither output, so under a runtime that can lose mass this value also mixes lost mass into the
+  score (#29). -/
 noncomputable def distAdvantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m) (A : Adversary proto) : ℝ :=
-  |(Pr[= true | runtime.evalDist (FixedBitExp runtime.toProbCompLift A true)]).toReal -
-    (Pr[= true | runtime.evalDist (FixedBitExp runtime.toProbCompLift A false)]).toReal|
-
-/-- Under the `ProbComp` runtime, `evalDist` changes no output probability. -/
-private theorem probOutput_probCompRuntime_evalDist {α : Type} (oa : ProbComp α) (x : α) :
-    Pr[= x | ProbCompRuntime.probComp.evalDist oa] = Pr[= x | oa] := rfl
+  SPMF.boolDistAdvantage (runtime.evalDist (FixedBitExp runtime.toProbCompLift A true))
+    (runtime.evalDist (FixedBitExp runtime.toProbCompLift A false))
 
 section ProbComp
 
@@ -181,8 +177,10 @@ theorem advantage_eq_distAdvantage_div_two (A : Adversary proto) :
     advantage ProbCompRuntime.probComp A = distAdvantage ProbCompRuntime.probComp A / 2 := by
   -- `probOutput_Exp_toReal_sub_half` moves the draw of the challenge bit to the start of `Exp`,
   -- splits on it, and uses VCVio's `probOutput_uniformBool_branch_toReal_sub_half`.
-  unfold advantage distAdvantage
-  simp only [probOutput_probCompRuntime_evalDist]
+  unfold advantage distAdvantage SPMF.boolDistAdvantage
+  change |(Pr[= true | Exp probLift A]).toReal - 1 / 2| =
+    |(Pr[= true | FixedBitExp probLift A true]).toReal -
+      (Pr[= true | FixedBitExp probLift A false]).toReal| / 2
   rw [probOutput_Exp_toReal_sub_half, abs_div, abs_two]
 
 end ProbComp
