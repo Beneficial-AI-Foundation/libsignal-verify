@@ -7,7 +7,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-10-30 |
+| Date | 2026-11-06 |
 | Lean | v4.31.0 |
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
@@ -161,8 +161,18 @@ choice describes something outside the extracted code. The contracts are in
 | `PQKeyPairShape` on `P.pqKeygen` | policy | Kyber pairs have the Kyber1024 type and lengths | a correspondence with production key generation |
 | `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | none needed |
 | `P.coins` | modelling choice | one ideal draw of the generator state per session | a correspondence with production's generator |
-| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent | a correspondence with production key generation |
+| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent (see "Full EC key generation and abstract-generator relation" below) | a correspondence with production key generation |
 | `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
+
+## Modelling choices of the abstract model
+
+Choices of the abstract model in `Protocols/Models/PQXDH/` that the theorems above rest on. None of them is
+an admission.
+
+| Item | Kind | Describes | Status |
+| --- | --- | --- | --- |
+| Single identity key, `Parameters.sig` | modelling choice | Bob's identity key pair signs his pre-keys and takes part in Diffie-Hellman, as in production; the signature scheme `Parameters.sig` draws its keys with `dhKeygen`, so completeness and unforgeability of `P.sig` refer to Diffie-Hellman identity keys | matches production's key use |
+| Full EC key generation and abstract-generator relation | open bridge obligation | the abstract model draws identity, signed and one-time keys with `dhKeygen`, a uniform exponent; the Full realization draws with `P.ecKeygen`, whose law, public/private relation (`ECKeyPairValid`), clamping and generator assumption are separate. The relation between the two generators is not established, and results proved on the uniform exponent are not transferred to production | open |
 
 ## How to regenerate
 
