@@ -9,6 +9,7 @@ import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Security
 import Protocols.Realization.RustOracleComp
+import Protocols.Specs.Models.PQXDH
 import Protocols.Specs.PQXDH
 import Protocols.ToMathlib
 import Protocols.ToVCVio
