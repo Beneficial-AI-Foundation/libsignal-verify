@@ -2,6 +2,10 @@
 # Check the layout rules for rust/Libsignal/Proofs/ and rust/Libsignal/Specs/ in
 # CODING_GUIDELINES.md ("Lean specifications").
 #
+# This check is provisional. It reads the files as text, not as Lean, so it catches honest
+# omissions only. It does not defend against text that is built to pass it. The spec-summary layout
+# may change when the team agrees on conventions.
+#
 # 1. No directory under Proofs/ or Specs/ is named after a tool: Aeneas or Charon, in any case.
 # 2. Standard-library files live under Proofs/Std/ and Specs/Std/. A .lean file outside these
 #    fails if it opens a namespace rooted at `core`, `alloc` or `std`, or at `Aeneas.Std` (where
@@ -28,7 +32,8 @@
 #   build checks both.
 # - Axiom checks of extracted definitions, such as the entry points in Specs/Protocol/Pqxdh.lean,
 #   which no proof file declares.
-# - Comment markers inside character literals. The comment filter skips string literals only.
+# - Comment markers inside character literals, quoted identifiers or strings that span several
+#   lines. The comment filter tracks string literals within one line only.
 #
 # Run from the repository root:
 #   scripts/spec-layout-check.sh [ROOT]   checks ROOT/rust/Libsignal (ROOT defaults to .)
@@ -62,6 +67,22 @@ strip_comments() {
       }
       print out
     }' "$1"
+}
+
+# Names are compared as literal strings, never as regular expressions: a Lean name may contain `?`.
+# has_recall FILE SHORT: FILE has a command `recall N ...` where N is SHORT or ends with `.SHORT`.
+has_recall() {
+  awk -v s="$2" '$1 == "recall" &&
+      ($2 == s || substr($2, length($2) - length(s)) == "." s) { found = 1 }
+    END { exit !found }' "$1"
+}
+
+# prints_axioms FILE NAME [suffix]: FILE has a command `#print axioms N` and nothing after N, where
+# N is NAME, or with `suffix` also any name ending with `.NAME`.
+prints_axioms() {
+  awk -v s="$2" -v mode="${3:-exact}" '$1 == "#print" && $2 == "axioms" && NF == 3 &&
+      ($3 == s || (mode == "suffix" && substr($3, length($3) - length(s)) == "." s)) { found = 1 }
+    END { exit !found }' "$1"
 }
 
 check() {
@@ -117,15 +138,13 @@ check() {
     fi
     strip_comments "$summary" > "$work/summary.lean"
     for name in $theorems; do
-      if ! grep -qE "^recall[[:space:]]+([^[:space:]]*\.)?${name##*.}([[:space:]]|$)" \
-          "$work/summary.lean"; then
+      if ! has_recall "$work/summary.lean" "${name##*.}"; then
         echo "Theorem $name of Proofs/$rel is not recalled in ${summary#"$lib"/}"
         status=1
       fi
     done
     for name in $defs; do
-      if ! grep -qE "^#print axioms[[:space:]]+([^[:space:]]*\.)?${name##*.}[[:space:]]*$" \
-          "$work/summary.lean"; then
+      if ! prints_axioms "$work/summary.lean" "${name##*.}" suffix; then
         echo "Definition $name of Proofs/$rel has no axiom check in ${summary#"$lib"/}"
         status=1
       fi
@@ -136,7 +155,7 @@ check() {
     active=$work/spec.lean
     strip_comments "$file" > "$active"
     for name in $(grep -E '^recall[[:space:]]' "$active" | awk '{print $2}' || true); do
-      if ! grep -qE "^#print axioms[[:space:]]+${name//./\\.}[[:space:]]*$" "$active"; then
+      if ! prints_axioms "$active" "$name"; then
         echo "Recalled $name has no axiom check in ${file#"$lib"/}"
         status=1
       fi
@@ -242,6 +261,12 @@ self_test() {
     '#guard_msgs in -- the guard' '#print axioms libsignal_core.address.ServiceId.kind_spec' \
     '#guard_msgs in' '#print axioms libsignal_core.address.ServiceId.helper' > "$tmp/r4d/$spec"
   expect pass "rule 4, trailing line comment after an active guard" "$tmp/r4d"
+
+  make_good "$tmp/r4e"
+  echo 'theorem find?_spec : True := trivial' >> "$tmp/r4e/$proof"
+  printf '%s\n' 'recall libsignal_core.address.ServiceId.find?_spec : True' '#guard_msgs in' \
+    '#print axioms libsignal_core.address.ServiceId.find?_spec  ' >> "$tmp/r4e/$spec"
+  expect pass "rules 3 and 4, a name with a regular-expression character" "$tmp/r4e"
 
   if [ "$failed" -eq 0 ]; then echo "Self-test OK"; fi
   return "$failed"
