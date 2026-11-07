@@ -304,7 +304,8 @@ private theorem isQueryBoundP_simulateQ_of_step {ι ι' : Type} {spec : OracleSp
     rcases h.1 with h1 | h1 <;> split_ifs <;> omega
 
 omit [DecidableEq Msg] [SampleableType Key] [DecidableEq AD] [DecidableEq C] in
-/-- `ctxtToVf A` makes as many encryption queries as `A`. -/
+/-- An upper bound `e` on the encryption queries of `A` is also an upper bound on the encryption
+queries of `ctxtToVf A`. -/
 theorem ctxtToVf_encBound {aead : Scheme ProbComp Msg Key AD C}
     (A : INT_CTXT_Adversary aead) {e : ℕ}
     (he : A.run.IsQueryBoundP (· matches Sum.inr _) e) :
@@ -321,7 +322,7 @@ theorem ctxtToVf_encBound {aead : Scheme ProbComp Msg Key AD C}
   simpa [ctxtToVf] using h
 
 omit [DecidableEq Msg] [SampleableType Key] [DecidableEq AD] [DecidableEq C] in
-/-- `ctxtToVf A` makes one verification query. -/
+/-- `ctxtToVf A` makes at most one verification query. -/
 theorem ctxtToVf_vfBound {aead : Scheme ProbComp Msg Key AD C}
     (A : INT_CTXT_Adversary aead) :
     (ctxtToVf A).run.IsQueryBoundP (· matches Sum.inr (Sum.inr _)) 1 := by
@@ -337,7 +338,8 @@ theorem ctxtToVf_vfBound {aead : Scheme ProbComp Msg Key AD C}
   simpa [ctxtToVf] using h
 
 omit [DecidableEq Msg] [SampleableType Key] [DecidableEq AD] [DecidableEq C] in
-/-- `ctxtToDec A` makes as many encryption queries as `A`. -/
+/-- An upper bound `e` on the encryption queries of `A` is also an upper bound on the encryption
+queries of `ctxtToDec A`. -/
 theorem ctxtToDec_encBound {aead : Scheme ProbComp Msg Key AD C}
     (A : INT_CTXT_Adversary aead) {e : ℕ}
     (he : A.run.IsQueryBoundP (· matches Sum.inr _) e) :
@@ -354,7 +356,7 @@ theorem ctxtToDec_encBound {aead : Scheme ProbComp Msg Key AD C}
   simpa [ctxtToDec] using h
 
 omit [DecidableEq Msg] [SampleableType Key] [DecidableEq AD] [DecidableEq C] in
-/-- `ctxtToDec A` makes one decryption query. -/
+/-- `ctxtToDec A` makes at most one decryption query. -/
 theorem ctxtToDec_decBound {aead : Scheme ProbComp Msg Key AD C}
     (A : INT_CTXT_Adversary aead) :
     (ctxtToDec A).run.IsQueryBoundP (· matches Sum.inr (Sum.inr _)) 1 := by
