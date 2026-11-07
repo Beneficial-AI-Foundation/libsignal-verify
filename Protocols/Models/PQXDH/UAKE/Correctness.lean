@@ -49,9 +49,8 @@ theorem uakeInitiator_perfectlyCorrect
   suffices h : ∃ k, uOut = some (some k) ∧ tOut = some (some k) by
     obtain ⟨k, rfl, rfl⟩ := h
     simp
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
   exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).1
@@ -82,11 +81,12 @@ theorem uakeRecipient_perfectlyCorrect
   suffices h : ∃ k, uOut = some (some k) ∧ tOut = some (some k) by
     obtain ⟨k, rfl, rfl⟩ := h
     simp
-  simp only [setup, support_map, Set.mem_image, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff] at hsetup
-  obtain ⟨x, ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, rfl⟩, hswap⟩ := hsetup
-  simp only [Prod.swap_prod_mk, Prod.mk.injEq] at hswap
-  obtain ⟨huk, htk⟩ := hswap
+  replace hsetup : (uk, tk) ∈ support (Prod.swap <$> setup P msg) := hsetup
+  simp only [support_map, Set.mem_image, Prod.exists, Prod.swap_prod_mk,
+    Prod.mk.injEq] at hsetup
+  obtain ⟨uk₀, tk₀, hsetup₀, htk, huk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, rfl, rfl⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup₀
   subst huk htk
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).1

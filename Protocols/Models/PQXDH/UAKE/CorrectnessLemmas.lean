@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
-Authors: Ben Hamlin
+Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
@@ -210,6 +211,20 @@ lemma opkB_mem_of_genOPK {F G : Type}
       intro x hx
       simp only [Option.mem_def, Option.some.injEq] at hx
       exact hx ▸ hopk
+
+/-- Support of `setup`: the draws of Alice's identity key pair, Bob's identity key pair
+  and his signed pre-key pair, and the signature of the pre-key under Bob's identity key,
+  determine both records. -/
+lemma mem_support_setup_iff
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg)
+    {uk : InitiatorParameters F G Msg} {tk : RecipientIdentity F G S} :
+    (uk, tk) ∈ support (setup P msg) ↔
+      ∃ ikA ∈ support (dhKeygen (F := F) P.gen), ∃ ikB ∈ support (dhKeygen (F := F) P.gen),
+      ∃ spkB ∈ support (dhKeygen (F := F) P.gen),
+      ∃ spkSigB ∈ support (P.sig.sign ikB.1 ikB.2 (EncodeEC spkB.1)),
+        uk = ⟨ikA, ikB.1, msg⟩ ∧ tk = ⟨ikB, spkB, spkSigB⟩ := by
+  simp only [setup, mem_support_bind_iff, support_pure, Set.mem_singleton_iff, Prod.mk.injEq]
 
 /-- Support characterization of an honest run of the T=Bob scheme: under the
   correctness hypotheses, both parties output `some` of the same key, and the

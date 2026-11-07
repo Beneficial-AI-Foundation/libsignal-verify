@@ -251,9 +251,8 @@ lemma runHonest_length_initiator
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (initiator P) (recipient P hasOPK)
       uk tk (3 + 1))) :
     ms.length = 3 := by
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
   exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).2
@@ -275,9 +274,8 @@ lemma runHonest_length_recipient
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (recipientNoConfirm P hasOPK)
       (initiatorNoConfirm P) tk uk (2 + 1))) :
     ms.length = 2 := by
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
   exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).2
