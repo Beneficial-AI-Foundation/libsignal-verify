@@ -12,7 +12,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
 | Aeneas | nightly-2026.09.30-0855ce1 |
-| `sorry` or `sorryAx` under `Protocols/` | 15 |
+| `sorry` or `sorryAx` under `Protocols/` | 14 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -29,7 +29,7 @@ Model theorems, all in `Protocols/Models/PQXDH/UAKE/`.
 | `Protocols.Models.PQXDH.uakeInitiator_secure_dh` | `Security.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound` |
 | `Protocols.Models.PQXDH.uakeInitiator_secure_pq` | `Security.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound` |
 
-The `sorryAx` of the two security theorems comes from the six admitted hops below. Their closures contain no
+The `sorryAx` of the two security theorems comes from the five admitted hops below. Their closures contain no
 axiom beyond `propext`, `Classical.choice`, `Quot.sound` and `sorryAx`, and the hops are the only admitted
 declarations they depend on. The four AEAD lemmas that their imports reach are proved; see "AEAD lemmas"
 below.
@@ -110,7 +110,6 @@ No PQXDH theorem uses them: both security theorems assume a bound on `INT_CTXT_D
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
 | `Protocols.Models.PQXDH.sigForgeProb_le_sig` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | both security theorems, hop 3 | PQXDH-model |
-| `Protocols.Models.PQXDH.pqpkGuessedProb_le` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | both security theorems, hop 4 | PQXDH-model |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
 | `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked, this repository for the statement repair |

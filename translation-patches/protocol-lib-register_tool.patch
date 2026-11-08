@@ -1,0 +1,19 @@
+Translation patch: libsignal_protocol (crate attributes)
+
+Change: under the `extraction` feature, `#![feature(register_tool)]` and `#![register_tool(charon)]`.
+Why: they make the `#[charon::exclude]` and `#[charon::opaque]` attributes in this crate valid.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: protocol-Cargo-extraction_feature.patch
+
+diff --git a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.rs
+--- a/rust/protocol/src/lib.rs
++++ b/rust/protocol/src/lib.rs
+@@ -16,6 +16,8 @@
+ 
+ #![warn(clippy::unwrap_used)]
+ #![deny(unsafe_code)]
++#![cfg_attr(feature = "extraction", feature(register_tool))]
++#![cfg_attr(feature = "extraction", register_tool(charon))]
+ 
+ // TODO(https://github.com/signalapp/libsignal/issues/285): it should be an aspiration to
+ // eventually warn and then error for public members without docstrings. Also see

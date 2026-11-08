@@ -57,12 +57,8 @@ pub struct WrongKindOfServiceIdError {
 /// A service ID with a known type.
 ///
 /// `RAW_KIND` is a raw [ServiceIdKind] (eventually Rust will allow enums as generic parameters).
-// Modified for Aeneas: tuple struct → named field.
-// https://github.com/AeneasVerif/aeneas/issues/767
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct SpecificServiceId<const RAW_KIND: u8> {
-    uuid: Uuid,
-}
+pub struct SpecificServiceId<const RAW_KIND: u8>(Uuid);
 
 impl<const KIND: u8> SpecificServiceId<KIND> {
     /// Convenience function to go directly from bytes to a specific kind of service ID.
@@ -75,7 +71,7 @@ impl<const KIND: u8> SpecificServiceId<KIND> {
 
     #[inline]
     const fn from_uuid(uuid: Uuid) -> Self {
-        Self { uuid }
+        Self(uuid)
     }
 }
 
@@ -83,7 +79,7 @@ impl<const KIND: u8> SpecificServiceId<KIND> {
 // https://github.com/uuid-rs/uuid/issues/775
 impl<const KIND: u8> std::hash::Hash for SpecificServiceId<KIND> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        state.write(self.uuid.as_bytes());
+        state.write(self.0.as_bytes());
     }
 }
 
@@ -149,7 +145,7 @@ impl<const KIND: u8> From<Uuid> for SpecificServiceId<KIND> {
 impl<const KIND: u8> From<SpecificServiceId<KIND>> for Uuid {
     #[inline]
     fn from(value: SpecificServiceId<KIND>) -> Self {
-        value.uuid
+        value.0
     }
 }
 
@@ -205,7 +201,7 @@ impl ServiceId {
     #[inline]
     pub fn service_id_binary(&self) -> Vec<u8> {
         if let Self::Aci(aci) = self {
-            aci.uuid.as_bytes().to_vec()
+            aci.0.as_bytes().to_vec()
         } else {
             self.service_id_fixed_width_binary().to_vec()
         }
@@ -223,7 +219,7 @@ impl ServiceId {
     /// The standard string representation for a Signal service ID.
     pub fn service_id_string(&self) -> String {
         if let Self::Aci(aci) = self {
-            aci.uuid.to_string()
+            aci.0.to_string()
         } else {
             format!("{}:{}", self.kind(), self.raw_uuid())
         }
@@ -678,12 +674,8 @@ mod service_id_tests {
 /// represents some user.
 ///
 /// Used in [ProtocolAddress].
-// Modified for Aeneas: tuple struct → named field.
-// https://github.com/AeneasVerif/aeneas/issues/767
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
-pub struct DeviceId {
-    id: NonZeroU8,
-}
+pub struct DeviceId(NonZeroU8);
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("device ID is out of range")]
@@ -709,7 +701,7 @@ impl DeviceId {
     /// returned instead.
     pub const fn new_nonzero(id: NonZeroU8) -> Result<Self, InvalidDeviceId> {
         if id.get() <= MAX_VALID_DEVICE_ID {
-            Ok(Self { id })
+            Ok(Self(id))
         } else {
             Err(InvalidDeviceId)
         }
@@ -720,19 +712,19 @@ const MAX_VALID_DEVICE_ID: u8 = 127;
 
 impl From<DeviceId> for u32 {
     fn from(value: DeviceId) -> Self {
-        value.id.get().into()
+        value.0.get().into()
     }
 }
 
 impl From<DeviceId> for u8 {
     fn from(value: DeviceId) -> Self {
-        value.id.get()
+        value.0.get()
     }
 }
 
 impl From<DeviceId> for NonZeroU8 {
     fn from(value: DeviceId) -> Self {
-        value.id
+        value.0
     }
 }
 
@@ -759,16 +751,16 @@ impl TryFrom<u32> for DeviceId {
 
 impl fmt::Display for DeviceId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.id)
+        write!(f, "{}", self.0)
     }
 }
 
 impl rand::distr::Distribution<DeviceId> for rand::distr::StandardUniform {
     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> DeviceId {
-        DeviceId {
-            id: NonZeroU8::new(rng.random_range(1..=MAX_VALID_DEVICE_ID))
+        DeviceId(
+            NonZeroU8::new(rng.random_range(1..=MAX_VALID_DEVICE_ID))
                 .expect("guaranteed by random_range"),
-        }
+        )
     }
 }
 

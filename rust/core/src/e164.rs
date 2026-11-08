@@ -7,24 +7,20 @@ use std::fmt::Display;
 use std::num::{NonZeroU64, ParseIntError};
 use std::str::FromStr;
 
-// Modified for Aeneas: tuple struct → named field.
-// https://github.com/AeneasVerif/aeneas/issues/767
 #[derive(Copy, Clone, Debug, PartialEq, Eq, derive_more::Into)]
-pub struct E164 {
-    inner: NonZeroU64,
-}
+pub struct E164(NonZeroU64);
 
 impl E164 {
     pub const fn new(number: NonZeroU64) -> Self {
-        Self { inner: number }
+        Self(number)
     }
 
     pub fn to_be_bytes(&self) -> [u8; std::mem::size_of::<u64>()] {
-        self.inner.get().to_be_bytes()
+        self.0.get().to_be_bytes()
     }
 
     pub fn from_be_bytes(bytes: [u8; std::mem::size_of::<u64>()]) -> Option<Self> {
-        NonZeroU64::new(u64::from_be_bytes(bytes)).map(|inner| Self { inner })
+        NonZeroU64::new(u64::from_be_bytes(bytes)).map(Self)
     }
 }
 
@@ -32,13 +28,13 @@ impl FromStr for E164 {
     type Err = ParseIntError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.strip_prefix('+').unwrap_or(s);
-        NonZeroU64::from_str(s).map(|inner| Self { inner })
+        NonZeroU64::from_str(s).map(Self)
     }
 }
 
 impl Display for E164 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "+{}", self.inner)
+        write!(f, "+{}", self.0)
     }
 }
 
