@@ -8,7 +8,7 @@ Protocols/ATTRIBUTION.md.
 -/
 import Protocols.PQXDH.Contracts
 import Protocols.PQXDH.Scheme
-import Libsignal.Spec.Protocol.Crypto.HkdfSha256
+import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
 /-!
 # Correctness of the Full realization

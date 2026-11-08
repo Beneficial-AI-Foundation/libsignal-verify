@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Libsignal.Translated.Core.Funs
-import Libsignal.Spec.Core.Address.From
+import Libsignal.Proofs.Core.Address.From
 
 /-! # Spec Theorem for `ServiceId::raw_uuid`
 

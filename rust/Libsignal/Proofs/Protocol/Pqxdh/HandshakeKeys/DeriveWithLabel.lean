@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
 import Libsignal.Translated.Protocol.Funs
-import Libsignal.Spec.Protocol.Crypto.HkdfSha256
+import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
 /-! # Spec Theorem for `HandshakeKeys::derive_with_label`
 
