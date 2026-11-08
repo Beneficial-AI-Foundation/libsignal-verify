@@ -41,3 +41,9 @@ indent_size = 4
 [Makefile]
 indent_style = tab
 indent_size = 4
+
+# Patch files must keep their bytes: context lines can end in spaces.
+[*.patch]
+trim_trailing_whitespace = false
+insert_final_newline = unset
+max_line_length = unset
