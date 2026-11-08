@@ -1,0 +1,56 @@
+Translation patch: libsignal_protocol::kem::Ciphertext
+
+Change: `Ciphertext<'a> { data: &'a [u8] }` becomes `Ciphertext { data: Box<[u8]> }`: `deserialize` copies the bytes after the type byte, `serialize` reads them through `&self.data`, and `encapsulate` moves its ciphertext in.
+Why: Charon fails on a struct with a lifetime parameter in a field type (blocker catalog LIFETIME-STRUCT).
+Behaviour: same values. `deserialize` makes one extra copy of the ciphertext bytes.
+
+diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+--- a/rust/protocol/src/kem.rs
++++ b/rust/protocol/src/kem.rs
+@@ -359,7 +359,7 @@ impl Key<Public> {
+             ss,
+             Ciphertext {
+                 key_type: self.key_type,
+-                data: &ct,
++                data: ct,
+             }
+             .serialize(),
+         ))
+@@ -478,15 +478,15 @@ impl KeyPair {
+ }
+ 
+ /// Utility type to handle serialization and deserialization of ciphertext data
+-struct Ciphertext<'a> {
++struct Ciphertext {
+     key_type: KeyType,
+-    data: &'a [u8],
++    data: Box<[u8]>,
+ }
+ 
+-impl<'a> Ciphertext<'a> {
++impl Ciphertext {
+     /// Create a `Ciphertext` instance from a byte string created with the
+     /// function `Ciphertext::serialize(&self)`.
+-    pub fn deserialize(value: &'a [u8]) -> Result<Self> {
++    pub fn deserialize(value: &[u8]) -> Result<Self> {
+         if value.is_empty() {
+             return Err(SignalProtocolError::NoKeyTypeIdentifier);
+         }
+@@ -499,7 +499,7 @@ impl<'a> Ciphertext<'a> {
+         }
+         Ok(Ciphertext {
+             key_type,
+-            data: &value[1..],
++            data: value[1..].into(),
+         })
+     }
+ 
+@@ -507,7 +507,7 @@ impl<'a> Ciphertext<'a> {
+     pub fn serialize(&self) -> SerializedCiphertext {
+         let mut result = Vec::with_capacity(1 + self.data.len());
+         result.push(self.key_type.value());
+-        result.extend_from_slice(self.data);
++        result.extend_from_slice(&self.data);
+         result.into_boxed_slice()
+     }
+ }

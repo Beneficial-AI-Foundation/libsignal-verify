@@ -1,0 +1,36 @@
+Translation patch: libsignal_protocol::double_ratchet::RatchetState::{from_pb, apply_to_pb}
+
+Change: `.map(SenderChain::from_pb)` becomes `.map(|chain| SenderChain::from_pb(chain))`, and `.map(SenderChain::to_pb)` becomes the same closure form through a local `sender_chain_pb`. `#[allow(clippy::redundant_closure)]` stops the clippy warning.
+Why: Aeneas does not translate a function item passed to `Option::map`.
+Behaviour: identical.
+Applies after: protocol-double_ratchet-error_messages.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/double_ratchet.rs b/rust/protocol/src/double_ratchet.rs
+--- a/rust/protocol/src/double_ratchet.rs
++++ b/rust/protocol/src/double_ratchet.rs
+@@ -114,10 +114,12 @@ impl RatchetState {
+             .try_into()
+             .map_err(|_| InvalidSessionError(INVALID_ROOT_KEY))?;
+ 
++        // Explicit closure: Aeneas cannot translate the function-item form.
++        #[allow(clippy::redundant_closure)]
+         let sender_chain = session
+             .sender_chain
+             .as_ref()
+-            .map(SenderChain::from_pb)
++            .map(|chain| SenderChain::from_pb(chain))
+             .transpose()?;
+ 
+         Ok(Self {
+@@ -147,7 +149,10 @@ impl RatchetState {
+         } = self;
+         session.root_key = root_key.key().to_vec();
+         session.previous_counter = previous_counter;
+-        session.sender_chain = sender_chain.as_ref().map(SenderChain::to_pb);
++        // Explicit closure: Aeneas cannot translate the function-item form.
++        #[allow(clippy::redundant_closure)]
++        let sender_chain_pb = sender_chain.as_ref().map(|chain| SenderChain::to_pb(chain));
++        session.sender_chain = sender_chain_pb;
+         session.receiver_chains = receiver_chains;
+     }
+ }

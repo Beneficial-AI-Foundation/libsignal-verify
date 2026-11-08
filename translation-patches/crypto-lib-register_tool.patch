@@ -1,0 +1,19 @@
+Translation patch: signal_crypto (crate attributes)
+
+Change: under the `extraction` feature, `#![feature(register_tool)]` and `#![register_tool(charon)]`.
+Why: they make the `#[charon::opaque]` attributes in this crate valid.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: crypto-Cargo-extraction_feature.patch
+
+diff --git a/rust/crypto/src/lib.rs b/rust/crypto/src/lib.rs
+--- a/rust/crypto/src/lib.rs
++++ b/rust/crypto/src/lib.rs
+@@ -4,6 +4,8 @@
+ //
+ 
+ #![deny(clippy::unwrap_used)]
++#![cfg_attr(feature = "extraction", feature(register_tool))]
++#![cfg_attr(feature = "extraction", register_tool(charon))]
+ 
+ mod error;
+ mod hash;

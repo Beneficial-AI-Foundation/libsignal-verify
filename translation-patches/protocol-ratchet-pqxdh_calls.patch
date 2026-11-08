@@ -1,0 +1,54 @@
+Translation patch: libsignal_protocol::ratchet::{initialize_alice_session, initialize_bob_session}
+
+Change: `Pqxdh::initiate` and `Pqxdh::accept` become direct calls of `pqxdh_initiate` and `pqxdh_accept`. `initialize_alice_session` destructures `InitiatorAgreement { kyber_ciphertext, keys: HandshakeKeys { .. } }`. The imports follow.
+Why: the `Handshake` trait and its impl are excluded from the extraction (protocol-handshake-Handshake.patch, protocol-pqxdh-Pqxdh-Handshake.patch).
+Behaviour: identical. The trait methods only called these functions and reordered the result.
+Relies on: protocol-pqxdh-InitiatorAgreement.patch
+
+diff --git a/rust/protocol/src/ratchet.rs b/rust/protocol/src/ratchet.rs
+--- a/rust/protocol/src/ratchet.rs
++++ b/rust/protocol/src/ratchet.rs
+@@ -8,8 +8,9 @@ mod keys;
+ use rand::{CryptoRng, Rng};
+ 
+ pub(crate) use self::keys::{ChainKey, MessageKeyGenerator, RootKey};
+-use crate::handshake::Handshake;
+-use crate::pqxdh::{HandshakeKeys, Pqxdh};
++// Call the pqxdh free functions directly rather than via the `Handshake`
++// trait impl on `Pqxdh` (the trait + impl are excluded from extraction).
++use crate::pqxdh::{HandshakeKeys, InitiatorAgreement, pqxdh_accept, pqxdh_initiate};
+ // Re-export the parameter types for backward compatibility.
+ // Callers (session.rs, tests) use these via `ratchet::`.
+ pub use crate::pqxdh::{InitiatorParameters, RecipientParameters};
+@@ -45,14 +46,15 @@ pub(crate) fn initialize_alice_session<R: Rng + CryptoRng>(
+     parameters: &InitiatorParameters,
+     csprng: &mut R,
+ ) -> Result<SessionState> {
+-    let (
++    let InitiatorAgreement {
+         kyber_ciphertext,
+-        HandshakeKeys {
+-            root_key,
+-            chain_key,
+-            pqr_key,
+-        },
+-    ) = Pqxdh::initiate(parameters, csprng)?;
++        keys:
++            HandshakeKeys {
++                root_key,
++                chain_key,
++                pqr_key,
++            },
++    } = pqxdh_initiate(parameters, csprng)?;
+ 
+     initialize_initiator_session(
+         parameters,
+@@ -123,7 +125,7 @@ pub(crate) fn initialize_bob_session(
+         root_key,
+         chain_key,
+         pqr_key,
+-    } = Pqxdh::accept(parameters)?;
++    } = pqxdh_accept(parameters)?;
+ 
+     initialize_recipient_session(
+         parameters,
