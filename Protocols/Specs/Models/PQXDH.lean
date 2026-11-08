@@ -184,7 +184,7 @@ info: 'Protocols.Models.PQXDH.uakeInitiator_secure_pq' depends on axioms:
 /-! ## Security hops
 
 Hops 3 and 4, shared by both security theorems, and hops 5 and 6 for the DH and the PQ theorem.
-`Protocols/LEDGER.md` lists all six as admitted lemmas. -/
+Hop 4 is proved. `Protocols/LEDGER.md` lists the other five as admitted lemmas. -/
 
 open OracleSpec OracleComp AKE AKE.UAKE Protocols.Models.PQXDH in
 recall Protocols.Models.PQXDH.sigForgeProb_le_sig
@@ -216,7 +216,7 @@ recall Protocols.Models.PQXDH.pqpkGuessedProb_le
     {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg]
-    [DecidableEq IdC] [DecidableEq IdK] [SampleableType K]
+    [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q) (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
@@ -225,7 +225,6 @@ recall Protocols.Models.PQXDH.pqpkGuessedProb_le
 /--
 info: 'Protocols.Models.PQXDH.pqpkGuessedProb_le' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound]
 -/
