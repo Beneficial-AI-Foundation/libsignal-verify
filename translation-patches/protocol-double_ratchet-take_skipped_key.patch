@@ -1,0 +1,39 @@
+Translation patch: libsignal_protocol::double_ratchet::RatchetState::take_skipped_key
+
+Change: `MessageKeyGenerator::from_pb(key_pb).map(Some).map_err(InvalidSessionError)` moves unchanged into the new function `skipped_key_from_pb`.
+Why: `from_pb` is opaque and returns a `&'static str` error. Moving it into `InvalidSessionError` in translated code needs a loan for the static borrow, which Aeneas does not have. The helper is opaque in the extraction (`aeneas-config.protocol.yml`).
+Behaviour: identical.
+Applies after: protocol-double_ratchet-error_messages.patch, protocol-double_ratchet-logging.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/double_ratchet.rs b/rust/protocol/src/double_ratchet.rs
+--- a/rust/protocol/src/double_ratchet.rs
++++ b/rust/protocol/src/double_ratchet.rs
+@@ -91,6 +91,17 @@ fn log_corrupt_receiver_chain() {
+     log::warn!("skipping corrupt receiver chain with invalid ratchet key");
+ }
+ 
++// Opaque in the extraction: the `&'static str` error of the opaque
++// `MessageKeyGenerator::from_pb` cannot be moved into `InvalidSessionError` in
++// translated code (Aeneas has no loan for the static borrow).
++fn skipped_key_from_pb(
++    key_pb: session_structure::chain::MessageKey,
++) -> std::result::Result<Option<MessageKeyGenerator>, InvalidSessionError> {
++    MessageKeyGenerator::from_pb(key_pb)
++        .map(Some)
++        .map_err(InvalidSessionError)
++}
++
+ impl RatchetState {
+     /// Deserialize the ratchet-relevant fields from a `SessionStructure`.
+     ///
+@@ -376,9 +387,7 @@ impl RatchetState {
+         // and unrecoverable — slightly different from main which preserves it,
+         // but the outcome (error) is the same.
+         let key_pb = keys.remove(pos);
+-        MessageKeyGenerator::from_pb(key_pb)
+-            .map(Some)
+-            .map_err(InvalidSessionError)
++        skipped_key_from_pb(key_pb)
+     }
+ 
+     fn store_skipped_key(&mut self, their_ephemeral: &PublicKey, key: MessageKeyGenerator) {

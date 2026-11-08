@@ -171,7 +171,7 @@ async fn process_prekey_impl(
         our_kyber_pre_key_pair,
         *message.identity_key(),
         *message.base_key(),
-        kyber_ciphertext.clone(),
+        kyber_ciphertext,
         our_identity_key_pair.identity_key().is_same_account(
             local_address,
             message.identity_key(),
