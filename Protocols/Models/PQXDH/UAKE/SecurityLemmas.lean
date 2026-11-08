@@ -43,9 +43,10 @@ theorem):
   cores.
 
 The games and event predicates live in `SecurityLemmas/Games.lean`. Hops 1
-and 2 are proven; they are purely probabilistic. Hops 3 and 4 are deferred
-as reduction work, with the intended reductions recorded in their doc
-comments. The GapDH cores idealize the KDF outputs on the challenge
+and 2 are proven; they are purely probabilistic. Hop 4 is proven by a union bound over the
+fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is
+deferred as reduction work, with the intended reduction recorded in its doc
+comment. The GapDH cores idealize the KDF outputs on the challenge
 session's key material, which requires the KDF to be a programmable random
 oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
 are expressible in the current model (the KDF's PRF key slot is the KEM
