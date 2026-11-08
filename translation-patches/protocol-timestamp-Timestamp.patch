@@ -1,0 +1,57 @@
+Translation patch: libsignal_protocol::timestamp::Timestamp
+
+Change: `Timestamp(u64)` becomes `Timestamp { millis: u64 }`, and the uses follow, including the body of the `Distribution` impl.
+Why: Aeneas does not translate this tuple struct ([aeneas#767](https://github.com/AeneasVerif/aeneas/issues/767)).
+Behaviour: same values. The field is private. The derived `Debug` output changes from `Timestamp(…)` to `Timestamp { millis: … }`, and the serde format changes from a newtype (a bare number) to a struct with a `millis` field.
+Applies after: protocol-timestamp-Timestamp-Distribution.patch, protocol-timestamp-Timestamp-serde.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
+--- a/rust/protocol/src/timestamp.rs
++++ b/rust/protocol/src/timestamp.rs
+@@ -10,23 +10,31 @@ use serde::{Deserialize, Serialize};
+ #[cfg_attr(not(feature = "extraction"), derive(Serialize, Deserialize))]
+ #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+ #[repr(transparent)]
+-pub struct Timestamp(u64);
++pub struct Timestamp {
++    millis: u64,
++}
+ 
+ impl Timestamp {
+     pub const fn from_epoch_millis(milliseconds: u64) -> Self {
+-        Self(milliseconds)
++        Self {
++            millis: milliseconds,
++        }
+     }
+ 
+     pub const fn epoch_millis(&self) -> u64 {
+-        self.0
++        self.millis
+     }
+ 
+     pub fn add_millis(&self, milliseconds: u64) -> Self {
+-        Self(self.0 + milliseconds)
++        Self {
++            millis: self.millis + milliseconds,
++        }
+     }
+ 
+     pub fn sub_millis(&self, milliseconds: u64) -> Timestamp {
+-        Self(self.0 - milliseconds)
++        Self {
++            millis: self.millis - milliseconds,
++        }
+     }
+ }
+ 
+@@ -39,6 +47,8 @@ impl From<Timestamp> for std::time::SystemTime {
+ #[cfg(not(feature = "extraction"))]
+ impl rand::distr::Distribution<Timestamp> for rand::distr::StandardUniform {
+     fn sample<R: rand::prelude::Rng + ?Sized>(&self, rng: &mut R) -> Timestamp {
+-        Timestamp(Self::sample(self, rng))
++        Timestamp {
++            millis: Self::sample(self, rng),
++        }
+     }
+ }

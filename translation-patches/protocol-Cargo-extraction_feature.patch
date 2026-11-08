@@ -1,0 +1,17 @@
+Translation patch: libsignal-protocol `Cargo.toml`
+
+Change: adds an empty `extraction` feature.
+Why: the extraction builds the crate with this feature, which switches on the `charon` tool attributes and the `cfg` gates of the other patches.
+Behaviour: unchanged. The feature is off by default.
+
+diff --git a/rust/protocol/Cargo.toml b/rust/protocol/Cargo.toml
+--- a/rust/protocol/Cargo.toml
++++ b/rust/protocol/Cargo.toml
+@@ -49,6 +49,7 @@ uuid = { workspace = true }
+ zerocopy = { workspace = true, features = ["derive"] }
+ 
+ [features]
++extraction = []
+ kyber768 = ["libcrux-ml-kem/kyber", "libcrux-ml-kem/mlkem768"]
+ # ML-KEM matches the NIST standard version of Kyber. It may still change
+ # incompatibly until the final version of the standard is published and

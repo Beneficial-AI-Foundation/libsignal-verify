@@ -1,0 +1,49 @@
+Translation patch: libsignal_protocol::protocol::SignalMessage::compute_mac
+
+Change: the inline `Hmac::<Sha256>` with three `update` calls becomes `crate::crypto::hmac_sha256_parts(mac_key, &[sender key, receiver key, message])`, and the first 8 bytes are taken as before. The `hmac` and `sha2` imports, now unused, are removed.
+Why: see protocol-crypto-hmac_sha256_parts.patch.
+Behaviour: identical. The helper feeds the same three parts in the same order.
+Relies on: protocol-crypto-hmac_sha256_parts.patch
+
+diff --git a/rust/protocol/src/protocol.rs b/rust/protocol/src/protocol.rs
+--- a/rust/protocol/src/protocol.rs
++++ b/rust/protocol/src/protocol.rs
+@@ -3,10 +3,8 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ //
+ 
+-use hmac::{Hmac, KeyInit as _, Mac as _};
+ use prost::Message;
+ use rand::{CryptoRng, Rng};
+-use sha2::Sha256;
+ use subtle::ConstantTimeEq;
+ use uuid::Uuid;
+ 
+@@ -220,18 +218,15 @@ impl SignalMessage {
+         if mac_key.len() != 32 {
+             return Err(SignalProtocolError::InvalidMacKeyLength(mac_key.len()));
+         }
+-        let mut mac = Hmac::<Sha256>::new_from_slice(mac_key)
+-            .expect("HMAC-SHA256 should accept any size key");
+-
+-        mac.update(sender_identity_key.public_key().serialize().as_ref());
+-        mac.update(receiver_identity_key.public_key().serialize().as_ref());
+-        mac.update(message);
+-        let result = *mac
+-            .finalize()
+-            .into_bytes()
+-            .first_chunk()
+-            .expect("enough bytes");
+-        Ok(result)
++        let mac = crate::crypto::hmac_sha256_parts(
++            mac_key,
++            &[
++                sender_identity_key.public_key().serialize().as_ref(),
++                receiver_identity_key.public_key().serialize().as_ref(),
++                message,
++            ],
++        );
++        Ok(*mac.first_chunk().expect("enough bytes"))
+     }
+ 
+     /// Serializes sender and recipient addresses into a single byte vector.

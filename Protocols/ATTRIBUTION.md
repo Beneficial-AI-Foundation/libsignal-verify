@@ -6,7 +6,11 @@ project root. The files listed here were ported from other projects and keep the
 ## Galois Inc., libsignal-docs-and-models
 
 - Source: <https://github.com/GaloisInc/libsignal-docs-and-models>, commit
-  `f8625935808bff4a85f9a59f751dac81d03384ca`.
+  `e82e566ff4f1db69b2638c5813249a4d4497b14f`.
+- Ported through the Beneficial AI Foundation fork <https://github.com/Beneficial-AI-Foundation/PQXDH-model>,
+  commit `f8625935808bff4a85f9a59f751dac81d03384ca`. Its parent is `e82e566ff4`, and it exists only in
+  the fork. It changes CI, blueprint, documentation, Lake and script files, so each file listed below is
+  the same at both commits.
 - Copyright (c) 2026 Galois Inc. Author Ben Hamlin.
 - Licence: Apache License 2.0, text in `LICENSES/Apache-2.0.txt`.
 - The source repository has no NOTICE file.
@@ -24,7 +28,7 @@ project root. The files listed here were ported from other projects and keep the
 | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/DHHops.lean` | header rewritten, import paths, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, theorem names in docstrings carry the new prefix, docstrings of the two admitted lemmas extended |
 | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/Games.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/Games.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, the replay example in the docstring of `pqpkGuessed` qualified by the one-time key |
 | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/PQHops.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, theorem names in docstrings carry the new prefix, docstrings of the two admitted lemmas extended |
-| `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/SharedHops.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, docstrings of the two admitted lemmas extended |
+| `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | `PQXDH/Spec/UAKE/SecurityLemmas/SharedHops.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, docstrings of the two admitted lemmas extended, `pqpkGuessedProb_le` proved with the lemmas of the new `SecurityLemmas/KeyGuessing.lean`, its unused `[SampleableType K]` dropped, and its docstring rewritten |
 | `Protocols/Models/PQXDH/UAKE/WellFormed.lean` | `PQXDH/Spec/UAKE/WellFormed.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, docstrings say "model" for the Lean side, two theorem docstrings that said "extracted" corrected, both proofs also discharge the pure-output conditions of `Scheme.WellFormed`, module and theorem docstrings name them |
 | `Protocols/Models/PQXDH/UAKE/WellFormedLemmas.lean` | `PQXDH/Spec/UAKE/WellFormedLemmas.lean` | header rewritten, import path, namespace `PQXDH` renamed `Protocols.Models.PQXDH`, docstrings say "model" for the Lean side, four lemmas added stating that the model parties' output functions are pure, module docstring names them |
 | `Protocols/PQXDH/Defs.lean` | `PQXDH/Aeneas/Full/UAKE/Defs.lean` (`Bytes`, `ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes`, lines 68-71, 99-102, 220-227) | header rewritten, import paths, namespace `PQXDH.Aeneas.Full` renamed `Protocols.PQXDH`, module docstring added, only the seven declarations the KDF mirror uses are taken |

@@ -1,6 +1,9 @@
 /**
  * Extract Core, crypto, the protocol crate and default-feature ratchet-state
  * conversion. Explicit diagnostic profiles leave canonical output unchanged.
+ *
+ * Charon runs in a work copy of the Cargo workspace (.aeneas/work/) with the
+ * translation patches applied; the committed rust/ tree stays upstream.
  */
 
 import fs from "node:fs";
@@ -13,6 +16,10 @@ import { runStreaming } from "./lib/shell.js";
 import { applyTweaks, warnUnmatchedTweaks } from "./lib/tweaks.js";
 import { checkProjectCompatibility } from "./lib/lean-toolchain.js";
 import { assertRealPath, platformKey } from "./lib/paths.js";
+import { prepareWorkCopy } from "./lib/patches.js";
+
+/** The patched work copy Charon runs in, and the patches applied to it. */
+interface WorkCopy { dir: string; patches: { name: string; sha256: string }[] }
 
 type TargetKey = "core" | "crypto" | "crypto-cbc" | "crypto-full" | "protocol" | "ratchet-state";
 const TARGETS: Record<TargetKey, {
@@ -75,7 +82,7 @@ interface LlbcFunction {
   body: string | Record<string, unknown>;
 }
 
-async function runExtraction(targetKey: TargetKey): Promise<void> {
+async function runExtraction(targetKey: TargetKey, work: WorkCopy): Promise<void> {
   const target = TARGETS[targetKey];
   const configFiles = target.configs.map((key) => `rust/aeneas-config.${key}.yml`);
   console.log(chalk.bold(`\nAeneas Extract — ${targetKey}\n`));
@@ -135,7 +142,8 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
 
   fs.mkdirSync(logsDir, { recursive: true });
   fs.writeFileSync(path.join(logsDir, "command.json"), JSON.stringify({
-    target: targetKey, config, installation, charon: { executable: charonBin, args: charonArgs },
+    target: targetKey, config, installation, workCopy: work,
+    charon: { executable: charonBin, args: charonArgs, cwd: work.dir },
   }, null, 2) + "\n");
 
   // Profiling is opt-in. The item filter records declaration timings without
@@ -149,8 +157,11 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
   // Charon locates its sibling driver; clear the Nix PATH-toolchain escape hatch.
   const charonEnv = driverEnvironment(driverRust.channel);
   // Keep driver-built artifacts separate from production and older tool stacks.
+  // The cache sits inside the work copy at the path it had inside the repo root:
+  // Charon records build-script output (generated protobuf code) relative to its
+  // working directory, and Aeneas orders declarations by that recorded path.
   charonEnv.CARGO_TARGET_DIR = process.env.CARGO_TARGET_DIR ??
-    path.join(root, ".aeneas", "cargo", config.aeneas.commit, platformKey);
+    path.join(work.dir, ".aeneas", "cargo", config.aeneas.commit, platformKey);
   console.log(chalk.gray(`  Extraction build cache: ${charonEnv.CARGO_TARGET_DIR}`));
   if (process.env.RUST_LOG) {
     charonEnv.RUST_LOG = process.env.RUST_LOG; // explicit env override wins
@@ -167,7 +178,9 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
   }
 
   await runStreaming(charonBin, charonArgs, {
-    cwd: root,
+    // The work copy has the same layout as the repo root, so source paths in the
+    // generated Lean (`rust/<crate>/src/…`) are unchanged.
+    cwd: work.dir,
     label: "charon translating",
     logFile: path.join(logsDir, "charon.log"),
     env: charonEnv,
@@ -267,6 +280,7 @@ async function runExtraction(targetKey: TargetKey): Promise<void> {
   fs.writeFileSync(path.join(logsDir, "result.json"), JSON.stringify({
     target: targetKey, llbcSha256: sha256(llbcBytes),
     cargoLockSha256: sha256(fs.readFileSync(path.join(root, "Cargo.lock"))),
+    patches: work.patches,
     diagnostic: !!target.diagnostic, rootBodies, generated,
   }, null, 2) + "\n");
   if (!target.diagnostic) {
@@ -286,7 +300,12 @@ async function main(): Promise<void> {
     throw new Error(`Unknown target '${arg}'. Expected one of: ${Object.keys(TARGETS).join(", ")}`);
   }
   const targets: TargetKey[] = arg ? [arg as TargetKey] : DEFAULT_TARGETS;
-  for (const key of targets) await runExtraction(key);
+  const { config, root } = loadConfig();
+  const dir = path.join(root, ".aeneas", "work");
+  console.log(chalk.bold("\nPreparing the patched work copy..."));
+  const patches = prepareWorkCopy(root, path.join(root, config.patches_dir), dir);
+  console.log(chalk.green(`  Applied ${patches.length} translation patch(es) in ${dir}`));
+  for (const key of targets) await runExtraction(key, { dir, patches });
   if (targets.length > 1) console.log(chalk.green.bold(`\nAll canonical targets extracted (${targets.join(", ")}).`));
 }
 

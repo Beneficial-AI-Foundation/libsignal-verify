@@ -1,0 +1,23 @@
+Translation patch: libsignal_protocol::timestamp::Timestamp (serde derives)
+
+Change: under the `extraction` feature, the `serde` import and the `Serialize`/`Deserialize` derives are left out.
+Why: not recorded in the source or the extraction notes.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+
+diff --git a/rust/protocol/src/timestamp.rs b/rust/protocol/src/timestamp.rs
+--- a/rust/protocol/src/timestamp.rs
++++ b/rust/protocol/src/timestamp.rs
+@@ -3,10 +3,12 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ //
+ 
++#[cfg(not(feature = "extraction"))]
+ use serde::{Deserialize, Serialize};
+ 
+ /// Timestamp recorded as milliseconds since the Unix epoch.
+-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
++#[cfg_attr(not(feature = "extraction"), derive(Serialize, Deserialize))]
++#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+ #[repr(transparent)]
+ pub struct Timestamp(u64);
+ 

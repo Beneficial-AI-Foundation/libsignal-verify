@@ -1,0 +1,18 @@
+Translation patch: libsignal_protocol::handshake::Handshake
+
+Change: under the `extraction` feature, the trait is `#[charon::exclude]`.
+Why: Aeneas cannot extract a trait associated type with parameters (`type RecipientParams<'a>`; blocker catalog GAT). The callers use the free functions instead (protocol-ratchet-pqxdh_calls.patch).
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: protocol-lib-register_tool.patch
+
+diff --git a/rust/protocol/src/handshake.rs b/rust/protocol/src/handshake.rs
+--- a/rust/protocol/src/handshake.rs
++++ b/rust/protocol/src/handshake.rs
+@@ -28,6 +28,7 @@ use crate::Result;
+ /// enforce a clean boundary: the message is data for the wire, the secret
+ /// is data for the ratchet. These are currently protocol-specific types
+ /// but should eventually become opaque byte arrays.
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ pub(crate) trait Handshake {
+     /// Parameters for the initiator (constructed from a pre-key bundle).
+     type InitiatorParams;
