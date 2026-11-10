@@ -18,8 +18,11 @@ output and the KEM shared secret) and `deriveHK` passes it to the extracted
 `pqxdh.HandshakeKeys.derive`. The mirror restates the input layout of the extracted functions; this
 file does not prove that it agrees with them.
 
-`deriveKeysTotal` proves `DeriveKeysTotal`, the totality of `deriveHK`, from the contract
-`HkdfSha256Contract` on the opaque `crypto.hkdf_sha256`, through `HandshakeKeys.derive_spec`.
+`kdfInput_spec` gives the exact bytes that `kdfInput` returns, `kdfInputSliceBytes`, for slices
+of any length under one bound on the total length; `kdfInput_fixed_spec` adds the length, 160 or
+192 bytes, for 32-byte components. `deriveKeysTotal` proves `DeriveKeysTotal`, the totality of
+`deriveHK`, from the contract `HkdfSha256Contract` on the opaque `crypto.hkdf_sha256`, through
+`HandshakeKeys.derive_spec`.
 
 **Source**: `PQXDH/Aeneas/Full/UAKE/SecurityDefs.lean` of libsignal-docs-and-models, the
 declarations of the same names. The source opens a `noncomputable section`; here only `deriveHK`
@@ -67,6 +70,53 @@ def kdfInput (dh1 dh2 dh3 : Aeneas.Std.Slice Aeneas.Std.U8)
   let secrets6 ←
     Aeneas.Std.alloc.vec.Vec.extend_from_slice Aeneas.Std.core.clone.CloneU8 secrets5 ss
   pure (Aeneas.Std.alloc.vec.Vec.deref secrets6)
+
+/-- The bytes that `kdfInput` assembles: 32 bytes of `0xFF`, then `dh1`, `dh2` and `dh3`, then
+`dh4` when there is one, then the KEM secret `ss`. This is the slice form of `kdfInputBytes` in
+`SecurityDefs.lean`, which takes 32-byte keys. -/
+def kdfInputSliceBytes (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : Slice U8) :
+    List U8 :=
+  let dh4Bytes := match dh4 with
+    | none => []
+    | some d => d.val
+  List.replicate 32 255#u8 ++ dh1.val ++ dh2.val ++ dh3.val ++ dh4Bytes ++ ss.val
+
+/-- For slices of any length, if the assembled byte list has length at most `Usize.max`,
+`kdfInput` succeeds and returns `kdfInputSliceBytes`. -/
+@[step]
+theorem kdfInput_spec (dh1 dh2 dh3 : Slice U8) (dh4 : Option (Slice U8)) (ss : Slice U8)
+    (h_len : (kdfInputSliceBytes dh1 dh2 dh3 dh4 ss).length ≤ Usize.max) :
+    kdfInput dh1 dh2 dh3 dh4 ss ⦃ inp =>
+      inp.val = kdfInputSliceBytes dh1 dh2 dh3 dh4 ss ⦄ := by
+  open Aeneas.Std.alloc.vec in
+  have h_cap : ∀ j, (Vec.with_capacity U8 j).length = 0 := fun _ => rfl
+  open Aeneas.Std.alloc.vec in
+  have h_nil : ∀ j, (Vec.with_capacity U8 j).val = [] := fun _ => rfl
+  open Aeneas.Std.alloc.vec in
+  rcases dh4 with _ | d <;>
+    simp only [kdfInputSliceBytes, List.length_append, List.length_replicate,
+      List.append_nil] at h_len <;>
+    unfold kdfInput <;> step* <;>
+    simp [kdfInputSliceBytes, Vec.deref, Slice.from_val, *]
+
+/-- For DH outputs and a KEM secret given as 32-byte arrays, `kdfInput` succeeds and returns
+`kdfInputSliceBytes`, of length 160 without the fourth DH output and 192 with it. -/
+theorem kdfInput_fixed_spec (dh1 dh2 dh3 : Array U8 32#usize) (dh4 : Option (Array U8 32#usize))
+    (ss : Array U8 32#usize) :
+    kdfInput dh1.to_slice dh2.to_slice dh3.to_slice (dh4.map (·.to_slice)) ss.to_slice
+      ⦃ inp =>
+        inp.val = kdfInputSliceBytes dh1.to_slice dh2.to_slice dh3.to_slice
+          (dh4.map (·.to_slice)) ss.to_slice ∧
+        inp.length = if dh4.isSome then 192 else 160 ⦄ := by
+  have h192 : 192 ≤ Usize.max := by
+    rcases Usize.bounds_eq with h | h <;> rw [h] <;> simp only [U32.max, U64.max] <;> scalar_tac
+  have h_len : (kdfInputSliceBytes dh1.to_slice dh2.to_slice dh3.to_slice
+      (dh4.map (·.to_slice)) ss.to_slice).length = if dh4.isSome then 192 else 160 := by
+    rcases dh4 with _ | d <;> simp [kdfInputSliceBytes]
+  refine WP.spec_mono (kdfInput_spec _ _ _ _ _ ?_) ?_
+  · rw [h_len]; split <;> omega
+  · intro inp h_val
+    exact ⟨h_val, by simp [Slice.length, h_val, h_len]⟩
 
 /-- Run the extracted HKDF derivation on the assembled KDF input. -/
 noncomputable def deriveHK (dh1 dh2 dh3 : ECPub) (dh4 : Option ECPub) (ss : Key) :
