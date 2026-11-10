@@ -28,6 +28,11 @@ upstream:
   repo: "https://github.com/signalapp/libsignal"
   commit: "e8cc2dddd578859b4a029c9c94670b24ce2b616a"
 
+# The committed rust/ tree is upstream at the commit above. The source changes made for
+# extraction are one patch per item in this folder; scripts/aeneas-extract.ts applies them
+# to a work copy (.aeneas/work/) and runs Charon there. See translation-patches/README.md.
+patches_dir: "translation-patches"
+
 charon:
   # Use the distributed Rust sysroot rather than rebuilding std with full MIR.
   sysroot: default

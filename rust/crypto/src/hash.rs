@@ -9,8 +9,7 @@ use sha2::{Digest, Sha256, Sha512};
 
 use crate::{Error, Result};
 
-#[cfg_attr(not(feature = "extraction"), derive(Clone))]
-#[cfg_attr(feature = "extraction", charon::opaque)]
+#[derive(Clone)]
 pub enum CryptographicMac {
     HmacSha256(HmacReset<Sha256>),
     HmacSha1(HmacReset<Sha1>),
@@ -49,8 +48,7 @@ impl CryptographicMac {
     }
 }
 
-#[cfg_attr(not(feature = "extraction"), derive(Clone))]
-#[cfg_attr(feature = "extraction", charon::opaque)]
+#[derive(Clone)]
 pub enum CryptographicHash {
     Sha1(Sha1),
     Sha256(Sha256),

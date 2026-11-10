@@ -1,0 +1,89 @@
+Translation patch: libsignal_protocol::double_ratchet (four log calls)
+
+Change: the `log!` calls in `consume_message_key` and `find_receiver_chain_index` move into the new functions `log_duplicate_message`, `log_future_message_limit`, `log_jump_ahead` and `log_corrupt_receiver_chain`, called at the same points.
+Why: Aeneas stops with an internal error on `log!` expansions. The helpers are opaque in the extraction (`aeneas-config.protocol.yml`).
+Behaviour: same log level and message at the same point. The log record gives the helper's source line.
+Applies after: protocol-double_ratchet-error_messages.patch (their lines are this patch's context).
+
+diff --git a/rust/protocol/src/double_ratchet.rs b/rust/protocol/src/double_ratchet.rs
+--- a/rust/protocol/src/double_ratchet.rs
++++ b/rust/protocol/src/double_ratchet.rs
+@@ -63,6 +63,34 @@ const INVALID_SENDER_RATCHET_PUBLIC_KEY: &str = "invalid sender ratchet public k
+ const INVALID_SENDER_RATCHET_PRIVATE_KEY: &str = "invalid sender ratchet private key";
+ const INVALID_CHAIN_KEY: &str = "invalid chain key";
+ 
++// Logging helpers: Aeneas fails on `log!` expansions, so the extraction treats
++// these as opaque effects. Level and message are unchanged.
++fn log_duplicate_message(remote_address_for_logging: &str, counter: u32) {
++    log::info!("{remote_address_for_logging} Duplicate message for counter: {counter}");
++}
++
++fn log_future_message_limit(
++    remote_address_for_logging: &str,
++    max_forward_jumps: usize,
++    chain_index: u32,
++    counter: u32,
++) {
++    log::error!(
++        "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
++        max_forward_jumps,
++    );
++}
++
++fn log_jump_ahead(remote_address_for_logging: &str, jump: usize, chain_index: u32, counter: u32) {
++    log::info!(
++        "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
++    );
++}
++
++fn log_corrupt_receiver_chain() {
++    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
++}
++
+ impl RatchetState {
+     /// Deserialize the ratchet-relevant fields from a `SessionStructure`.
+     ///
+@@ -223,18 +251,18 @@ impl RatchetState {
+             return self
+                 .take_skipped_key(their_ephemeral, counter)?
+                 .ok_or_else(|| {
+-                    log::info!(
+-                        "{remote_address_for_logging} Duplicate message for counter: {counter}"
+-                    );
++                    log_duplicate_message(remote_address_for_logging, counter);
+                     SignalProtocolError::DuplicatedMessage(chain_index, counter)
+                 });
+         }
+ 
+         let jump = (counter - chain_index) as usize;
+         if jump > self.max_forward_jumps {
+-            log::error!(
+-                "{remote_address_for_logging} Exceeded future message limit: {}, index: {chain_index}, counter: {counter}",
++            log_future_message_limit(
++                remote_address_for_logging,
+                 self.max_forward_jumps,
++                chain_index,
++                counter,
+             );
+             return Err(SignalProtocolError::InvalidMessage(
+                 original_message_type,
+@@ -242,9 +270,7 @@ impl RatchetState {
+             ));
+         } else if jump > consts::MAX_FORWARD_JUMPS {
+             // This only happens if it is a session with self
+-            log::info!(
+-                "{remote_address_for_logging} Jumping ahead {jump} messages (index: {chain_index}, counter: {counter})"
+-            );
++            log_jump_ahead(remote_address_for_logging, jump, chain_index, counter);
+         }
+ 
+         // Advance the chain to the target counter, caching skipped keys.
+@@ -379,7 +405,7 @@ impl RatchetState {
+             match PublicKey::deserialize(&chain.sender_ratchet_key) {
+                 Ok(key) => &key == their_ephemeral,
+                 Err(_) => {
+-                    log::warn!("skipping corrupt receiver chain with invalid ratchet key");
++                    log_corrupt_receiver_chain();
+                     false
+                 }
+             }

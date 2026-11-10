@@ -1,0 +1,40 @@
+Translation patch: libsignal_protocol::pqxdh::HandshakeKeys::derive_with_label
+
+Change: `derive_arrays` is replaced by a zeroed 96-byte buffer filled by `crate::crypto::hkdf_sha256(None, secret_input, label, ..)`, then split into three 32-byte arrays. The `use libsignal_core::derive_arrays`, now unused, is removed.
+Why: the zerocopy layout traits behind `derive_arrays` are excluded, and their impls trigger an Aeneas pre-pass error. Keeping them exposes pointer operations Aeneas does not support.
+Behaviour: identical. The same HKDF call and label fill the same 96 bytes, split in the same order, with the same `expect`.
+Relies on: protocol-crypto-hkdf_sha256.patch
+
+diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+--- a/rust/protocol/src/pqxdh.rs
++++ b/rust/protocol/src/pqxdh.rs
+@@ -19,7 +19,6 @@
+ //! derive whatever it needs from that. This requires a protocol version bump
+ //! and should be done alongside a future handshake protocol revision.
+ 
+-use libsignal_core::derive_arrays;
+ use rand::{CryptoRng, Rng};
+ 
+ use crate::handshake::Handshake;
+@@ -77,11 +76,16 @@ impl HandshakeKeys {
+     }
+ 
+     fn derive_with_label(label: &[u8], secret_input: &[u8]) -> Self {
+-        let (root_key_bytes, chain_key_bytes, pqr_bytes) = derive_arrays(|bytes| {
+-            hkdf::Hkdf::<sha2::Sha256>::new(None, secret_input)
+-                .expand(label, bytes)
+-                .expect("valid length")
+-        });
++        // Keep the byte splitting explicit: the extraction backend cannot translate
++        // the zerocopy-derived layout implementations used by derive_arrays.
++        let mut bytes = [0u8; 96];
++        crate::crypto::hkdf_sha256(None, secret_input, label, &mut bytes).expect("valid length");
++        let mut root_key_bytes = [0u8; 32];
++        let mut chain_key_bytes = [0u8; 32];
++        let mut pqr_bytes = [0u8; 32];
++        root_key_bytes.copy_from_slice(&bytes[..32]);
++        chain_key_bytes.copy_from_slice(&bytes[32..64]);
++        pqr_bytes.copy_from_slice(&bytes[64..]);
+ 
+         Self {
+             root_key: RootKey::new(root_key_bytes),

@@ -1,0 +1,62 @@
+Translation patch: libsignal_protocol::session_management (the store-using functions)
+
+Change: under the `extraction` feature, `message_encrypt`, `message_decrypt`, `message_decrypt_prekey` and `message_decrypt_signal` are left out, and the `use` list is split so that the store imports are gated with them.
+Why: Charon's hax frontend panics on the `#[async_trait]` store traits when `--start-from-pub` roots them, so the extraction leaves out the store-using layer. The protocol and crypto core does not use it.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: protocol-storage_traits-store_traits.patch
+
+diff --git a/rust/protocol/src/session_management.rs b/rust/protocol/src/session_management.rs
+--- a/rust/protocol/src/session_management.rs
++++ b/rust/protocol/src/session_management.rs
+@@ -29,9 +29,16 @@ use crate::consts::MAX_UNACKNOWLEDGED_SESSION_AGE;
+ use crate::state::{InvalidSessionError, SessionState};
+ use crate::triple_ratchet::{OutgoingTripleRatchet, TripleRatchet};
+ use crate::{
+-    CiphertextMessage, CiphertextMessageType, Direction, IdentityKeyStore, KyberPayload,
+-    KyberPreKeyStore, PreKeySignalMessage, PreKeyStore, ProtocolAddress, Result, SessionNotFound,
+-    SessionRecord, SessionStore, SignalMessage, SignalProtocolError, SignedPreKeyStore, session,
++    CiphertextMessage, CiphertextMessageType, KyberPayload, PreKeySignalMessage, ProtocolAddress,
++    Result, SessionRecord, SignalMessage, SignalProtocolError,
++};
++// Store traits + the `session` module + `Direction` are used only by the public
++// store-using API (message_encrypt/decrypt*), which is gated out during extraction
++// (charon hax panics on the async store traits). See lib.rs.
++#[cfg(not(feature = "extraction"))]
++use crate::{
++    Direction, IdentityKeyStore, KyberPreKeyStore, PreKeyStore, SessionNotFound, SessionStore,
++    SignedPreKeyStore, session,
+ };
+ // ── Public API ───────────────────────────────────────────────────────────────
+ 
+@@ -40,6 +47,7 @@ use crate::{
+ /// If the session is unacknowledged (a locally-initiated session that has not
+ /// yet received a response), wraps the [`SignalMessage`] in a
+ /// [`PreKeySignalMessage`] containing the original pre-key material.
++#[cfg(not(feature = "extraction"))]
+ pub async fn message_encrypt<R: Rng + CryptoRng>(
+     ptext: &[u8],
+     remote_address: &ProtocolAddress,
+@@ -155,6 +163,7 @@ pub async fn message_encrypt<R: Rng + CryptoRng>(
+ /// Routes to [`message_decrypt_signal`] or [`message_decrypt_prekey`] based
+ /// on message type.
+ #[allow(clippy::too_many_arguments)]
++#[cfg(not(feature = "extraction"))]
+ pub async fn message_decrypt<R: Rng + CryptoRng>(
+     ciphertext: &CiphertextMessage,
+     remote_address: &ProtocolAddress,
+@@ -204,6 +213,7 @@ pub async fn message_decrypt<R: Rng + CryptoRng>(
+ /// Processes the pre-key material to establish a session (via
+ /// [`session::process_prekey`]), then decrypts the inner [`SignalMessage`].
+ #[allow(clippy::too_many_arguments)]
++#[cfg(not(feature = "extraction"))]
+ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
+     ciphertext: &PreKeySignalMessage,
+     remote_address: &ProtocolAddress,
+@@ -294,6 +304,7 @@ pub async fn message_decrypt_prekey<R: Rng + CryptoRng>(
+ ///
+ /// Tries all sessions in the session record. Checks identity key trust
+ /// after decryption.
++#[cfg(not(feature = "extraction"))]
+ pub async fn message_decrypt_signal<R: Rng + CryptoRng>(
+     ciphertext: &SignalMessage,
+     remote_address: &ProtocolAddress,
