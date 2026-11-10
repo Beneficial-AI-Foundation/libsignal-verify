@@ -5,13 +5,15 @@ Authors: Alessandro D'Angelo
 -/
 import Mathlib.Tactic.Recall
 import Libsignal.Proofs.Std.Alloc.Vec.ExtendFromSlice
+import Libsignal.Proofs.Std.Alloc.Vec.IntoBoxedSlice
 
 /-!
 # Spec summary: `alloc::vec::Vec`
 
-This file freezes the specifications of `alloc::vec::Vec::extend_from_slice` from the Rust
-standard library, through its model in the Aeneas standard library (`Aeneas/Std/Vec.lean`). Each
-theorem is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on.
+This file freezes the specifications of `alloc::vec::Vec::extend_from_slice` and of the conversion
+`Box::<[T]>::from(Vec<T>)` from the Rust standard library, through their models in the Aeneas
+standard library. Each theorem is restated with `recall` and has a `#guard_msgs` check on the axioms
+it depends on.
 -/
 
 open Aeneas Aeneas.Std Result in
@@ -45,3 +47,16 @@ info: 'Aeneas.Std.alloc.vec.Vec.extend_from_slice_overflow' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Aeneas.Std.alloc.vec.Vec.extend_from_slice_overflow
+
+open Aeneas Aeneas.Std Result in
+recall Aeneas.Std.alloc.vec.FromBoxSliceVec.from_deref {T : Type} (v : alloc.vec.Vec T) :
+    alloc.vec.FromBoxSliceVec.from v ⦃ s => s = alloc.vec.Vec.deref v ⦄
+
+/--
+info: 'Aeneas.Std.alloc.vec.FromBoxSliceVec.from_deref' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Aeneas.Std.alloc.vec.FromBoxSliceVec.from_deref
