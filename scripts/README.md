@@ -28,7 +28,7 @@ The Lean Build workflow also runs two checks:
 
 | Script | Fails when |
 | --- | --- |
-| `ledger-check.py` | a closure, admission count or pin recorded in `Protocols/LEDGER.md` differs from what its "How to regenerate" commands print; the header shows how to run it |
+| `ledger-check.py` | an admission count or pin recorded in `Protocols/LEDGER.md` differs from the Lean sources, `lean-toolchain` or `lake-manifest.json`; the header shows how to run it. Axiom closures are not checked here: the `#guard_msgs` blocks of the spec summaries freeze them |
 | `spec-layout-check.sh` | a directory under `rust/Libsignal/Proofs/` or `Specs/` is named `Aeneas` or `Charon`; a file outside `Proofs/Std/` and `Specs/Std/` opens, declares or recalls a `core`, `alloc`, `std` or `Aeneas.Std` name; a public theorem or definition of a proof file is missing from the summary at an ancestor path; or a summary has a `recall` without an axiom check, or an axiom check without `#guard_msgs`. `--self-test` plants one violation of each rule |
 
 ## Profiles

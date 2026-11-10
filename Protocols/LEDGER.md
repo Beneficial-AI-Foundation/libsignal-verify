@@ -1,7 +1,7 @@
 # Ledger
 
-Axiom closures of the endpoint declarations and the list of admitted lemmas in the `Protocols`
-library, regenerated whenever the library changes. The commands are at the end.
+The admitted lemmas, stubs, contracts and pins of the `Protocols` library. CI checks the pins and
+the admission counts of the State table. The command is at the end.
 
 ## State
 
@@ -16,83 +16,22 @@ library, regenerated whenever the library changes. The commands are at the end.
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
-## Endpoint closures
+## Axiom closures
 
-Model theorems, all in `Protocols/Models/PQXDH/UAKE/`.
+This ledger does not record axiom closures. A `#guard_msgs` check on `#print axioms` freezes each
+closure, and `lake build` fails when one changes. The checks are in:
 
-| Declaration | File | Axioms |
-| --- | --- | --- |
-| `Protocols.Models.PQXDH.uakeInitiator_perfectlyCorrect` | `Correctness.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.Models.PQXDH.uakeRecipient_perfectlyCorrect` | `Correctness.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.Models.PQXDH.uakeInitiator_wellFormed` | `WellFormed.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.Models.PQXDH.uakeRecipient_wellFormed` | `WellFormed.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.Models.PQXDH.uakeInitiator_secure_dh` | `Security.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound` |
-| `Protocols.Models.PQXDH.uakeInitiator_secure_pq` | `Security.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound` |
+- `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
+  security hops;
+- `Protocols/Specs/PQXDH.lean`: the key-derivation mirror and the statements of the Full realization;
+- `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
+- `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
+  `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end.
 
-The `sorryAx` of the two security theorems comes from the five admitted hops below. Their closures contain no
-axiom beyond `propext`, `Classical.choice`, `Quot.sound` and `sorryAx`, and the hops are the only admitted
-declarations they depend on. Their imports also reach the four AEAD admissions, which no theorem uses.
-
-Extracted functions, in `rust/Libsignal/Translated/Protocol/Funs.lean`. These are the current axiom
-dependencies of the two function declarations. Each theorem about them needs its own audit of its closure and
-of its explicit hypotheses, including primitive contracts and correspondence assumptions. The lists contain
-the logical axioms of Lean, opaque primitives and backend items of the extraction, and the native-decision
-axiom that the extraction of `pqxdh_accept` introduces.
-
-`libsignal_protocol.pqxdh.pqxdh_initiate`:
-
-```
-propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, alloc.vec.Vec.into_boxed_slice, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
-```
-
-`libsignal_protocol.pqxdh.pqxdh_accept`:
-
-```
-propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, curve.PublicKey.is_torsion_free, BoxSlice.Insts.CoreConvertFromShared0Slice.from, Slice.Insts.CoreCmpPartialEqArray.eq, Str.Insts.AllocBorrowToOwnedString.to_owned, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate, libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1
-```
-
-## Realization closures
-
-Declarations in `Protocols/PQXDH/`, which mirror the key derivation of the extracted code. They are
-not endpoints of the abstract model above. `scripts/Ledger.lean` prints their closures after the endpoint
-closures.
-
-| Declaration | File | Axioms |
-| --- | --- | --- |
-| `Protocols.PQXDH.deriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
-| `Protocols.PQXDH.deriveHK`, `deriveKeys`, `DeriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
-| `Protocols.PQXDH.kdfInput`, `pubSlice`, `sliceOfKey`, `pubBytes` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.PQXDH.ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes` | `Defs.lean` | `propext`, `Classical.choice`, `Quot.sound` |
-| `Protocols.PQXDH.Bytes` | `Defs.lean` | none |
-
-The only explicit premise of `deriveKeysTotal` is `HkdfSha256Contract H`, for a MAC interface `H`. Under it,
-`deriveHK` succeeds on all public keys `dh1 dh2 dh3`, with or without the fourth DH output `dh4`, and on every
-32-byte shared secret `ss`. The theorem proves totality of the Lean mirror of the KDF step, through
-`HandshakeKeys.derive_spec` and `extend_from_slice_spec`. It does not prove that the mirror agrees with the KDF
-input that the extracted `pqxdh_initiate` and `pqxdh_accept` build, and it says nothing about the values of the
-derived keys.
-
-`crypto.hkdf_sha256` and `Aeneas.Std.core.fmt.Formatter` are opaque primitives of the extraction on which
-`HandshakeKeys.derive_spec` already depends; the theorem adds no axiom of its own. The closures contain no
-`sorryAx`, no native-decision axiom, and no curve, KEM or randomness constant.
-
-## Full realization closures
-
-This table covers the correctness and security statements of the Full realization, in
-`Protocols/PQXDH/`, and the fault fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean`.
-`Protocols/Specs/PQXDH.lean` and the checks at the end of the fixture file freeze their statements
-with these closures. The closures list the opaque leaves that the definitions of the Full scheme mention. The
-contract premises, listed under "Contracts, policies and modelling choices" below, say what each statement
-assumes about them. The `sorryAx` comes from the stubs listed under "Security placeholders" and "Temporary
-stubs". The fixtures are proved and depend on no `sorryAx`.
-
-| Declaration | File | Axioms |
-| --- | --- | --- |
-| `Protocols.PQXDH.uakeInitiator_secure_dh`, `uakeInitiator_secure_dh_total`, `uakeInitiator_secure_pq`, `uakeInitiator_secure_pq_total`, `fullExp_noLostMass`, `wrapperAgreement_uakeInitiator`, `wrapperAgreement_uakeRecipient` | `Security.lean`, `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.calculate_signature`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `curve.PublicKey.verify_signature_for_multipart_message`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
-| `Protocols.PQXDH.coreCompletion_extracted`, `jointKeyAgreement_extracted` | `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
-| `Protocols.PQXDH.initiate_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` |
-| `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
-| `Protocols.PQXDH.alwaysPanic_fails`, `alwaysError_fails`, `alwaysDiverge_fails` | `FaultFixtures.lean` | `propext`, `Classical.choice`, `Quot.sound`, `curve.PrivateKey.calculate_signature`, `curve.PublicKey.verify_signature_for_multipart_message`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length` |
+The `sorryAx` in the closures of the two security theorems of the abstract model comes from the five
+admitted hops below, which are the only admitted declarations these theorems depend on. Their imports
+also reach the four AEAD admissions, which no theorem uses. The `sorryAx` in the closures of the Full
+realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
 
 ## Admitted lemmas
 
@@ -163,20 +102,21 @@ choice describes something outside the extracted code. The contracts are in
 | `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent | a correspondence with production key generation |
 | `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
 
-## How to regenerate
+## How to check
 
-From the repository root, after `lake build`:
+From the repository root:
 
 ```
-rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean
-lake env lean scripts/Ledger.lean
+rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
+python3 scripts/ledger-check.py admissions.log
 ```
 
-The first command lists the candidate lines for admissions, and the second prints the endpoint, Realization
-and Full realization closures. `scripts/ledger-check.py` counts an admission on a listed line when the line's
-executable text, with the comments of its file blanked, contains `sorry` or `sorryAx` as a word, `axiom` as a
-declaration keyword (after optional attributes and modifiers), or `native_decide` or `set_option`. So an
-explicit `sorryAx` term counts. The `sorryAx` in an axiom list that `#guard_msgs` records in a doc comment
-does not count, and neither do the `#print axioms` commands of the spec summaries. The scanner keeps string
-and character literals and quoted identifiers `«…»`, so a comment marker inside one opens no comment.
-`python3 scripts/ledger-check.py --self-test`, which CI runs first, checks the scanner on fixed cases.
+The first command lists the candidate lines for admissions. `scripts/ledger-check.py` counts an admission on a
+listed line when the line's executable text, with the comments of its file blanked, contains `sorry` or
+`sorryAx` as a word, `axiom` as a declaration keyword (after optional attributes and modifiers), or
+`native_decide` or `set_option`. So an explicit `sorryAx` term counts. The `sorryAx` in an axiom list that
+`#guard_msgs` records in a doc comment does not count, and neither do the `#print axioms` commands of the spec
+summaries. The scanner keeps string and character literals and quoted identifiers `«…»`, so a comment marker
+inside one opens no comment. The script also compares the pins in the State table with `lean-toolchain` and
+`lake-manifest.json`. `python3 scripts/ledger-check.py --self-test`, which CI runs first, checks the scanner on
+fixed cases.
