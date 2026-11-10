@@ -34,4 +34,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - run: scripts/spec-layout-check.sh
+      - run: |
+          scripts/spec-layout-check.sh --self-test
+          scripts/spec-layout-check.sh
