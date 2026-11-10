@@ -25,7 +25,7 @@ open OracleSpec OracleComp AKE AKE.UAKE
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- The model initiator outputs a key exactly on the states reached by a
   completed run: `none` on its initial and mid-handshake states, `some` on
@@ -33,7 +33,7 @@ variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
 lemma initiator_outputsOnlyAtCompletion
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq Msg]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     (initiator P).OutputsOnlyAtCompletion := by
   unfold Party.OutputsOnlyAtCompletion
   refine ⟨?_, ?_, ?_⟩
@@ -85,7 +85,7 @@ lemma initiator_outputsOnlyAtCompletion
 lemma initiator_pureOutput
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq Msg]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     (initiator P).PureOutput := by
   rintro (p | ctx | k) <;> exact ⟨_, rfl⟩
 
@@ -95,7 +95,7 @@ lemma initiator_pureOutput
 lemma recipient_outputsOnlyAtCompletion
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
     (recipient P hasOPK).OutputsOnlyAtCompletion := by
   unfold Party.OutputsOnlyAtCompletion
   refine ⟨?_, ?_, ?_⟩
@@ -138,7 +138,7 @@ lemma recipient_outputsOnlyAtCompletion
 lemma recipient_pureOutput
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
     (recipient P hasOPK).PureOutput := by
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
@@ -146,7 +146,7 @@ lemma recipient_pureOutput
   by a successful `initiate`. -/
 lemma initiatorNoConfirm_outputsOnlyAtCompletion
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     (initiatorNoConfirm P).OutputsOnlyAtCompletion := by
   unfold Party.OutputsOnlyAtCompletion
   refine ⟨?_, ?_, ?_⟩
@@ -182,7 +182,7 @@ lemma initiatorNoConfirm_outputsOnlyAtCompletion
   it returns a fixed value. -/
 lemma initiatorNoConfirm_pureOutput
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     (initiatorNoConfirm P).PureOutput := by
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
@@ -191,7 +191,7 @@ lemma initiatorNoConfirm_pureOutput
 lemma recipientNoConfirm_outputsOnlyAtCompletion
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
     (recipientNoConfirm P hasOPK).OutputsOnlyAtCompletion := by
   unfold Party.OutputsOnlyAtCompletion
   refine ⟨?_, ?_, ?_⟩
@@ -230,7 +230,7 @@ lemma recipientNoConfirm_outputsOnlyAtCompletion
 lemma recipientNoConfirm_pureOutput
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
     (recipientNoConfirm P hasOPK).PureOutput := by
   rintro (p | k) <;> exact ⟨_, rfl⟩
 
@@ -241,22 +241,20 @@ lemma runHonest_length_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead)
-    {uk : InitiatorParameters F G SPK Msg} {tk : RecipientIdentity F G SPK SSK S}
+    {uk : InitiatorParameters F G Msg} {tk : RecipientIdentity F G S}
     (hsetup : (uk, tk) ∈ support (setup P msg))
     {uOut tOut : Option (Option K)} {ms : List (Message G PQPK CT S C IdC IdK)}
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (initiator P) (recipient P hasOPK)
       uk tk (3 + 1))) :
     ms.length = 3 := by
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, sigkB, hsigkB, spkB, hspkB, spkSigB, hspkSigB,
-    huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
-  exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
+  exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).2
 
 /-- Under the correctness hypotheses, an honest run of the T=Alice parties
@@ -266,22 +264,20 @@ lemma runHonest_length_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead)
-    {uk : InitiatorParameters F G SPK Msg} {tk : RecipientIdentity F G SPK SSK S}
+    {uk : InitiatorParameters F G Msg} {tk : RecipientIdentity F G S}
     (hsetup : (uk, tk) ∈ support (setup P msg))
     {uOut tOut : Option (Option K)} {ms : List (Message G PQPK CT S C IdC IdK)}
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (recipientNoConfirm P hasOPK)
       (initiatorNoConfirm P) tk uk (2 + 1))) :
     ms.length = 2 := by
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, sigkB, hsigkB, spkB, hspkB, spkSigB, hspkSigB,
-    huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
-  exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
+  exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).2
 
 end Protocols.Models.PQXDH
