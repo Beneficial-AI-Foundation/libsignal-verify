@@ -1,0 +1,28 @@
+Translation patch: libsignal_protocol::kem::Key::serialize and libsignal_protocol::kem::Ciphertext::serialize
+
+Change: both functions return `Box::from(result)` instead of `result.into_boxed_slice()`.
+Why: Aeneas's Lean standard library models `From<Vec<T>> for Box<[T]>` (`alloc.vec.FromBoxSliceVec.from`), but not `Vec::into_boxed_slice`. The extraction therefore declares `alloc.vec.Vec.into_boxed_slice` as an axiom, and the closure of `pqxdh_initiate` depends on it through `Ciphertext::serialize`. This is not a Charon or Aeneas failure, and no blocker-catalog id covers it.
+Behaviour: same values. At the pinned rustc, `impl From<Vec<T, A>> for Box<[T], A>` is `fn from(v) -> Self { v.into_boxed_slice() }` (library/alloc/src/vec/mod.rs).
+Applies after: protocol-kem-Ciphertext.patch (the second hunk's line `result.extend_from_slice(&self.data)` comes from it).
+
+diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+--- a/rust/protocol/src/kem.rs
++++ b/rust/protocol/src/kem.rs
+@@ -347,7 +347,7 @@ impl<T: KeyKind> Key<T> {
+         let mut result = Vec::with_capacity(1 + self.key_data.len());
+         result.push(self.key_type.value());
+         result.extend_from_slice(&self.key_data);
+-        result.into_boxed_slice()
++        Box::from(result)
+     }
+ 
+     /// Return the `KeyType` that identifies the KEM protocol for this key.
+@@ -544,7 +544,7 @@ impl Ciphertext {
+         let mut result = Vec::with_capacity(1 + self.data.len());
+         result.push(self.key_type.value());
+         result.extend_from_slice(&self.data);
+-        result.into_boxed_slice()
++        Box::from(result)
+     }
+ }
+ 
