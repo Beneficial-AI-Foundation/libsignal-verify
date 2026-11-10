@@ -18,7 +18,7 @@ The `Protocols` library keeps the theory of a protocol apart from its realisatio
 | `Protocols/<P>/` | `Protocols.<P>` | the realisation of `<P>` on the extracted code: its scheme, contracts, and correctness and security statements |
 | `Protocols/Realization/` | `Protocols.Realization` | infrastructure that the realisations of several protocols share, such as `RustOracleComp` |
 | `Protocols/ToVCVio/`, `Protocols/ToMathlib.lean` | as in VCVio and Mathlib | the shared foundation: definitions and lemmas staged for VCVio and Mathlib |
-| `Protocols/Specs/` | | spec summaries that freeze the headline statements with `recall` and dependency checks; `Protocols/Specs/<P>.lean` covers `Protocols/<P>/` |
+| `Protocols/Specs/` | | spec summaries that freeze the headline statements with `recall` and dependency checks; `Protocols/Specs/<P>.lean` covers `Protocols/<P>/`, and `Protocols/Specs/Models/<P>.lean` the endpoint theorems of `Protocols/Models/<P>/` |
 
 Files outside these folders:
 
@@ -27,7 +27,8 @@ Files outside these folders:
 | `ProtocolsTest/` | fixtures and tests for the `Protocols` library, at the paths of the modules they test (`ProtocolsTest/<P>/` for a realisation); built by default but not part of the library |
 | `Protocols/LEDGER.md` | axiom closures of the endpoint declarations and the list of admitted lemmas, with the commands that regenerate them |
 | `Protocols/ATTRIBUTION.md` | the files ported from other projects, which keep their own licence |
-| `rust/Libsignal/Spec/` | functional-correctness specifications of extracted functions |
+| `rust/Libsignal/Proofs/` | functional-correctness specifications of extracted functions, with their proofs |
+| `rust/Libsignal/Specs/` | spec summaries of `rust/Libsignal/Proofs/`, one per Rust source file |
 
 The dependency rule: no file under `Protocols/Models/` imports the extraction (`Libsignal`) or a realisation (`Protocols.<P>`, `Protocols.Realization`). Inside the `Protocols` library, a model imports only `Protocols.Models`, `Protocols.ToVCVio` and `Protocols.ToMathlib`. A realisation may import the models. CI checks the rule with `scripts/models-dependency-check.sh`. The check reads each import header with Lean's own header parser, so comments, line breaks, `public`, `meta` and `import all` count as they do for Lean. CI first runs a self-test of the check on fixed headers.
 

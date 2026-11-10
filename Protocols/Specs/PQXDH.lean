@@ -5,6 +5,7 @@ Authors: Alessandro D'Angelo
 -/
 import Mathlib.Tactic.Recall
 import Protocols.PQXDH.Correctness
+import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Security
 
 /-!
@@ -935,3 +936,150 @@ info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.Adversary.SendsFittingMessages
+
+/-! ## Key-derivation mirror
+
+The Lean mirror of the key derivation in `Protocols/PQXDH/Kdf.lean` and the byte types and
+projections of `Protocols/PQXDH/Defs.lean` that it uses. `Protocols/LEDGER.md` records their
+closures under "Realization closures". -/
+
+recall Protocols.PQXDH.deriveKeysTotal (H : libsignal_protocol.crypto.HmacSha256)
+    (h_hkdf : libsignal_protocol.crypto.HkdfSha256Contract H) : DeriveKeysTotal
+
+/--
+info: 'Protocols.PQXDH.deriveKeysTotal' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ Aeneas.Std.core.fmt.Formatter]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.deriveKeysTotal
+
+/--
+info: 'Protocols.PQXDH.deriveHK' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ Aeneas.Std.core.fmt.Formatter]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.deriveHK
+
+/--
+info: 'Protocols.PQXDH.deriveKeys' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ Aeneas.Std.core.fmt.Formatter]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.deriveKeys
+
+/--
+info: 'Protocols.PQXDH.DeriveKeysTotal' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ Aeneas.Std.core.fmt.Formatter]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.DeriveKeysTotal
+
+/--
+info: 'Protocols.PQXDH.kdfInput' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfInput
+
+/--
+info: 'Protocols.PQXDH.pubSlice' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.pubSlice
+
+/--
+info: 'Protocols.PQXDH.sliceOfKey' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.sliceOfKey
+
+/--
+info: 'Protocols.PQXDH.pubBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.pubBytes
+
+/--
+info: 'Protocols.PQXDH.ECPub' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.ECPub
+
+/--
+info: 'Protocols.PQXDH.Key' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.Key
+
+/--
+info: 'Protocols.PQXDH.HandshakeKeys' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.HandshakeKeys
+
+/--
+info: 'Protocols.PQXDH.rootKeyBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.rootKeyBytes
+
+/--
+info: 'Protocols.PQXDH.chainKeyBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.chainKeyBytes
+
+/--
+info: 'Protocols.PQXDH.pqrKeyBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.pqrKeyBytes
+
+/-- info: 'Protocols.PQXDH.Bytes' does not depend on any axioms -/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.Bytes

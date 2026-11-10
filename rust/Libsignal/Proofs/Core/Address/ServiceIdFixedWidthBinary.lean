@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Libsignal.Translated.Core.Funs
-import Libsignal.Spec.Core.Address.From
-import Libsignal.Spec.Core.Address.Kind
-import Libsignal.Spec.Core.Address.RawUuid
+import Libsignal.Proofs.Core.Address.From
+import Libsignal.Proofs.Core.Address.Kind
+import Libsignal.Proofs.Core.Address.RawUuid
 
 /-! # Spec Theorem for `ServiceId::service_id_fixed_width_binary`
 

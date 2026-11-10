@@ -5,8 +5,8 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Libsignal.Spec.Std.Alloc.Vec.ExtendFromSlice
-import Libsignal.Spec.Protocol.Pqxdh.HandshakeKeys.Derive
+import Libsignal.Proofs.Std.Alloc.Vec.ExtendFromSlice
+import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.Derive
 import Protocols.PQXDH.Defs
 
 /-!
