@@ -25,6 +25,27 @@ namespace OracleComp
 
 variable {ι : Type} {spec : OracleSpec ι} {σ : Type}
 
+theorem lintegral_evalDist_eq_tsum_aux {β : Type} [MeasurableSpace β]
+    [DiscreteMeasurableSpace β] (mx : ProbComp β) (g : β → ℝ≥0∞) :
+    ∫⁻ x, g x ∂𝒟[mx] = ∑' x, Pr{let y ← mx}[y = x] * g x := by
+  have hae : ∀ᵐ x ∂𝒟[mx], x ∈ support mx :=
+    evalDist.ae_of_forall_mem_support mx (· ∈ support mx) MeasurableSet.of_discrete
+      fun _ h ↦ h
+  calc ∫⁻ x, g x ∂𝒟[mx]
+      = ∫⁻ x in support mx, g x ∂𝒟[mx] := by
+        rw [MeasureTheory.Measure.restrict_eq_self_of_ae_mem hae]
+    _ = ∑' x : support mx, g x * 𝒟[mx] {(x : β)} :=
+        MeasureTheory.lintegral_countable g (support_finite mx).countable
+    _ = ∑' x, g x * 𝒟[mx] {x} := by
+        refine tsum_subtype_eq_of_support_subset (f := fun x => g x * 𝒟[mx] {x})
+          (s := support mx) fun x hx => ?_
+        by_contra hx'
+        refine hx ?_
+        simp only [← prEvent_eq_evalDist_singleton, prEvent_eq_zero_of_not_mem_support mx hx',
+          mul_zero]
+    _ = ∑' x, Pr{let y ← mx}[y = x] * g x := by
+        simp only [mul_comm, prEvent_eq_evalDist_singleton]
+
 /-- Potential bound for a bad event of a simulated oracle computation. Queries in `isCounted`
 consume the budget `b`, raise `count` by one, and from a good state reach a bad state with
 probability at most `ε * (count + 1)`. Other queries change neither `bad` nor `count`. Then,
@@ -47,7 +68,7 @@ theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
   induction oa using OracleComp.inductionOn with
   | pure a =>
     intro b _ s _
-    rw [simulateQ_pure, StateT.run_pure, probEvent_pure]
+    rw [simulateQ_pure, StateT.run_pure, prEvent_pure]
     exact le_add_right (by split_ifs <;> simp_all)
   | query_bind t k ih =>
     intro b hb s hs
@@ -69,10 +90,14 @@ theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
               rwa [h_count t s ht hs z hz] at h1
           _ ≤ Pr{let z ← ((impl t).run s)}[bad z.2 = true] +
                 ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞) := by
-              simp only [mul_add, ENNReal.tsum_add, mul_ite, mul_one, mul_zero]
-              rw [← probEvent_eq_tsum_ite, ENNReal.tsum_mul_right]
-              exact add_le_add le_rfl (mul_le_of_le_one_left zero_le
-                (tsum_probOutput_le_one (mx := (impl t).run s)))
+              let _ : MeasurableSpace (spec.Range t × σ) := ⊤
+              rw [← lintegral_evalDist_eq_tsum_aux,
+                MeasureTheory.lintegral_add_right _ measurable_const, MeasureTheory.lintegral_const]
+              have hp := prEvent_bind_eq_lintegral_of_discrete ((impl t).run s) pure
+                (fun z : spec.Range t × σ => bad z.2 = true)
+              simp only [bind_pure, prEvent_pure] at hp
+              rw [hp]
+              exact add_le_add le_rfl (mul_le_of_le_one_right zero_le MeasureTheory.prob_le_one)
           _ ≤ ε * ((count s + 1 : ℕ) : ℝ≥0∞) + ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞) := by
               gcongr; exact h_hit t s ht hs hbad
           _ ≤ ε * (((b' + 1) * (count s + (b' + 1)) : ℕ) : ℝ≥0∞) := by
@@ -81,7 +106,7 @@ theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
               nlinarith
       · exact le_add_right (by simp)
     · simp only [ht, if_false] at hcont
-      refine probEvent_bind_le_of_forall_le fun z hz => ?_
+      refine prEvent_bind_le_of_forall_le_of_support _ _ _ fun z hz => ?_
       obtain ⟨hbad, hcount⟩ := h_free t s ht hs z hz
       have h1 := ih z.1 b (hcont z.1) z.2 (h_inv t s hs z hz)
       rwa [hbad, hcount] at h1

@@ -41,6 +41,8 @@ theorem oracleImpl_openT_run (lift : ProbCompLift ProbComp) (tk : TK) (env : Env
         pure ((env.tSessions.length, r.opening), env.openNext r) :
         ProbComp ((unifSpec + oracleSpec K W).Range (Sum.inr .openT) × Env proto)) := by
   simp [oracleImpl, opImpl, Env.openNext]
+  simp [map_eq_bind_pure_comp]
+  rfl
 
 /-- An `openT` query adds exactly one session. -/
 theorem oracleImpl_openT_count (lift : ProbCompLift ProbComp) (tk : TK) (t)

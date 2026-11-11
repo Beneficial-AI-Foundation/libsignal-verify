@@ -25,11 +25,23 @@ open scoped ENNReal
 theorem probEvent_bind_le_tsum {α β : Type} {mx : ProbComp α} {my : α → ProbComp β}
     {q : β → Prop} (g : α → ℝ≥0∞) (h : ∀ x ∈ support mx, Pr{let y ← (my x)}[(q) y] ≤ g x) :
     Pr{let y ← (mx >>= my)}[(q) y] ≤ ∑' x, Pr{let y ← mx}[y = x] * g x := by
-  rw [probEvent_bind_eq_tsum]
-  refine ENNReal.tsum_le_tsum fun x => ?_
-  by_cases hx : x ∈ support mx
-  · exact mul_le_mul' le_rfl (h x hx)
-  · simp [probOutput_eq_zero_of_not_mem_support hx]
+  let _ : MeasurableSpace α := ⊤
+  have hae : ∀ᵐ x ∂𝒟[mx], x ∈ support mx :=
+    evalDist.ae_of_forall_mem_support mx (· ∈ support mx) MeasurableSet.of_discrete
+      fun _ h ↦ h
+  rw [prEvent_bind_eq_lintegral_of_discrete]
+  calc ∫⁻ x, Pr{let y ← my x}[q y] ∂𝒟[mx]
+      ≤ ∫⁻ x, g x ∂𝒟[mx] := MeasureTheory.lintegral_mono_ae
+        (evalDist.ae_of_forall_mem_support mx _ MeasurableSet.of_discrete h)
+    _ = ∫⁻ x in support mx, g x ∂𝒟[mx] := by
+        rw [MeasureTheory.Measure.restrict_eq_self_of_ae_mem hae]
+    _ = ∑' x : support mx, g x * 𝒟[mx] {(x : α)} :=
+        MeasureTheory.lintegral_countable g (support_finite mx).countable
+    _ ≤ ∑' x, g x * 𝒟[mx] {x} :=
+        ENNReal.tsum_comp_le_tsum_of_injective Subtype.val_injective
+          (fun x => g x * 𝒟[mx] {x})
+    _ = ∑' x, Pr{let y ← mx}[y = x] * g x := by
+        simp only [mul_comm, prEvent_eq_evalDist_singleton]
 
 /-- A bound on the probability of every output of a `ProbComp` computation is nonnegative. -/
 theorem nonneg_of_probOutput_le {α : Type} (oa : ProbComp α) {ε : ℝ}
@@ -44,12 +56,9 @@ theorem probEvent_fst_mem_finset_le {α β : Type} (gen : ProbComp (α × β)) (
     Pr{let x ← gen}[x.1 ∈ T] ≤ ε * (T.card : ℝ≥0∞) := by
   calc Pr{let x ← gen}[x.1 ∈ T]
       = Pr{let a ← (Prod.fst <$> gen)}[∃ x ∈ T, a = x] := by
-        rw [probEvent_map]
-        congr 1
-        ext x
         simp
     _ ≤ ∑ x ∈ T, Pr{let a ← (Prod.fst <$> gen)}[a = x] :=
-        probEvent_exists_finset_le_sum _ _ _
+        prEvent_exists_finset_le T _ (fun x a => a = x)
     _ ≤ ∑ _x ∈ T, ε :=
-        Finset.sum_le_sum fun x _ => by rw [probEvent_eq_eq_probOutput]; exact h x
+        Finset.sum_le_sum fun x _ => h x
     _ = ε * (T.card : ℝ≥0∞) := by rw [Finset.sum_const, nsmul_eq_mul, mul_comm]

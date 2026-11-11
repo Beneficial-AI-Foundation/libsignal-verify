@@ -224,7 +224,6 @@ theorem INT_CTXT_VF_Game_ctxtToVf (aead : Scheme ProbComp Msg Key AD C)
     (ctxtToVf_hproj aead k) A.run []
   simp only [simulateQ_bind, StateT.run_bind, ← QueryImpl.simulateQ_compose, ← h]
   simp [withUnif, ctxtVfImpl]
-  rfl
 
 /-- Embeds the plain adversary's queries into the decryption game's oracles: uniform queries
 and encryption queries pass through unchanged. -/
@@ -267,7 +266,6 @@ theorem INT_CTXT_D_Game_ctxtToDec (aead : Scheme ProbComp Msg Key AD C)
     (ctxtToDec_hproj aead k) A.run []
   simp only [simulateQ_bind, StateT.run_bind, ← QueryImpl.simulateQ_compose, ← h]
   simp [withUnif, ctxtDecImpl]
-  rfl
 
 omit [DecidableEq Msg] in
 /-- `ctxtToVf A` has exactly the plain advantage of `A`. -/
@@ -534,17 +532,11 @@ private theorem probEvent_bind_le_sum {β γ δ : Type} {mx : ProbComp β} {f : 
     (h : ∀ x ∈ support mx,
       Pr{let y ← (f x)}[(P) y] ≤ ∑ i ∈ Finset.range n, Pr{let y ← (g i x)}[(Q) y]) :
     Pr{let y ← (mx >>= f)}[(P) y] ≤ ∑ i ∈ Finset.range n, Pr{let y ← (mx >>= g i)}[(Q) y] := by
-  simp only [probEvent_bind_eq_tsum]
-  calc ∑' x, Pr{let y ← mx}[y = x] * Pr{let y ← (f x)}[(P) y]
-      ≤ ∑' x, Pr{let y ← mx}[y = x] * ∑ i ∈ Finset.range n, Pr{let y ← (g i x)}[(Q) y] := by
-        refine ENNReal.tsum_le_tsum fun x => ?_
-        by_cases hx : x ∈ support mx
-        · exact mul_le_mul' le_rfl (h x hx)
-        · simp [probOutput_eq_zero_of_not_mem_support hx]
-    _ = ∑' x, ∑ i ∈ Finset.range n, Pr{let y ← mx}[y = x] * Pr{let y ← (g i x)}[(Q) y] := by
-        simp only [Finset.mul_sum]
-    _ = ∑ i ∈ Finset.range n, ∑' x, Pr{let y ← mx}[y = x] * Pr{let y ← (g i x)}[(Q) y] := by
-        exact Summable.tsum_finsetSum fun _ _ => ENNReal.summable
+  let _ : MeasurableSpace β := ⊤
+  simp only [prEvent_bind_eq_lintegral_of_discrete]
+  rw [← MeasureTheory.lintegral_finsetSum _ fun _ _ => Measurable.of_discrete]
+  exact MeasureTheory.lintegral_mono_ae
+    (evalDist.ae_of_forall_mem_support mx _ MeasurableSet.of_discrete h)
 
 /-- The plain game's win event, read off a final state of `vfGuessGameImpl`. -/
 private def vfWin (aead : Scheme ProbComp Msg Key AD C) (k : Key) (fallback : AD × C)
@@ -562,8 +554,7 @@ private theorem vfGuessGame_capture (aead : Scheme ProbComp Msg Key AD C) (fallb
     (L : List (AD × C)) (hp : (aead.decrypt k p.1 p.2).isSome) (hpL : p ∉ L) :
     Pr{let z ← ((simulateQ (vfGuessGameImpl aead fallback j k) oa).run (g, L))}[
       vfWin aead k fallback z.2 = true] = 1 := by
-  rw [probEvent_eq_one_iff]
-  refine ⟨by simp, fun z hz => ?_⟩
+  refine prEvent_eq_one_of_forall_mem_support _ _ fun z hz => ?_
   have hinv := simulateQ_run_preserves_inv_of_query (vfGuessGameImpl aead fallback j k)
     (fun s => s.1.guess = some p ∧ s.2 = L) (fun t s hs y hy => ?_) oa (g, L) ⟨hg, rfl⟩ z hz
   · obtain ⟨h1, h2⟩ := hinv
@@ -590,14 +581,13 @@ theorem decrypt_eq_of_mem_support_encrypt {aead : Scheme ProbComp Msg Key AD C}
     (hc : c ∈ support (aead.encrypt k ad m)) :
     aead.decrypt k ad c = some m := by
   have h := hcorrect m ad
-  rw [probOutput_eq_one_iff] at h
+  rw [OracleComp.prEvent_eq_one_iff] at h
   have hmem : decide (aead.decrypt k ad c = some m) ∈ support (CorrectExp aead m ad) := by
     unfold CorrectExp
     refine (mem_support_bind_iff _ _ _).mpr ⟨k, mem_support_uniformSample Key, ?_⟩
     refine (mem_support_bind_iff _ _ _).mpr ⟨c, hc, ?_⟩
     simp
-  rw [h.2] at hmem
-  simpa using hmem
+  simpa using h _ hmem
 
 /-- The core bound: from a log `L` of valid pairs, the verification game's flag has
 probability at most the sum, over the next `n` verification-query indices, of the plain game's
@@ -638,7 +628,7 @@ private theorem vfGuessGame_core (aead : Scheme ProbComp Msg Key AD C)
       by_cases hfresh : (aead.decrypt k p.1 p.2).isSome = true ∧ p ∉ L
       · refine le_trans ?_
           (Finset.single_le_sum (fun i _ => zero_le) (Finset.mem_range.2 (Nat.succ_pos n')))
-        refine le_trans probEvent_le_one (le_of_eq ?_)
+        refine le_trans (prEvent_le_one _) (le_of_eq ?_)
         exact (vfGuessGame_capture aead fallback (c + 0) k _ _ p (by simp) L
           hfresh.1 hfresh.2).symm
       · have hok : (aead.decrypt k p.1 p.2).isSome = decide (p ∈ L) := by
@@ -708,11 +698,13 @@ private theorem probOutput_INT_CTXT_Game_vfToCtxt_succ (aead : Scheme ProbComp M
         Pr{let y ← (INT_CTXT_Game aead (vfToCtxtAt fallback i B))}[y = true] := by
   rw [INT_CTXT_Game_eq]
   simp only [run_vfToCtxt_succ, map_bind]
-  rw [probOutput_bind_bind_swap, probOutput_bind_eq_tsum, tsum_fintype,
-    ← Fin.sum_univ_eq_sum_range]
+  rw [prEvent_bind_bind_swap_of_uniform, prEvent_bind_of_discrete,
+    MeasureTheory.lintegral_fintype, ← Fin.sum_univ_eq_sum_range]
   refine Finset.sum_congr rfl fun i _ => ?_
-  rw [probOutput_query, INT_CTXT_Game_eq]
-  simp
+  rw [INT_CTXT_Game_eq, mul_comm]
+  congr 1
+  · simp
+  · simp
 
 private theorem probOutput_INT_CTXT_VF_Game_le_sum (aead : Scheme ProbComp Msg Key AD C)
     (hcorrect : PerfectlyCorrect aead) (fallback : AD × C) (B : INT_CTXT_VF_Adversary aead)
@@ -720,9 +712,9 @@ private theorem probOutput_INT_CTXT_VF_Game_le_sum (aead : Scheme ProbComp Msg K
     Pr{let y ← (INT_CTXT_VF_Game aead B)}[y = true] ≤
       ∑ i ∈ Finset.range v,
         Pr{let y ← (INT_CTXT_Game aead (vfToCtxtAt fallback i B))}[y = true] := by
-  simp only [INT_CTXT_VF_Game_eq, INT_CTXT_Game_vfToCtxtAt_eq, ← probEvent_eq_eq_probOutput]
+  simp only [INT_CTXT_VF_Game_eq, INT_CTXT_Game_vfToCtxtAt_eq]
   refine probEvent_bind_le_sum fun k _ => ?_
-  simp only [probEvent_map, Function.comp_def]
+  simp only [prEvent_map]
   simpa using vfGuessGame_core aead hcorrect fallback k B.run v 0 [] hv (by simp)
 
 omit [DecidableEq Msg] [SampleableType Key] in
@@ -904,8 +896,7 @@ private theorem decGuessGame_capture (aead : Scheme ProbComp Msg Key AD C) (fall
     (L : List (AD × C)) (hp : (aead.decrypt k p.1 p.2).isSome) (hpL : p ∉ L) :
     Pr{let z ← ((simulateQ (decGuessGameImpl aead fallback j k) oa).run (g, L))}[
       decWin aead k fallback z.2 = true] = 1 := by
-  rw [probEvent_eq_one_iff]
-  refine ⟨by simp, fun z hz => ?_⟩
+  refine prEvent_eq_one_of_forall_mem_support _ _ fun z hz => ?_
   have hinv := simulateQ_run_preserves_inv_of_query (decGuessGameImpl aead fallback j k)
     (fun s => s.1.guess = some p ∧ s.2 = L) (fun t s hs y hy => ?_) oa (g, L) ⟨hg, rfl⟩ z hz
   · obtain ⟨h1, h2⟩ := hinv
@@ -967,7 +958,7 @@ private theorem decGuessGame_core (aead : Scheme ProbComp Msg Key AD C)
           p ∉ R.map (fun e => (e.1, e.2.2))
       · refine le_trans ?_
           (Finset.single_le_sum (fun i _ => zero_le) (Finset.mem_range.2 (Nat.succ_pos n')))
-        refine le_trans probEvent_le_one (le_of_eq ?_)
+        refine le_trans (prEvent_le_one _) (le_of_eq ?_)
         exact (decGuessGame_capture aead fallback (c + 0) k _ _ p (by simp) _
           hfresh.1 hfresh.2).symm
       · have hans : aead.decrypt k p.1 p.2 = logLookup R p := by
@@ -1028,11 +1019,13 @@ private theorem probOutput_INT_CTXT_Game_decToCtxt_succ (aead : Scheme ProbComp 
         Pr{let y ← (INT_CTXT_Game aead (decToCtxtAt fallback i B))}[y = true] := by
   rw [INT_CTXT_Game_eq]
   simp only [run_decToCtxt_succ, map_bind]
-  rw [probOutput_bind_bind_swap, probOutput_bind_eq_tsum, tsum_fintype,
-    ← Fin.sum_univ_eq_sum_range]
+  rw [prEvent_bind_bind_swap_of_uniform, prEvent_bind_of_discrete,
+    MeasureTheory.lintegral_fintype, ← Fin.sum_univ_eq_sum_range]
   refine Finset.sum_congr rfl fun i _ => ?_
-  rw [probOutput_query, INT_CTXT_Game_eq]
-  simp
+  rw [INT_CTXT_Game_eq, mul_comm]
+  congr 1
+  · simp
+  · simp
 
 private theorem probOutput_INT_CTXT_D_Game_le_sum (aead : Scheme ProbComp Msg Key AD C)
     (hcorrect : PerfectlyCorrect aead) (fallback : AD × C) (B : INT_CTXT_D_Adversary aead)
@@ -1040,9 +1033,9 @@ private theorem probOutput_INT_CTXT_D_Game_le_sum (aead : Scheme ProbComp Msg Ke
     Pr{let y ← (INT_CTXT_D_Game aead B)}[y = true] ≤
       ∑ i ∈ Finset.range v,
         Pr{let y ← (INT_CTXT_Game aead (decToCtxtAt fallback i B))}[y = true] := by
-  simp only [INT_CTXT_D_Game_eq, INT_CTXT_Game_decToCtxtAt_eq, ← probEvent_eq_eq_probOutput]
+  simp only [INT_CTXT_D_Game_eq, INT_CTXT_Game_decToCtxtAt_eq]
   refine probEvent_bind_le_sum fun k _ => ?_
-  simp only [probEvent_map, Function.comp_def]
+  simp only [prEvent_map]
   simpa using decGuessGame_core aead hcorrect fallback k B.run v 0 [] hv (by simp)
 
 omit [DecidableEq Msg] [SampleableType Key] in
@@ -1106,7 +1099,7 @@ theorem INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage
         ≤ ((v' + 1 : ℝ≥0∞) * ((v' + 1 : ℝ≥0∞)⁻¹ * ∑ i ∈ Finset.range (v' + 1),
           Pr{let y ← (INT_CTXT_Game aead (vfToCtxtAt fallback i B))}[y = true])).toReal :=
           ENNReal.toReal_mono (ENNReal.mul_ne_top (by simp) (ENNReal.mul_ne_top (by simp)
-            (ENNReal.sum_ne_top.2 fun _ _ => probOutput_ne_top))) (key.trans hsum.le)
+            (ENNReal.sum_ne_top.2 fun _ _ => by simp))) (key.trans hsum.le)
       _ = _ := by rw [ENNReal.toReal_mul]; push_cast; rfl
 
 omit [DecidableEq Msg] in
@@ -1152,7 +1145,7 @@ theorem INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage
         ≤ ((v' + 1 : ℝ≥0∞) * ((v' + 1 : ℝ≥0∞)⁻¹ * ∑ i ∈ Finset.range (v' + 1),
           Pr{let y ← (INT_CTXT_Game aead (decToCtxtAt fallback i B))}[y = true])).toReal :=
           ENNReal.toReal_mono (ENNReal.mul_ne_top (by simp) (ENNReal.mul_ne_top (by simp)
-            (ENNReal.sum_ne_top.2 fun _ _ => probOutput_ne_top))) (key.trans hsum.le)
+            (ENNReal.sum_ne_top.2 fun _ _ => by simp))) (key.trans hsum.le)
       _ = _ := by rw [ENNReal.toReal_mul]; push_cast; rfl
 
 end AEAD

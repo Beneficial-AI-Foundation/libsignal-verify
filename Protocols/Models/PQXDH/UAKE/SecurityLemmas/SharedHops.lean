@@ -171,7 +171,7 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
         Pr{let y ← (forgeHonestGoodExp P msg hasOPK A)}[y = true] := by
     simp only [forgeExp, sigForgeExp, pqpkGuessedExp, forgeHonestGoodExp]
     let : MeasurableSpace (ChallengeResult (uakeInitiator P msg hasOPK) ×
-      (A.State × Env (uakeInitiator P msg hasOPK) × RecipientIdentity F G SPK SSK S)) := ⊤
+      (A.State × Env (uakeInitiator P msg hasOPK) × RecipientIdentity F G S)) := ⊤
     rw [prEvent_bind_eq_lintegral_of_discrete, prEvent_bind_eq_lintegral_of_discrete,
       prEvent_bind_eq_lintegral_of_discrete, prEvent_bind_eq_lintegral_of_discrete,
       ← MeasureTheory.lintegral_add_left Measurable.of_discrete,
@@ -244,19 +244,18 @@ lemma pqpkGuessedProb_le
   have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
   have hpk' : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤
       ENNReal.ofReal εpk := fun pk =>
-    (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
+    (ENNReal.le_ofReal_iff_toReal_le (by finiteness) hε0).2 (hpk pk)
   have key : Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true] ≤
       ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) := by
-    rw [← probEvent_eq_eq_probOutput]
     simp only [pqpkGuessedExp, challengePhase, bind_assoc]
-    refine probEvent_bind_le_of_forall_le fun ukt _ => ?_
+    refine prEvent_bind_le_of_forall_le _ _ _ fun ukt => ?_
     have hinit : (uakeInitiator P msg hasOPK).U.init ukt.1 = pure (.waitForMsg (.inl ukt.1)) :=
       rfl
     simp only [challengeSession, bind_assoc, hinit, pure_bind, Party.InitResult.opening,
       Party.InitResult.state, recordOpt]
-    refine (probEvent_bind_le_probEvent
-      (p := fun z => KeyGuessing.badEnv P msg hasOPK z.2 = true)
-      fun z _ hz => le_antisymm (probEvent_bind_le_of_forall_le fun k0 _ => ?_) zero_le).trans ?_
+    refine (prEvent_bind_le_prEvent_of_forall_eq_zero _ _
+      (fun z => KeyGuessing.badEnv P msg hasOPK z.2 = true) _
+      fun z hz => le_antisymm (prEvent_bind_le_of_forall_le _ _ _ fun k0 => ?_) zero_le).trans ?_
     · have hk : pqpkGuessed P msg hasOPK
           ⟨k0.join, z.2.challenge.transcript, z.2.tSessions.map (·.transcript)⟩ =
             KeyGuessing.badEnv P msg hasOPK z.2 := rfl

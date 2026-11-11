@@ -65,8 +65,9 @@ lemma sig_perfectlyComplete_iff [Field F] [AddCommGroup G] [Module F G] [Samplea
       ∀ m : G ⊕ PQPK, Pr{let y ← (do
         let (pk, sk) ← dhKeygen (F := F) P.gen
         let σ ← P.sign pk sk m
-        P.verify pk m σ)}[y = true] = 1 :=
-  Iff.rfl
+        P.verify pk m σ)}[y = true] = 1 := by
+  refine forall_congr' fun m => ?_
+  rw [probOutput_probComp_evalDist, prEvent_eq_evalDist_singleton]
 
 /-- For a perfectly complete signature scheme, verifying an honestly generated
   signature can only return `true`. -/
