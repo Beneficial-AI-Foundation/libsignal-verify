@@ -7,11 +7,11 @@ library, regenerated whenever the library changes. The commands are at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-06 |
-| Lean | v4.31.0 |
-| Mathlib | fabf563a (v4.31.0) |
-| VCVio | cbd4144b |
-| Aeneas | nightly-2026.09.30-0855ce1 |
+| Date | 2026-11-11 |
+| Lean | v4.35.0 |
+| Mathlib | 56a00585 (v4.35.0) |
+| VCVio | 88efe971 |
+| Aeneas | nightly-2026.10.30-de16f3c |
 | `sorry` or `sorryAx` under `Protocols/` | 14 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
@@ -37,19 +37,18 @@ below.
 Extracted functions, in `rust/Libsignal/Translated/Protocol/Funs.lean`. These are the current axiom
 dependencies of the two function declarations. Each theorem about them needs its own audit of its closure and
 of its explicit hypotheses, including primitive contracts and correspondence assumptions. The lists contain
-the logical axioms of Lean, opaque primitives and backend items of the extraction, and the native-decision
-axiom that the extraction of `pqxdh_accept` introduces.
+the logical axioms of Lean and the opaque primitives and backend items of the extraction.
 
 `libsignal_protocol.pqxdh.pqxdh_initiate`:
 
 ```
-propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, alloc.vec.Vec.into_boxed_slice, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
+propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, alloc.vec.Vec.into_boxed_slice, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate
 ```
 
 `libsignal_protocol.pqxdh.pqxdh_accept`:
 
 ```
-propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, curve.PublicKey.is_torsion_free, BoxSlice.Insts.CoreConvertFromShared0Slice.from, Slice.Insts.CoreCmpPartialEqArray.eq, Str.Insts.AllocBorrowToOwnedString.to_owned, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, Aeneas.Std.core.fmt.Formatter, kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate, libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1
+propext, Classical.choice, Quot.sound, crypto.hkdf_sha256, curve.PrivateKey.calculate_agreement, curve.PublicKey.is_torsion_free, BoxSlice.Insts.CoreConvertFromShared0Slice.from, Slice.Insts.CoreCmpPartialEqArray.eq, Str.Insts.AllocBorrowToOwnedString.to_owned, core.num.niche_types.NonZeroU8Inner, core.num.nonzero.NonZero, kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length, kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate
 ```
 
 ## Realization closures
@@ -60,8 +59,8 @@ closures.
 
 | Declaration | File | Axioms |
 | --- | --- | --- |
-| `Protocols.PQXDH.deriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
-| `Protocols.PQXDH.deriveHK`, `deriveKeys`, `DeriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `Aeneas.Std.core.fmt.Formatter` |
+| `Protocols.PQXDH.deriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256` |
+| `Protocols.PQXDH.deriveHK`, `deriveKeys`, `DeriveKeysTotal` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256` |
 | `Protocols.PQXDH.kdfInput`, `pubSlice`, `sliceOfKey`, `pubBytes` | `Kdf.lean` | `propext`, `Classical.choice`, `Quot.sound` |
 | `Protocols.PQXDH.ECPub`, `Key`, `HandshakeKeys`, `rootKeyBytes`, `chainKeyBytes`, `pqrKeyBytes` | `Defs.lean` | `propext`, `Classical.choice`, `Quot.sound` |
 | `Protocols.PQXDH.Bytes` | `Defs.lean` | none |
@@ -73,9 +72,9 @@ The only explicit premise of `deriveKeysTotal` is `HkdfSha256Contract H`, for a 
 input that the extracted `pqxdh_initiate` and `pqxdh_accept` build, and it says nothing about the values of the
 derived keys.
 
-`crypto.hkdf_sha256` and `Aeneas.Std.core.fmt.Formatter` are opaque primitives of the extraction on which
-`HandshakeKeys.derive_spec` already depends; the theorem adds no axiom of its own. The closures contain no
-`sorryAx`, no native-decision axiom, and no curve, KEM or randomness constant.
+`crypto.hkdf_sha256` is an opaque primitive of the extraction on which `HandshakeKeys.derive_spec` already
+depends; the theorem adds no axiom of its own. The closures contain no `sorryAx`, no native-decision axiom, and
+no curve, KEM or randomness constant.
 
 ## Full realization closures
 
@@ -89,10 +88,10 @@ stubs". The fixtures are proved and depend on no `sorryAx`.
 
 | Declaration | File | Axioms |
 | --- | --- | --- |
-| `Protocols.PQXDH.uakeInitiator_secure_dh`, `uakeInitiator_secure_dh_total`, `uakeInitiator_secure_pq`, `uakeInitiator_secure_pq_total`, `fullExp_noLostMass`, `wrapperAgreement_uakeInitiator`, `wrapperAgreement_uakeRecipient` | `Security.lean`, `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.calculate_signature`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `curve.PublicKey.verify_signature_for_multipart_message`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
-| `Protocols.PQXDH.coreCompletion_extracted`, `jointKeyAgreement_extracted` | `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
-| `Protocols.PQXDH.initiate_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` |
-| `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
+| `Protocols.PQXDH.uakeInitiator_secure_dh`, `uakeInitiator_secure_dh_total`, `uakeInitiator_secure_pq`, `uakeInitiator_secure_pq_total`, `fullExp_noLostMass`, `wrapperAgreement_uakeInitiator`, `wrapperAgreement_uakeRecipient` | `Security.lean`, `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.calculate_signature`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `curve.PublicKey.verify_signature_for_multipart_message`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` |
+| `Protocols.PQXDH.coreCompletion_extracted`, `jointKeyAgreement_extracted` | `Correctness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PrivateKey.public_key`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` |
+| `Protocols.PQXDH.initiate_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` |
+| `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate` |
 | `Protocols.PQXDH.alwaysPanic_fails`, `alwaysError_fails`, `alwaysDiverge_fails` | `FaultFixtures.lean` | `propext`, `Classical.choice`, `Quot.sound`, `curve.PrivateKey.calculate_signature`, `curve.PublicKey.verify_signature_for_multipart_message`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length` |
 
 ## AEAD lemmas
