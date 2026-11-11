@@ -7,7 +7,7 @@ Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.KeyGuessing
-import Protocols.ToVCVio.CryptoFoundations.JointSignatureAlg
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.SigReduction
 
 /-!
 # Shared Security Hops
@@ -187,17 +187,37 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
   rwa [ENNReal.toReal_add (ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩)
     (prEvent_ne_top _), ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h3
 
-omit [DecidableEq CT] [DecidableEq C] in
-/-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a
-  forgery against `P.sig` in the joint unforgeability game of the identity key, with
-  signing queries and agreement queries `Y ↦ DH x Y` on the one key pair. Used by
-  `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
+omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
+/-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a forgery
+against `P.sig` in the joint unforgeability game of the identity key.
+
+One identity key signs and does Diffie-Hellman. The adversary of the joint game gets signing
+queries and agreement queries `Y ↦ DH x Y` on the one key pair, and wins with a valid signature
+on a message that it never had signed. The reduction `SigReduction.sigAdversary` runs the UAKE
+challenge phase against copies of Bob that never read the identity secret. It answers the
+signature in `setup` and the KEM-key signature in each `publish` with a signing query, and the
+value `DH p.ikB.2 msg.ekA` in each `accept` with an agreement query, and it samples everything else
+itself. When the challenge session accepts a bundle that `honestBundle` rejects, one signed key of
+that bundle was never signed. The reduction outputs that key with its signature. Determinism of
+verification (`hverifyDet`) transfers the initiator's successful verification of that signature to
+the final check of the game. The signature forgery event compares signed keys and not signature
+bytes, because XEdDSA signatures are malleable: a different valid signature on a signed key is no
+forgery here.
+
+The premise `hsig` bounds adversaries without a resource limit (#41), so the statement does not
+yet say anything about efficient adversaries. The reduction makes one signing query for `setup` and
+one for each `openT` query, and one agreement query for each `stepT` query that reaches `DH2`. A
+rejected `stepT` query leaves the session open for another try, so the number of agreement queries
+is not bounded by the number of sessions.
+
+Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
 lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig) :
-    sigForgeProb P msg hasOPK A ≤ εsig := by
-  sorry
+    sigForgeProb P msg hasOPK A ≤ εsig :=
+  (SigReduction.sigForgeProb_le_advantage_sigAdversary P msg hasOPK A hverifyDet).trans
+    (hsig _)
 
 omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
 /-- Hop 4 (KEM-key guessing): if `A.OpensAtMost q` and every public-key output of

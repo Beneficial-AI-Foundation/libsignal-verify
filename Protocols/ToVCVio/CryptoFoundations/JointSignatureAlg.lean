@@ -8,20 +8,21 @@ import VCVio.CryptoFoundations.SignatureAlg
 /-!
 # Joint unforgeability of a signature key that is also used for agreement
 
-A signing key that also takes part in a second computation, such as the Diffie-Hellman agreement of
-the same identity key, is used in two places. An adversary against the signature scheme must then
-be allowed to see the second use. This file defines the game of existential unforgeability under
-chosen messages with a second oracle on the secret key.
+Sometimes one key pair signs and also takes part in a second computation, for example the
+Diffie-Hellman agreement of an identity key. The key then has two uses, and an adversary against
+the signature scheme must be allowed to see the second one. This file defines existential
+unforgeability under chosen messages with a second oracle on the secret key.
 
 `SignatureAlg.jointUnforgeableExp` draws one key pair from `sigAlg.keygen` and runs the adversary
-with three oracles: uniform sampling, signing, and the second use `agree sk`. Signing queries are
-recorded. Queries to the second oracle are not recorded and carry no freshness condition. The
-adversary wins when its signature verifies and its message was never submitted to the signing
-oracle.
+with three oracles: uniform sampling, signing, and the second use `agree sk`. The game records the
+signing queries. It does not record the queries to the second oracle, and they carry no freshness
+condition. The adversary wins when its signature verifies and it never sent its message to the
+signing oracle.
 
-VCVio's `SignatureAlg.unforgeableExperiment` has the signing oracle only. Its strong variant is
-not an option here either: it is false of XEdDSA, whose verification accepts `(R, s + ℓ)` whenever
-it accepts `(R, s)`.
+VCVio's `SignatureAlg.unforgeableExperiment` has the signing oracle only. Its strong variant
+`strongUnforgeableExperiment` also counts a new signature on a signed message as a win. That
+variant is false for XEdDSA. Its verification reduces `s` modulo the group order `ℓ`, so it accepts
+`(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`.
 
 The definitions in this file are AI-written.
 -/

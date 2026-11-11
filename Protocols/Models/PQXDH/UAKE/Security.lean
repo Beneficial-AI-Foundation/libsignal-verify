@@ -38,16 +38,17 @@ Model simplifications
   `uakeRecipient`, is correctness-only and has no advantage statement here.
 * **Joint unforgeability of the identity key:** One identity key signs and does
   Diffie-Hellman. The premise `hsig` bounds an adversary in the game of
-  `SignatureAlg.jointUnforgeableExp` with signing queries and agreement queries
-  `Y ↦ DH x Y` on the same key pair; it wins with a valid signature on a message that
-  it never had signed. Strong unforgeability is false of production XEdDSA, whose
-  verification accepts `(R, s + ℓ)` whenever it accepts `(R, s)`. So the signature
-  forgery event compares signed keys, not signature bytes, and a run in which the
-  adversary only changes a signature on an honestly signed key is no signature forgery.
-  Under transcript matching such a run still counts as a forgery. It belongs to the
-  residual event of hop 5, which original-key partnering is to cover. See Li & Schäge,
-  "No-Match Attacks and Robust Partnering Definitions" (ACM CCS 2017) for attacks of
-  this kind.
+  `SignatureAlg.jointUnforgeableExp`. The adversary has signing queries and agreement
+  queries `Y ↦ DH x Y` on the same key pair, and it wins with a valid signature on a
+  message that it never had signed. Strong unforgeability is false of production XEdDSA:
+  its verification reduces `s` modulo the group order `ℓ`, so it accepts `(R, s + ℓ)`
+  whenever it accepts `(R, s)` and `s + ℓ < 2^253`
+  (`rust/core/src/curve/curve25519.rs:134-155`). The signature forgery event therefore
+  compares signed keys and not signature bytes. A run in which the adversary only
+  changes a signature on an honestly signed key is no signature forgery. Under transcript
+  matching such a run still counts as a forgery. It belongs to the residual event of
+  hop 5, which original-key partnering is to cover. See Li & Schäge, "No-Match Attacks
+  and Robust Partnering Definitions" (ACM CCS 2017) for attacks of this kind.
 * **PQ-secure signature scheme:** In order to re-use our AKE definition in the
   post-quantum case, we assume here that the signature scheme is *still
   secure*, even in the post-quantum setting. In reality, PQXDH uses an EC-based

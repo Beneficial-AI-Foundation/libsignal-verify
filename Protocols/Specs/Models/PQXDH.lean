@@ -180,13 +180,13 @@ info: 'Protocols.Models.PQXDH.uakeInitiator_secure_pq' depends on axioms:
 /-! ## Security hops
 
 Hops 3 and 4, shared by both security theorems, and hops 5 and 6 for the DH and the PQ theorem.
-Hop 4 is proved. `Protocols/LEDGER.md` lists the other five as admitted lemmas. -/
+Hops 3 and 4 are proved. `Protocols/LEDGER.md` lists the other four as admitted lemmas. -/
 
 open OracleSpec OracleComp AKE AKE.UAKE Protocols.Models.PQXDH in
 recall Protocols.Models.PQXDH.sigForgeProb_le_sig
     {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
-    [DecidableEq G] [DecidableEq PQPK] [DecidableEq S] [DecidableEq Msg]
+    [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg]
     [DecidableEq IdC] [DecidableEq IdK] [SampleableType K]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [Inhabited S] [Inhabited F]
@@ -198,7 +198,6 @@ recall Protocols.Models.PQXDH.sigForgeProb_le_sig
 /--
 info: 'Protocols.Models.PQXDH.sigForgeProb_le_sig' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound]
 -/
