@@ -12,7 +12,7 @@ library, regenerated whenever the library changes. The commands are at the end.
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
 | Aeneas | nightly-2026.09.30-0855ce1 |
-| `sorry` or `sorryAx` under `Protocols/` | 18 |
+| `sorry` or `sorryAx` under `Protocols/` | 14 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -31,7 +31,8 @@ Model theorems, all in `Protocols/Models/PQXDH/UAKE/`.
 
 The `sorryAx` of the two security theorems comes from the five admitted hops below. Their closures contain no
 axiom beyond `propext`, `Classical.choice`, `Quot.sound` and `sorryAx`, and the hops are the only admitted
-declarations they depend on. Their imports also reach the four AEAD admissions, which no theorem uses.
+declarations they depend on. The four AEAD lemmas that their imports reach are proved; see "AEAD lemmas"
+below.
 
 Extracted functions, in `rust/Libsignal/Translated/Protocol/Funs.lean`. These are the current axiom
 dependencies of the two function declarations. Each theorem about them needs its own audit of its closure and
@@ -94,14 +95,20 @@ stubs". The fixtures are proved and depend on no `sorryAx`.
 | `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | `propext`, `sorryAx`, `Classical.choice`, `Quot.sound`, `crypto.hkdf_sha256`, `curve.PrivateKey.calculate_agreement`, `curve.PublicKey.is_torsion_free`, `BoxSlice.Insts.CoreConvertFromShared0Slice.from`, `Slice.Insts.CoreCmpPartialEqArray.eq`, `Str.Insts.AllocBorrowToOwnedString.to_owned`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `Aeneas.Std.core.fmt.Formatter`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate`, `libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1` |
 | `Protocols.PQXDH.alwaysPanic_fails`, `alwaysError_fails`, `alwaysDiverge_fails` | `FaultFixtures.lean` | `propext`, `Classical.choice`, `Quot.sound`, `curve.PrivateKey.calculate_signature`, `curve.PublicKey.verify_signature_for_multipart_message`, `alloc.vec.Vec.into_boxed_slice`, `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero`, `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length` |
 
+## AEAD lemmas
+
+The four integrity lemmas of `Protocols/ToVCVio/CryptoFoundations/AEAD.lean`, repaired and proved
+(#31, #32, #33), with the two advantage equalities and the six query-bound lemmas of their reductions.
+No PQXDH theorem uses them: both security theorems assume a bound on `INT_CTXT_D_Advantage` directly.
+
+| Declaration | File | Axioms |
+| --- | --- | --- |
+| `AEAD.INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage`, `INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`, `INT_CTXT_Advantage_le_INT_CTXT_D_Advantage`, `INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage`, `INT_CTXT_VF_Advantage_ctxtToVf`, `INT_CTXT_D_Advantage_ctxtToDec`, `ctxtToVf_encBound`, `ctxtToVf_vfBound`, `ctxtToDec_encBound`, `ctxtToDec_decBound`, `vfToCtxt_encBound`, `decToCtxt_encBound` | `AEAD.lean` | `propext`, `Classical.choice`, `Quot.sound` |
+
 ## Admitted lemmas
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `AEAD.INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_Advantage_le_INT_CTXT_D_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
 | `Protocols.Models.PQXDH.sigForgeProb_le_sig` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | both security theorems, hop 3 | PQXDH-model |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
 | `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
