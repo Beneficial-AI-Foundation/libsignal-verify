@@ -6,6 +6,7 @@ Authors: Jin Xing Lim
 
 import Protocols.ToVCVio.CryptoFoundations.AEAD
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.DistAdvantage
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OracleInvariants
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Party
