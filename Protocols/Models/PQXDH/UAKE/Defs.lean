@@ -69,7 +69,7 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- The message type in the UAKE exchange. -/
 inductive Message (G PQPK CT S C IdC IdK : Type) where
@@ -86,10 +86,10 @@ inductive Message (G PQPK CT S C IdC IdK : Type) where
   Bob's AEAD ciphertext (not in the spec). -/
 def initiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq Msg]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
-    Party ProbComp (InitiatorParameters F G SPK Msg)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
+    Party ProbComp (InitiatorParameters F G Msg)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := InitiatorParameters F G SPK Msg ⊕ SessionContext G PQPK Msg K ⊕ K
+  State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K
   init := fun p => pure (.waitForMsg (.inl p))
   step := fun st w => match st, w with
     | .inl p, .bundle b => do
@@ -110,15 +110,15 @@ def initiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   message (not in the spec). -/
 def recipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
-    Party ProbComp (RecipientIdentity F G SPK SSK S)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
+    Party ProbComp (RecipientIdentity F G S)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := RecipientParameters F G PQPK PQSK SPK SSK S ⊕ K
+  State := RecipientParameters F G PQPK PQSK S ⊕ K
   init := fun idn => do
     let opkB ← genOPK P.gen hasOPK
     let pqpkB ← P.pqkem.keygen
-    let p : RecipientParameters F G PQPK PQSK SPK SSK S :=
-      { ikB := idn.ikB, sigkB := idn.sigkB, spkB := idn.spkB, spkSigB := idn.spkSigB,
+    let p : RecipientParameters F G PQPK PQSK S :=
+      { ikB := idn.ikB, spkB := idn.spkB, spkSigB := idn.spkSigB,
         opkB := opkB, pqpkB := pqpkB }
     let bundle ← publish P p
     pure (.speakFirst (.inl p) (.bundle bundle))
@@ -146,9 +146,9 @@ def recipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   DF'17. -/
 def uakeInitiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :
-    UAKE.Scheme ProbComp K (InitiatorParameters F G SPK Msg)
-      (RecipientIdentity F G SPK SSK S)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :
+    UAKE.Scheme ProbComp K (InitiatorParameters F G Msg)
+      (RecipientIdentity F G S)
       (Message G PQPK CT S C IdC IdK) where
   /- 3 messages sent:
     Bob's pre-key bundle → Alice's initiate message → Bob's confirmation message -/
@@ -164,10 +164,10 @@ def uakeInitiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   traceable to the PQXDH spec. Correctness-only; see the module note. -/
 def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
-    Party ProbComp (InitiatorParameters F G SPK Msg)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
+    Party ProbComp (InitiatorParameters F G Msg)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := InitiatorParameters F G SPK Msg ⊕ K
+  State := InitiatorParameters F G Msg ⊕ K
   init := fun p => pure (.waitForMsg (.inl p))
   step := fun st w => match st, w with
     | .inl p, .bundle b => do
@@ -183,15 +183,15 @@ def initiatorNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
   functions, traceable to the PQXDH spec. Correctness-only; see the module note. -/
 def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool) :
-    Party ProbComp (RecipientIdentity F G SPK SSK S)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
+    Party ProbComp (RecipientIdentity F G S)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := RecipientParameters F G PQPK PQSK SPK SSK S ⊕ K
+  State := RecipientParameters F G PQPK PQSK S ⊕ K
   init := fun idn => do
     let opkB ← genOPK P.gen hasOPK
     let pqpkB ← P.pqkem.keygen
-    let p : RecipientParameters F G PQPK PQSK SPK SSK S :=
-      { ikB := idn.ikB, sigkB := idn.sigkB, spkB := idn.spkB, spkSigB := idn.spkSigB,
+    let p : RecipientParameters F G PQPK PQSK S :=
+      { ikB := idn.ikB, spkB := idn.spkB, spkSigB := idn.spkSigB,
         opkB := opkB, pqpkB := pqpkB }
     let bundle ← publish P p
     pure (.speakFirst (.inl p) (.bundle bundle))
@@ -209,9 +209,9 @@ def recipientNoConfirm [Field F] [AddCommGroup G] [Module F G] [SampleableType F
   Correctness-only; see the module note. -/
 def uakeRecipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :
-    UAKE.Scheme ProbComp K (RecipientIdentity F G SPK SSK S)
-      (InitiatorParameters F G SPK Msg)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool) :
+    UAKE.Scheme ProbComp K (RecipientIdentity F G S)
+      (InitiatorParameters F G Msg)
       (Message G PQPK CT S C IdC IdK) where
   /- 2 messages sent: Bob's pre-key bundle → Alice's initiate message -/
   rounds := 2
@@ -232,7 +232,7 @@ def _root_.AKE.UAKE.Adversary.OpensAtMost {K UK TK W : Type}
 
 /-- KDF modeled as a PRF keyed by a bitstring (e.g., the output of the KEM). -/
 def kdfPRF [SampleableType SS]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     PRFScheme SS (G × G × G × Option G) (K × K × K) where
   keygen := $ᵗ SS
   eval := fun ss q => P.kdf (q.1, q.2.1, q.2.2.1, q.2.2.2, ss)
@@ -240,7 +240,7 @@ def kdfPRF [SampleableType SS]
 /-- KDF modeled as a PRF keyed by a DH group element (e.g., the output of a DH
   key exchange). -/
 def kdfPRFDH [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) :
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     PRFScheme F (G × G × Option G × SS) (K × K × K) where
   keygen := $ᵗ F
   eval := fun c q => P.kdf (q.1, q.2.1, c • P.gen, q.2.2.1, q.2.2.2)
