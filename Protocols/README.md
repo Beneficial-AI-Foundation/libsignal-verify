@@ -25,7 +25,7 @@ Files outside these folders:
 | Path | Content |
 | --- | --- |
 | `ProtocolsTest/` | fixtures and tests for the `Protocols` library, at the paths of the modules they test (`ProtocolsTest/<P>/` for a realisation); built by default but not part of the library |
-| `Protocols/LEDGER.md` | axiom closures of the endpoint declarations and the list of admitted lemmas, with the commands that regenerate them |
+| `Protocols/LEDGER.md` | the admitted lemmas, stubs, contracts and pins of the `Protocols` library, with the command that checks its pins and admission counts; the axiom closures are frozen by `#guard_msgs` checks in the spec summaries and in `ProtocolsTest/` |
 | `Protocols/ATTRIBUTION.md` | the files ported from other projects, which keep their own licence |
 | `rust/Libsignal/Proofs/` | functional-correctness specifications of extracted functions, with their proofs |
 | `rust/Libsignal/Specs/` | spec summaries of `rust/Libsignal/Proofs/`, one per Rust source file |

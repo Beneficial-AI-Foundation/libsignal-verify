@@ -919,8 +919,7 @@ info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
 /-! ## Key-derivation mirror
 
 The Lean mirror of the key derivation in `Protocols/PQXDH/Kdf.lean` and the byte types and
-projections of `Protocols/PQXDH/Defs.lean` that it uses. `Protocols/LEDGER.md` records their
-closures under "Realization closures". -/
+projections of `Protocols/PQXDH/Defs.lean` that it uses. -/
 
 recall Protocols.PQXDH.deriveKeysTotal (H : libsignal_protocol.crypto.HmacSha256)
     (h_hkdf : libsignal_protocol.crypto.HkdfSha256Contract H) : DeriveKeysTotal

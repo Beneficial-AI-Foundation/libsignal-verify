@@ -9,9 +9,8 @@ import Protocols.Models.PQXDH
 # Spec summary: the abstract PQXDH model
 
 This file freezes the headline theorems of the abstract model in `Protocols/Models/PQXDH/`: the
-six endpoint theorems, whose closures `Protocols/LEDGER.md` records under "Endpoint closures",
-and the six security hops that the two security theorems use. Each theorem is restated with
-`recall` and has a `#guard_msgs` check on the axioms it depends on.
+six endpoint theorems and the six security hops that the two security theorems use. Each theorem
+is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on.
 
 The stub marker in the closures of the two security theorems comes from the admitted hops listed
 in `Protocols/LEDGER.md`. The docstrings and module notes in `Protocols/Models/PQXDH/UAKE/` state
