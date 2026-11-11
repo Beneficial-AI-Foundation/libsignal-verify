@@ -10,6 +10,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -26,7 +27,7 @@ namespace Libsignal.RatchetState
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4413:0-4413:32
     Name pattern: [core::default::Default<alloc::vec::Vec<@T>>] -/
 @[reducible, rust_trait_impl "core::default::Default<alloc::vec::Vec<@T>>"]
-def alloc.vec.Vec.Insts.CoreDefaultDefault (T : Type) : core.default.Default
+def alloc.vec.Vec.Insts.CoreDefaultDefault (T : Type _) : core.default.Default
   (alloc.vec.Vec T) := {
   default := alloc.vec.Vec.Insts.CoreDefaultDefault.default T
 }
@@ -101,7 +102,7 @@ def double_ratchet.ChainKey.from_pb
   Result (core.result.Result ratchet.keys.ChainKey
     state.session.InvalidSessionError)
   := do
-  let s ← alloc.vec.Vec.as_slice Global pb.key
+  let s ← alloc.vec.Vec.as_slice alloc.alloc.Global pb.key
   let r ←
     core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 s
   let r1 ←
@@ -216,7 +217,7 @@ def double_ratchet.SenderChain.from_pb
       double_ratchet.SenderChain (core.convert.FromSame
       state.session.InvalidSessionError) residual
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}}::call_once]:
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}<'_0>}::call_once]:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 133:17-133:52 -/
 def
   double_ratchet.RatchetState.from_pb.closure_1.Insts.CoreOpsFunctionFnOnceTupleShared0ChainResultSenderChainInvalidSessionError.call_once
@@ -227,7 +228,7 @@ def
   := do
   double_ratchet.SenderChain.from_pb tupled_args
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}}]
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}<'_0>}]
     Source: 'rust/protocol/src/double_ratchet.rs', lines 133:17-133:52 -/
 @[reducible]
 def
@@ -268,7 +269,7 @@ def double_ratchet.RatchetState.from_pb
   Result (core.result.Result double_ratchet.RatchetState
     state.session.InvalidSessionError)
   := do
-  let s ← alloc.vec.Vec.as_slice Global session.root_key
+  let s ← alloc.vec.Vec.as_slice alloc.alloc.Global session.root_key
   let r ←
     core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 s
   let r1 ←
@@ -369,7 +370,7 @@ def double_ratchet.SenderChain.to_pb
         (alloc.vec.Vec.new proto.storage.session_structure.chain.MessageKey)
     }
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}}::call_once]:
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 165:56-165:89 -/
 def
   double_ratchet.RatchetState.apply_to_pb.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderChainChain.call_once
@@ -379,7 +380,7 @@ def
   := do
   double_ratchet.SenderChain.to_pb tupled_args
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}}]
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}<'_0>}]
     Source: 'rust/protocol/src/double_ratchet.rs', lines 165:56-165:89 -/
 @[reducible]
 def

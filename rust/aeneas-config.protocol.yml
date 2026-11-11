@@ -126,6 +126,12 @@ charon:
     # pulled. Its only callers (key_length, KeyPair::generate) are opaque, so
     # nothing references it transparently. (`_::` = inherent-method form.)
     - "libsignal_protocol::kem::_::parameters"
+    # previous_session_states is opaque (below). From de16f3c on, Aeneas also
+    # reaches the FnMut/FnOnce impls of its map closure, and their bodies fail a
+    # prepass ("Unexpected error"), so opaque cannot help. Aeneas 0855ce1 did not
+    # emit these impls at all. Excluding them keeps that shape.
+    - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnMut<_> for _}"
+    - "libsignal_protocol::state::session::_::previous_session_states::{impl core::ops::function::FnOnce<_> for _}"
     # Crate-level excludes
     - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
     - "core::str::pattern"                # GATs unsupported by Aeneas
@@ -365,14 +371,14 @@ tweaks:
       replace: "-- rand_core_1.CryptoRng: shared root def in Libsignal.Translated.Shared.RandCore.\n\n"
     - find: |
         @[rust_trait "rand#1::rng::Rng" (parentClauses := ["rand_core_1RngCoreInst"])]
-        structure rand_1.rng.Rng (Self : Type) where
+        structure rand_1.rng.Rng (Self : Type _) where
           rand_core_1RngCoreInst : rand_core_1.RngCore Self
       replace: "abbrev rand_1.rng.Rng := _root_.rand.rng.Rng\n"
       required: true
     # Reuse the identical trait and concrete subtle models owned by Crypto.
     - find: |
         @[rust_trait "subtle::ConstantTimeEq"]
-        structure subtle.ConstantTimeEq (Self : Type) where
+        structure subtle.ConstantTimeEq (Self : Type _) where
           ct_eq : Self → Self → Result subtle.Choice
       replace: "abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq\n"
       required: true

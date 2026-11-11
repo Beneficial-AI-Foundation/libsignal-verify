@@ -70,8 +70,8 @@ project root. The files listed here were ported from other projects and keep the
 
 | File here | File there | Changes made here |
 | --- | --- | --- |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `HonestCompletionExp`, `Scheme.HonestlyCompletes` and `Scheme.Admissible` only, stated with `Pr[= · \| ·]` instead of measures, docstrings rewritten |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `RuntimeCoherent` stated for `SPMF` semantics and native `MonadLiftT` lifts instead of measures and `MonadAttach`, docstrings rewritten |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Defs.lean` | `HonestCompletionExp`, `Scheme.HonestlyCompletes` and `Scheme.Admissible` only, docstrings rewritten |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `VCVio/CryptoFoundations/AKE/UAKE/Runtime.lean` | `RuntimeCoherent` and `runtimeCoherent_probComp` as upstream; the corollary is named `forall_mem_support_evalDist` instead of `ae_of_forall_mem_support` and takes `p` implicitly; docstrings rewritten |
 
 ## Beneficial AI Foundation, secure-messaging
 
@@ -82,5 +82,5 @@ project root. The files listed here were ported from other projects and keep the
 
 | File here | File there | Changes made here |
 | --- | --- | --- |
-| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/DistAdvantage.lean` | `SecureMessaging/AEAD/Defs.lean` (`securityExpFixedBit`, `distAdvantage`, `securityExp_evalDistEq_branch`, `securityExp_toReal_sub_half`, `guessAdvantage_eq_distAdvantage_div_two`, lines 301-378); the same pattern in `SecureMessaging/CKA/Defs.lean` (lines 857-933) | restated for the UAKE experiment over a runtime, with `Pr[= · \| ·]` of the pinned API: `FixedBitExp` takes the place of `securityExpFixedBit` and keeps the forgery and coin cases of `Exp`; `advantage_eq_distAdvantage_div_two` takes the place of `guessAdvantage_eq_distAdvantage_div_two` and holds under the `ProbComp` runtime; VCVio's `probOutput_uniformBool_branch_toReal_sub_half` replaces secure-messaging's `prEvent_uniformBool_branch_toReal_sub_half` |
-| `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean` | `ToVCVio/CryptoFoundations/KeyEncapMech.lean` (`correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect`, `deltaCorrect`) | restated with `Pr[= true \| ·]` of the pinned `SPMF` API instead of measures; `one_sub_le_probOutput_of_deltaCorrect` is new here |
+| `Protocols/ToVCVio/CryptoFoundations/AKE/UAKE/DistAdvantage.lean` | `SecureMessaging/AEAD/Defs.lean` (`securityExpFixedBit`, `distAdvantage`, `securityExp_evalDistEq_branch`, `securityExp_toReal_sub_half`, `guessAdvantage_eq_distAdvantage_div_two`, lines 301-378); the same pattern in `SecureMessaging/CKA/Defs.lean` (lines 857-933) | restated for the UAKE experiment over a runtime, with `Pr{let y ← ·}[y = ·]` and `Measure.boolDist` of the VCVio measure API: `FixedBitExp` takes the place of `securityExpFixedBit` and keeps the forgery and coin cases of `Exp`; `advantage_eq_distAdvantage_div_two` takes the place of `guessAdvantage_eq_distAdvantage_div_two` and holds under the `ProbComp` runtime; VCVio's `evalDist_boolBias_bind_coin` and `Measure.boolBias_eq_two_mul_absDiff_half_of_isProbabilityMeasure` replace secure-messaging's `prEvent_uniformBool_branch_toReal_sub_half` |
+| `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean` | `ToVCVio/CryptoFoundations/KeyEncapMech.lean` (`correctnessError`, `correctnessError_eq_zero_iff_perfectlyCorrect`, `deltaCorrect`) | `correctnessError_eq_evalDist_false_add_prFail` and the later lemmas are not copied; `one_sub_le_probOutput_of_deltaCorrect` is new here |

@@ -18,12 +18,13 @@ variable {ι : Type u} {spec : OracleSpec ι}
 /-- Check if an element `t` was ever queried and had the result `u`, given
   a log of queries. Relies on decidable equality of the domain and range
   types. -/
-def wasQueriedWith [spec.DecidableEq] (log : QueryLog spec)
+def wasQueriedWith [DecidableEq ι] [∀ t, DecidableEq (spec.Range t)] (log : QueryLog spec)
     (t : spec.Domain) (u : spec.Range t) : Bool :=
   decide (⟨t, u⟩ ∈ log)
 
 /-- If `wasQueriedWith log t u` is true, then `wasQueried log t` is true. -/
-lemma wasQueried_of_wasQueriedWith [spec.DecidableEq] {log : QueryLog spec}
+lemma wasQueried_of_wasQueriedWith [DecidableEq ι] [∀ t, DecidableEq (spec.Range t)]
+    {log : QueryLog spec}
     {t : spec.Domain} {u : spec.Range t} (h : log.wasQueriedWith t u = true) :
     log.wasQueried t = true := by
   have hmem : (⟨t, u⟩ : (t : spec.Domain) × spec.Range t) ∈ log := of_decide_eq_true h

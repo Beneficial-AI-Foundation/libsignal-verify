@@ -102,7 +102,7 @@ def CorrectExp [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W) : m Bool :
   satisfies this; see `CorrectExp`. -/
 def PerfectlyCorrect [DecidableEq K] [Monad m] (proto : Scheme m K UK TK W)
     (runtime : ProbCompRuntime m) : Prop :=
-  Pr[= true | runtime.evalDist (CorrectExp proto)] = 1
+  runtime.evalDist (CorrectExp proto) {true} = 1
 
 open Classical in
 /-- The wrapper-agreement event of a UAKE scheme: in an honest run from setup, both parties output
@@ -120,7 +120,7 @@ noncomputable def agreementExp {m : Type → Type} [Monad m] {K UK TK W : Type}
   3. an honest run of the protocol transfers exactly `rounds` messages.
 
   This does *not* enforce the WLOG T-speaks-last convention from DF'17. -/
-def Scheme.WellFormed [Monad m] [MonadLiftT m SetM] (proto : Scheme m K UK TK W) : Prop :=
+def Scheme.WellFormed [Monad m] [MonadAttach m] (proto : Scheme m K UK TK W) : Prop :=
   proto.U.OutputsOnlyAtCompletion ∧ proto.T.OutputsOnlyAtCompletion ∧
     proto.U.PureOutput ∧ proto.T.PureOutput ∧
     ∀ uk tk, (uk, tk) ∈ support proto.setup →
@@ -137,13 +137,13 @@ def HonestCompletionExp [Monad m] (proto : Scheme m K UK TK W) : m Bool := do
 /-- True if an honest run ends with a key at both parties with probability one. -/
 def Scheme.HonestlyCompletes [Monad m] (proto : Scheme m K UK TK W)
     (runtime : ProbCompRuntime m) : Prop :=
-  Pr[= true | runtime.evalDist (HonestCompletionExp proto)] = 1
+  runtime.evalDist (HonestCompletionExp proto) {true} = 1
 
 /-- True if the runtime is coherent and the scheme is well formed, perfectly correct and
   honestly completing. Honest-path admission only. It does not imply that the security
   experiment loses no mass against every adversary, which a security statement about
   `advantage` also needs. -/
-def Scheme.Admissible [DecidableEq K] [Monad m] [MonadLiftT m SetM] [MonadLiftT m SPMF]
+def Scheme.Admissible [DecidableEq K] [Monad m] [MonadAttach m] [EvalDistSemantics m]
     (proto : Scheme m K UK TK W) (runtime : ProbCompRuntime m) : Prop :=
   RuntimeCoherent runtime ∧ proto.WellFormed ∧ PerfectlyCorrect proto runtime ∧
     proto.HonestlyCompletes runtime
@@ -366,6 +366,6 @@ def Exp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLift m)
 noncomputable def advantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m)
     (A : Adversary proto) : ℝ :=
-  |(Pr[= true | runtime.evalDist (Exp runtime.toProbCompLift A)]).toReal - 1 / 2|
+  |(runtime.evalDist (Exp runtime.toProbCompLift A) {true}).toReal - 1 / 2|
 
 end AKE.UAKE

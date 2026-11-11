@@ -424,7 +424,7 @@ axiom alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
   "alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<@T, alloc::alloc::Global>}::with_capacity"]
 axiom alloc.collections.vec_deque.VecDequeTGlobal.with_capacity
   (T : Type) :
-  Std.Usize → Result (alloc.collections.vec_deque.VecDeque T Global)
+  Std.Usize → Result (alloc.collections.vec_deque.VecDeque T alloc.alloc.Global)
 
 /-- [alloc::collections::vec_deque::{alloc::collections::vec_deque::VecDeque<T, A>}::len]:
     Source: '/rustc/library/alloc/src/collections/vec_deque/mod.rs', lines 1808:4-1808:30

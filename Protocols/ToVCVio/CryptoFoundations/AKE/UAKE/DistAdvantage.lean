@@ -73,13 +73,13 @@ def FixedBitExp [SampleableType K] [DecidableEq W] [Monad m] (lift : ProbCompLif
 
 /-- The real-versus-random advantage of the adversary: the distance between the probabilities
   that the random game `FixedBitExp … true` and the real game `FixedBitExp … false` return
-  `true`. It is VCVio's `SPMF.boolDistAdvantage` of the two games. A run that loses mass returns
-  neither output, so under a runtime that can lose mass this value also mixes lost mass into the
-  score (#29). -/
+  `true`. It is the real part of VCVio's `Measure.boolDist` of the output measures of the two
+  games. A run that loses mass returns neither output, so under a runtime that can lose mass this
+  value also mixes lost mass into the score (#29). -/
 noncomputable def distAdvantage [SampleableType K] [DecidableEq W] [Monad m]
     {proto : Scheme m K UK TK W} (runtime : ProbCompRuntime m) (A : Adversary proto) : ℝ :=
-  SPMF.boolDistAdvantage (runtime.evalDist (FixedBitExp runtime.toProbCompLift A true))
-    (runtime.evalDist (FixedBitExp runtime.toProbCompLift A false))
+  (MeasureTheory.Measure.boolDist (runtime.evalDist (FixedBitExp runtime.toProbCompLift A true))
+    (runtime.evalDist (FixedBitExp runtime.toProbCompLift A false))).toReal
 
 section ProbComp
 
@@ -90,28 +90,28 @@ variable [SampleableType K] [DecidableEq W] {proto : Scheme ProbComp K UK TK W}
 
 omit [SampleableType K] in
 /-- `finalize` is `finalizeGuess` followed by the test against the challenge bit. -/
-private theorem probOutput_finalize_eq (A : Adversary proto) (st : A.State × Env proto × TK)
+private theorem prEvent_finalize_eq (A : Adversary proto) (st : A.State × Env proto × TK)
     (cr : ChallengeResult proto) (b : Bool) (K1 : Option K) (x : Bool) :
-    Pr[= x | finalize probLift A st cr b K1] =
-      Pr[= x | finalizeGuess probLift A st cr b K1 >>=
-        fun z => pure (b == z)] := by
+    Pr{let y ← finalize probLift A st cr b K1}[y = x] =
+      Pr{let y ← finalizeGuess probLift A st cr b K1 >>=
+        fun z => pure (b == z)}[y = x] := by
   obtain ⟨aSt, env, tk⟩ := st
   simp only [finalize, finalizeGuess, bind_assoc]
-  refine probOutput_bind_congr' _ x fun r => ?_
+  refine prEvent_bind_congr _ _ _ _ _ fun r => ?_
   obtain ⟨b', env'⟩ := r
   by_cases h : fullPingPong env'.tSessions cr
   · have hb : Function.Bijective (fun z : Bool => b == z) :=
       Function.Involutive.bijective fun z => by cases b <;> cases z <;> rfl
-    simp only [h, if_true]
-    change Pr[= x | ($ᵗ Bool : ProbComp Bool)] =
-      Pr[= x | ($ᵗ Bool : ProbComp Bool) >>= fun z => pure (b == z)]
-    rw [bind_pure_comp]
-    exact (probOutput_map_bijective_uniformSample Bool hb x).symm
+    simp only [h, ite_true]
+    change Pr{let y ← ($ᵗ Bool : ProbComp Bool)}[y = x] =
+      Pr{let y ← ($ᵗ Bool : ProbComp Bool) >>= fun z => pure (b == z)}[y = x]
+    rw [bind_pure_comp, prEvent_map]
+    exact (SampleableType.prEvent_uniformSample_comp_of_bijective hb (fun y => y = x)).symm
   · simp [h, Bool.beq_comm]
 
 /-- The body of `Exp` after the draw of the challenge bit `b`, against `FixedBitExp`. -/
-private theorem probOutput_body_eq (A : Adversary proto) (b x : Bool) :
-    Pr[= x | (do
+private theorem prEvent_body_eq (A : Adversary proto) (b x : Bool) :
+    Pr{let y ← (do
         let (uk, tk) ← proto.setup
         let (cr, st) ← challengeSession probLift A uk tk
         if cr.K0.isNone then
@@ -120,30 +120,30 @@ private theorem probOutput_body_eq (A : Adversary proto) (b x : Bool) :
           return true
         else do
           let K1 ← some <$> (probLift).liftProbComp ($ᵗ K)
-          finalize probLift A st cr b K1 : ProbComp Bool)] =
-      Pr[= x | FixedBitExp probLift A b >>=
-        fun z => pure (b == z)] := by
+          finalize probLift A st cr b K1 : ProbComp Bool)}[y = x] =
+      Pr{let y ← FixedBitExp probLift A b >>=
+        fun z => pure (b == z)}[y = x] := by
   simp only [FixedBitExp, bind_assoc]
-  refine probOutput_bind_congr' _ x fun ukt => ?_
+  refine prEvent_bind_congr _ _ _ _ _ fun ukt => ?_
   obtain ⟨uk, tk⟩ := ukt
-  refine probOutput_bind_congr' _ x fun crst => ?_
+  refine prEvent_bind_congr _ _ _ _ _ fun crst => ?_
   obtain ⟨cr, st⟩ := crst
   split_ifs with h1 h2
-  · exact probOutput_finalize_eq A st cr b none x
+  · exact prEvent_finalize_eq A st cr b none x
   · simp
   · simp only [bind_assoc]
-    exact probOutput_bind_congr' _ x fun K1 => probOutput_finalize_eq A st cr b K1 x
+    exact prEvent_bind_congr _ _ _ _ _ fun K1 => prEvent_finalize_eq A st cr b K1 x
 
 /-- `Exp` draws the challenge bit and compares it with the guess of the matching fixed-bit
 game. -/
-private theorem probOutput_Exp_eq_branch (A : Adversary proto) (x : Bool) :
-    Pr[= x | Exp probLift A] =
-      Pr[= x | (do
+private theorem prEvent_Exp_eq_branch (A : Adversary proto) (x : Bool) :
+    Pr{let y ← Exp probLift A}[y = x] =
+      Pr{let y ← (do
         let b ← ($ᵗ Bool : ProbComp Bool)
         let z ← if b then FixedBitExp probLift A true
           else FixedBitExp probLift A false
-        pure (b == z) : ProbComp Bool)] := by
-  have hswap : Pr[= x | Exp probLift A] = Pr[= x | (do
+        pure (b == z) : ProbComp Bool)}[y = x] := by
+  have hswap : Pr{let y ← Exp probLift A}[y = x] = Pr{let y ← (do
       let b ← ($ᵗ Bool : ProbComp Bool)
       let (uk, tk) ← proto.setup
       let (cr, st) ← challengeSession probLift A uk tk
@@ -153,35 +153,49 @@ private theorem probOutput_Exp_eq_branch (A : Adversary proto) (x : Bool) :
         return true
       else do
         let K1 ← some <$> (probLift).liftProbComp ($ᵗ K)
-        finalize probLift A st cr b K1 : ProbComp Bool)] := by
+        finalize probLift A st cr b K1 : ProbComp Bool)}[y = x] := by
     rw [Exp]
-    exact probOutput_bind_bind_swap _ _ _ _
+    exact (OracleComp.EvalDistEq.bind_bind_swap _ _ _) (fun y => y = x)
   rw [hswap]
-  refine probOutput_bind_congr' _ x fun b => ?_
+  refine prEvent_bind_congr _ _ _ _ _ fun b => ?_
   cases b
-  · exact probOutput_body_eq A false x
-  · exact probOutput_body_eq A true x
+  · exact prEvent_body_eq A false x
+  · exact prEvent_body_eq A true x
 
-/-- The signed form: the guess advantage before the absolute value is half the difference of
-the two fixed-bit games. -/
-private theorem probOutput_Exp_toReal_sub_half (A : Adversary proto) :
-    (Pr[= true | Exp probLift A]).toReal - 1 / 2 =
-      ((Pr[= true | FixedBitExp probLift A true]).toReal -
-        (Pr[= true | FixedBitExp probLift A false]).toReal) / 2 := by
-  rw [probOutput_Exp_eq_branch A true]
-  exact probOutput_uniformBool_branch_toReal_sub_half _ _
+/-- The output measure of `Exp` is that of the fair bit followed by the matching fixed-bit
+game. -/
+private theorem evalDist_Exp_eq_branch (A : Adversary proto) :
+    𝒟[Exp probLift A] =
+      𝒟[(do
+        let b ← ($ᵗ Bool : ProbComp Bool)
+        let z ← if b then FixedBitExp probLift A true
+          else FixedBitExp probLift A false
+        pure (b == z) : ProbComp Bool)] :=
+  MeasureTheory.Measure.ext_of_singleton fun x => by
+    rw [← prEvent_eq_evalDist_singleton, ← prEvent_eq_evalDist_singleton]
+    exact prEvent_Exp_eq_branch A x
 
 /-- Under the `ProbComp` runtime, the guess-form advantage is half the real-versus-random
   advantage. -/
 theorem advantage_eq_distAdvantage_div_two (A : Adversary proto) :
     advantage ProbCompRuntime.probComp A = distAdvantage ProbCompRuntime.probComp A / 2 := by
-  -- `probOutput_Exp_toReal_sub_half` moves the draw of the challenge bit to the start of `Exp`,
-  -- splits on it, and uses VCVio's `probOutput_uniformBool_branch_toReal_sub_half`.
-  unfold advantage distAdvantage SPMF.boolDistAdvantage
-  change |(Pr[= true | Exp probLift A]).toReal - 1 / 2| =
-    |(Pr[= true | FixedBitExp probLift A true]).toReal -
-      (Pr[= true | FixedBitExp probLift A false]).toReal| / 2
-  rw [probOutput_Exp_toReal_sub_half, abs_div, abs_two]
+  -- `Exp` is the fair bit followed by the matching fixed-bit game (`evalDist_Exp_eq_branch`).
+  -- VCVio's `evalDist_boolBias_bind_coin` turns the bias of that game into the distance of the
+  -- two fixed-bit games. The bias of a probability measure on `Bool` is twice the distance of
+  -- its mass at `true` from one half.
+  have hbias : (𝒟[Exp probLift A]).boolBias.toReal = 2 * advantage ProbCompRuntime.probComp A := by
+    unfold advantage
+    simp only [ProbCompRuntime.probComp_evalDist]
+    rw [MeasureTheory.Measure.boolBias_eq_two_mul_absDiff_half_of_isProbabilityMeasure,
+      ENNReal.toReal_mul, ENNReal.absDiff_toReal (MeasureTheory.measure_ne_top _ _) (by simp)]
+    simp [one_div, ENNReal.toReal_inv]
+  have hcoin := evalDist_boolBias_bind_coin ($ᵗ Bool : ProbComp Bool)
+    (FixedBitExp probLift A true) (FixedBitExp probLift A false)
+    (by simp) (by simp)
+  unfold distAdvantage
+  simp only [ProbCompRuntime.probComp_evalDist]
+  rw [evalDist_Exp_eq_branch, hcoin] at hbias
+  linarith
 
 end ProbComp
 

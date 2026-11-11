@@ -193,7 +193,7 @@ The correspondence claims concern protocol values and cryptographic operation or
 
 ### Rewrites of translated code
 
-Each workaround has a comment in the patched source naming the limitation.
+Each workaround names its limitation in the patch header or in a comment in the patched source.
 
 | Patch | Change | Limitation | Revert when |
 | --- | --- | --- | --- |
@@ -205,6 +205,7 @@ Each workaround has a comment in the patched source naming the limitation.
 | `protocol-double_ratchet-option_map_closures` | `map(SenderChain::from_pb)` → `map(\|chain\| SenderChain::from_pb(chain))`, same for `to_pb` | Function-item arguments to `Option::map` are not translated | The function-item form translates |
 | `protocol-double_ratchet-logging` | The four `log!` calls in `consume_message_key` and `find_receiver_chain_index` moved into `log_duplicate_message`, `log_future_message_limit`, `log_jump_ahead` and `log_corrupt_receiver_chain`, same level and message, called at the same point | As for `protocol-triple_ratchet-logging` | `log!` translates inline |
 | `protocol-double_ratchet-take_skipped_key` | `MessageKeyGenerator::from_pb(key_pb).map(Some).map_err(InvalidSessionError)` moved unchanged into `skipped_key_from_pb` | `from_pb` is opaque and returns a `&'static str` error; moving it into `InvalidSessionError` hits the static-borrow defect described for `DecryptionError` | The expression translates inline |
+| `protocol-double_ratchet-dh_ratchet_step` | The first statement of `dh_ratchet_step`, `self.sender_chain.as_ref().ok_or(InvalidSessionError("missing sender chain"))?.ratchet_key.private_key`, becomes `let Some(sender_chain) = self.sender_chain.as_ref() else { return Err(InvalidSessionError("missing sender chain").into()); };` followed by the read of `private_key`. The function stays transparent. | From nightly-2026.10.24-74aabd5 on (checked up to nightly-2026.11.10-0d21a9e), Aeneas stops on the original body with `Unreachable` in `interp/InterpExpansion.ml`. The trigger is `.ok_or(E)?` on a borrow of `self`, then the `&mut self` call `take_root_key`, then `?` on `create_chain`, whose error type holds a `&'static str`. The nightlies 2026.09.30-0855ce1 and 2026.10.15-cd41995 translate the original | The original `?` form translates |
 | `protocol-triple_ratchet-error_messages` | Five literals (`"version does not fit in u8"`, `"encrypt"`, `"decrypt"`, `"invalid sender/receiver chain message keys"`) moved to named `&str` constants with the same bytes | As in `double_ratchet.rs`, for literals returned from closures and early returns | Inline literals translate |
 | `protocol-triple_ratchet-logging` | The `log::error!` in `encrypt` and the `log::warn!` in `decrypt` moved into `log_sender_chain_corrupt` / `log_receiver_chain_corrupt`, same level and message, called at the same point; log records now give the helper's line | Aeneas stops with an internal error on `log!` expansions | `log!` translates inline |
 | `protocol-triple_ratchet-address_pair` | `local_address.map(\|addr\| (addr, remote_address))` → a helper whose body is the equivalent `match` | A closure returning two borrows cannot be ended; the same `match` inline fails to join its branches | Either inline form translates |

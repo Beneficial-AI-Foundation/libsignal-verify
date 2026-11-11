@@ -86,7 +86,7 @@ def jointSigForgeExp (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) :
 /-- The adversary's success probability in the joint unforgeability game. A fault only lowers
 it. -/
 def jointSigAdvantage (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) : ℝ≥0∞ :=
-  Pr[= true | rustRuntime.evalDist (jointSigForgeExp P A)]
+  rustRuntime.evalDist (jointSigForgeExp P A) {true}
 
 end Signature
 
@@ -270,7 +270,8 @@ are implausible even for weaker variants. Like every premise here, `pqxdhODHAdva
 adversaries without a resource bound (#41). -/
 def pqxdhODHAdvantage (H : crypto.HmacSha256) (P : Params Rand Msg C IdC IdK)
     (A : PqxdhODHAdversary) : ℝ :=
-  |(Pr[= true | pqxdhODHExp H P A true]).toReal - (Pr[= true | pqxdhODHExp H P A false]).toReal|
+  |(Pr{let b ← pqxdhODHExp H P A true}[b = true]).toReal -
+    (Pr{let b ← pqxdhODHExp H P A false}[b = true]).toReal|
 
 end ODH
 
