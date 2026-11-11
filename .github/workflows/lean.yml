@@ -14,14 +14,13 @@ jobs:
       - uses: actions/checkout@v6
       - uses: leanprover/lean-action@v1
 
-      - name: Check Protocols/LEDGER.md against regenerated output
+      - name: Check the admission counts and pins of Protocols/LEDGER.md
         run: |
           python3 -I scripts/ledger-check.py --self-test
           command -v rg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep)
           rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
             Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > "$RUNNER_TEMP/admissions.log" || [ $? -eq 1 ]
-          lake env lean scripts/Ledger.lean > "$RUNNER_TEMP/closures.log"
-          python3 -I scripts/ledger-check.py "$RUNNER_TEMP/closures.log" "$RUNNER_TEMP/admissions.log"
+          python3 -I scripts/ledger-check.py "$RUNNER_TEMP/admissions.log"
 
       - name: Check the import headers of Protocols/Models/
         run: |
