@@ -538,8 +538,10 @@ def curve.PublicKey.scalar_is_in_range
             (core.slice.index.SliceIndexRangeUsizeSlice Std.U8)) k
             { start := 1#usize, «end» := 31#usize }
         let a := Array.repeat 30#usize 255#u8
-        let b1 ←
-          Slice.Insts.CoreCmpPartialEqArray.eq core.cmp.PartialEqU8 s a
+        let s1 ←
+          core.array.Array.index (core.ops.index.IndexSlice
+            (core.slice.index.SliceIndexRangeFullSlice Std.U8)) a ()
+        let b1 ← core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 s s1
         if b1
         then ok (i = 127#u8)
         else ok false
