@@ -103,7 +103,6 @@ choice describes something outside the extracted code. The contracts are in
 | `SignTotal`, `SignVerify`, `VerifyTotal` | contract | XEdDSA signing and verification on the single identity key | curve25519-dalek-fork |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | contract | the Kyber1024 backend: length branches, backend panic freedom and termination (libcrux's unbounded sampling loop) | a model of libcrux |
 | `RngTotal` | contract | totality of the caller's generator on a domain containing the drawn states | the caller's choice of generator |
-| `VecIntoBoxedSlice` | contract | `Vec::into_boxed_slice` keeps the elements; the extraction calls it in `PublicKey::serialize`, which the Full realization uses for the signed-prekey message, and the two entry points do not reach it | a rewrite of that call to `Box::from`, as for the entry points |
 | `ToOwnedTotal` | contract | `str::to_owned` terminates; `pqxdh_accept` calls it only to build the error message for a non-canonical ephemeral key | none: the Aeneas standard library models no way to build a `String` from a `str`, so no translation patch can route the call through a modelled one |
 | `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | unchanged from `main` |
 | `KyberBridge` | contract | extracted Kyber calls fault or return the outputs of an abstract KEM `K` | a model of libcrux |

@@ -341,7 +341,6 @@ info: 'Protocols.PQXDH.alwaysPanic_fails' depends on axioms:
  Quot.sound,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
- alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
@@ -356,7 +355,6 @@ info: 'Protocols.PQXDH.alwaysError_fails' depends on axioms:
  Quot.sound,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
- alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
@@ -371,7 +369,6 @@ info: 'Protocols.PQXDH.alwaysDiverge_fails' depends on axioms:
  Quot.sound,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
- alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]

@@ -14,9 +14,9 @@ import Protocols.PQXDH.Defs
 # Contracts for the opaque leaves of the PQXDH entry points
 
 The extraction leaves opaque the primitives that `pqxdh_initiate` and `pqxdh_accept` call:
-curve25519 agreement and signatures, the Kyber1024 backend, the random-number generator and two
-conversions of the Rust standard library. The hand-maintained external files declare them without
-a body, so Lean knows only their types.
+curve25519 agreement and signatures, the Kyber1024 backend, the random-number generator and the
+allocation of a string. The hand-maintained external files declare them without a body, so Lean
+knows only their types.
 
 A contract states what such a leaf does on an explicit domain: which values or errors it returns,
 and that it terminates without panicking. Each contract is a proposition that a theorem takes as a
@@ -170,15 +170,6 @@ end Kyber
 
 section Std
 
-/-- `Vec::into_boxed_slice` keeps the elements of the vector. The extraction still calls it in
-`PublicKey::serialize` (`rust/core/src/curve.rs:122-131`), which the Full realization uses to encode
-the message of a signed-prekey signature (`encodeEC`). The two entry points do not reach it: their
-other calls to `into_boxed_slice` are rewritten to `alloc.vec.FromBoxSliceVec.from`, a modelled
-function whose property `Libsignal/Proofs/Std/` proves. -/
-def VecIntoBoxedSlice : Prop :=
-  ∀ {T : Type} (A : Type) (v : alloc.vec.Vec T),
-    _root_.alloc.vec.Vec.into_boxed_slice A v = .ok (alloc.vec.Vec.deref v)
-
 /-- Allocating an owned string from a string literal terminates. `pqxdh_accept` does this only
 to build the message of its error for a non-canonical ephemeral key (`rust/protocol/src/pqxdh.rs:
 339-344`).
@@ -195,8 +186,7 @@ def ToOwnedTotal : Prop :=
 end Std
 
 /-- The contracts on the opaque leaves that the two entry points and the KEM experiment call:
-curve25519 agreement and checks, the Kyber1024 backend, `Vec::into_boxed_slice` and the allocation of
-a string. -/
+curve25519 agreement and checks, the Kyber1024 backend and the allocation of a string. -/
 structure CoreContracts : Prop where
   /-- Agreement on derived keys; see `AgreementDerived`. -/
   agreementDerived : AgreementDerived
@@ -212,8 +202,6 @@ structure CoreContracts : Prop where
   kyberEncapsBackend : KyberEncapsBackend
   /-- Decapsulation; see `KyberDecaps`. -/
   kyberDecaps : KyberDecaps
-  /-- See `VecIntoBoxedSlice`. -/
-  vecIntoBoxedSlice : VecIntoBoxedSlice
   /-- See `ToOwnedTotal`. -/
   toOwnedTotal : ToOwnedTotal
 
@@ -277,12 +265,6 @@ def KyberPartial : Prop :=
       (sk.data.length = 3168 → ct.length ≠ 1568 → res = .Err .BadCiphertext) ∧
       (sk.data.length = 3168 → ct.length = 1568 → ∃ ss, res = .Ok ss ∧ ss.length = 32)
 
-/-- The fault-or-value form of `VecIntoBoxedSlice`. When `Vec::into_boxed_slice` returns, it
-keeps the elements of the vector. -/
-def StdPartial : Prop :=
-  ∀ {T : Type} (A : Type) (v : alloc.vec.Vec T) s,
-    _root_.alloc.vec.Vec.into_boxed_slice A v = .ok s → s = alloc.vec.Vec.deref v
-
 /-- The fault-or-value form of `HkdfSha256Contract H`. When the helper returns on a 96-byte buffer
 and no salt, it returns `Ok(())` and the RFC 5869 output computed from the MAC interface `H`. -/
 def HkdfSha256Partial (H : crypto.HmacSha256) : Prop :=
@@ -305,8 +287,6 @@ structure PartialContracts (H : crypto.HmacSha256) : Prop where
   signature : SignaturePartial
   /-- See `KyberPartial`. -/
   kyber : KyberPartial
-  /-- See `StdPartial`. -/
-  std : StdPartial
   /-- See `HkdfSha256Partial`. -/
   hkdf : HkdfSha256Partial H
 

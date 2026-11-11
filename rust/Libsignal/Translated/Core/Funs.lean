@@ -504,7 +504,7 @@ def curve.PublicKey.serialize
   let result1 ← alloc.vec.Vec.push result i1
   let s1 ← lift (Array.to_slice v)
   let result2 ← alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 s1
-  alloc.vec.Vec.into_boxed_slice Global result2
+  alloc.vec.FromBoxSliceVec.from result2
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature]:
     Source: 'rust/core/src/curve.rs', lines 134:4-136:5

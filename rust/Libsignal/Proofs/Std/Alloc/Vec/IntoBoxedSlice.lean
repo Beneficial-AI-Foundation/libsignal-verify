@@ -12,8 +12,8 @@ in the Aeneas standard library (`Aeneas/Std/Vec.lean`, and `Aeneas/Std/Alloc/Vec
 release `nightly-2026.10.30-de16f3c`). At the pinned rustc the impl is
 `fn from(v: Vec<T, A>) -> Self { v.into_boxed_slice() }`, so the extraction of `Box::from(vec)` and
 of `vec.into_boxed_slice()` is the same call. The extraction does not model `into_boxed_slice`
-itself, which is why the translation patches `protocol-kem-box_from_vec` and
-`protocol-identity_key-box_from_vec` write `Box::from(vec)`.
+itself, which is why the translation patches `protocol-kem-box_from_vec`,
+`protocol-identity_key-box_from_vec` and `core-curve-box_from_vec` write `Box::from(vec)`.
 
 The theorem is a property of the model. It states that the call succeeds and returns the slice of
 the vector, which excludes failure and divergence.
