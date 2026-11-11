@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Check Protocols/LEDGER.md against the output of its "How to regenerate" commands.
+"""Check the State table of Protocols/LEDGER.md against the Lean sources and the Lake pins.
 
-Usage, from the repository root after `lake build`:
+Usage, from the repository root:
 
     rg -n -g '*.lean' 'sorry|axiom|native_decide|set_option' \
         Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
-    lake env lean scripts/Ledger.lean > closures.log
-    python3 scripts/ledger-check.py closures.log admissions.log
+    python3 scripts/ledger-check.py admissions.log
 
-Exits 0 iff every closure, count and pin that the LEDGER records matches the regenerated output.
-It reads three shapes from LEDGER.md:
+Exits 0 iff the three admission counts and the Lean, Mathlib, VCVio and Aeneas pins of the State
+table match the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
-- three-column table rows `| `Decl`, `short`, ... | `File` | `ax`, ... or none |`, where a short
-  name extends the namespace of the first name in the row; axioms are compared as a set;
-- a line `` `Decl`: `` followed by a fenced block listing the axioms, compared in order;
-- the two-column State table: the three admission counts and the Lean, Mathlib, VCVio and Aeneas
-  pins, checked against the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
+The script does not check axiom closures. The `#guard_msgs` checks on `#print axioms` in the spec
+summaries (`Protocols/Specs/`, `rust/Libsignal/Specs/`) and in two files of `ProtocolsTest/` (the
+fault fixtures `PQXDH/FaultFixtures.lean` and `ToVCVio/CryptoFoundations/AEADAxioms.lean`) do, and
+`lake build` runs them.
 
 The `rg` pattern only selects candidate lines. A listed line counts as an admission when its
 executable text, what is left of it once `code_lines` blanks the comments of its file, contains
@@ -24,8 +22,6 @@ optional attributes and modifiers), or `native_decide` or `set_option` as a word
 `sorryAx` term therefore counts, while the `sorryAx` in an axiom list recorded as the expected
 output of `#guard_msgs`, which is a doc comment, does not, and `#print axioms` is no declaration.
 `python3 scripts/ledger-check.py --self-test` checks the comment scanner on fixed cases.
-
-Every declaration printed by `scripts/Ledger.lean` must be recorded, and every recorded one printed.
 """
 import json
 import re
@@ -163,44 +159,11 @@ def count(lines: list[str], pred: Callable[[str, str], bool]) -> int:
     return sum(1 for l in lines if pred(*code(l)))
 
 
-probe = Path(sys.argv[1]).read_text()
-admissions = [l for l in Path(sys.argv[2]).read_text().splitlines() if l.strip()]
+if len(sys.argv) != 2:
+    sys.exit('usage: ledger-check.py ADMISSIONS_LOG | --self-test')
+admissions = [l for l in Path(sys.argv[1]).read_text().splitlines() if l.strip()]
 ledger = (root / 'Protocols/LEDGER.md').read_text()
-
-# `#print axioms` output: name -> axioms in printed order.
-regen: dict[str, list[str]] = {}
-for m in re.finditer(r"'([^']+)' (?:depends on axioms: \[([^\]]*)\]|does not depend on any axioms)", probe):
-    regen[m.group(1)] = [a.strip() for a in (m.group(2) or '').split(',') if a.strip()]
-
-recorded: dict[str, tuple[list[str], bool]] = {}  # name -> (axioms, compared in order?)
-for line in ledger.splitlines():
-    cells = [c.strip() for c in line.strip().strip('|').split('|')]
-    if len(cells) != 3 or not cells[0].startswith('`'):
-        continue
-    names = re.findall(r'`([^`]+)`', cells[0])
-    if '.' not in names[0]:
-        continue
-    prefix = names[0].rsplit('.', 1)[0]
-    axioms = [] if cells[2] == 'none' else re.findall(r'`([^`]+)`', cells[2])
-    for n in names:
-        recorded[n if '.' in n else f'{prefix}.{n}'] = (axioms, False)
-for m in re.finditer(r'^`([^`]+)`:\n\n```\n(.*?)\n```', ledger, re.M | re.S):
-    recorded[m.group(1)] = ([a.strip() for a in m.group(2).split(',')], True)
-
-ok = bool(regen) and bool(recorded)
-print('== Closures ==')
-for name, axioms in regen.items():
-    if name not in recorded:
-        ok = False
-        print(f'MISSING-IN-LEDGER {name}: {axioms}')
-        continue
-    rec, ordered = recorded[name]
-    same = rec == axioms if ordered else sorted(rec) == sorted(axioms)
-    ok &= same
-    print(f"{'MATCH' if same else 'DIFF '} {name}" + ('' if same else f'\n   ledger: {rec}\n   regen:  {axioms}'))
-for name in recorded.keys() - regen.keys():
-    ok = False
-    print(f'MISSING-IN-PROBE {name}')
+ok = True
 
 print('== State table ==')
 pkgs = {p['name']: p for p in json.loads((root / 'lake-manifest.json').read_text())['packages']}

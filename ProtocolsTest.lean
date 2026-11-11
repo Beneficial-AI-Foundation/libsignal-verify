@@ -5,6 +5,7 @@ Authors: Jin Xing Lim
 -/
 
 import ProtocolsTest.PQXDH.FaultFixtures
+import ProtocolsTest.ToVCVio.CryptoFoundations.AEADAxioms
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.ExperimentFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TransportFixtures
