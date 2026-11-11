@@ -21,8 +21,9 @@ name = "VCVio"
 git = "https://github.com/Verified-zkEVM/VCV-io"
 rev = "88efe9715a9fa9e7d89635c38cf70259836766c2"
 
-# The Aeneas translations + their shared externals (Libsignal.Translated.*) and
-# the hand-written specifications / proofs (Libsignal.Spec.*), all under rust/Libsignal/.
+# The Aeneas translations + their shared externals (Libsignal.Translated.*), the
+# hand-written specifications / proofs (Libsignal.Proofs.*) and their spec summaries
+# (Libsignal.Specs.*), all under rust/Libsignal/.
 [[lean_lib]]
 name = "Libsignal"
 srcDir = "rust"

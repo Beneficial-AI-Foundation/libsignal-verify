@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
-Authors: Ben Hamlin
+Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
@@ -23,7 +24,7 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 section CorrectnessLemmas
 
@@ -55,12 +56,25 @@ lemma fst_eq_smul_of_mem_support_dhKeygen
   obtain ⟨sk, rfl⟩ := hx
   rfl
 
+/-- `P.sig` is perfectly complete if and only if, for every message, signing with
+  `P.sign` under an identity key pair drawn by `dhKeygen` and checking with
+  `P.verify` returns `true` with probability 1. -/
+lemma sig_perfectlyComplete_iff [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
+    P.sig.PerfectlyComplete ProbCompRuntime.probComp ↔
+      ∀ m : G ⊕ PQPK, Pr[= true | do
+        let (pk, sk) ← dhKeygen (F := F) P.gen
+        let σ ← P.sign pk sk m
+        P.verify pk m σ] = 1 :=
+  Iff.rfl
+
 /-- For a perfectly complete signature scheme, verifying an honestly generated
   signature can only return `true`. -/
 lemma verify_eq_true_of_perfectlyComplete
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
-    {kp : SPK × SSK} (hkp : kp ∈ support P.sig.keygen)
+    {kp : G × F} (hkp : kp ∈ support (dhKeygen (F := F) P.gen))
     (m : G ⊕ PQPK) {σ : S} (hσ : σ ∈ support (P.sig.sign kp.1 kp.2 m))
     {b : Bool} (hb : b ∈ support (P.sig.verify kp.1 m σ)) : b = true := by
   have h := support_eq_singleton_true_of_evalDist (hsig m)
@@ -76,7 +90,7 @@ lemma verify_eq_true_of_perfectlyComplete
 /-- For a perfectly correct KEM, decapsulating an honestly produced ciphertext
   can only return the encapsulated shared secret. Assumes `hkem`; see the module note. -/
 lemma decaps_eq_some_of_perfectlyCorrect [DecidableEq SS]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     {kp : PQPK × PQSK} (hkp : kp ∈ support P.pqkem.keygen)
     {cs : CT × SS} (hcs : cs ∈ support (P.pqkem.encaps kp.1))
@@ -94,7 +108,7 @@ lemma decaps_eq_some_of_perfectlyCorrect [DecidableEq SS]
 /-- For a perfectly correct AEAD, decryption inverts encryption under the same
   key and associated data. -/
 lemma aead_decrypt_encrypt_of_perfectlyCorrect [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (haead : AEAD.PerfectlyCorrect P.aead)
     (k : K) (ad : G × G × PQPK) (m : Msg) {c : C}
     (hc : c ∈ support (P.aead.encrypt k ad m)) :
@@ -114,13 +128,13 @@ lemma aead_decrypt_encrypt_of_perfectlyCorrect [DecidableEq Msg] [SampleableType
   AEAD ciphertext drawn from the corresponding primitives' supports. -/
 lemma mem_support_initiate
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-    {p : InitiatorParameters F G SPK Msg} {bundle : PreKeyBundle G PQPK S IdC IdK}
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
+    {p : InitiatorParameters F G Msg} {bundle : PreKeyBundle G PQPK S IdC IdK}
     {r : Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K)}
     (hpin : bundle.ikB = p.ikB)
-    (hok₁ : ∀ b ∈ support (P.sig.verify p.sigpkB (EncodeEC bundle.spkB.1) bundle.spkSigB),
+    (hok₁ : ∀ b ∈ support (P.sig.verify p.ikB (EncodeEC bundle.spkB.1) bundle.spkSigB),
       b = true)
-    (hok₂ : ∀ b ∈ support (P.sig.verify p.sigpkB (EncodeKEM bundle.pqpkB.1) bundle.pqpkSigB),
+    (hok₂ : ∀ b ∈ support (P.sig.verify p.ikB (EncodeKEM bundle.pqpkB.1) bundle.pqpkSigB),
       b = true)
     (hr : r ∈ support (initiate P p bundle)) :
     ∃ ekA ∈ support (dhKeygen (F := F) P.gen),
@@ -158,8 +172,8 @@ lemma dh_comm [Field F] [AddCommGroup G] [Module F G] [SampleableType F] {gen : 
   is the session context with the recomputed keys. -/
 lemma mem_support_accept
     [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK)
-    {p : RecipientParameters F G PQPK PQSK SPK SSK S}
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
+    {p : RecipientParameters F G PQPK PQSK S}
     {im : InitialMessage G CT C IdC IdK} {ss : SS} {m₀ : Msg}
     {r : Option (SessionContext G PQPK Msg K)}
     (hid₁ : im.idSPK = P.idEC p.spkB.1)
@@ -202,6 +216,20 @@ lemma opkB_mem_of_genOPK {F G : Type}
       simp only [Option.mem_def, Option.some.injEq] at hx
       exact hx ▸ hopk
 
+/-- Support of `setup`: the draws of Alice's identity key pair, Bob's identity key pair
+  and his signed pre-key pair, and the signature of the pre-key under Bob's identity key,
+  determine both records. -/
+lemma mem_support_setup_iff
+    [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg)
+    {uk : InitiatorParameters F G Msg} {tk : RecipientIdentity F G S} :
+    (uk, tk) ∈ support (setup P msg) ↔
+      ∃ ikA ∈ support (dhKeygen (F := F) P.gen), ∃ ikB ∈ support (dhKeygen (F := F) P.gen),
+      ∃ spkB ∈ support (dhKeygen (F := F) P.gen),
+      ∃ spkSigB ∈ support (P.sig.sign ikB.1 ikB.2 (EncodeEC spkB.1)),
+        uk = ⟨ikA, ikB.1, msg⟩ ∧ tk = ⟨ikB, spkB, spkSigB⟩ := by
+  simp only [setup, mem_support_bind_iff, support_pure, Set.mem_singleton_iff, Prod.mk.injEq]
+
 /-- Support characterization of an honest run of the T=Bob scheme: under the
   correctness hypotheses, both parties output `some` of the same key, and the
   transcript carries exactly the scheme's 3 messages. Assumes `hkem`; see the module note. -/
@@ -209,20 +237,19 @@ lemma run_support_initiator
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead)
     (msg : Msg)
-    {ikA ikB spkB : G × F} {sigkB : SPK × SSK} {spkSigB : S}
+    {ikA ikB spkB : G × F} {spkSigB : S}
     (hikA : ikA ∈ support (dhKeygen (F := F) P.gen))
     (hikB : ikB ∈ support (dhKeygen (F := F) P.gen))
-    (hsigkB : sigkB ∈ support P.sig.keygen)
     (hspkB : spkB ∈ support (dhKeygen (F := F) P.gen))
-    (hspkSigB : spkSigB ∈ support (P.sig.sign sigkB.1 sigkB.2 (EncodeEC spkB.1)))
+    (hspkSigB : spkSigB ∈ support (P.sig.sign ikB.1 ikB.2 (EncodeEC spkB.1)))
     {uOut tOut : Option (Option K)} {ms : List (Message G PQPK CT S C IdC IdK)}
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (initiator P) (recipient P hasOPK)
-      ⟨ikA, ikB.1, sigkB.1, msg⟩ ⟨ikB, sigkB, spkB, spkSigB⟩ (3 + 1))) :
+      ⟨ikA, ikB.1, msg⟩ ⟨ikB, spkB, spkSigB⟩ (3 + 1))) :
     (∃ k, uOut = some (some k) ∧ tOut = some (some k)) ∧ ms.length = 3 := by
   simp only [Party.runHonest, initiator, recipient, mem_support_bind_iff, support_pure,
     Set.mem_singleton_iff] at hrun
@@ -237,8 +264,8 @@ lemma run_support_initiator
   simp only [Party.runHonestLoop, mem_support_bind_iff] at hy
   obtain ⟨r, ⟨ir, hir, hr⟩, hy⟩ := hy
   obtain ⟨ekA, hekA, cs, hcs, ctxt, hctxt, rfl⟩ := mem_support_initiate P rfl
-    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hsigkB _ hspkSigB hb)
-    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hsigkB _ hσ₂ hb) hir
+    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hikB _ hspkSigB hb)
+    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hikB _ hσ₂ hb) hir
   simp only [support_pure, Set.mem_singleton_iff] at hr
   subst hr
   dsimp only at hctxt hcs hy
@@ -285,20 +312,19 @@ lemma run_support_recipient
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead)
     (msg : Msg)
-    {ikA ikB spkB : G × F} {sigkB : SPK × SSK} {spkSigB : S}
+    {ikA ikB spkB : G × F} {spkSigB : S}
     (hikA : ikA ∈ support (dhKeygen (F := F) P.gen))
     (hikB : ikB ∈ support (dhKeygen (F := F) P.gen))
-    (hsigkB : sigkB ∈ support P.sig.keygen)
     (hspkB : spkB ∈ support (dhKeygen (F := F) P.gen))
-    (hspkSigB : spkSigB ∈ support (P.sig.sign sigkB.1 sigkB.2 (EncodeEC spkB.1)))
+    (hspkSigB : spkSigB ∈ support (P.sig.sign ikB.1 ikB.2 (EncodeEC spkB.1)))
     {uOut tOut : Option (Option K)} {ms : List (Message G PQPK CT S C IdC IdK)}
     (hrun : (uOut, tOut, ms) ∈ support (Party.runHonest (recipientNoConfirm P hasOPK)
-      (initiatorNoConfirm P) ⟨ikB, sigkB, spkB, spkSigB⟩ ⟨ikA, ikB.1, sigkB.1, msg⟩ (2 + 1))) :
+      (initiatorNoConfirm P) ⟨ikB, spkB, spkSigB⟩ ⟨ikA, ikB.1, msg⟩ (2 + 1))) :
     (∃ k, uOut = some (some k) ∧ tOut = some (some k)) ∧ ms.length = 2 := by
   simp only [Party.runHonest, initiatorNoConfirm, recipientNoConfirm, mem_support_bind_iff,
     support_pure, Set.mem_singleton_iff] at hrun
@@ -313,8 +339,8 @@ lemma run_support_recipient
   simp only [Party.runHonestLoop, mem_support_bind_iff] at hy
   obtain ⟨r, ⟨ir, hir, hr⟩, hy⟩ := hy
   obtain ⟨ekA, hekA, cs, hcs, ctxt, hctxt, rfl⟩ := mem_support_initiate P rfl
-    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hsigkB _ hspkSigB hb)
-    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hsigkB _ hσ₂ hb) hir
+    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hikB _ hspkSigB hb)
+    (fun b hb => verify_eq_true_of_perfectlyComplete P hsig hikB _ hσ₂ hb) hir
   simp only [support_pure, Set.mem_singleton_iff] at hr
   subst hr
   dsimp only at hctxt hcs hy

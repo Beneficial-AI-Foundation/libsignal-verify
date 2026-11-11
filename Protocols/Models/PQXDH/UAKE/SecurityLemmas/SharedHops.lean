@@ -6,6 +6,7 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
+import Protocols.Models.PQXDH.UAKE.SecurityLemmas.KeyGuessing
 
 /-!
 # Shared Security Hops
@@ -24,12 +25,12 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
   [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   [SampleableType K]
-  (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+  (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
 /-- One-point union bound: if the Boolean `a` implies `b || (c || d)`, the
   probability that a deterministic run returns `a = true` is at most the sum
@@ -53,7 +54,7 @@ omit [SampleableType K] in
   accepted bundle carries a signed pair the challenger never produced, or
   the KEM-key bad event occurred, or the run is a residual forgery with an
   honest bundle and separated KEM keys. -/
-private lemma forge_or_cases (tk : RecipientIdentity F G SPK SSK S)
+private lemma forge_or_cases (tk : RecipientIdentity F G S)
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (h : (cr.K0.isSome && !isPingPong cr) = true) :
     ((cr.K0.isSome && (challengeBundle P msg hasOPK cr).any fun b =>
@@ -189,11 +190,10 @@ omit [DecidableEq CT] [DecidableEq C] in
 /-- Hop 3 (SUF-CMA): a signature forgery in the challenge phase yields a
   strong existential forgery against `P.sig`.
 
-  Intended reduction: the SUF-CMA adversary simulates the challenge phase,
-  substituting its challenge public key for `sigkB.1` and its signing oracle
+  Ported reduction outline: the SUF-CMA adversary simulates the challenge phase,
+  substituting its challenge public key for `ikB.1` and its signing oracle
   for the two uses of `P.sig.sign` (setup's pre-key signature and each
-  session's KEM-key signature; the signing key is used nowhere else, and the
-  adversary never sees it). When the challenge session completes, it stops
+  session's KEM-key signature). When the challenge session completes, it stops
   and outputs the accepted bundle's signed pair that `honestBundle` fails,
   so the pair was not returned by any signing query. Determinism of
   verification (`hverifyDet`) transfers the initiator's successful
@@ -202,37 +202,81 @@ omit [DecidableEq CT] [DecidableEq C] in
   `publish` sign only two message forms, so a dishonest bundle may reuse an
   honestly signed message with a fresh signature.
 
-  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. A proof would build the
-  SUF-CMA adversary described above and relate its winning event to `sigForgeExp`. -/
-lemma sigForgeProb_le_sig [Inhabited S] [Inhabited SSK]
+  With the single identity key this outline is incomplete. Each T-session's
+  `accept` also computes `DH p.ikB.2 msg.ekA` on the adversary's ephemeral key,
+  and the SUF-CMA game has no query that answers this. The statement still
+  holds, because `hsig` bounds adversaries without a resource limit (#41): an
+  adversary that makes no query and outputs some valid pair for its public key
+  wins with at least the probability of `sigForgeExp`. So the statement says
+  nothing about efficient adversaries. Its intended replacement premise is
+  joint unforgeability of the identity key: signing queries and agreement
+  queries `Y ↦ DH x Y` on the one key pair, with a win on a valid signature of a
+  message that was never signed. With that premise the forgery event compares
+  signed keys, not signature bytes, because XEdDSA signatures are malleable.
+
+  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
+lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
-    (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
+    (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig := by
   sorry
 
-omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
-/-- Hop 4 (KEM-key guessing): the bad event `pqpkGuessed` is a union of
-  pairwise guessing events on `P.pqkem.keygen`, so its probability is
-  bounded by the number of pairs times the per-pair guessing bound `εpk`.
+omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
+/-- Hop 4 (KEM-key guessing): if `A.OpensAtMost q` and every public-key output of
+  `P.pqkem.keygen` has probability at most `εpk`, then
+  `pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk`. The statement needs no
+  `SampleableType K` instance.
 
-  Intended proof: with at most `q` sessions, the collision part is a union
-  over at most `q * (q - 1) / 2` unordered session pairs; conditioning on
-  the earlier key generation, the later one hits it with probability at most
-  `εpk` by `hpk`. The prediction part is a union over at most `q` pairs of
-  the accepted bundle and a later-opened session; the accepted bundle's key
-  is determined strictly before that session's key generation, so `hpk`
-  applies again. In total `q * (q + 1) / 2 ≤ q ^ 2` pairs (for `q = 0` both
-  sides vanish).
-
-  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. A proof would be the
-  union bound described above over at most `q ^ 2` session pairs, each bounded by `hpk`. -/
+  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 4. -/
 lemma pqpkGuessedProb_le
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εpk : ℝ)
     (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk := by
-  sorry
+  -- Each T session draws its KEM public key afresh from `P.pqkem.keygen`, after the keys of the
+  -- earlier sessions and the key of any bundle the challenge has accepted are fixed. So the draw
+  -- of the `j`-th session hits one of at most `j` known keys with probability at most `j * εpk`.
+  -- `KeyGuessing.probEvent_badEnv_le` bounds the simulated challenge stage by the potential
+  -- `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings. That is `εpk * q ^ 2`
+  -- at the start. Only the challenge-stage half of `hq` is used.
+  have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
+  have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
+    (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
+  have key : Pr[= true | pqpkGuessedExp P msg hasOPK A] ≤
+      ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) := by
+    rw [← probEvent_eq_eq_probOutput]
+    simp only [pqpkGuessedExp, challengePhase, bind_assoc]
+    refine probEvent_bind_le_of_forall_le fun ukt _ => ?_
+    have hinit : (uakeInitiator P msg hasOPK).U.init ukt.1 = pure (.waitForMsg (.inl ukt.1)) :=
+      rfl
+    simp only [challengeSession, bind_assoc, hinit, pure_bind, Party.InitResult.opening,
+      Party.InitResult.state, recordOpt]
+    refine (probEvent_bind_le_probEvent
+      (p := fun z => KeyGuessing.badEnv P msg hasOPK z.2 = true)
+      fun z _ hz => le_antisymm (probEvent_bind_le_of_forall_le fun k0 _ => ?_) zero_le).trans ?_
+    · have hk : pqpkGuessed P msg hasOPK
+          ⟨k0.join, z.2.challenge.transcript, z.2.tSessions.map (·.transcript)⟩ =
+            KeyGuessing.badEnv P msg hasOPK z.2 := rfl
+      simp [hk, hz]
+    · refine (KeyGuessing.probEvent_badEnv_le P msg hasOPK ukt.2 _ hpk' ?_ _ q (hq.1 _ _) _
+        ?_).trans ?_
+      · intro t
+        rcases t with n | op
+        · simp
+        · cases op <;> simp
+      · intro s hs
+        simp at hs
+      · simp [KeyGuessing.badEnv, KeyGuessing.envResult, pqpkGuessed, oracleBundles,
+          challengeBundle, transcriptBundle]
+  have hfin : ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) ≠ ⊤ :=
+    ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.natCast_ne_top _)
+  calc pqpkGuessedProb P msg hasOPK A
+      ≤ (ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞)).toReal := ENNReal.toReal_mono hfin key
+    _ = (q : ℝ) ^ 2 * εpk := by
+      rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hε0, ENNReal.toReal_natCast]
+      push_cast
+      ring
 
 end Protocols.Models.PQXDH

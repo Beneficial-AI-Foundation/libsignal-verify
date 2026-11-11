@@ -1,0 +1,18 @@
+Translation patch: impl Handshake for libsignal_protocol::pqxdh::Pqxdh
+
+Change: under the `extraction` feature, the impl is `#[charon::exclude]`.
+Why: the trait is excluded (protocol-handshake-Handshake.patch). A Charon pre-pass would otherwise reach the excluded trait through this impl (blocker catalog PREPASS-EXCLUDED).
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature.
+Relies on: protocol-handshake-Handshake.patch
+
+diff --git a/rust/protocol/src/pqxdh.rs b/rust/protocol/src/pqxdh.rs
+--- a/rust/protocol/src/pqxdh.rs
++++ b/rust/protocol/src/pqxdh.rs
+@@ -34,6 +34,7 @@ use crate::{
+ /// protocol (4 EC DH + 1 ML-KEM encapsulation/decapsulation).
+ pub(crate) struct Pqxdh;
+ 
++#[cfg_attr(feature = "extraction", charon::exclude)]
+ impl Handshake for Pqxdh {
+     type InitiatorParams = InitiatorParameters;
+     type RecipientParams<'a> = RecipientParameters<'a>;

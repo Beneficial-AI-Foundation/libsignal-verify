@@ -128,11 +128,15 @@ These should usually be prioritized in that order, but adjust the trade-off as n
 
 # Lean specifications
 
-- **Spec files mirror the Rust source path**: crate, then module, then item. A spec for `libsignal_protocol::pqxdh::HandshakeKeys::derive` lives in `rust/Libsignal/Spec/Protocol/Pqxdh/HandshakeKeys/Derive.lean`. This holds even when the extraction places a declaration in another crate's namespace.
+- **Proof files mirror the Rust source path**: crate, then module, then item. The specification and proof for `libsignal_protocol::pqxdh::HandshakeKeys::derive` live in `rust/Libsignal/Proofs/Protocol/Pqxdh/HandshakeKeys/Derive.lean`. This holds even when the extraction places a declaration in another crate's namespace.
 
-- **Standard-library items go under `rust/Libsignal/Spec/Std/<crate>/...`**, apart from libsignal's own crates. For example, `alloc::vec::Vec::extend_from_slice` lives in `Spec/Std/Alloc/Vec/ExtendFromSlice.lean`.
+- **Each Rust source file has one spec summary** at its corresponding path in `rust/Libsignal/Specs/`: `rust/protocol/src/pqxdh.rs` has `Specs/Protocol/Pqxdh.lean`. The summary restates every public theorem of the proof files below it with `recall`. The build rejects a statement change beyond definitional equality, so a change of spelling alone passes. `#guard_msgs` and `#print axioms` reject a change to the axioms of any theorem or definition. Definitions, including the extracted entry points, get only the axiom check.
+
+- **Standard-library items go under `Proofs/Std/<crate>/...` and `Specs/Std/<crate>/...`**, apart from libsignal's own crates. For example, `alloc::vec::Vec::extend_from_slice` lives in `Proofs/Std/Alloc/Vec/ExtendFromSlice.lean`, and its summary in `Specs/Std/Alloc/Vec.lean`.
 
 - **No folder is named after a tool** such as Aeneas or Charon.
+
+`scripts/spec-layout-check.sh` checks these rules, except that a path mirrors the Rust source. Its header lists what else it cannot see.
 
 
 # Other useful documents

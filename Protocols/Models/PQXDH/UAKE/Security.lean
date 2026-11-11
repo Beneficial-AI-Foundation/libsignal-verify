@@ -77,17 +77,17 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- Top-level UAKE security theorem for the PQXDH model, assuming the
   underlying DH key exchange is hard to break. This models UAKE security in the
   non-PQ setting. The module note describes the scope of its premises. -/
 theorem uakeInitiator_secure_dh
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
-    [SampleableType K] [Fintype K] [Inhabited K] [Inhabited S] [Inhabited SSK]
+    [SampleableType K] [Fintype K] [Inhabited K] [Inhabited S] [Inhabited F]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq SS] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     /- We assume the function mapping KEM keys to key identifiers is injective. This fails
       for production; see the module note. -/
     (hidKEM : Function.Injective P.idKEM)
@@ -100,7 +100,7 @@ theorem uakeInitiator_secure_dh
       procedure. This holds in general for signature schemes, but VCV-io's
       signature scheme definition leaves it monadic, so this seems to be a
       modeling gap. -/
-    (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
+    (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     /- Bound on an adversary's advantage in forging a signature.
       * DEVIATION FROM SPEC: We require the signature scheme to be SUF-CMA, not
         just EUF-CMA. This is required to avoid (harmless) LS'17-style
@@ -166,10 +166,10 @@ theorem uakeInitiator_secure_dh
 theorem uakeInitiator_secure_pq
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [SampleableType SS] [DecidableEq SS]
-    [Inhabited S] [Inhabited SSK] [Inhabited PQSK]
+    [Inhabited S] [Inhabited F] [Inhabited PQSK]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     /- We assume the function mapping KEM keys to key identifiers is injective. This fails
       for production; see the module note. -/
     (hidKEM : Function.Injective P.idKEM)
@@ -182,7 +182,7 @@ theorem uakeInitiator_secure_pq
       procedure. This holds in general for signature schemes, but VCV-io's
       signature scheme definition leaves it monadic, so this seems to be a
       modeling gap. -/
-    (hverifyDet : ∀ (pk : SPK) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
+    (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     /- We assume the KEM is perfectly correct (an idealization; see the module note). -/
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     /- Bound on an adversary's advantage in forging a signature.

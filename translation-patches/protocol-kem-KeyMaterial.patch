@@ -1,0 +1,37 @@
+Translation patch: libsignal_protocol::kem::KeyMaterial
+
+Change: under the `extraction` feature, `KeyMaterial` does not derive `derive_more::Deref` with `#[deref(forward)]`. An explicit `impl Deref<Target = [u8]>` returns `&*self.data` instead.
+Why: the derived forwarding dereference gives an Aeneas type mismatch.
+Behaviour: unchanged in the production build, which does not enable the `extraction` feature. Under the feature, the explicit impl borrows the same bytes.
+
+diff --git a/rust/protocol/src/kem.rs b/rust/protocol/src/kem.rs
+--- a/rust/protocol/src/kem.rs
++++ b/rust/protocol/src/kem.rs
+@@ -271,14 +271,25 @@ impl KeyKind for Secret {
+     }
+ }
+ 
+-#[derive(derive_more::Deref)]
++#[cfg_attr(not(feature = "extraction"), derive(derive_more::Deref))]
+ #[derive_where(Clone)]
+ pub(crate) struct KeyMaterial<T: KeyKind> {
+-    #[deref(forward)]
++    #[cfg_attr(not(feature = "extraction"), deref(forward))]
+     data: Box<[u8]>,
+     kind: PhantomData<T>,
+ }
+ 
++// The derived forward dereference triggers an Aeneas type mismatch. This
++// explicit slice coercion borrows the same bytes without changing production code.
++#[cfg(feature = "extraction")]
++impl<T: KeyKind> std::ops::Deref for KeyMaterial<T> {
++    type Target = [u8];
++
++    fn deref(&self) -> &Self::Target {
++        &*self.data
++    }
++}
++
+ impl<T: KeyKind> KeyMaterial<T> {
+     fn new(data: Box<[u8]>) -> Self {
+         KeyMaterial {
