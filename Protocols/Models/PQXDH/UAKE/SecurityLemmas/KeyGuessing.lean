@@ -41,13 +41,13 @@ namespace Protocols.Models.PQXDH.KeyGuessing
 
 section Model
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   [DecidableEq G] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-  (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+  (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
 /-- The UAKE oracle of the challenge stage. -/
-noncomputable abbrev oracle (tk : RecipientIdentity F G SPK SSK S) :
+noncomputable abbrev oracle (tk : RecipientIdentity F G S) :
     QueryImpl (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK))
       (StateT (Env (uakeInitiator P msg hasOPK)) ProbComp) :=
   oracleImpl ProbCompRuntime.probComp.toProbCompLift (uakeInitiator P msg hasOPK) tk
@@ -189,7 +189,7 @@ theorem badEnv_challenge_append [DecidableEq PQPK] (env : Env (uakeInitiator P m
     | confirmation _ => simp [pqpkGuessedOfHeads, headBundle]
   · simp
 
-theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
+theorem oracle_inv (tk : RecipientIdentity F G S) (t)
     (env : Env (uakeInitiator P msg hasOPK)) (h : env.SessionsStarted) :
     ∀ z ∈ support ((oracle P msg hasOPK tk t).run env), z.2.SessionsStarted := by
   intro z hz
@@ -309,7 +309,7 @@ theorem oracle_inv (tk : RecipientIdentity F G SPK SSK S) (t)
           subst hz
           exact env.sessionsStarted_clock_mono h _ (by simp [recordOne]) _ _
 
-theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (t)
+theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G S) (t)
     (ht : t ≠ Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
     (h : env.SessionsStarted) :
     ∀ z ∈ support ((oracle P msg hasOPK tk t).run env),
@@ -409,7 +409,7 @@ theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (t
           subst hz
           exact badEnv_challenge_append P msg hasOPK env h _ _ _ _ w [] (by simp [recordOne])
 
-theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (ε : ℝ≥0∞)
+theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ≥0∞)
     (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε) (t)
     (ht : t = Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
     (hbad : badEnv P msg hasOPK env = false) :
@@ -441,7 +441,7 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S) (ε
 
 /-- The potential bound for the UAKE oracle, for any budget predicate that holds exactly at
 `openT`. -/
-theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G SPK SSK S)
+theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G S)
     (ε : ℝ≥0∞) (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε)
     {p : (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)).Domain → Prop}
     {_ : DecidablePred p} (hp : ∀ t, p t ↔ t = Sum.inr .openT) {α : Type}

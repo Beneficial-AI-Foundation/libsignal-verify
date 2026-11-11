@@ -6,7 +6,7 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
-import Libsignal.Spec.Protocol.Crypto.HkdfSha256
+import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 import Libsignal.Translated.Protocol.Funs
 import Protocols.PQXDH.Defs
 
