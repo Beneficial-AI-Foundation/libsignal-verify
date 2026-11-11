@@ -253,6 +253,7 @@ Each lemma says that a computation of the reduction, run against the joint oracl
 pair `(pk, x)`, equals the corresponding real computation, with the signing log extended by the
 messages that the reduction had signed. -/
 
+omit [AddCommGroup G] [DecidableEq G] [DecidableEq PQPK] in
 lemma run_unif {α : Type} (c : ProbComp α) (log : List (SignatureInput G PQPK)) :
     (simulateQ (fun t : unifSpec.Domain =>
       (liftM ((HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)) t) :
@@ -265,6 +266,8 @@ lemma run_unif {α : Type} (c : ProbComp α) (log : List (SignatureInput G PQPK)
     simp only [StateT.run_monadLift, bind_assoc, pure_bind, map_bind]
     exact bind_congr fun a => ih a log
 
+omit [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] [DecidableEq G]
+ [DecidableEq PQPK] in
 lemma run_up [Inhabited F] {α : Type} (pk : G) (x : F) (c : ProbComp α)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) (up (G := G) (PQPK := PQPK) (S := S) c)).run log =
@@ -274,18 +277,24 @@ lemma run_up [Inhabited F] {α : Type} (pk : G) (x : F) (c : ProbComp α)
   rw [QueryImpl.simulateQ_add_liftM_left]
   exact run_unif c log
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+ [SampleableType K] in
 lemma run_signQ [Inhabited F] (pk : G) (x : F) (m : SignatureInput G PQPK)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) (signQ (S := S) m)).run log =
       (fun σ => (σ, m :: log)) <$> P.sign pk x m := by
   simp [jointOr, signQ, SignatureAlg.jointImpl]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+ [SampleableType K] in
 lemma run_agreeQ [Inhabited F] (pk : G) (x : F) (Y : G)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) (agreeQ (S := S) (PQPK := PQPK) Y)).run log =
       pure (DH x Y, log) := by
   simp [jointOr, agreeQ, SignatureAlg.jointImpl]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+ [SampleableType K] in
 lemma run_publishSim [Inhabited F] (pk : G) (x : F)
     (p : RecipientParameters F G PQPK PQSK S) (hp : p.ikB = (pk, x))
     (log : List (SignatureInput G PQPK)) :
@@ -296,6 +305,7 @@ lemma run_publishSim [Inhabited F] (pk : G) (x : F)
         (publish (IdC := IdC) (IdK := IdK) (C := C) (K := K) P p) := by
   simp [publishSim, publish, run_signQ, hp]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_acceptSim [Inhabited F] (pk : G) (x : F)
     (p : RecipientParameters F G PQPK PQSK S) (hp : p.ikB = (pk, x))
     (im : InitialMessage G CT C IdC IdK)
@@ -312,7 +322,7 @@ lemma run_acceptSim [Inhabited F] (pk : G) (x : F)
     refine bind_congr fun r => ?_
     rcases r with _ | SS
     · simp
-    · simp [run_agreeQ, hp]
+    · simp only [hp, simulateQ_bind, StateT.run_bind, run_agreeQ, pure_bind]
       rcases hd : P.aead.decrypt (P.kdf (DH p.spkB.2 im.ikA, DH x im.ekA, DH p.spkB.2 im.ekA,
         Option.map (fun opk => DH opk.2 im.ekA) p.opkB, SS)).2.1 (im.ikA, pk, p.pqpkB.1) im.ctxt
         with _ | m <;> simp [hd]
@@ -331,6 +341,7 @@ def initLog :
   | .speakFirst _ (.bundle b) => [EncodeKEM b.pqpkB.1]
   | _ => []
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S)
     (htk : tk.ikB = (pk, x)) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((recipientSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
@@ -346,6 +357,7 @@ lemma run_recipientSim_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdenti
   rw [hpub]
   simp [scrubInit, initLog, scrubState]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_step [Inhabited F] (pk : G) (x : F)
     (st : RecipientParameters F G PQPK PQSK S ⊕ K)
     (hst : ∀ p, st = Sum.inl p → p.ikB = (pk, x))
@@ -367,6 +379,7 @@ lemma run_recipientSim_step [Inhabited F] (pk : G) (x : F)
     · simp [recipientSim, recipient, scrubState]
   · simp [recipientSim, recipient, scrubState]
 
+omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_step [Inhabited F] (pk : G) (x : F)
     (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
@@ -388,6 +401,7 @@ lemma run_initiatorSim_step [Inhabited F] (pk : G) (x : F)
       rcases hc : confirm P ctx conf with _ | SK <;> simp
   · simp [initiatorSim, initiator]
 
+omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((initiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
@@ -395,6 +409,7 @@ lemma run_initiatorSim_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParame
       (fun r => (r, log)) <$> (initiator P).init uk := by
   simp [initiatorSim, initiator]
 
+omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_output [Inhabited F] (pk : G) (x : F)
     (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
     (log : List (SignatureInput G PQPK)) :
@@ -403,6 +418,7 @@ lemma run_initiatorSim_output [Inhabited F] (pk : G) (x : F)
       (fun r => (r, log)) <$> (initiator P).output st := by
   rcases st with p | ctx | k <;> simp [initiatorSim, initiator]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_output [Inhabited F] (pk : G) (x : F)
     (st : RecipientParameters F G PQPK PQSK S ⊕ K) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((recipientSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
@@ -416,6 +432,7 @@ The environments of the two runs mention the parties through `(uakeInitiator …
 `(uakeInitiatorSim …).T`. These restatements keep the parties in that form, which the proofs of
 the single-query equations need. -/
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S)
     (htk : tk.ikB = (pk, x)) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
@@ -424,6 +441,7 @@ lemma simT_run_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S
       (fun r => (scrubInit r, initLog r ++ log)) <$> (uakeInitiator P msg hasOPK).T.init tk :=
   run_recipientSim_init P hasOPK pk x tk htk log
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_step [Inhabited F] (pk : G) (x : F)
     (st : RecipientParameters F G PQPK PQSK S ⊕ K)
     (hst : ∀ p, st = Sum.inl p → p.ikB = (pk, x))
@@ -434,6 +452,7 @@ lemma simT_run_step [Inhabited F] (pk : G) (x : F)
       (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).T.step st w :=
   run_recipientSim_step P hasOPK pk x st hst w log
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_output [Inhabited F] (pk : G) (x : F)
     (st : RecipientParameters F G PQPK PQSK S ⊕ K) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
@@ -442,6 +461,7 @@ lemma simT_run_output [Inhabited F] (pk : G) (x : F)
       (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).T.output st :=
   run_recipientSim_output P hasOPK pk x st log
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
@@ -450,6 +470,7 @@ lemma simU_run_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
       (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).U.init uk :=
   run_initiatorSim_init P pk x uk log
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_step [Inhabited F] (pk : G) (x : F)
     (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
@@ -459,6 +480,7 @@ lemma simU_run_step [Inhabited F] (pk : G) (x : F)
       (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).U.step st w :=
   run_initiatorSim_step P pk x st w log
 
+omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_output [Inhabited F] (pk : G) (x : F)
     (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
     (log : List (SignatureInput G PQPK)) :
@@ -475,13 +497,15 @@ lemma filterMap_set_of_eq {α β : Type} (g : α → Option β) (l : List α) (i
   | cons b l ih =>
     cases i with
     | zero =>
-      simp at hi
+      simp only [List.length_cons, lt_add_iff_pos_left, Order.lt_add_one_iff, zero_le, getElem?_pos,
+          List.getElem_cons_zero, Option.some.injEq] at hi
       subst hi
       simp only [List.set_cons_zero, List.filterMap_cons, h]
     | succ i =>
       simp at hi
       simp only [List.set_cons_succ, List.filterMap_cons, ih i hi]
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- Replacing a session by one whose transcript has the same bundle does not change the signing
 log. -/
 lemma signedLog_set [Inhabited F] (tk : RecipientIdentity F G S)
@@ -495,6 +519,7 @@ lemma signedLog_set [Inhabited F] (tk : RecipientIdentity F G S)
   simp only [signedLog, List.filterMap_map]
   rw [filterMap_set_of_eq _ env.tSessions sid t t' hs (by simpa using h)]
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 /-- A step of Bob's party never leaves a state that holds the identity secret, and never ends
 with `complete`. -/
 lemma recipient_step_state (st : RecipientParameters F G PQPK PQSK S ⊕ K)
@@ -508,29 +533,31 @@ lemma recipient_step_state (st : RecipientParameters F G PQPK PQSK S ⊕ K)
         .complete st' := fun _ h => by cases h
   rcases st with p | k
   · rcases w with b | im | conf
-    · simp [recipient] at hr
+    · simp only [recipient, MonadAttach.support_pure] at hr
       subst hr
       exact ⟨by simp, hrej⟩
     · simp only [recipient] at hr
       obtain ⟨o, -, hr⟩ := (mem_support_bind_iff _ _ _).1 hr
       rcases o with _ | ctx
-      · simp at hr; subst hr; exact ⟨by simp, hrej⟩
+      · simp only [MonadAttach.support_pure] at hr; subst hr; exact ⟨by simp, hrej⟩
       · obtain ⟨conf, -, hr⟩ := (mem_support_bind_iff _ _ _).1 hr
-        simp at hr; subst hr
+        simp only [MonadAttach.support_pure] at hr; subst hr
         exact ⟨fun st' w' d h => ⟨_, by cases h; rfl⟩, fun _ h => by cases h⟩
-    · simp [recipient] at hr
+    · simp only [recipient, MonadAttach.support_pure] at hr
       subst hr
       exact ⟨by simp, hrej⟩
-  · simp [recipient] at hr
+  · simp only [recipient, MonadAttach.support_pure] at hr
     subst hr
     exact ⟨by simp, hrej⟩
 
+omit [AddCommGroup G] [DecidableEq G] [DecidableEq PQPK] in
 lemma liftProbComp_sim {α : Type} (c : ProbComp α) :
     (ProbCompLift.ofMonadLift (OracleComp (Spec G PQPK S))).liftProbComp.toFun α c = up c := rfl
 
 lemma liftProbComp_real {α : Type} (c : ProbComp α) :
     ProbCompRuntime.probComp.toProbCompLift.liftProbComp.toFun α c = c := rfl
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- The simulation equation for one query. -/
 theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (tk : RecipientIdentity F G S) (htk : tk.ikB = (pk, x))
@@ -546,7 +573,10 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
   · cases op with
     | openT =>
       simp only [simImpl, realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl]
-      simp [simT_run_init P msg hasOPK pk x tk htk]
+      simp only [add_apply_inr, Party.InitResult.opening, Party.InitResult.state, StateT.run_bind,
+          StateT.run_monadLift, monadLift_self, bind_pure_comp, StateT.run_get, StateT.run_set,
+          pure_bind, bind_map_left, simulateQ_bind, simT_run_init P msg hasOPK pk x tk htk,
+          map_bind]
       erw [bind_map_left]
       refine bind_congr fun r => ?_
       erw [StateT.run_pure, StateT.run_pure]
@@ -557,21 +587,25 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
     | stepT sid w =>
       simp only [simImpl, realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl]
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp [scrubEnv, hs]
+      · simp only [add_apply_inr, pure_bind, scrubEnv, StateT.run_bind, StateT.run_get,
+          List.getElem?_map, hs, Option.map_none]
         erw [StateT.run_pure, StateT.run_pure]
         simp
       · rcases hk : t.key with _ | key
         · have hsess := hI.sessions t (List.mem_of_getElem? hs)
           have hst := hsess.2
           obtain ⟨b, c, es, hent⟩ := hsess.1
-          simp [scrubEnv, hs, hk, simT_run_step P msg hasOPK pk x t.state hst w]
+          simp only [add_apply_inr, pure_bind, scrubEnv, StateT.run_bind, StateT.run_get,
+              List.getElem?_map, hs, Option.map_some, hk, StateT.run_monadLift, monadLift_self,
+              bind_pure_comp, bind_map_left, simulateQ_bind,
+              simT_run_step P msg hasOPK pk x t.state hst w, map_bind]
           erw [bind_map_left]
           refine bind_congr_of_forall_mem_support _ fun r hr => ?_
           obtain ⟨hacc, hcomp⟩ := recipient_step_state P hasOPK t.state w r hr
           rcases r with ⟨st', w', done⟩ | st' | _
           · obtain ⟨k, rfl⟩ := hacc st' w' done rfl
             cases done
-            · simp
+            · simp only [Bool.false_eq_true, ↓reduceIte, StateT.run_bind, StateT.run_set, pure_bind]
               erw [StateT.run_pure, StateT.run_pure]
               have hsl := signedLog_set P msg hasOPK tk env hs
                 ⟨Sum.inr k, (recordOne (recordOne t.transcript w env.clock).1 w'
@@ -580,7 +614,9 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
                 (recordOne (recordOne t.transcript w env.clock).1 w'
                   (recordOne t.transcript w env.clock).2).2 env.challenge env.challengeDone
               simp [hsl, List.map_set, scrubState]
-            · simp [simT_run_output P msg hasOPK pk x]
+            · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
+                bind_pure_comp, StateT.run_set, pure_bind, bind_map_left, simulateQ_bind,
+                simT_run_output P msg hasOPK pk x, map_bind]
               refine bind_congr fun key' => ?_
               erw [StateT.run_pure, StateT.run_pure]
               have hsl := signedLog_set P msg hasOPK tk env hs
@@ -591,23 +627,27 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
                   (recordOne t.transcript w env.clock).2).2 env.challenge env.challengeDone
               simp [hsl, List.map_set, scrubState]
           · exact absurd rfl (hcomp st')
-          · simp
+          · simp only
             erw [StateT.run_pure, StateT.run_pure]
             simp
-        · simp [scrubEnv, hs, hk]
+        · simp only [add_apply_inr, pure_bind, scrubEnv, StateT.run_bind, StateT.run_get,
+            List.getElem?_map, hs, Option.map_some, hk]
           erw [StateT.run_pure, StateT.run_pure]
           simp
     | revealT sid =>
       simp only [simImpl, realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl]
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp [scrubEnv, hs]
+      · simp only [add_apply_inr, scrubEnv, StateT.run_bind, StateT.run_get, pure_bind,
+          List.getElem?_map, hs, Option.map_none]
         erw [StateT.run_pure, StateT.run_pure]
         simp
       · rcases hk : t.key with _ | key
-        · simp [scrubEnv, hs, hk]
+        · simp only [add_apply_inr, scrubEnv, StateT.run_bind, StateT.run_get, pure_bind,
+            List.getElem?_map, hs, Option.map_some, hk]
           erw [StateT.run_pure, StateT.run_pure]
           simp
-        · simp [scrubEnv, hs, hk]
+        · simp only [add_apply_inr, scrubEnv, StateT.run_bind, StateT.run_get, pure_bind,
+            List.getElem?_map, hs, Option.map_some, hk, StateT.run_set]
           erw [StateT.run_pure, StateT.run_pure]
           have hsl := signedLog_set P msg hasOPK tk env hs
             ⟨t.state, t.transcript, some key, true⟩ (by simp) env.clock env.challenge
@@ -616,27 +656,31 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
     | stepChallenge w =>
       simp only [simImpl, realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl]
       by_cases hd : env.challengeDone = true
-      · simp [scrubEnv, hd]
+      · simp only [add_apply_inr, scrubEnv, hd, StateT.run_bind, StateT.run_get, pure_bind,
+          ↓reduceIte]
         erw [StateT.run_pure, StateT.run_pure]
         simp [hd]
       · have hd' : env.challengeDone = false := by simpa using hd
-        simp [scrubEnv, hd]
+        simp only [add_apply_inr, scrubEnv, hd, StateT.run_bind, StateT.run_get, pure_bind,
+            Bool.false_eq_true, ↓reduceIte, StateT.run_monadLift, monadLift_self, bind_pure_comp,
+            bind_map_left, simulateQ_bind, map_bind]
         erw [simU_run_step P msg hasOPK pk x env.challenge.state w]
         erw [bind_map_left]
         refine bind_congr fun r => ?_
         rcases r with ⟨st', w', done⟩ | st' | _
-        · simp
+        · simp only [StateT.run_bind, StateT.run_set, pure_bind]
           erw [StateT.run_pure, StateT.run_pure]
           simp [signedLog]
           rfl
-        · simp
+        · simp only [StateT.run_bind, StateT.run_set, pure_bind]
           erw [StateT.run_pure, StateT.run_pure]
           simp [signedLog]
           rfl
-        · simp
+        · simp only
           erw [StateT.run_pure, StateT.run_pure]
           simp [hd']
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 /-- What Bob's `init` returns: his bundle and a state that holds his identity. -/
 lemma recipient_init_shape (tk : RecipientIdentity F G S) :
     ∀ r ∈ support ((recipient P hasOPK).init tk),
@@ -650,6 +694,7 @@ lemma recipient_init_shape (tk : RecipientIdentity F G S) :
   simp only [support_pure] at hr
   exact ⟨_, bd, hr, rfl⟩
 
+omit [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 /-- A successful `initiate` verified both signatures. -/
 lemma initiate_verified (p : InitiatorParameters F G Msg) (b : PreKeyBundle G PQPK S IdC IdK)
     (r) (hr : some r ∈ support (initiate P p b)) : b.ikB = p.ikB ∧ Verified P p.ikB b := by
@@ -667,6 +712,7 @@ lemma initiate_verified (p : InitiatorParameters F G Msg) (b : PreKeyBundle G PQ
       exact ⟨ho₁, ho₂⟩
     · simp [hok] at hr
 
+omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 /-- A step of Alice's party from her initial state accepts only a bundle whose signatures
 verified. -/
 lemma initiator_step_inl (uk : InitiatorParameters F G Msg) (w : Message G PQPK CT S C IdC IdK) :
@@ -677,11 +723,12 @@ lemma initiator_step_inl (uk : InitiatorParameters F G Msg) (w : Message G PQPK 
   · simp only [initiator] at hr
     obtain ⟨o, ho, hr⟩ := (mem_support_bind_iff _ _ _).1 hr
     rcases o with _ | ⟨im, ctx⟩
-    · simp at hr; exact absurd hr hne
+    · simp only [MonadAttach.support_pure] at hr; exact absurd hr hne
     · exact ⟨b, rfl, (initiate_verified P uk b _ ho).2⟩
-  · simp [initiator] at hr; exact absurd hr hne
-  · simp [initiator] at hr; exact absurd hr hne
+  · simp only [initiator, MonadAttach.support_pure] at hr; exact absurd hr hne
+  · simp only [initiator, MonadAttach.support_pure] at hr; exact absurd hr hne
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- Replacing one session by a session whose transcript extends the old one and whose state
 holds Bob's identity key pair keeps the invariant. -/
 lemma simInv_set_session [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameters F G Msg}
@@ -701,6 +748,7 @@ lemma simInv_set_session [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameter
   · obtain ⟨⟨b, c', es, he⟩, -⟩ := hI.sessions t (List.mem_of_getElem? hs)
     exact ⟨⟨b, c', es ++ ext, by rw [hext, he]; rfl⟩, hst⟩
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- The same for a change of the clock and the flag only, with the sessions unchanged. -/
 lemma simInv_clock [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameters F G Msg}
     {env : Env (uakeInitiator P msg hasOPK)} (hI : SimInv P msg hasOPK pk x uk env)
@@ -708,6 +756,7 @@ lemma simInv_clock [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameters F G 
     SimInv P msg hasOPK pk x uk ⟨c, env.challenge, d, env.tSessions⟩ :=
   ⟨hI.pinned, hI.sessions, hI.challenge⟩
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- Every oracle query keeps the invariant. -/
 theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (tk : RecipientIdentity F G S) (htk : tk.ikB = (pk, x))
@@ -716,7 +765,9 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
     ∀ z ∈ support (((realImpl P msg hasOPK tk) t).run env), SimInv P msg hasOPK pk x uk z.2 := by
   intro z hz
   rcases t with n | op
-  · simp [realImpl, oracleImpl] at hz
+  · simp only [add_apply_inl, realImpl, oracleImpl, HasQuery.toQueryImpl_apply,
+      HasQuery.instOfMonadLift_query, QueryImpl.add_apply_inl, StateT.run_monadLift, monadLift_self,
+      bind_pure_comp, MonadAttach.support_map, Set.mem_image, MonadAttach.mem_support] at hz
     obtain ⟨a, -, rfl⟩ := hz
     exact hI
   · cases op with
@@ -742,59 +793,69 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
     | stepT sid w =>
       simp only [realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp [hs] at hz
+      · simp only [add_apply_inr, pure_bind, StateT.run_bind, StateT.run_get, hs,
+          MonadAttach.mem_support] at hz
         subst hz
         exact hI
       · rcases hk : t.key with _ | key
         · have hsess := hI.sessions t (List.mem_of_getElem? hs)
-          simp [hs, hk] at hz
+          simp only [add_apply_inr, pure_bind, StateT.run_bind, StateT.run_get, hs, hk,
+              StateT.run_monadLift, monadLift_self, bind_pure_comp, bind_map_left,
+              MonadAttach.support_bind, MonadAttach.mem_support, Set.mem_iUnion, exists_prop] at hz
           obtain ⟨i, hi, hz⟩ := hz
           have hi' : i ∈ support ((recipient P hasOPK).step t.state w) := hi
           obtain ⟨hacc, hcomp⟩ := recipient_step_state P hasOPK t.state w i hi'
           rcases i with ⟨st', w', done⟩ | st' | _
           · obtain ⟨k, rfl⟩ := hacc st' w' done rfl
             cases done
-            · simp at hz
+            · simp only [Bool.false_eq_true, ↓reduceIte, StateT.run_bind, StateT.run_set,
+                pure_bind] at hz
               erw [StateT.run_pure] at hz
-              simp at hz
+              simp only [MonadAttach.canReturn_pure_iff] at hz
               subst hz
               exact simInv_set_session P msg hasOPK hI hs _
                 [(w, env.clock), (w', env.clock + 1)] (by simp [recordOne])
                 (fun p hp => by cases hp) _ _
-            · simp at hz
+            · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
+                bind_pure_comp, StateT.run_set, pure_bind, bind_map_left,
+                MonadAttach.canReturn_bind_iff] at hz
               obtain ⟨key', -, hz⟩ := hz
               erw [StateT.run_pure] at hz
-              simp at hz
+              simp only [MonadAttach.canReturn_pure_iff] at hz
               subst hz
               exact simInv_set_session P msg hasOPK hI hs _
                 [(w, env.clock), (w', env.clock + 1)] (by simp [recordOne])
                 (fun p hp => by cases hp) _ _
           · exact absurd rfl (hcomp st')
-          · simp at hz
+          · simp only at hz
             erw [StateT.run_pure] at hz
-            simp at hz
+            simp only [MonadAttach.canReturn_pure_iff] at hz
             subst hz
             exact hI
-        · simp [hs, hk] at hz
+        · simp only [add_apply_inr, pure_bind, StateT.run_bind, StateT.run_get, hs, hk,
+            MonadAttach.mem_support] at hz
           subst hz
           exact hI
     | revealT sid =>
       simp only [realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp [hs] at hz
+      · simp only [add_apply_inr, StateT.run_bind, StateT.run_get, pure_bind, hs,
+          MonadAttach.mem_support] at hz
         erw [StateT.run_pure] at hz
-        simp at hz
+        simp only [MonadAttach.canReturn_pure_iff] at hz
         subst hz
         exact hI
       · rcases hk : t.key with _ | key
-        · simp [hs, hk] at hz
+        · simp only [add_apply_inr, StateT.run_bind, StateT.run_get, pure_bind, hs, hk,
+            MonadAttach.mem_support] at hz
           erw [StateT.run_pure] at hz
-          simp at hz
+          simp only [MonadAttach.canReturn_pure_iff] at hz
           subst hz
           exact hI
-        · simp [hs, hk] at hz
+        · simp only [add_apply_inr, StateT.run_bind, StateT.run_get, pure_bind, hs, hk,
+            StateT.run_set, MonadAttach.mem_support] at hz
           erw [StateT.run_pure] at hz
-          simp at hz
+          simp only [MonadAttach.canReturn_pure_iff] at hz
           subst hz
           exact simInv_set_session P msg hasOPK hI hs
             ⟨t.state, t.transcript, some key, true⟩ [] (by simp)
@@ -802,17 +863,21 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
     | stepChallenge w =>
       simp only [realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       by_cases hd : env.challengeDone = true
-      · simp [hd] at hz
+      · simp only [add_apply_inr, StateT.run_bind, StateT.run_get, pure_bind, hd, ↓reduceIte,
+          MonadAttach.mem_support] at hz
         erw [StateT.run_pure] at hz
-        simp at hz
+        simp only [MonadAttach.canReturn_pure_iff] at hz
         subst hz
         exact hI
-      · simp [hd] at hz
+      · simp only [add_apply_inr, StateT.run_bind, StateT.run_get, pure_bind, hd,
+          Bool.false_eq_true, ↓reduceIte, StateT.run_monadLift, monadLift_self, bind_pure_comp,
+          bind_map_left, MonadAttach.support_bind, MonadAttach.mem_support, Set.mem_iUnion,
+          exists_prop] at hz
         obtain ⟨i, hi, hz⟩ := hz
         rcases i with ⟨st', w', done⟩ | st' | _
-        · simp at hz
+        · simp only [StateT.run_bind, StateT.run_set, pure_bind] at hz
           erw [StateT.run_pure] at hz
-          simp at hz
+          simp only [MonadAttach.canReturn_pure_iff] at hz
           subst hz
           refine ⟨hI.pinned, hI.sessions, ?_⟩
           rcases hI.challenge with ⟨hst, hen⟩ | ⟨b, c, es, hent, hv⟩
@@ -826,9 +891,9 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
               by rw [← hI.pinned]; exact hv⟩
           · right
             exact ⟨b, c, es ++ [(w, env.clock), (w', env.clock + 1)], by simp [recordOne, hent], hv⟩
-        · simp at hz
+        · simp only [StateT.run_bind, StateT.run_set, pure_bind] at hz
           erw [StateT.run_pure] at hz
-          simp at hz
+          simp only [MonadAttach.canReturn_pure_iff] at hz
           subst hz
           refine ⟨hI.pinned, hI.sessions, ?_⟩
           rcases hI.challenge with ⟨hst, hen⟩ | ⟨b, c, es, hent, hv⟩
@@ -842,12 +907,13 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
               by rw [← hI.pinned]; exact hv⟩
           · right
             exact ⟨b, c, es ++ [(w, env.clock)], by simp [recordOne, hent], hv⟩
-        · simp at hz
+        · simp only at hz
           erw [StateT.run_pure] at hz
-          simp at hz
+          simp only [MonadAttach.canReturn_pure_iff] at hz
           subst hz
           exact hI
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- The simulation equation, from its single-query form. Simulating the reduction's oracle with
 the joint oracles gives the real run with the environment scrubbed and the signing log read off
 from the environment. -/
@@ -884,6 +950,7 @@ theorem sim_run_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G 
   rw [← hproj, Functor.map_map]
   rfl
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- The initial environment of the challenge phase satisfies the invariant. -/
 lemma simInv_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (hpin : uk.ikB = pk) :
@@ -891,6 +958,7 @@ lemma simInv_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G M
       (⟨0, ⟨Sum.inl uk, ⟨[]⟩⟩, false, []⟩ : Env (uakeInitiator P msg hasOPK)) :=
   ⟨hpin, fun _ h => by simp at h, Or.inl ⟨rfl, rfl⟩⟩
 
+omit [DecidableEq PQPK] [SampleableType K] in
 /-- The challenge phase of the reduction, run against the joint oracles, is the real challenge
 phase, with the environment scrubbed and the signing log read off from the final environment. -/
 theorem sim_challenge_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
@@ -921,18 +989,22 @@ theorem sim_challenge_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameter
   erw [bind_map_left]
   refine bind_congr fun k0 => ?_
   erw [StateT.run_pure]
-  simp
+  simp only [map_pure, PFunctor.FreeM.pure_inj, Prod.mk.injEq, ChallengeResult.mk.injEq, true_and,
+      and_true]
   exact ⟨rfl, by simp [scrubEnv, List.map_map, Function.comp_def]⟩
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+ [SampleableType K] in
 lemma verify_eq_pure_true (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S),
       ∃ b, P.sig.verify pk m σ = pure b)
     {pk : G} {m : G ⊕ PQPK} {σ : S} (h : true ∈ support (P.sig.verify pk m σ)) :
     P.sig.verify pk m σ = pure true := by
   obtain ⟨b, hb⟩ := hverifyDet pk m σ
   rw [hb] at h ⊢
-  simp at h
+  simp only [MonadAttach.support_pure, Set.mem_singleton_iff, Bool.true_eq] at h
   rw [h]
 
+omit [SampleableType K] in
 /-- A real challenge phase that ends in the forgery event gives the reduction a valid signature on
 a message that it never had signed. -/
 lemma challenge_win [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
@@ -976,26 +1048,38 @@ lemma challenge_win [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
     have hfb : transcriptBundle env.challenge.transcript = some b := by
       simp [transcriptBundle, hent]
     by_cases hspk : b.spkB.1 = tk.spkB.1
-    · simp [honestBundle, oracleBundles, hspk] at hhon
-      simp [forgery, hfb, hspk]
+    · simp only [honestBundle, hspk, decide_true, oracleBundles, List.filterMap_map,
+        Function.comp_apply, List.any_filterMap, Bool.true_and, List.any_eq_false,
+        Bool.not_eq_true] at hhon
+      simp only [forgery, hfb, hspk, ↓reduceIte]
       refine ⟨verify_eq_pure_true P hverifyDet hv.2, ?_⟩
-      simp [signedLog, EncodeKEM, EncodeEC]
+      simp only [signedLog, EncodeKEM, List.filterMap_map, Function.comp_apply, EncodeEC,
+          List.mem_append, List.mem_reverse, List.mem_map, List.mem_filterMap, Sum.inr.injEq,
+          List.mem_cons, reduceCtorEq, List.not_mem_nil, or_self, or_false, not_exists, not_and,
+          forall_exists_index, and_imp]
       intro b' b1 hb1 hb' h
       have := hhon b1 hb1
       rw [hb'] at this
-      simp at this
+      simp only [decide_eq_false_iff_not] at this
       exact this h.symm
-    · simp [forgery, hfb, hspk]
+    · simp only [forgery, hfb, hspk, ↓reduceIte]
       refine ⟨verify_eq_pure_true P hverifyDet hv.1, ?_⟩
-      simp [signedLog, EncodeKEM, EncodeEC]
+      simp only [signedLog, EncodeKEM, List.filterMap_map, Function.comp_apply, EncodeEC,
+          List.mem_append, List.mem_reverse, List.mem_map, List.mem_filterMap, reduceCtorEq,
+          and_false, exists_false, List.mem_cons, Sum.inl.injEq, List.not_mem_nil, or_false,
+          false_or]
       exact hspk
 
+omit [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq PQPK]
+ [DecidableEq IdC] [DecidableEq IdK] in
 /-- `forgery` does not read the identity key pair. -/
 lemma forgery_ikB (ikB ikB' : G × F) (spkB : G × F) (σ : S)
     (tr : Transcript (Message G PQPK CT S C IdC IdK)) :
     forgery (⟨ikB, spkB, σ⟩ : RecipientIdentity F G S) tr =
       forgery (⟨ikB', spkB, σ⟩ : RecipientIdentity F G S) tr := rfl
 
+omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+ [SampleableType K] in
 /-- The signing log of `setupSim`. -/
 lemma run_setupSim_bind [Inhabited F] (pk : G) (x : F) {β : Type}
     (f : InitiatorParameters F G Msg × RecipientIdentity F G S →
@@ -1009,6 +1093,7 @@ lemma run_setupSim_bind [Inhabited F] (pk : G) (x : F) {β : Type}
           [EncodeEC spkB.1] : ProbComp (β × List (SignatureInput G PQPK))) := by
   simp [setupSim, simulateQ_bind, StateT.run_bind, run_up, run_signQ]
 
+omit [SampleableType K] in
 /-- The joint game against the reduction, as a computation of the real challenge phase followed
 by the verification of the forgery. -/
 lemma joint_exp_eq [Inhabited F] (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
@@ -1046,6 +1131,7 @@ lemma pr_swap {α β : Type} (mx : ProbComp α) (my : ProbComp β) (f : α → �
   simp only [map_bind]
   exact prEvent_bind_bind_swap_of_uniform _ _ _
 
+omit [SampleableType K] in
 /-- The signature forgery probability of any UAKE adversary is at most the advantage of the
 reduction `sigAdversary` in the joint unforgeability game. -/
 theorem sigForgeProb_le_advantage_sigAdversary [Inhabited F]

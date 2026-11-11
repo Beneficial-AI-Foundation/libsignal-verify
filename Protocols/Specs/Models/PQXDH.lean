@@ -187,7 +187,7 @@ recall Protocols.Models.PQXDH.sigForgeProb_le_sig
     {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg]
-    [DecidableEq IdC] [DecidableEq IdK] [SampleableType K]
+    [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)

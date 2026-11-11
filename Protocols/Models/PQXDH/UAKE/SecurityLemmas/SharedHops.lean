@@ -187,7 +187,7 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
   rwa [ENNReal.toReal_add (ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩)
     (prEvent_ne_top _), ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h3
 
-omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] in
+omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
 /-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a forgery
 against `P.sig` in the joint unforgeability game of the identity key.
 
