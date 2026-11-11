@@ -13,8 +13,8 @@ Aeneas library has no model of `<Box<[T]> as From<&[T]>>::from`, which is why th
 `protocol-kem-box_from_slice` writes the two-call form.
 
 At the pinned rustc, `From<&[T]> for Box<[T]>` clones each element of the slice into a new box, and
-`to_vec` followed by `Box::from(vec)` clones each element into a vector that the box then takes over.
-For `u8` the clone is the identity. The theorem states that the two-call form succeeds and
+`to_vec` followed by `Box::from(vec)` clones each element into a vector that the box then takes
+over. For `u8` the clone is the identity. The theorem states that the two-call form succeeds and
 returns a slice equal to its argument. It is a property of the models.
 
 **Source**: `library/alloc/src/boxed/convert.rs`, `impl From<&[T]> for Box<[T]>`, rustc

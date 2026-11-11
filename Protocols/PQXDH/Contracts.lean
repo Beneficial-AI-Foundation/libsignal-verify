@@ -178,8 +178,9 @@ This contract stays. The Aeneas standard library models no way to build a `Strin
 and `String::from`, `to_string` and `format!` are not modelled either, so no translation patch can
 route this call through a modelled one. The other standard-library conversions that the two entry
 points use are modelled: the extraction calls `alloc.vec.FromBoxSliceVec.from`,
-`alloc.slice.Slice.to_vec` and `core.slice.cmp.PartialEqSlice.eq` instead of axioms, and
-`Libsignal/Proofs/Std/` proves their properties. -/
+`alloc.slice.Slice.to_vec` and `core.slice.cmp.PartialEqSlice.eq` instead of axioms. The Aeneas
+library states the property of `FromBoxSliceVec.from` (`from_spec`), and `Libsignal/Proofs/Std/`
+proves the properties of the byte-slice conversion and of the slice comparison. -/
 def ToOwnedTotal : Prop :=
   ∀ s : Str, ∃ t, Str.Insts.AllocBorrowToOwnedString.to_owned s = .ok t
 

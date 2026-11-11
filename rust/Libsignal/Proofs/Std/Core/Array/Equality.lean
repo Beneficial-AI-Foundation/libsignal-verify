@@ -8,10 +8,10 @@ import Aeneas
 /-! # Spec theorem for comparing a byte slice with a byte array
 
 The extraction of `slice == array[..]`, with `slice : &[u8]` and `array : [u8; N]`, indexes the
-array with `RangeFull` (`core.array.Array.index` with `core.slice.index.SliceIndexRangeFullSlice`) and
-then calls `core.slice.cmp.PartialEqSlice.eq`. All three are models in the Aeneas standard library.
-The Aeneas library has no model of `<[T] as PartialEq<[U; N]>>::eq`, which is why the translation
-patch `core-curve-slice_eq_array` compares two slices.
+array with `RangeFull` (`core.array.Array.index` with `core.slice.index.SliceIndexRangeFullSlice`)
+and then calls `core.slice.cmp.PartialEqSlice.eq`. All three are models in the Aeneas standard
+library. The Aeneas library has no model of `<[T] as PartialEq<[U; N]>>::eq`, which is why the
+translation patch `core-curve-slice_eq_array` compares two slices.
 
 At the pinned rustc, `<[T] as PartialEq<[U; N]>>::eq` is `false` unless the slice has length `N`
 and otherwise compares the two arrays. `<[T] as PartialEq<[U]>>::eq` is `false` on unequal lengths

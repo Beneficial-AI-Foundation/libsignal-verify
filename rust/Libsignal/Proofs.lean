@@ -10,5 +10,4 @@ import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.DeriveWithLabel
 import Libsignal.Proofs.Std.Alloc.Boxed.AsRef
 import Libsignal.Proofs.Std.Alloc.Boxed.Convert
 import Libsignal.Proofs.Std.Alloc.Vec.ExtendFromSlice
-import Libsignal.Proofs.Std.Alloc.Vec.IntoBoxedSlice
 import Libsignal.Proofs.Std.Core.Array.Equality
