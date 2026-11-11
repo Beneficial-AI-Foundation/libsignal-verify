@@ -13,6 +13,7 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Runtime
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transcript
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
+import Protocols.ToVCVio.CryptoFoundations.JointSignatureAlg
 import Protocols.ToVCVio.CryptoFoundations.KEMCorrectness
 import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
 import Protocols.ToVCVio.EvalDist.Monad.Basic

@@ -60,17 +60,17 @@ def challengeBundle (cr : ChallengeResult (uakeInitiator P msg hasOPK)) :
     Option (PreKeyBundle G PQPK S IdC IdK) :=
   transcriptBundle cr.challengeTr
 
-/-- True if every signed pair the initiator verifies in the bundle `b` was
-  honestly produced by the challenger: the signed pre-key pair is the one
-  created by `setup`, and the KEM pair was published by some T-oracle
-  session. A completed challenge session whose accepted bundle fails this
-  predicate yields a strong (SUF-CMA) signature forgery. -/
+/-- True if every key that the initiator verifies a signature on in the bundle `b` was
+  signed by the challenger: the signed pre-key is the one `setup` signed, and the KEM key
+  was published by some T-oracle session. Signatures are not compared, so a different valid
+  signature on a signed key does not make a bundle dishonest. A completed challenge session
+  whose accepted bundle fails this predicate yields a signature on a message that the
+  challenger never signed, which is a forgery in the joint unforgeability game. -/
 def honestBundle (tk : RecipientIdentity F G S)
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (b : PreKeyBundle G PQPK S IdC IdK) : Bool :=
-  decide (b.spkB.1 = tk.spkB.1) && decide (b.spkSigB = tk.spkSigB) &&
-    (oracleBundles P msg hasOPK cr).any fun b' =>
-      decide (b.pqpkB.1 = b'.pqpkB.1) && decide (b.pqpkSigB = b'.pqpkSigB)
+  decide (b.spkB.1 = tk.spkB.1) &&
+    (oracleBundles P msg hasOPK cr).any fun b' => decide (b.pqpkB.1 = b'.pqpkB.1)
 
 /-- The KEM-key bad event of the forgery branch: either two T-oracle
   sessions published the same KEM public key, or the challenge session
@@ -113,7 +113,7 @@ def forgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal
 
 /-- Signature-forgery experiment: the challenge session completed, and some
-  signed pair in the bundle it accepted was never produced by the
+  key that the bundle it accepted carries a signature on was never signed by the
   challenger. -/
 def sigForgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
   let (cr, st) ← challengePhase P msg hasOPK A
@@ -134,9 +134,9 @@ def pqpkGuessedExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp 
 def pqpkGuessedProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   (Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true]).toReal
 
-/-- Residual forgery experiment: a forgery on an honestly signed bundle,
-  with pairwise-distinct and unpredicted KEM keys. This is the event bounded
-  by the forgery cores (Hop 5). -/
+/-- Residual forgery experiment: a forgery on an honest bundle, whose keys are
+  the signed keys as published, with pairwise-distinct and unpredicted KEM keys.
+  This is the event bounded by the forgery cores (Hop 5). -/
 def forgeHonestGoodExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
   let (cr, st) ← challengePhase P msg hasOPK A
   return cr.K0.isSome && !isPingPong cr &&

@@ -7,15 +7,16 @@ Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.KeyGuessing
+import Protocols.ToVCVio.CryptoFoundations.JointSignatureAlg
 
 /-!
 # Shared Security Hops
 
 Hops 1 through 4 of the security proofs, used by both the DH and the PQ
 security theorems in `Security.lean`: the forgery/indistinguishability
-split, the union bound over forgery causes, the SUF-CMA reduction, and the
-KEM public-key guessing bound. See `SecurityLemmas.lean` for the overall
-map.
+split, the union bound over forgery causes, the joint unforgeability
+reduction, and the KEM public-key guessing bound. See `SecurityLemmas.lean`
+for the overall map.
 
 The lemma statements and proofs in this file are AI-written.
 -/
@@ -157,7 +158,7 @@ lemma advantage_le_forgeProb_add_indistAdvantage
 
 omit [SampleableType K] in
 /-- Hop 2 (union bound): on any completed challenge run, either some signed
-  pair of the accepted bundle was never produced by the challenger
+  key of the accepted bundle was never signed by the challenger
   (`sigForgeExp`), or the KEM-key bad event occurred (`pqpkGuessedExp`), or
   the forgery happened with an honest bundle and separated KEM keys
   (`forgeHonestGoodExp`). Purely probabilistic; uses no cryptographic
@@ -187,39 +188,14 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
     (prEvent_ne_top _), ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h3
 
 omit [DecidableEq CT] [DecidableEq C] in
-/-- Hop 3 (SUF-CMA): a signature forgery in the challenge phase yields a
-  strong existential forgery against `P.sig`.
-
-  Ported reduction outline: the SUF-CMA adversary simulates the challenge phase,
-  substituting its challenge public key for `ikB.1` and its signing oracle
-  for the two uses of `P.sig.sign` (setup's pre-key signature and each
-  session's KEM-key signature). When the challenge session completes, it stops
-  and outputs the accepted bundle's signed pair that `honestBundle` fails,
-  so the pair was not returned by any signing query. Determinism of
-  verification (`hverifyDet`) transfers the initiator's successful
-  verification of that pair to the SUF-CMA experiment's final check.
-  Strong unforgeability (rather than EUF-CMA) is needed because `setup` and
-  `publish` sign only two message forms, so a dishonest bundle may reuse an
-  honestly signed message with a fresh signature.
-
-  With the single identity key this outline is incomplete. Each T-session's
-  `accept` also computes `DH p.ikB.2 msg.ekA` on the adversary's ephemeral key,
-  and the SUF-CMA game has no query that answers this. The statement still
-  holds, because `hsig` bounds adversaries without a resource limit (#41): an
-  adversary that makes no query and outputs some valid pair for its public key
-  wins with at least the probability of `sigForgeExp`. So the statement says
-  nothing about efficient adversaries. Its intended replacement premise is
-  joint unforgeability of the identity key: signing queries and agreement
-  queries `Y ↦ DH x Y` on the one key pair, with a win on a valid signature of a
-  message that was never signed. With that premise the forgery event compares
-  signed keys, not signature bytes, because XEdDSA signatures are malleable.
-
-  Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
+/-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a
+  forgery against `P.sig` in the joint unforgeability game of the identity key, with
+  signing queries and agreement queries `Y ↦ DH x Y` on the one key pair. Used by
+  `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
 lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig := by
   sorry
 

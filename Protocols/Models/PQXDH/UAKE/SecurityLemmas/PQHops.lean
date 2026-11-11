@@ -74,7 +74,8 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
   Used by `uakeInitiator_secure_pq` as hop 5. A proof would follow the steps above in the current
   model, but the last step does not hold as stated, since unsigned bundle fields (the key
-  identifiers and the one-time pre-key) can change without changing the derived keys, so the
+  identifiers and the one-time pre-key) and, because hop 3 compares signed keys, the
+  signatures on honestly signed keys can change without changing the derived keys, so the
   transcripts differ with no forgery. Assumes `hidKEM` and `hkemCorrect`; see the module
   note. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]

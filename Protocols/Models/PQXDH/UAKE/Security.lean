@@ -36,11 +36,18 @@ Model simplifications
   implicit via the adversary being unable to compute the DH output, rather than
   relying on Alice's signature (she signs nothing). The other direction,
   `uakeRecipient`, is correctness-only and has no advantage statement here.
-* **SUF-CMA signature (not EUF-CMA):** Since UAKE is a
-  transcript-matching-style definition, our security theorems are subject to
-  harmless but definition-breaking "no-match" attacks on the signature scheme.
-  See Li & Schäge, "No-Match Attacks and Robust Partnering Definitions" (ACM CCS
-  2017) for a reference on attacks of this kind.
+* **Joint unforgeability of the identity key:** One identity key signs and does
+  Diffie-Hellman. The premise `hsig` bounds an adversary in the game of
+  `SignatureAlg.jointUnforgeableExp` with signing queries and agreement queries
+  `Y ↦ DH x Y` on the same key pair; it wins with a valid signature on a message that
+  it never had signed. Strong unforgeability is false of production XEdDSA, whose
+  verification accepts `(R, s + ℓ)` whenever it accepts `(R, s)`. So the signature
+  forgery event compares signed keys, not signature bytes, and a run in which the
+  adversary only changes a signature on an honestly signed key is no signature forgery.
+  Under transcript matching such a run still counts as a forgery. It belongs to the
+  residual event of hop 5, which original-key partnering is to cover. See Li & Schäge,
+  "No-Match Attacks and Robust Partnering Definitions" (ACM CCS 2017) for attacks of
+  this kind.
 * **PQ-secure signature scheme:** In order to re-use our AKE definition in the
   post-quantum case, we assume here that the signature scheme is *still
   secure*, even in the post-quantum setting. In reality, PQXDH uses an EC-based
@@ -101,12 +108,12 @@ theorem uakeInitiator_secure_dh
       signature scheme definition leaves it monadic, so this seems to be a
       modeling gap. -/
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    /- Bound on an adversary's advantage in forging a signature.
-      * DEVIATION FROM SPEC: We require the signature scheme to be SUF-CMA, not
-        just EUF-CMA. This is required to avoid (harmless) LS'17-style
-        "no-match" attacks because we use a transcript-matching AKE definition. -/
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
+    /- Bound on an adversary's advantage in forging a signature, in the game with the
+      one identity key that signs and does Diffie-Hellman: the adversary has signing
+      queries and agreement queries on the same key pair, and wins with a valid
+      signature on a message that it never had signed. Strong unforgeability is false
+      of production XEdDSA; see the module note. -/
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig)
     /- Bound on an adversary's advantage in the DH security game. -/
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
@@ -185,10 +192,11 @@ theorem uakeInitiator_secure_pq
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     /- We assume the KEM is perfectly correct (an idealization; see the module note). -/
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
-    /- Bound on an adversary's advantage in forging a signature.
-      * DEVIATION FROM SPEC: We require the signature scheme to be SUF-CMA, not
-        just EUF-CMA. This is required to avoid (harmless) LS'17-style
-        "no-match" attacks because we use a transcript-matching AKE definition.
+    /- Bound on an adversary's advantage in forging a signature, in the game with the
+      one identity key that signs and does Diffie-Hellman: the adversary has signing
+      queries and agreement queries on the same key pair, and wins with a valid
+      signature on a message that it never had signed. Strong unforgeability is false
+      of production XEdDSA; see the module note.
       * MODEL SIMPLIFICATION: In order to re-use our AKE definition, we assume
         here that the signature scheme is *still secure*, even in the
         post-quantum setting. In reality, PQXDH uses an EC-based signature
@@ -197,8 +205,7 @@ theorem uakeInitiator_secure_pq
         against HNDL attacks, which requires only secrecy, not integrity.
         However, UAKE cannot capture secrecy alone. A better way to model this
         kind of security would be to use a secrecy-only definition. -/
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig)
     /- Bound on an adversary's advantage in the IND-CCA game for the KEM. -/
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)

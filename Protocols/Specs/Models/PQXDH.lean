@@ -120,8 +120,7 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_dh
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εsig εgap εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
@@ -157,8 +156,7 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_pq
     (εsig εkem εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
@@ -194,8 +192,7 @@ recall Protocols.Models.PQXDH.sigForgeProb_le_sig
     [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.UnforgeableAdversary,
-      (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
+    (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig
 
 /--
