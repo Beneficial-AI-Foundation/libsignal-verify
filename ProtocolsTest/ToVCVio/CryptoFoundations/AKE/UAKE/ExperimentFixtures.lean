@@ -113,16 +113,25 @@ randomness by answering every uniform query with `0`. Its lift is a monad morphi
 `ProbCompRuntime` alone does not exclude it. -/
 
 private noncomputable def constRuntime : ProbCompRuntime ProbComp where
-  toSPMFSemantics := SPMFSemantics.ofMonadLift ProbComp
+  toSemanticsVia := SemanticsVia.ofEvalDistSemantics ProbComp
   toProbCompLift := ⟨simulateQ' fun n => (pure 0 : ProbComp (Fin (n + 1)))⟩
+  evalDist_map_eq _f hf mx := _root_.evalDist_map mx hf
 
 /-- Lifted through `constRuntime`, a fair coin lands on `0` with probability one, so the
 runtime is not coherent. -/
 example : ¬ RuntimeCoherent constRuntime := fun h => by
-  have h₀ : Pr[= 0 | constRuntime.liftProbComp (query (spec := unifSpec) 1)]
-      = Pr[= 0 | (query (spec := unifSpec) 1 : ProbComp (Fin 2))] := by
-    rw [probOutput_def, probOutput_def, h.lift_evalDist_eq]
-  simp [constRuntime, ProbCompRuntime.liftProbComp] at h₀
+  have h₀ : Pr{let y ← (constRuntime.liftProbComp (query (spec := unifSpec) 1))}[y = 0]
+      = Pr{let y ← (query (spec := unifSpec) 1 : ProbComp (Fin 2))}[y = 0] := by
+    rw [prEvent_eq_evalDist_singleton, prEvent_eq_evalDist_singleton, h.lift_evalDist_eq]
+  have h₁ : Pr{let y ← (query (spec := unifSpec) 1 : ProbComp (Fin 2))}[y = 0] = 2⁻¹ := by
+    rw [prEvent_query_eq_card_div, Finset.filter_eq']
+    simp
+  have h₂ : constRuntime.liftProbComp (query (spec := unifSpec) 1) =
+      (pure 0 : ProbComp (Fin 2)) := by
+    simp [constRuntime, ProbCompRuntime.liftProbComp]
+    rfl
+  rw [h₁, h₂, prEvent_pure] at h₀
+  simp at h₀
   exact absurd h₀.symm (by rw [ENNReal.inv_eq_one]; norm_num)
 
 end ExperimentFixtures

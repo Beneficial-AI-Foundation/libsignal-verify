@@ -87,7 +87,7 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf) :
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf) :
     forgeHonestGoodProb P msg hasOPK A ≤ q * (εgap + 2 * εaead + εkdf) := by
   sorry
 
@@ -135,8 +135,8 @@ lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     indistAdvantage P msg hasOPK A ≤
       q * (εgap + εaead + εkdf) + 2 * (q : ℝ) ^ 2 * εpk := by
   sorry

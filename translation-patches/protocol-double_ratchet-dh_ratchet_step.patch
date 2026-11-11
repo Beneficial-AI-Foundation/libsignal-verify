@@ -1,0 +1,26 @@
+Translation patch: libsignal_protocol::double_ratchet::RatchetState::dh_ratchet_step
+
+Change: the first statement, `self.sender_chain.as_ref().ok_or(InvalidSessionError("missing sender chain"))?.ratchet_key.private_key`, becomes a `let ... else` that returns `Err(InvalidSessionError("missing sender chain").into())`, followed by the read of `private_key`.
+Why: from nightly-2026.10.24-74aabd5 on (checked up to nightly-2026.11.10-0d21a9e), Aeneas stops on the original body with `Unreachable` (`interp/InterpExpansion.ml`, line 125). nightly-2026.10.15-cd41995 and the pinned nightly-2026.09.30-0855ce1 translate it. The trigger is `.ok_or(E)?` on a borrow of `self` (E holds a `&'static str`), then a call that takes `&mut self` (`take_root_key`), then `?` on a call whose error type holds a `&'static str` (`create_chain`). A `match` or `let ... else` in place of the first `?` avoids it. The `while ... remove(0)` loop at the end of the body is not the trigger.
+Behaviour: identical. In a function that returns `Result<_, SignalProtocolError>`, `x.ok_or(e)?` is `match x { Some(v) => v, None => return Err(SignalProtocolError::from(e)) }`, and `e.into()` is `SignalProtocolError::from(e)`. Building `InvalidSessionError` has no side effect, so building it only on the `None` path changes nothing.
+
+diff --git a/rust/protocol/src/double_ratchet.rs b/rust/protocol/src/double_ratchet.rs
+--- a/rust/protocol/src/double_ratchet.rs
++++ b/rust/protocol/src/double_ratchet.rs
+@@ -273,12 +273,10 @@ impl RatchetState {
+         their_ephemeral: &PublicKey,
+         csprng: &mut R,
+     ) -> Result<ChainKey> {
+-        let sender_private_key = self
+-            .sender_chain
+-            .as_ref()
+-            .ok_or(InvalidSessionError("missing sender chain"))?
+-            .ratchet_key
+-            .private_key;
++        let Some(sender_chain) = self.sender_chain.as_ref() else {
++            return Err(InvalidSessionError("missing sender chain").into());
++        };
++        let sender_private_key = sender_chain.ratchet_key.private_key;
+
+         // Receiving half-step: root_key + DH(our_sender, their_ephemeral)
+         let current_root_key = self.take_root_key();

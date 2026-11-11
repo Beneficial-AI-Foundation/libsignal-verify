@@ -3,7 +3,6 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
-import Mathlib.Tactic.Recall
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
 /-!

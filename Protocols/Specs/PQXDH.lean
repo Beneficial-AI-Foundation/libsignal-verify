@@ -3,7 +3,6 @@ Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
-import Mathlib.Tactic.Recall
 import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Security
@@ -46,9 +45,10 @@ recall Protocols.PQXDH.uakeInitiator_secure_dh
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
     (hodh : ∀ (D : PqxdhODHAdversary), pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
+    (hpk : ∀ (pk : PQPub),
+      (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
-      + Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)].toReal
+      + (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
@@ -68,12 +68,10 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_dh
@@ -94,7 +92,8 @@ recall Protocols.PQXDH.uakeInitiator_secure_dh_total
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
     (hodh : ∀ (D : PqxdhODHAdversary), pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
-    (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
+    (hpk : ∀ (pk : PQPub),
+      (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
 
 /--
@@ -115,12 +114,10 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh_total' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_dh_total
@@ -136,14 +133,15 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq
     (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
     (hq : A.OpensAtMostPerPhase q) (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
-    (hkem : ∀ (B : K.IND_CCA_Adversary), KEMScheme.IND_CCA_Advantage ProbCompRuntime.probComp B
-      ≤ εkem)
+    (hkem : ∀ (B : K.IND_CCA_Adversary),
+      (KEMScheme.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ (D : PRFScheme.PRFAdversary (Key × Key × Key × Option Key) (Key × Key × Key)),
-      (kdfPRF H).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
+      ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ (pk : PQPub),
+      (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
-      + Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)].toReal
+      + (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
@@ -163,12 +161,10 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_pq
@@ -189,12 +185,13 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq_total
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
-    (hkem : ∀ (B : K.IND_CCA_Adversary), KEMScheme.IND_CCA_Advantage ProbCompRuntime.probComp B
-      ≤ εkem)
+    (hkem : ∀ (B : K.IND_CCA_Adversary),
+      (KEMScheme.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ (D : PRFScheme.PRFAdversary (Key × Key × Key × Option Key) (Key × Key × Key)),
-      (kdfPRF H).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ (pk : PQPub), Pr[= pk | (fun x => x.public_key) <$> P.pqKeygen].toReal ≤ εpk)
+      ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ (pk : PQPub),
+      (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
     : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
 
 /--
@@ -215,12 +212,10 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_pq_total
@@ -236,7 +231,7 @@ recall Protocols.PQXDH.fullExp_noLostMass
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
     (hA : Adversary.SendsFittingMessages A)
-    : Pr[⊥ | rustRuntime.evalDist (fullExp P msg hasOPK A)] = 0
+    : rustRuntime.prFail (fullExp P msg hasOPK A) = 0
 
 /--
 info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
@@ -256,12 +251,10 @@ info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullExp_noLostMass
@@ -274,7 +267,7 @@ recall Protocols.PQXDH.coreCompletion_extracted
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom) (hCoins : ∀ r ∈ support P.coins, Dom r)
-    : Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK)] = 1
+    : rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK) {true} = 1
 
 /--
 info: 'Protocols.PQXDH.coreCompletion_extracted' depends on axioms:
@@ -292,12 +285,10 @@ info: 'Protocols.PQXDH.coreCompletion_extracted' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.coreCompletion_extracted
@@ -309,7 +300,7 @@ recall Protocols.PQXDH.jointKeyAgreement_extracted
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom) (hCoins : ∀ r ∈ support P.coins, Dom r)
     (δ : ENNReal) (hδ : KyberDeltaCorrect P δ)
-    : 1 - δ ≤ Pr[= true | rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK)]
+    : 1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK) {true}
 
 /--
 info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
@@ -327,12 +318,10 @@ info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.jointKeyAgreement_extracted
@@ -349,8 +338,8 @@ recall Protocols.PQXDH.wrapperAgreement_uakeInitiator
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead) (δ : ENNReal)
     (hδ : KyberDeltaCorrect P δ)
     : 1 - δ
-      ≤ Pr[= true | rustRuntime.evalDist
-      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))]
+      ≤ rustRuntime.evalDist
+      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK)) {true}
 
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
@@ -370,12 +359,10 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.wrapperAgreement_uakeInitiator
@@ -392,8 +379,8 @@ recall Protocols.PQXDH.wrapperAgreement_uakeRecipient
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead) (δ : ENNReal)
     (hδ : KyberDeltaCorrect P δ)
     : 1 - δ
-      ≤ Pr[= true | rustRuntime.evalDist
-      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))]
+      ≤ rustRuntime.evalDist
+      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK)) {true}
 
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
@@ -413,12 +400,10 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.wrapperAgreement_uakeRecipient
@@ -444,7 +429,6 @@ info: 'Protocols.PQXDH.initiate_kdfInput_witness' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
@@ -472,10 +456,8 @@ info: 'Protocols.PQXDH.accept_kdfInput_witness' depends on axioms:
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.accept_kdfInput_witness
@@ -523,8 +505,9 @@ info: 'Protocols.Realization.liftResult_eq_pure_of_spec' depends on axioms:
 #print axioms Protocols.Realization.liftResult_eq_pure_of_spec
 
 recall Protocols.Realization.probOutput_rustRuntime
-    {α : Type} (mx : RustOracleComp unifSpec α) (a : α)
-    : Pr[= a | rustRuntime.evalDist mx] = Pr[= Except.ok a | ExceptT.run mx]
+    {α : Type} [MeasurableSpace α] [MeasurableSingletonClass α]
+    (mx : RustOracleComp unifSpec α) (a : α)
+    : rustRuntime.evalDist mx {a} = Pr{let r ← ExceptT.run mx}[r = Except.ok a]
 
 /--
 info: 'Protocols.Realization.probOutput_rustRuntime' depends on axioms:
@@ -536,8 +519,8 @@ info: 'Protocols.Realization.probOutput_rustRuntime' depends on axioms:
 #print axioms Protocols.Realization.probOutput_rustRuntime
 
 recall Protocols.Realization.probFailure_rustRuntime
-    {α : Type} (mx : RustOracleComp unifSpec α)
-    : Pr[⊥ | rustRuntime.evalDist mx] = probEvent (ExceptT.run mx) fun r => r.toBool = false
+    {α : Type} [MeasurableSpace α] (mx : RustOracleComp unifSpec α)
+    : rustRuntime.prFail mx = Pr{let r ← ExceptT.run mx}[r.toBool = false]
 
 /--
 info: 'Protocols.Realization.probFailure_rustRuntime' depends on axioms:
@@ -565,7 +548,7 @@ info: 'KEMScheme.correctnessError_eq_zero_iff_perfectlyCorrect' depends on axiom
 recall KEMScheme.one_sub_le_probOutput_of_deltaCorrect
     {m : Type → Type} [Monad m] {K PK SK C : Type} [DecidableEq K] {kem : KEMScheme m K PK SK C}
     {runtime : ProbCompRuntime m} {δ : ENNReal} (h : kem.deltaCorrect runtime δ)
-    : 1 - δ ≤ Pr[= true | runtime.evalDist kem.CorrectExp]
+    : 1 - δ ≤ runtime.evalDist kem.correctnessExperiment {true}
 
 /--
 info: 'KEMScheme.one_sub_le_probOutput_of_deltaCorrect' depends on axioms:
@@ -578,7 +561,7 @@ info: 'KEMScheme.one_sub_le_probOutput_of_deltaCorrect' depends on axioms:
 
 recall Protocols.PQXDH.kyberKem_correctExp_sound
     {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK)
-    (h : true ∈ support (kyberKem P).CorrectExp)
+    (h : true ∈ support (kyberKem P).correctnessExperiment)
     : ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ ss ct r',
       libsignal_protocol.kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key r
       = Aeneas.Std.Result.ok (Aeneas.Std.core.result.Result.Ok (ss, ct), r')
@@ -763,12 +746,10 @@ info: 'Protocols.PQXDH.fullExp' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullExp
@@ -789,12 +770,10 @@ info: 'Protocols.PQXDH.fullAdvantage' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullAdvantage
@@ -950,8 +929,7 @@ info: 'Protocols.PQXDH.deriveKeysTotal' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveKeysTotal
@@ -1002,8 +980,7 @@ info: 'Protocols.PQXDH.deriveHK' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveHK
@@ -1013,8 +990,7 @@ info: 'Protocols.PQXDH.deriveKeys' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveKeys
@@ -1024,8 +1000,7 @@ info: 'Protocols.PQXDH.DeriveKeysTotal' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.DeriveKeysTotal

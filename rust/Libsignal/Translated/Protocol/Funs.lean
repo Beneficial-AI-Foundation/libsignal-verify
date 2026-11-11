@@ -10,6 +10,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -26,7 +27,7 @@ namespace libsignal_protocol
     Source: '/rustc/library/core/src/clone.rs', lines 780:4-780:44
     Name pattern: [core::clone::Clone<&'0 @T>] -/
 @[reducible, rust_trait_impl "core::clone::Clone<&'0 @T>"]
-def Shared0T.Insts.CoreCloneClone (T : Type) : core.clone.Clone T := {
+def Shared0T.Insts.CoreCloneClone (T : Type _) : core.clone.Clone T := {
   clone := core.clone.impls.CloneShared.clone
 }
 
@@ -34,7 +35,7 @@ def Shared0T.Insts.CoreCloneClone (T : Type) : core.clone.Clone T := {
     Source: '/rustc/library/core/src/convert/mod.rs', lines 714:0-716:24
     Name pattern: [core::convert::AsRef<&'0 @T, @U>] -/
 @[reducible, rust_trait_impl "core::convert::AsRef<&'0 @T, @U>"]
-def Shared0T.Insts.CoreConvertAsRef {T : Type} {U : Type} (AsRefInst :
+def Shared0T.Insts.CoreConvertAsRef {T : Type _} {U : Type _} (AsRefInst :
   core.convert.AsRef T U) : core.convert.AsRef T U := {
   as_ref := Shared0T.Insts.CoreConvertAsRef.as_ref AsRefInst
 }
@@ -43,7 +44,7 @@ def Shared0T.Insts.CoreConvertAsRef {T : Type} {U : Type} (AsRefInst :
     Source: '/rustc/library/core/src/convert/mod.rs', lines 779:4-779:22
     Name pattern: [core::ops::function::FnOnce<@, (@T), @U>] -/
 @[reducible, rust_trait_impl "core::ops::function::FnOnce<@, (@T), @U>"]
-def P.Insts.CoreOpsFunctionFnOnceTupleTU {T : Type} {U : Type} (FromInst :
+def P.Insts.CoreOpsFunctionFnOnceTupleTU {T : Type _} {U : Type _} (FromInst :
   core.convert.From U T) : core.ops.function.FnOnce (T → Result U) T U := {
   call_once := P.Insts.CoreOpsFunctionFnOnceTupleTU.call_once FromInst
 }
@@ -52,8 +53,8 @@ def P.Insts.CoreOpsFunctionFnOnceTupleTU {T : Type} {U : Type} (FromInst :
     Source: '/rustc/library/core/src/convert/mod.rs', lines 832:0-832:32
     Name pattern: [core::convert::AsRef<[@T], [@T]>] -/
 @[reducible, rust_trait_impl "core::convert::AsRef<[@T], [@T]>"]
-def Slice.Insts.CoreConvertAsRefSlice (T : Type) : core.convert.AsRef (Slice T)
-  (Slice T) := {
+def Slice.Insts.CoreConvertAsRefSlice (T : Type _) : core.convert.AsRef (Slice
+  T) (Slice T) := {
   as_ref := Slice.Insts.CoreConvertAsRefSlice.as_ref
 }
 
@@ -97,8 +98,8 @@ def std.time.SystemTimeError.Insts.CoreFmtDebug : core.fmt.Debug
     Source: '/rustc/library/alloc/src/boxed/convert.rs', lines 61:0-61:38
     Name pattern: [core::convert::From<Box<[@T]>, &'0 [@T]>] -/
 @[reducible, rust_trait_impl "core::convert::From<Box<[@T]>, &'0 [@T]>"]
-def BoxSlice.Insts.CoreConvertFromShared0Slice {T : Type} (corecloneCloneInst :
-  core.clone.Clone T) : core.convert.From (Slice T) (Slice T) := {
+def BoxSlice.Insts.CoreConvertFromShared0Slice {T : Type _} (corecloneCloneInst
+  : core.clone.Clone T) : core.convert.From (Slice T) (Slice T) := {
   «from» := BoxSlice.Insts.CoreConvertFromShared0Slice.from
     corecloneCloneInst
 }
@@ -107,8 +108,8 @@ def BoxSlice.Insts.CoreConvertFromShared0Slice {T : Type} (corecloneCloneInst :
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2135:0-2135:58
     Name pattern: [core::clone::Clone<Box<[@T]>>] -/
 @[reducible, rust_trait_impl "core::clone::Clone<Box<[@T]>>"]
-def BoxSlice.Insts.CoreCloneClone {T : Type} {A : Type} (corecloneCloneInst :
-  core.clone.Clone T) (corecloneCloneInst1 : core.clone.Clone A) :
+def BoxSlice.Insts.CoreCloneClone {T : Type _} {A : Type _} (corecloneCloneInst
+  : core.clone.Clone T) (corecloneCloneInst1 : core.clone.Clone A) :
   core.clone.Clone (Slice T) := {
   clone := BoxSlice.Insts.CoreCloneClone.clone corecloneCloneInst
     corecloneCloneInst1
@@ -118,7 +119,7 @@ def BoxSlice.Insts.CoreCloneClone {T : Type} {A : Type} (corecloneCloneInst :
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4413:0-4413:32
     Name pattern: [core::default::Default<alloc::vec::Vec<@T>>] -/
 @[reducible, rust_trait_impl "core::default::Default<alloc::vec::Vec<@T>>"]
-def alloc.vec.Vec.Insts.CoreDefaultDefault (T : Type) : core.default.Default
+def alloc.vec.Vec.Insts.CoreDefaultDefault (T : Type _) : core.default.Default
   (alloc.vec.Vec T) := {
   default := alloc.vec.Vec.Insts.CoreDefaultDefault.default T
 }
@@ -127,7 +128,7 @@ def alloc.vec.Vec.Insts.CoreDefaultDefault (T : Type) : core.default.Default
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4444:0-4444:46
     Name pattern: [core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>] -/
 @[reducible, rust_trait_impl "core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>"]
-def alloc.vec.Vec.Insts.CoreConvertAsRefSlice (T : Type) (A : Type) :
+def alloc.vec.Vec.Insts.CoreConvertAsRefSlice (T : Type _) (A : Type _) :
   core.convert.AsRef (alloc.vec.Vec T) (Slice T) := {
   as_ref := alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref A
 }
@@ -137,7 +138,7 @@ def alloc.vec.Vec.Insts.CoreConvertAsRefSlice (T : Type) (A : Type) :
     Name pattern: [core::convert::From<alloc::vec::Vec<@T>, Box<[@T]>>] -/
 @[reducible, rust_trait_impl
   "core::convert::From<alloc::vec::Vec<@T>, Box<[@T]>>"]
-def alloc.vec.Vec.Insts.CoreConvertFromBoxSlice (T : Type) (A : Type) :
+def alloc.vec.Vec.Insts.CoreConvertFromBoxSlice (T : Type _) (A : Type _) :
   core.convert.From (alloc.vec.Vec T) (Slice T) := {
   «from» := alloc.vec.Vec.Insts.CoreConvertFromBoxSlice.from A
 }
@@ -242,7 +243,7 @@ def prost.error.EncodeError.Insts.CoreFmtDebug : core.fmt.Debug
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.9.4/src/rng.rs', lines 357:0-357:35
     Name pattern: [rand#1::rng::Rng<@R>] -/
 @[reducible, rust_trait_impl "rand#1::rng::Rng<@R>"]
-def rand_1.rng.Rng.Blanket {R : Type} (rand_core_1RngCoreInst1 :
+def rand_1.rng.Rng.Blanket {R : Type _} (rand_core_1RngCoreInst1 :
   rand_core_1.RngCore R) : rand_1.rng.Rng R := {
   rand_core_1RngCoreInst := rand_core_1RngCoreInst1
 }
@@ -252,8 +253,8 @@ def rand_1.rng.Rng.Blanket {R : Type} (rand_core_1RngCoreInst1 :
     Name pattern: [rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>] -/
 @[reducible, rust_trait_impl
   "rand_core#1::RngCore<rand_core#1::UnwrapErr<@R, @Clause0_Error>>"]
-def rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore {R : Type} {Clause0_Error :
-  Type} (TryRngCoreInst : rand_core_1.TryRngCore R Clause0_Error) :
+def rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore {R : Type _} {Clause0_Error
+  : Type _} (TryRngCoreInst : rand_core_1.TryRngCore R Clause0_Error) :
   rand_core_1.RngCore (rand_core_1.UnwrapErr R Clause0_Error) := {
   next_u32 := rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.next_u32
     TryRngCoreInst
@@ -268,9 +269,9 @@ def rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore {R : Type} {Clause0_Error :
     Name pattern: [rand_core#1::CryptoRng<rand_core#1::UnwrapErr<@R, @Clause0_Clause0_Error>>] -/
 @[reducible, rust_trait_impl
   "rand_core#1::CryptoRng<rand_core#1::UnwrapErr<@R, @Clause0_Clause0_Error>>"]
-def rand_core_1.UnwrapErr.Insts.Rand_core_1CryptoRng {R : Type}
-  {Clause0_Clause0_Error : Type} (TryCryptoRngInst : rand_core_1.TryCryptoRng R
-  Clause0_Clause0_Error) : rand_core_1.CryptoRng (rand_core_1.UnwrapErr R
+def rand_core_1.UnwrapErr.Insts.Rand_core_1CryptoRng {R : Type _}
+  {Clause0_Clause0_Error : Type _} (TryCryptoRngInst : rand_core_1.TryCryptoRng
+  R Clause0_Clause0_Error) : rand_core_1.CryptoRng (rand_core_1.UnwrapErr R
   Clause0_Clause0_Error) := {
   RngCoreInst := rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore
     TryCryptoRngInst.TryRngCoreInst
@@ -341,7 +342,7 @@ def Bool.Insts.CoreConvertFromChoice : core.convert.From Bool subtle.Choice
 }
 
 /-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
-    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36; this code is generated from a macro invocation at: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 370:0-370:34
     Name pattern: [subtle::ConstantTimeEq<u8>] -/
 @[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
 def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
@@ -1297,7 +1298,7 @@ def double_ratchet.ChainKey.from_pb
   Result (core.result.Result ratchet.keys.ChainKey
     state.session.InvalidSessionError)
   := do
-  let s ← alloc.vec.Vec.as_slice Global pb.key
+  let s ← alloc.vec.Vec.as_slice alloc.alloc.Global pb.key
   let r ←
     core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 s
   let r1 ←
@@ -1412,7 +1413,7 @@ def double_ratchet.SenderChain.from_pb
       double_ratchet.SenderChain (core.convert.FromSame
       state.session.InvalidSessionError) residual
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}}::call_once]:
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}<'_0>}::call_once]:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 133:17-133:52 -/
 def
   double_ratchet.RatchetState.from_pb.closure_1.Insts.CoreOpsFunctionFnOnceTupleShared0ChainResultSenderChainInvalidSessionError.call_once
@@ -1423,7 +1424,7 @@ def
   := do
   double_ratchet.SenderChain.from_pb tupled_args
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}}]
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), core::result::Result<libsignal_protocol::double_ratchet::SenderChain, libsignal_protocol::state::session::InvalidSessionError>> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::from_pb::{closure#1}<'_0>}]
     Source: 'rust/protocol/src/double_ratchet.rs', lines 133:17-133:52 -/
 @[reducible]
 def
@@ -1464,7 +1465,7 @@ def double_ratchet.RatchetState.from_pb
   Result (core.result.Result double_ratchet.RatchetState
     state.session.InvalidSessionError)
   := do
-  let s ← alloc.vec.Vec.as_slice Global session.root_key
+  let s ← alloc.vec.Vec.as_slice alloc.alloc.Global session.root_key
   let r ←
     core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 s
   let r1 ←
@@ -1565,7 +1566,7 @@ def double_ratchet.SenderChain.to_pb
         (alloc.vec.Vec.new proto.storage.session_structure.chain.MessageKey)
     }
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}}::call_once]:
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 165:56-165:89 -/
 def
   double_ratchet.RatchetState.apply_to_pb.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderChainChain.call_once
@@ -1575,7 +1576,7 @@ def
   := do
   double_ratchet.SenderChain.to_pb tupled_args
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}}]
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::double_ratchet::SenderChain,), libsignal_protocol::proto::storage::session_structure::Chain> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::apply_to_pb::{closure}<'_0>}]
     Source: 'rust/protocol/src/double_ratchet.rs', lines 165:56-165:89 -/
 @[reducible]
 def
@@ -1633,7 +1634,7 @@ def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError :
 }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop body 0:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 359:8-361:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
 @[rust_loop_body]
 def double_ratchet.RatchetState.dh_ratchet_step_loop.body
   (v : alloc.vec.Vec proto.storage.session_structure.Chain) :
@@ -1642,12 +1643,13 @@ def double_ratchet.RatchetState.dh_ratchet_step_loop.body
   := do
   let i := alloc.vec.Vec.len v
   if i > consts.MAX_RECEIVER_CHAINS
-  then let (_, v1) ← alloc.vec.Vec.remove Global v 0#usize
-       ok (cont v1)
+  then
+    let (_, v1) ← alloc.vec.Vec.remove alloc.alloc.Global v 0#usize
+    ok (cont v1)
   else ok (done v)
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop 0:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 359:8-361:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
 @[rust_loop]
 def double_ratchet.RatchetState.dh_ratchet_step_loop
   (v : alloc.vec.Vec proto.storage.session_structure.Chain) :
@@ -1658,38 +1660,42 @@ def double_ratchet.RatchetState.dh_ratchet_step_loop
     v
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 320:4-369:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 320:4-367:5 -/
 def double_ratchet.RatchetState.dh_ratchet_step
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (self : double_ratchet.RatchetState)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) (csprng : R) :
   Result ((core.result.Result ratchet.keys.ChainKey error.SignalProtocolError)
     × double_ratchet.RatchetState × R)
   := do
   let o ← core.option.Option.as_ref self.sender_chain
-  let r ← core.option.Option.ok_or o (toStr "missing sender chain")
-  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
-  match cf with
-  | core.ops.control_flow.ControlFlow.Continue val =>
+  match o with
+  | none =>
+    let spe ←
+      core.convert.IntoFrom.into
+        error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError
+        (toStr "missing sender chain")
+    ok (core.result.Result.Err spe, self, csprng)
+  | some sender_chain =>
     let (current_root_key, self1) ←
       double_ratchet.RatchetState.take_root_key self
-    let r1 ←
+    let r ←
       ratchet.keys.RootKey.create_chain current_root_key their_ephemeral
-        val.ratchet_key.private_key
-    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
-    match cf1 with
-    | core.ops.control_flow.ControlFlow.Continue val1 =>
-      let (new_root_key, receiver_chain_key) := val1
+        sender_chain.ratchet_key.private_key
+    let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let (new_root_key, receiver_chain_key) := val
       let (new_sender_key, csprng1) ←
         libsignal_core.curve.KeyPair.generate rand_1rngRngInst
           rand_core_1CryptoRngInst csprng
-      let r2 ←
+      let r1 ←
         ratchet.keys.RootKey.create_chain new_root_key their_ephemeral
           new_sender_key.private_key
-      let cf2 ← core.result.Result.Insts.CoreOpsTry.branch r2
-      match cf2 with
-      | core.ops.control_flow.ControlFlow.Continue val2 =>
-        let (final_root_key, sender_chain_key) := val2
+      let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+      match cf1 with
+      | core.ops.control_flow.ControlFlow.Continue val1 =>
+        let (final_root_key, sender_chain_key) := val1
         let o1 ← core.option.Option.as_ref self1.sender_chain
         let sc ← core.option.Option.expect o1 (toStr "checked above")
         let current_index ← ratchet.keys.ChainKey.impl.index sc.chain_key
@@ -1723,29 +1729,22 @@ def double_ratchet.RatchetState.dh_ratchet_step
               previous_counter := i
           }, csprng1)
       | core.ops.control_flow.ControlFlow.Break residual =>
-        let r3 ←
+        let r2 ←
           core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
             ratchet.keys.ChainKey (core.convert.FromSame
             error.SignalProtocolError) residual
-        ok (r3, self1, csprng1)
+        ok (r2, self1, csprng1)
     | core.ops.control_flow.ControlFlow.Break residual =>
-      let r2 ←
+      let r1 ←
         core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
           ratchet.keys.ChainKey (core.convert.FromSame
           error.SignalProtocolError) residual
-      ok (r2, self1, csprng)
-  | core.ops.control_flow.ControlFlow.Break residual =>
-    let r1 ←
-      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
-        ratchet.keys.ChainKey
-        error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError
-        residual
-    ok (r1, self, csprng)
+      ok (r1, self1, csprng)
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_2 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1>}::call_mut]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}::call_mut]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 def
-  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared2ChainBool.call_mut
+  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool.call_mut
   (c : double_ratchet.RatchetState.find_receiver_chain_index.closure)
   (tupled_args : proto.storage.session_structure.Chain) :
   Result (Bool ×
@@ -1762,47 +1761,47 @@ def
     double_ratchet.log_corrupt_receiver_chain
     ok (false, c)
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1>}::call_once]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}::call_once]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 def
-  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared2ChainBool.call_once
+  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool.call_once
   (c : double_ratchet.RatchetState.find_receiver_chain_index.closure)
   (c1 : proto.storage.session_structure.Chain) :
   Result Bool
   := do
   let (b, _) ←
-    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared2ChainBool.call_mut
+    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool.call_mut
       c c1
   ok b
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 @[reducible]
 def
-  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared2ChainBool
+  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool
   : core.ops.function.FnOnce
   double_ratchet.RatchetState.find_receiver_chain_index.closure
   proto.storage.session_structure.Chain Bool := {
   call_once :=
-    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared2ChainBool.call_once
+    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool.call_once
 }
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_2 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 @[reducible]
 def
-  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared2ChainBool
+  double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool
   : core.ops.function.FnMut
   double_ratchet.RatchetState.find_receiver_chain_index.closure
   proto.storage.session_structure.Chain Bool := {
   FnOnceInst :=
-    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared2ChainBool
+    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool
   call_mut :=
-    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared2ChainBool.call_mut
+    double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool.call_mut
 }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 417:4-427:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 415:4-425:5 -/
 def double_ratchet.RatchetState.find_receiver_chain_index
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) :
@@ -1812,7 +1811,7 @@ def double_ratchet.RatchetState.find_receiver_chain_index
   let i ← core.slice.Slice.iter s
   let (o, _) ←
     core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.position
-      double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared2ChainBool
+      double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool
       i their_ephemeral
   ok o
 
@@ -1855,8 +1854,8 @@ def double_ratchet.RatchetState.find_receiver_chain_key
     Source: 'rust/protocol/src/double_ratchet.rs', lines 236:4-246:5
     Visibility: public -/
 def double_ratchet.RatchetState.ensure_receiver_chain
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (self : double_ratchet.RatchetState)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) (csprng : R) :
   Result ((core.result.Result ratchet.keys.ChainKey error.SignalProtocolError)
     × double_ratchet.RatchetState × R)
@@ -1923,7 +1922,7 @@ def ratchet.keys.ChainKey.next_chain_key
   ok { key := a, index := i }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::set_receiver_chain_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 410:4-415:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 408:4-413:5 -/
 def double_ratchet.RatchetState.set_receiver_chain_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey)
@@ -2004,7 +2003,7 @@ def ratchet.keys.MessageKeyGenerator.into_pb
       }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::store_skipped_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 393:4-408:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 391:4-406:5 -/
 def double_ratchet.RatchetState.store_skipped_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey)
@@ -2024,64 +2023,64 @@ def double_ratchet.RatchetState.store_skipped_key
   let i := alloc.vec.Vec.len keys
   if i > consts.MAX_MESSAGE_KEYS
   then
-    let (_, keys1) ← alloc.vec.Vec.pop Global keys
+    let (_, keys1) ← alloc.vec.Vec.pop alloc.alloc.Global keys
     let v := index_mut_back { c with message_keys := keys1 }
     ok { self with receiver_chains := v }
   else
     let v := index_mut_back { c with message_keys := keys }
     ok { self with receiver_chains := v }
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_1 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0>}::call_mut]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}::call_mut]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 def
-  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1MessageKeyBool.call_mut
+  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool.call_mut
   (c : double_ratchet.RatchetState.take_skipped_key.closure)
   (tupled_args : proto.storage.session_structure.chain.MessageKey) :
   Result (Bool × double_ratchet.RatchetState.take_skipped_key.closure)
   := do
   ok (tupled_args.index = c, c)
 
-/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_1 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0>}::call_once]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}::call_once]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 def
-  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1MessageKeyBool.call_once
+  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool.call_once
   (c : double_ratchet.RatchetState.take_skipped_key.closure)
   (mk : proto.storage.session_structure.chain.MessageKey) :
   Result Bool
   := do
   let (b, _) ←
-    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1MessageKeyBool.call_mut
+    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool.call_mut
       c mk
   ok b
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_1 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 @[reducible]
 def
-  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1MessageKeyBool
+  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool
   : core.ops.function.FnOnce
   double_ratchet.RatchetState.take_skipped_key.closure
   proto.storage.session_structure.chain.MessageKey Bool := {
   call_once :=
-    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1MessageKeyBool.call_once
+    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool.call_once
 }
 
-/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_1 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+/-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}]
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 @[reducible]
 def
-  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1MessageKeyBool
+  double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool
   : core.ops.function.FnMut
   double_ratchet.RatchetState.take_skipped_key.closure
   proto.storage.session_structure.chain.MessageKey Bool := {
   FnOnceInst :=
-    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1MessageKeyBool
+    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool
   call_mut :=
-    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1MessageKeyBool.call_mut
+    double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool.call_mut
 }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 371:4-391:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 369:4-389:5 -/
 def double_ratchet.RatchetState.take_skipped_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) (counter : Std.U32) :
@@ -2100,14 +2099,15 @@ def double_ratchet.RatchetState.take_skipped_key
     let i ← core.slice.Slice.iter s
     let (o1, _) ←
       core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.position
-        double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1MessageKeyBool
+        double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool
         i counter
     match o1 with
     | none =>
       let v := index_mut_back c
       ok (core.result.Result.Ok none, { self with receiver_chains := v })
     | some pos =>
-      let (key_pb, keys) ← alloc.vec.Vec.remove Global c.message_keys pos
+      let (key_pb, keys) ←
+        alloc.vec.Vec.remove alloc.alloc.Global c.message_keys pos
       let r ← double_ratchet.skipped_key_from_pb key_pb
       let v := index_mut_back { c with message_keys := keys }
       ok (r, { self with receiver_chains := v })
@@ -2717,7 +2717,7 @@ def identity_key.IdentityKeyPair.new
     Source: 'rust/protocol/src/identity_key.rs', lines 126:4-133:5
     Visibility: public -/
 def identity_key.IdentityKeyPair.generate
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
   (rand_1rngRngInst : rand_1.rng.Rng R) (csprng : R) :
   Result (identity_key.IdentityKeyPair × R)
   := do
@@ -2769,14 +2769,14 @@ def identity_key.IdentityKeyPair.serialize
     prost.message.Message.encode_to_vec.default
       proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage
       { public_key := v, private_key := v2 }
-  alloc.vec.Vec.into_boxed_slice Global result
+  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result
 
 /-- [libsignal_protocol::identity_key::{libsignal_protocol::identity_key::IdentityKeyPair}::sign_alternate_identity]:
     Source: 'rust/protocol/src/identity_key.rs', lines 165:4-178:5
     Visibility: public -/
 def identity_key.IdentityKeyPair.sign_alternate_identity
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (self : identity_key.IdentityKeyPair)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : identity_key.IdentityKeyPair)
   (other : identity_key.IdentityKey) (rng : R) :
   Result ((core.result.Result (Slice Std.U8) error.SignalProtocolError) × R)
   := do
@@ -2801,7 +2801,7 @@ def identity_key.IdentityKeyPair.sign_alternate_identity
         error.SignalProtocolError.Insts.CoreConvertFromCurveError residual
     ok (r1, rng1)
 
-/-- [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{impl core::ops::function::FnOnce<(prost::error::DecodeError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{closure}<'_0>}::call_once]:
+/-- [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{impl core::ops::function::FnOnce<(prost::error::DecodeError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{closure}<'_0, '_1>}::call_once]:
     Source: 'rust/protocol/src/identity_key.rs', lines 186:21-186:69 -/
 def
   identity_key.TryFromIdentityKeyPairShared0SliceU8SignalProtocolError.try_from.closure.Insts.CoreOpsFunctionFnOnceTupleDecodeErrorSignalProtocolError.call_once
@@ -2812,7 +2812,7 @@ def
   := do
   ok error.SignalProtocolError.InvalidProtobufEncoding
 
-/-- Trait implementation: [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{impl core::ops::function::FnOnce<(prost::error::DecodeError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{closure}<'_0>}]
+/-- Trait implementation: [libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{impl core::ops::function::FnOnce<(prost::error::DecodeError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::identity_key::IdentityKeyPair}::try_from::{closure}<'_0, '_1>}]
     Source: 'rust/protocol/src/identity_key.rs', lines 186:21-186:69 -/
 @[reducible]
 def
@@ -3037,12 +3037,12 @@ def kem.Secret.Insts.Libsignal_protocolKemKeyKind : kem.KeyKind kem.Secret := {
     Source: 'rust/protocol/src/kem.rs', lines 275:0-275:22
     Visibility: public -/
 def kem.KeyMaterial.Insts.CoreCloneClone.clone
-  {T : Type} (KeyKindInst : kem.KeyKind T) (self : kem.KeyMaterial T) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (self : kem.KeyMaterial T) :
   Result (kem.KeyMaterial T)
   := do
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.data
+      core.clone.CloneGlobal self.data
   let pd ← core.marker.PhantomData.Insts.CoreCloneClone.clone self.kind
   ok { data := s, kind := pd }
 
@@ -3050,7 +3050,7 @@ def kem.KeyMaterial.Insts.CoreCloneClone.clone
     Source: 'rust/protocol/src/kem.rs', lines 288:4-290:5
     Visibility: public -/
 def kem.KeyMaterial.Insts.CoreOpsDerefDerefSliceU8.deref
-  {T : Type} (KeyKindInst : kem.KeyKind T) (self : kem.KeyMaterial T) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (self : kem.KeyMaterial T) :
   Result (Slice Std.U8)
   := do
   ok self.data
@@ -3058,7 +3058,7 @@ def kem.KeyMaterial.Insts.CoreOpsDerefDerefSliceU8.deref
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::KeyMaterial<T>}::new]:
     Source: 'rust/protocol/src/kem.rs', lines 294:4-299:5 -/
 def kem.KeyMaterial.new
-  {T : Type} (KeyKindInst : kem.KeyKind T) (data : Slice Std.U8) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (data : Slice Std.U8) :
   Result (kem.KeyMaterial T)
   := do
   ok { data, kind := () }
@@ -3067,7 +3067,7 @@ def kem.KeyMaterial.new
     Source: 'rust/protocol/src/kem.rs', lines 314:0-314:22
     Visibility: public -/
 def kem.Key.Insts.CoreCloneClone.clone
-  {T : Type} (KeyKindInst : kem.KeyKind T) (self : kem.Key T) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (self : kem.Key T) :
   Result (kem.Key T)
   := do
   let kt ← kem.KeyType.Insts.CoreCloneClone.clone self.key_type
@@ -3079,7 +3079,7 @@ def kem.Key.Insts.CoreCloneClone.clone
     Source: 'rust/protocol/src/kem.rs', lines 332:4-344:5
     Visibility: public -/
 def kem.Key.deserialize
-  {T : Type} (KeyKindInst : kem.KeyKind T) (value : Slice Std.U8) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (value : Slice Std.U8) :
   Result (core.result.Result (kem.Key T) error.SignalProtocolError)
   := do
   let b ← core.slice.Slice.is_empty value
@@ -3119,7 +3119,7 @@ def kem.Key.deserialize
     Source: 'rust/protocol/src/kem.rs', lines 346:4-351:5
     Visibility: public -/
 def kem.Key.serialize
-  {T : Type} (KeyKindInst : kem.KeyKind T) (self : kem.Key T) :
+  {T : Type _} (KeyKindInst : kem.KeyKind T) (self : kem.Key T) :
   Result (Slice Std.U8)
   := do
   let s ←
@@ -3131,7 +3131,7 @@ def kem.Key.serialize
   let i2 ← kem.KeyType.value self.key_type
   let result1 ← alloc.vec.Vec.push result i2
   let result2 ← alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 s
-  alloc.vec.Vec.into_boxed_slice Global result2
+  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result2
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Ciphertext}::serialize]:
     Source: 'rust/protocol/src/kem.rs', lines 543:4-548:5
@@ -3145,13 +3145,13 @@ def kem.Ciphertext.serialize
   let result1 ← alloc.vec.Vec.push result i2
   let result2 ←
     alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 self.data
-  alloc.vec.Vec.into_boxed_slice Global result2
+  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result2
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::BadKEMKeyLength,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>[libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}]}::encapsulate::{closure}<'_0, R>}::call_once]:
     Source: 'rust/protocol/src/kem.rs', lines 373:21-375:13 -/
 def
   kem.KeyPublic.encapsulate.closure.Insts.CoreOpsFunctionFnOnceTupleBadKEMKeyLengthSignalProtocolError.call_once
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
   (c : kem.KeyPublic.encapsulate.closure R) (tupled_args : kem.BadKEMKeyLength)
   :
   Result error.SignalProtocolError
@@ -3167,7 +3167,7 @@ def
 @[reducible]
 def
   kem.KeyPublic.encapsulate.closure.Insts.CoreOpsFunctionFnOnceTupleBadKEMKeyLengthSignalProtocolError
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R) :
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R) :
   core.ops.function.FnOnce (kem.KeyPublic.encapsulate.closure R)
   kem.BadKEMKeyLength error.SignalProtocolError := {
   call_once :=
@@ -3179,7 +3179,7 @@ def
     Source: 'rust/protocol/src/kem.rs', lines 363:4-385:5
     Visibility: public -/
 def kem.KeyPublic.encapsulate
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
   (self : kem.Key kem.Public) (csprng : R) :
   Result ((core.result.Result ((Slice Std.U8) × (Slice Std.U8))
     error.SignalProtocolError) × R)
@@ -3522,8 +3522,8 @@ def pqxdh.InitiatorParameters.impl.self_session
 /-- [libsignal_protocol::pqxdh::pqxdh_initiate]:
     Source: 'rust/protocol/src/pqxdh.rs', lines 201:0-247:1 -/
 def pqxdh.pqxdh_initiate
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (csprng : R) :
   Result ((core.result.Result pqxdh.InitiatorAgreement
     error.SignalProtocolError) × R)
@@ -3572,7 +3572,7 @@ def pqxdh.pqxdh_initiate
           match cf3 with
           | core.ops.control_flow.ControlFlow.Continue val3 =>
             let (ss, ct) := val3
-            let s1 ← Box.Insts.CoreConvertAsRef.as_ref Global ss
+            let s1 ← Box.Insts.CoreConvertAsRef.as_ref alloc.alloc.Global ss
             let secrets5 ←
               alloc.vec.Vec.extend_from_slice core.clone.CloneU8 secrets4 s1
             let s2 := alloc.vec.Vec.deref secrets5
@@ -3602,7 +3602,8 @@ def pqxdh.pqxdh_initiate
             match cf4 with
             | core.ops.control_flow.ControlFlow.Continue val4 =>
               let (ss, ct) := val4
-              let s1 ← Box.Insts.CoreConvertAsRef.as_ref Global ss
+              let s1 ←
+                Box.Insts.CoreConvertAsRef.as_ref alloc.alloc.Global ss
               let secrets6 ←
                 alloc.vec.Vec.extend_from_slice core.clone.CloneU8 secrets5 s1
               let s2 := alloc.vec.Vec.deref secrets6
@@ -3869,7 +3870,7 @@ def protocol.PlaintextContent.Insts.CoreCloneClone.clone
   (self : protocol.PlaintextContent) : Result protocol.PlaintextContent := do
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok { serialized := s }
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyMessage}::clone]:
@@ -3883,10 +3884,10 @@ def protocol.SenderKeyMessage.Insts.CoreCloneClone.clone
   let i2 ← lift (core.clone.impls.CloneU32.clone self.iteration)
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.ciphertext
+      core.clone.CloneGlobal self.ciphertext
   let s1 ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok
     {
       message_version := i,
@@ -3939,7 +3940,7 @@ def protocol.KyberPayload.Insts.CoreCloneClone.clone
     state.kyber_prekey.KyberPreKeyId.Insts.CoreCloneClone.clone self.pre_key_id
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.ciphertext
+      core.clone.CloneGlobal self.ciphertext
   ok { pre_key_id := kpki, ciphertext := s }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::KyberPayload}]
@@ -3963,15 +3964,15 @@ def protocol.SignalMessage.Insts.CoreCloneClone.clone
   let i2 ← lift (core.clone.impls.CloneU32.clone self.previous_counter)
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.ciphertext
+      core.clone.CloneGlobal self.ciphertext
   let v ← alloc.vec.CloneVec.clone core.clone.CloneU8 self.pq_ratchet
   let o ←
     core.option.Option.Insts.CoreCloneClone.clone
-      (BoxSlice.Insts.CoreCloneClone core.clone.CloneU8
-      core.core.clone.CloneGlobal) self.addresses
+      (BoxSlice.Insts.CoreCloneClone core.clone.CloneU8 core.clone.CloneGlobal)
+      self.addresses
   let s1 ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok
     {
       message_version := i,
@@ -4009,7 +4010,7 @@ def protocol.PreKeySignalMessage.Insts.CoreCloneClone.clone
   let sm ← protocol.SignalMessage.Insts.CoreCloneClone.clone self.message
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok
     {
       message_version := i,
@@ -4220,10 +4221,10 @@ def protocol.SignalMessage.compute_mac
   else
     let pk ← identity_key.IdentityKey.impl.public_key sender_identity_key
     let s ← libsignal_core.curve.PublicKey.serialize pk
-    let s1 ← Box.Insts.CoreConvertAsRef.as_ref Global s
+    let s1 ← Box.Insts.CoreConvertAsRef.as_ref alloc.alloc.Global s
     let pk1 ← identity_key.IdentityKey.impl.public_key receiver_identity_key
     let s2 ← libsignal_core.curve.PublicKey.serialize pk1
-    let s3 ← Box.Insts.CoreConvertAsRef.as_ref Global s2
+    let s3 ← Box.Insts.CoreConvertAsRef.as_ref alloc.alloc.Global s2
     let s4 ← lift (Array.to_slice (Array.make 3#usize [ s1, s3, message ]))
     let mac ← crypto.hmac_sha256_parts mac_key s4
     let s5 ← lift (Array.to_slice mac)
@@ -4274,7 +4275,7 @@ def protocol.SignalMessage.serialize_addresses
     core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (alloc.vec.Vec Std.U8) residual
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{impl core::ops::function::FnOnce<((&'_0 libsignal_core::address::ProtocolAddress, &'_1 libsignal_core::address::ProtocolAddress),), core::option::Option<alloc::vec::Vec<u8>>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{closure}}::call_once]:
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{impl core::ops::function::FnOnce<((&'_0 libsignal_core::address::ProtocolAddress, &'_1 libsignal_core::address::ProtocolAddress),), core::option::Option<alloc::vec::Vec<u8>>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{closure}<'_0, '_1>}::call_once]:
     Source: 'rust/protocol/src/protocol.rs', lines 111:31-111:97 -/
 def
   protocol.SignalMessage.new.closure.Insts.CoreOpsFunctionFnOnceTuplePairShared0ProtocolAddressShared1ProtocolAddressOptionVecU8.call_once
@@ -4286,7 +4287,7 @@ def
   let (sender, recipient) := tupled_args
   protocol.SignalMessage.serialize_addresses sender recipient
 
-/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{impl core::ops::function::FnOnce<((&'_0 libsignal_core::address::ProtocolAddress, &'_1 libsignal_core::address::ProtocolAddress),), core::option::Option<alloc::vec::Vec<u8>>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{closure}}]
+/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{impl core::ops::function::FnOnce<((&'_0 libsignal_core::address::ProtocolAddress, &'_1 libsignal_core::address::ProtocolAddress),), core::option::Option<alloc::vec::Vec<u8>>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::SignalMessage}::new::{closure}<'_0, '_1>}]
     Source: 'rust/protocol/src/protocol.rs', lines 111:31-111:97 -/
 @[reducible]
 def
@@ -4370,7 +4371,8 @@ def protocol.SignalMessage.new
     let s2 ← lift (Array.to_slice val)
     let serialized3 ←
       alloc.vec.Vec.extend_from_slice core.clone.CloneU8 serialized2 s2
-    let serialized4 ← alloc.vec.Vec.into_boxed_slice Global serialized3
+    let serialized4 ←
+      alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized3
     let s3 ←
       core.convert.IntoFrom.into (BoxSlice.Insts.CoreConvertFromShared0Slice
         core.clone.CloneU8) ciphertext
@@ -4488,7 +4490,9 @@ def protocol.SignalMessage.verify_mac_with_addresses
           ok (core.result.Result.Ok false)
         | some expected =>
           let s := alloc.vec.Vec.deref expected
-          let s1 ← Box.Insts.CoreConvertAsRef.as_ref Global encoded_addresses
+          let s1 ←
+            Box.Insts.CoreConvertAsRef.as_ref alloc.alloc.Global
+              encoded_addresses
           let c ←
             Slice.Insts.SubtleConstantTimeEq.ct_eq
               U8.Insts.SubtleConstantTimeEq s s1
@@ -4561,7 +4565,7 @@ def U32.Insts.CoreConvertFromSignedPreKeyId : core.convert.From Std.U32
   «from» := U32.Insts.CoreConvertFromSignedPreKeyId.from
 }
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#2}}::call_once]:
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#2}<'_0>}::call_once]:
     Source: 'rust/protocol/src/protocol.rs', lines 366:21-366:54 -/
 def
   protocol.PreKeySignalMessage.new.closure_2.Insts.CoreOpsFunctionFnOnceTupleShared0KyberPayloadVecU8.call_once
@@ -4571,7 +4575,7 @@ def
   := do
   alloc.slice.Slice.to_vec core.clone.CloneU8 tupled_args.ciphertext
 
-/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#2}}]
+/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#2}<'_0>}]
     Source: 'rust/protocol/src/protocol.rs', lines 366:21-366:54 -/
 @[reducible]
 def
@@ -4597,7 +4601,7 @@ def U32.Insts.CoreConvertFromKyberPreKeyId : core.convert.From Std.U32
   «from» := U32.Insts.CoreConvertFromKyberPreKeyId.from
 }
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), u32> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#1}}::call_once]:
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), u32> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#1}<'_0>}::call_once]:
     Source: 'rust/protocol/src/protocol.rs', lines 363:57-363:88 -/
 def
   protocol.PreKeySignalMessage.new.closure_1.Insts.CoreOpsFunctionFnOnceTupleShared0KyberPayloadU32.call_once
@@ -4608,7 +4612,7 @@ def
   core.convert.IntoFrom.into U32.Insts.CoreConvertFromKyberPreKeyId
     tupled_args.pre_key_id
 
-/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), u32> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#1}}]
+/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), u32> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::new::{closure#1}<'_0>}]
     Source: 'rust/protocol/src/protocol.rs', lines 363:57-363:88 -/
 @[reducible]
 def
@@ -4727,7 +4731,7 @@ def protocol.PreKeySignalMessage.new
       } serialized1
   core.result.Result.expect prost.error.EncodeError.Insts.CoreFmtDebug r (toStr
     "can always append to a Vec")
-  let s3 ← alloc.vec.Vec.into_boxed_slice Global serialized2
+  let s3 ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized2
   ok (core.result.Result.Ok
     {
       message_version,
@@ -4773,7 +4777,7 @@ def protocol.PreKeySignalMessage.impl.signed_pre_key_id
   := do
   ok self.signed_pre_key_id
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), libsignal_protocol::state::kyber_prekey::KyberPreKeyId> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{closure}}::call_once]:
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), libsignal_protocol::state::kyber_prekey::KyberPreKeyId> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/protocol.rs', lines 411:40-411:64 -/
 def
   protocol.PreKeySignalMessage.kyber_pre_key_id.closure.Insts.CoreOpsFunctionFnOnceTupleShared0KyberPayloadKyberPreKeyId.call_once
@@ -4783,7 +4787,7 @@ def
   := do
   ok tupled_args.pre_key_id
 
-/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), libsignal_protocol::state::kyber_prekey::KyberPreKeyId> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{closure}}]
+/-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::protocol::KyberPayload,), libsignal_protocol::state::kyber_prekey::KyberPreKeyId> for libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_pre_key_id::{closure}<'_0>}]
     Source: 'rust/protocol/src/protocol.rs', lines 411:40-411:64 -/
 @[reducible]
 def
@@ -4873,7 +4877,7 @@ def protocol.SenderKeyMessage.SIGNATURE_LEN : Std.Usize := 64#usize
     Source: 'rust/protocol/src/protocol.rs', lines 532:4-563:5
     Visibility: public -/
 def protocol.SenderKeyMessage.new
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
   (rand_1rngRngInst : rand_1.rng.Rng R) (message_version : Std.U8)
   (distribution_id : uuid.Uuid) (chain_id : Std.U32) (iteration : Std.U32)
   (ciphertext : Slice Std.U8) (csprng : R)
@@ -4924,7 +4928,7 @@ def protocol.SenderKeyMessage.new
         Std.U8) val ()
     let serialized3 ←
       alloc.vec.Vec.extend_from_slice core.clone.CloneU8 serialized2 s2
-    let s3 ← alloc.vec.Vec.into_boxed_slice Global serialized3
+    let s3 ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized3
     ok (core.result.Result.Ok
       {
         message_version := protocol.SENDERKEY_MESSAGE_CURRENT_VERSION,
@@ -5018,7 +5022,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone.clone
     libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone self.signing_key
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok
     {
       message_version := i,
@@ -5082,7 +5086,7 @@ def protocol.SenderKeyDistributionMessage.new
       } serialized1
   core.result.Result.expect prost.error.EncodeError.Insts.CoreFmtDebug r (toStr
     "can always append to a buffer")
-  let s2 ← alloc.vec.Vec.into_boxed_slice Global serialized2
+  let s2 ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized2
   ok (core.result.Result.Ok
     {
       message_version,
@@ -5251,7 +5255,7 @@ def protocol.DecryptionErrorMessage.Insts.CoreCloneClone.clone
   let i ← lift (core.clone.impls.CloneU32.clone self.device_id)
   let s ←
     BoxSlice.Insts.CoreCloneClone.clone core.clone.CloneU8
-      core.core.clone.CloneGlobal self.serialized
+      core.clone.CloneGlobal self.serialized
   ok { ratchet_key := o, timestamp := t, device_id := i, serialized := s }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::DecryptionErrorMessage}]
@@ -5279,7 +5283,7 @@ def
   := do
   let s ← libsignal_core.curve.PublicKey.serialize tupled_args
   core.convert.IntoFrom.into (alloc.vec.Vec.Insts.CoreConvertFromBoxSlice
-    Std.U8 Global) s
+    Std.U8 alloc.alloc.Global) s
 
 /-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{impl core::ops::function::FnOnce<(libsignal_core::curve::PublicKey,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{closure}}]
     Source: 'rust/protocol/src/protocol.rs', lines 904:41-904:65 -/
@@ -5326,7 +5330,7 @@ def protocol.DecryptionErrorMessage.for_original
             timestamp := (some i),
             device_id := (some original_sender_device_id)
           }
-      let s ← alloc.vec.Vec.into_boxed_slice Global serialized
+      let s ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized
       ok (core.result.Result.Ok
         {
           ratchet_key := (some pk),
@@ -5360,7 +5364,7 @@ def protocol.DecryptionErrorMessage.for_original
             timestamp := (some i),
             device_id := (some original_sender_device_id)
           }
-      let s ← alloc.vec.Vec.into_boxed_slice Global serialized
+      let s ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized
       ok (core.result.Result.Ok
         {
           ratchet_key := (some pk),
@@ -5386,7 +5390,7 @@ def protocol.DecryptionErrorMessage.for_original
           timestamp := (some i),
           device_id := (some original_sender_device_id)
         }
-    let s ← alloc.vec.Vec.into_boxed_slice Global serialized
+    let s ← alloc.vec.Vec.into_boxed_slice alloc.alloc.Global serialized
     ok (core.result.Result.Ok
       {
         ratchet_key := none,
@@ -5621,8 +5625,9 @@ def state.session.SessionState.with_receiver_chain
     Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
 def
   ratchet.initialize_initiator_session.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError.call_once
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (c : ratchet.initialize_initiator_session.closure R)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R)
+  (c : ratchet.initialize_initiator_session.closure R)
   (tupled_args : spqr.Error) :
   Result error.SignalProtocolError
   := do
@@ -5649,8 +5654,8 @@ def
 @[reducible]
 def
   ratchet.initialize_initiator_session.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) : core.ops.function.FnOnce
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) : core.ops.function.FnOnce
   (ratchet.initialize_initiator_session.closure R) spqr.Error
   error.SignalProtocolError := {
   call_once :=
@@ -5661,8 +5666,8 @@ def
 /-- [libsignal_protocol::ratchet::initialize_initiator_session]:
     Source: 'rust/protocol/src/ratchet.rs', lines 69:0-114:1 -/
 def ratchet.initialize_initiator_session
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (root_key : ratchet.keys.RootKey) (chain_key : ratchet.keys.ChainKey)
   (pqr_key : Array Std.U8 32#usize) (kyber_ciphertext : Slice Std.U8)
   (csprng : R) :
@@ -5733,8 +5738,8 @@ def ratchet.initialize_initiator_session
 /-- [libsignal_protocol::ratchet::initialize_alice_session]:
     Source: 'rust/protocol/src/ratchet.rs', lines 45:0-67:1 -/
 def ratchet.initialize_alice_session
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (csprng : R) :
   Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
     error.SignalProtocolError) × R)
@@ -5861,8 +5866,8 @@ def ratchet.initialize_bob_session
     Source: 'rust/protocol/src/ratchet.rs', lines 176:0-183:1
     Visibility: public -/
 def ratchet.initialize_alice_session_record
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (csprng : R) :
   Result ((core.result.Result state.session.SessionRecord
     error.SignalProtocolError) × R)
@@ -6115,8 +6120,9 @@ def sender_keys.SenderKeyState.add_sender_message_key_loop.body
   := do
   let i := alloc.vec.Vec.len v
   if i > consts.MAX_MESSAGE_KEYS
-  then let (_, v1) ← alloc.vec.Vec.remove Global v 0#usize
-       ok (cont v1)
+  then
+    let (_, v1) ← alloc.vec.Vec.remove alloc.alloc.Global v 0#usize
+    ok (cont v1)
   else ok (done v)
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::add_sender_message_key]: loop 0:
@@ -6144,53 +6150,53 @@ def sender_keys.SenderKeyState.add_sender_message_key
   let v1 ← sender_keys.SenderKeyState.add_sender_message_key_loop v
   ok { state := { self.state with sender_message_keys := v1 } }
 
-/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnMut<(&'_1 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0>}::call_mut]:
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0, '_1>}::call_mut]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
 def
-  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1SenderMessageKeyBool.call_mut
+  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0SenderMessageKeyBool.call_mut
   (c : sender_keys.SenderKeyState.remove_sender_message_key.closure)
   (tupled_args : proto.storage.sender_key_state_structure.SenderMessageKey) :
   Result (Bool × sender_keys.SenderKeyState.remove_sender_message_key.closure)
   := do
   ok (tupled_args.iteration = c, c)
 
-/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnOnce<(&'_1 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0>}::call_once]:
+/-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0, '_1>}::call_once]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
 def
-  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1SenderMessageKeyBool.call_once
+  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderMessageKeyBool.call_once
   (c : sender_keys.SenderKeyState.remove_sender_message_key.closure)
   (smk : proto.storage.sender_key_state_structure.SenderMessageKey) :
   Result Bool
   := do
   let (b, _) ←
-    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1SenderMessageKeyBool.call_mut
+    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0SenderMessageKeyBool.call_mut
       c smk
   ok b
 
-/-- Trait implementation: [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnOnce<(&'_1 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0>}]
+/-- Trait implementation: [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0, '_1>}]
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
 @[reducible]
 def
-  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1SenderMessageKeyBool
+  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderMessageKeyBool
   : core.ops.function.FnOnce
   sender_keys.SenderKeyState.remove_sender_message_key.closure
   proto.storage.sender_key_state_structure.SenderMessageKey Bool := {
   call_once :=
-    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1SenderMessageKeyBool.call_once
+    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderMessageKeyBool.call_once
 }
 
-/-- Trait implementation: [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnMut<(&'_1 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0>}]
+/-- Trait implementation: [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::sender_key_state_structure::SenderMessageKey,), bool> for libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key::{closure}<'_0, '_1>}]
     Source: 'rust/protocol/src/sender_keys.rs', lines 229:22-229:50 -/
 @[reducible]
 def
-  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1SenderMessageKeyBool
+  sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0SenderMessageKeyBool
   : core.ops.function.FnMut
   sender_keys.SenderKeyState.remove_sender_message_key.closure
   proto.storage.sender_key_state_structure.SenderMessageKey Bool := {
   FnOnceInst :=
-    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared1SenderMessageKeyBool
+    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SenderMessageKeyBool
   call_mut :=
-    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1SenderMessageKeyBool.call_mut
+    sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0SenderMessageKeyBool.call_mut
 }
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderKeyState}::remove_sender_message_key]:
@@ -6203,13 +6209,14 @@ def sender_keys.SenderKeyState.remove_sender_message_key
   let i ← core.slice.Slice.iter s
   let (o, _) ←
     core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT.position
-      sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared1SenderMessageKeyBool
+      sender_keys.SenderKeyState.remove_sender_message_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0SenderMessageKeyBool
       i iteration
   match o with
   | none => ok (none, self)
   | some index =>
     let (smk, v) ←
-      alloc.vec.Vec.remove Global self.state.sender_message_keys index
+      alloc.vec.Vec.remove alloc.alloc.Global self.state.sender_message_keys
+        index
     let smk1 ← sender_keys.SenderMessageKey.from_protobuf smk
     ok (some smk1, { state := { self.state with sender_message_keys := v } })
 
@@ -6222,8 +6229,8 @@ def sender_keys.SenderKeyRecord.Insts.CoreCloneClone.clone
   := do
   let vd ←
     alloc.collections.vec_deque.VecDeque.Insts.CoreCloneClone.clone
-      sender_keys.SenderKeyState.Insts.CoreCloneClone
-      core.core.clone.CloneGlobal self.states
+      sender_keys.SenderKeyState.Insts.CoreCloneClone core.clone.CloneGlobal
+      self.states
   ok { states := vd }
 
 /-- Trait implementation: [libsignal_protocol::sender_keys::{impl core::clone::Clone for libsignal_protocol::sender_keys::SenderKeyRecord}]
@@ -6271,11 +6278,12 @@ def
 def sender_keys.SenderKeyRecord.deserialize_loop.body
   (iter : alloc.vec.into_iter.IntoIter proto.storage.SenderKeyStateStructure)
   (states : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
-  Global) :
+  alloc.alloc.Global) :
   Result (ControlFlow ((alloc.vec.into_iter.IntoIter
     proto.storage.SenderKeyStateStructure) ×
-    (alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState Global))
-    (alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState Global))
+    (alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
+    alloc.alloc.Global)) (alloc.collections.vec_deque.VecDeque
+    sender_keys.SenderKeyState alloc.alloc.Global))
   := do
   let (o, iter1) ← alloc.vec.into_iter.IteratorIntoIter.next iter
   match o with
@@ -6292,9 +6300,9 @@ def sender_keys.SenderKeyRecord.deserialize_loop.body
 def sender_keys.SenderKeyRecord.deserialize_loop
   (iter : alloc.vec.into_iter.IntoIter proto.storage.SenderKeyStateStructure)
   (states : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
-  Global) :
+  alloc.alloc.Global) :
   Result (alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
-    Global)
+    alloc.alloc.Global)
   := do
   loop
     (fun (iter1, states1) => sender_keys.SenderKeyRecord.deserialize_loop.body
@@ -6337,11 +6345,13 @@ def sender_keys.SenderKeyRecord.deserialize
     Source: 'rust/protocol/src/sender_keys.rs', lines 282:8-288:5 -/
 @[rust_loop_body]
 def sender_keys.SenderKeyRecord.sender_key_state_for_chain_id_loop.body
-  (vd : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState Global)
-  (chain_id : Std.U32) (iter : core.ops.range.Range Std.Usize) :
+  (vd : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
+  alloc.alloc.Global) (chain_id : Std.U32)
+  (iter : core.ops.range.Range Std.Usize) :
   Result (ControlFlow (core.ops.range.Range Std.Usize) ((Option
     sender_keys.SenderKeyState) × (Option sender_keys.SenderKeyState →
-    alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState Global)))
+    alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
+    alloc.alloc.Global)))
   := do
   let (o, iter1) ←
     core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
@@ -6370,11 +6380,11 @@ def sender_keys.SenderKeyRecord.sender_key_state_for_chain_id_loop.body
 @[rust_loop]
 def sender_keys.SenderKeyRecord.sender_key_state_for_chain_id_loop
   (iter : core.ops.range.Range Std.Usize)
-  (vd : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState Global)
-  (chain_id : Std.U32) :
+  (vd : alloc.collections.vec_deque.VecDeque sender_keys.SenderKeyState
+  alloc.alloc.Global) (chain_id : Std.U32) :
   Result ((Option sender_keys.SenderKeyState) × (Option
     sender_keys.SenderKeyState → alloc.collections.vec_deque.VecDeque
-    sender_keys.SenderKeyState Global))
+    sender_keys.SenderKeyState alloc.alloc.Global))
   := do
   loop
     (fun iter1 =>
@@ -7084,7 +7094,7 @@ def state.bundle.PreKeyBundle.signed_pre_key_signature
   Result (core.result.Result (Slice Std.U8) error.SignalProtocolError)
   := do
   let s ←
-    alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref Global
+    alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref alloc.alloc.Global
       self.ec_signed_pre_key.signature
   ok (core.result.Result.Ok s)
 
@@ -7147,7 +7157,7 @@ def state.kyber_prekey.KyberPreKeyId.Insts.CoreMarkerCopy : core.marker.Copy
     Source: 'rust/protocol/src/state/kyber_prekey.rs', lines 16:24-16:28
     Visibility: public -/
 def state.kyber_prekey.KyberPreKeyId.Insts.CoreHashHash.hash
-  {__H : Type} (corehashHasherInst : core.hash.Hasher __H)
+  {__H : Type _} (corehashHasherInst : core.hash.Hasher __H)
   (self : state.kyber_prekey.KyberPreKeyId) (state : __H) :
   Result __H
   := do
@@ -7319,7 +7329,7 @@ def
     Visibility: public -/
 def
   kem.KeySecret.Insts.Libsignal_protocolStateSigned_prekeyKeySerde.deserialize
-  {T : Type} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
+  {T : Type _} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
   Std.U8)) (bytes : T) :
   Result (core.result.Result (kem.Key kem.Secret) error.SignalProtocolError)
   := do
@@ -7353,7 +7363,7 @@ def kem.KeySecret.Insts.Libsignal_protocolStateSigned_prekeyKeySerde :
     Visibility: public -/
 def
   kem.KeyPublic.Insts.Libsignal_protocolStateSigned_prekeyKeySerde.deserialize
-  {T : Type} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
+  {T : Type _} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
   Std.U8)) (bytes : T) :
   Result (core.result.Result (kem.Key kem.Public) error.SignalProtocolError)
   := do
@@ -7406,8 +7416,8 @@ def
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.key_pair.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7423,8 +7433,8 @@ def state.signed_prekey.GenericSignedPreKey.key_pair.default
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.public_key.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7434,15 +7444,15 @@ def state.signed_prekey.GenericSignedPreKey.public_key.default
   let spkrs ← GenericSignedPreKeyInst.get_storage self
   GenericSignedPreKeyInst.KeyPairSerdeInst.PublicKey.deserialize
     (Shared0T.Insts.CoreConvertAsRef (alloc.vec.Vec.Insts.CoreConvertAsRefSlice
-    Std.U8 Global)) spkrs.public_key
+    Std.U8 alloc.alloc.Global)) spkrs.public_key
 
 /-- [libsignal_protocol::state::signed_prekey::GenericSignedPreKey::signature]:
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 98:4-100:5
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.signature.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7464,8 +7474,8 @@ def timestamp.Timestamp.from_epoch_millis
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.timestamp.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7480,8 +7490,8 @@ def state.signed_prekey.GenericSignedPreKey.timestamp.default
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.id.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7498,8 +7508,8 @@ def state.signed_prekey.GenericSignedPreKey.id.default
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.serialize.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (self : Self) :
@@ -7516,8 +7526,8 @@ def state.signed_prekey.GenericSignedPreKey.serialize.default
     Visibility: public -/
 @[trait_default]
 def state.signed_prekey.GenericSignedPreKey.new.default
-  {Self : Type} {Clause0_KeyPair : Type} {Clause0_Id : Type}
-  {Clause0_Clause0_PublicKey : Type} {Clause0_Clause0_PrivateKey : Type}
+  {Self : Type _} {Clause0_KeyPair : Type _} {Clause0_Id : Type _}
+  {Clause0_Clause0_PublicKey : Type _} {Clause0_Clause0_PrivateKey : Type _}
   (GenericSignedPreKeyInst : state.signed_prekey.GenericSignedPreKey Self
   Clause0_KeyPair Clause0_Id Clause0_Clause0_PublicKey
   Clause0_Clause0_PrivateKey) (id : Clause0_Id)
@@ -7680,7 +7690,7 @@ def state.prekey.PreKeyId.Insts.CoreMarkerCopy : core.marker.Copy
     Source: 'rust/protocol/src/state/prekey.rs', lines 15:24-15:28
     Visibility: public -/
 def state.prekey.PreKeyId.Insts.CoreHashHash.hash
-  {__H : Type} (corehashHasherInst : core.hash.Hasher __H)
+  {__H : Type _} (corehashHasherInst : core.hash.Hasher __H)
   (self : state.prekey.PreKeyId) (state : __H) :
   Result __H
   := do
@@ -8251,7 +8261,7 @@ def state.session.SessionState.sender_ratchet_key_for_logging
     core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
       String (core.convert.FromSame state.session.InvalidSessionError) residual
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{closure}}::call_once]:
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 def
   state.session.SessionState.all_receiver_chain_logging_info.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainKeyU32.call_once
@@ -8261,7 +8271,7 @@ def
   := do
   ok tupled_args.index
 
-/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{closure}}]
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::ChainKey,), u32> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::all_receiver_chain_logging_info::{closure}<'_0>}]
     Source: 'rust/protocol/src/state/session.rs', lines 327:61-327:88 -/
 @[reducible]
 def
@@ -8614,7 +8624,8 @@ def state.session.SessionRecord.archive_current_state_inner
       if i >= consts.ARCHIVED_STATES_MAX_LENGTH
       then
         do
-        let (_, v1) ← alloc.vec.Vec.pop Global self.previous_sessions
+        let (_, v1) ←
+          alloc.vec.Vec.pop alloc.alloc.Global self.previous_sessions
         ok v1
       else ok self.previous_sessions
     let current_session1 ←
@@ -8645,11 +8656,12 @@ def state.session.SessionRecord.promote_old_session
   (updated_session : state.session.SessionState) :
   Result state.session.SessionRecord
   := do
-  let (_, v) ← alloc.vec.Vec.remove Global self.previous_sessions old_session
+  let (_, v) ←
+    alloc.vec.Vec.remove alloc.alloc.Global self.previous_sessions old_session
   state.session.SessionRecord.promote_state
     { self with previous_sessions := v } updated_session
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}}::call_once]:
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 def
   state.session.SessionRecord.serialize.closure.Insts.CoreOpsFunctionFnOnceTupleShared0SessionStateSessionStructure.call_once
@@ -8661,7 +8673,7 @@ def
     proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState
     tupled_args
 
-/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}}]
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::state::session::SessionState,), libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}<'_0>}]
     Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
 @[reducible]
 def
@@ -8736,7 +8748,7 @@ def state.signed_prekey.SignedPreKeyId.Insts.CoreMarkerCopy : core.marker.Copy
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 16:24-16:28
     Visibility: public -/
 def state.signed_prekey.SignedPreKeyId.Insts.CoreHashHash.hash
-  {__H : Type} (corehashHasherInst : core.hash.Hasher __H)
+  {__H : Type _} (corehashHasherInst : core.hash.Hasher __H)
   (self : state.signed_prekey.SignedPreKeyId) (state : __H) :
   Result __H
   := do
@@ -8957,7 +8969,7 @@ def
     Visibility: public -/
 def
   libsignal_core.curve.PrivateKey.Insts.Libsignal_protocolStateSigned_prekeyKeySerde.deserialize
-  {T : Type} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
+  {T : Type _} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
   Std.U8)) (bytes : T) :
   Result (core.result.Result libsignal_core.curve.PrivateKey
     error.SignalProtocolError)
@@ -9002,7 +9014,7 @@ def
     Visibility: public -/
 def
   libsignal_core.curve.PublicKey.Insts.Libsignal_protocolStateSigned_prekeyKeySerde.deserialize
-  {T : Type} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
+  {T : Type _} (coreconvertAsRefTSliceU8Inst : core.convert.AsRef T (Slice
   Std.U8)) (bytes : T) :
   Result (core.result.Result libsignal_core.curve.PublicKey
     error.SignalProtocolError)
@@ -9208,7 +9220,7 @@ def timestamp.Timestamp.Insts.CoreCmpOrd : core.cmp.Ord timestamp.Timestamp
     Source: 'rust/protocol/src/timestamp.rs', lines 11:61-11:65
     Visibility: public -/
 def timestamp.Timestamp.Insts.CoreHashHash.hash
-  {__H : Type} (corehashHasherInst : core.hash.Hasher __H)
+  {__H : Type _} (corehashHasherInst : core.hash.Hasher __H)
   (self : timestamp.Timestamp) (state : __H) :
   Result __H
   := do
@@ -9460,8 +9472,8 @@ def triple_ratchet.OutgoingTripleRatchet.apply_to_session_state
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 166:17-169:9 -/
 def
   triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1.Insts.CoreOpsFunctionFnOnceTupleEncryptionErrorSignalProtocolError.call_once
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R)
   (c : triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1 R)
   (tupled_args : signal_crypto.aes_cbc.EncryptionError) :
   Result error.SignalProtocolError
@@ -9475,8 +9487,8 @@ def
 @[reducible]
 def
   triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1.Insts.CoreOpsFunctionFnOnceTupleEncryptionErrorSignalProtocolError
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) : core.ops.function.FnOnce
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) : core.ops.function.FnOnce
   (triple_ratchet.OutgoingTripleRatchet.encrypt.closure_1 R)
   signal_crypto.aes_cbc.EncryptionError error.SignalProtocolError := {
   call_once :=
@@ -9488,8 +9500,8 @@ def
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 152:56-157:9 -/
 def
   triple_ratchet.OutgoingTripleRatchet.encrypt.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError.call_once
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R)
   (c : triple_ratchet.OutgoingTripleRatchet.encrypt.closure R)
   (tupled_args : spqr.Error) :
   Result error.SignalProtocolError
@@ -9515,8 +9527,8 @@ def
 @[reducible]
 def
   triple_ratchet.OutgoingTripleRatchet.encrypt.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) : core.ops.function.FnOnce
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) : core.ops.function.FnOnce
   (triple_ratchet.OutgoingTripleRatchet.encrypt.closure R) spqr.Error
   error.SignalProtocolError := {
   call_once :=
@@ -9527,8 +9539,8 @@ def
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::OutgoingTripleRatchet}::encrypt]:
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 141:4-190:5 -/
 def triple_ratchet.OutgoingTripleRatchet.encrypt
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (self : triple_ratchet.OutgoingTripleRatchet)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : triple_ratchet.OutgoingTripleRatchet)
   (plaintext : Slice Std.U8)
   (local_address : Option libsignal_core.address.ProtocolAddress)
   (remote_address : libsignal_core.address.ProtocolAddress) (csprng : R) :
@@ -9687,8 +9699,9 @@ def triple_ratchet.TripleRatchet.apply_to_session_state
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 298:73-310:9 -/
 def
   triple_ratchet.TripleRatchet.decrypt.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError.call_once
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (c : triple_ratchet.TripleRatchet.decrypt.closure R)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R)
+  (c : triple_ratchet.TripleRatchet.decrypt.closure R)
   (tupled_args : spqr.Error) :
   Result error.SignalProtocolError
   := do
@@ -9731,8 +9744,8 @@ def
 @[reducible]
 def
   triple_ratchet.TripleRatchet.decrypt.closure.Insts.CoreOpsFunctionFnOnceTupleErrorSignalProtocolError
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) : core.ops.function.FnOnce
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) : core.ops.function.FnOnce
   (triple_ratchet.TripleRatchet.decrypt.closure R) spqr.Error
   error.SignalProtocolError := {
   call_once :=
@@ -9743,8 +9756,8 @@ def
 /-- [libsignal_protocol::triple_ratchet::{libsignal_protocol::triple_ratchet::TripleRatchet}::decrypt]:
     Source: 'rust/protocol/src/triple_ratchet.rs', lines 271:4-356:5 -/
 def triple_ratchet.TripleRatchet.decrypt
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) (self : triple_ratchet.TripleRatchet)
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : triple_ratchet.TripleRatchet)
   (sender_address : libsignal_core.address.ProtocolAddress)
   (recipient_address : libsignal_core.address.ProtocolAddress)
   (ciphertext : protocol.SignalMessage)

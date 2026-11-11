@@ -9,6 +9,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -24,8 +25,8 @@ namespace libsignal_core
     Visibility: public -/
 @[rust_trait "core::num::nonzero::ZeroablePrimitive"
   (parentClauses := ["markerCopyInst", "markerCopyInst1"])]
-structure core.num.nonzero.ZeroablePrimitive (Self : Type) (Self_NonZeroInner :
-  Type) where
+structure core.num.nonzero.ZeroablePrimitive (Self : Type _) (Self_NonZeroInner
+  : Type _) where
   markerCopyInst : core.marker.Copy Self
   markerCopyInst1 : core.marker.Copy Self_NonZeroInner
 

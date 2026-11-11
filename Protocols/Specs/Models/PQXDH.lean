@@ -3,7 +3,6 @@ Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
 Released under the terms of the LICENSE file in the project root.
 Authors: Alessandro D'Angelo
 -/
-import Mathlib.Tactic.Recall
 import Protocols.Models.PQXDH
 
 /-!
@@ -121,15 +120,15 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_dh
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εsig εgap εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     UAKE.advantage ProbCompRuntime.probComp A ≤
       εsig + 2 * q * (εgap + 2 * εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk
 
@@ -158,15 +157,15 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_pq
     (εsig εkem εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     UAKE.advantage ProbCompRuntime.probComp A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk
 
@@ -195,7 +194,7 @@ recall Protocols.Models.PQXDH.sigForgeProb_le_sig
     [Inhabited S] [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
-    (hsig : ∀ B : P.sig.unforgeableAdv,
+    (hsig : ∀ B : P.sig.UnforgeableAdversary,
       (B.strongAdvantage ProbCompRuntime.probComp).toReal ≤ εsig) :
     sigForgeProb P msg hasOPK A ≤ εsig
 
@@ -218,7 +217,7 @@ recall Protocols.Models.PQXDH.pqpkGuessedProb_le
     [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q) (εpk : ℝ)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     pqpkGuessedProb P msg hasOPK A ≤ (q : ℝ) ^ 2 * εpk
 
 /--
@@ -245,7 +244,7 @@ recall Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf) :
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf) :
     forgeHonestGoodProb P msg hasOPK A ≤ (q : ℝ) * (εgap + 2 * εaead + εkdf)
 
 /--
@@ -274,8 +273,8 @@ recall Protocols.Models.PQXDH.indistAdvantage_le_gap
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
-      (kdfPRFDH P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     indistAdvantage P msg hasOPK A ≤
       (q : ℝ) * (εgap + εaead + εkdf) + 2 * (q : ℝ) ^ 2 * εpk
 
@@ -301,11 +300,11 @@ recall Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq
     (εkem εaead εkdf : ℝ) (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf) :
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf) :
     forgeHonestGoodProb P msg hasOPK A ≤ (q : ℝ) * (εkem + 2 * εaead + εkdf)
 
 /--
@@ -331,10 +330,10 @@ recall Protocols.Models.PQXDH.indistAdvantage_le_pq
     (εkem εkdf εpk : ℝ) (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     indistAdvantage P msg hasOPK A ≤ (q : ℝ) * (εkem + εkdf) + 2 * (q : ℝ) ^ 2 * εpk
 
 /--
