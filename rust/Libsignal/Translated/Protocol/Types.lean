@@ -647,13 +647,13 @@ inductive error.SignalProtocolError where
   error.SignalProtocolError
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 @[reducible]
 def double_ratchet.RatchetState.find_receiver_chain_index.closure :=
   libsignal_core.curve.PublicKey
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 @[reducible]
 def double_ratchet.RatchetState.take_skipped_key.closure := Std.U32
 

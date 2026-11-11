@@ -1633,8 +1633,116 @@ def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError :
     error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
 }
 
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop body 0:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
+@[rust_loop_body]
+def double_ratchet.RatchetState.dh_ratchet_step_loop.body
+  (v : alloc.vec.Vec proto.storage.session_structure.Chain) :
+  Result (ControlFlow (alloc.vec.Vec proto.storage.session_structure.Chain)
+    (alloc.vec.Vec proto.storage.session_structure.Chain))
+  := do
+  let i := alloc.vec.Vec.len v
+  if i > consts.MAX_RECEIVER_CHAINS
+  then
+    let (_, v1) ← alloc.vec.Vec.remove alloc.alloc.Global v 0#usize
+    ok (cont v1)
+  else ok (done v)
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop 0:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
+@[rust_loop]
+def double_ratchet.RatchetState.dh_ratchet_step_loop
+  (v : alloc.vec.Vec proto.storage.session_structure.Chain) :
+  Result (alloc.vec.Vec proto.storage.session_structure.Chain)
+  := do
+  loop
+    (fun v1 => double_ratchet.RatchetState.dh_ratchet_step_loop.body v1)
+    v
+
+/-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]:
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 320:4-367:5 -/
+def double_ratchet.RatchetState.dh_ratchet_step
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R) (self : double_ratchet.RatchetState)
+  (their_ephemeral : libsignal_core.curve.PublicKey) (csprng : R) :
+  Result ((core.result.Result ratchet.keys.ChainKey error.SignalProtocolError)
+    × double_ratchet.RatchetState × R)
+  := do
+  let o ← core.option.Option.as_ref self.sender_chain
+  match o with
+  | none =>
+    let spe ←
+      core.convert.IntoFrom.into
+        error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError
+        (toStr "missing sender chain")
+    ok (core.result.Result.Err spe, self, csprng)
+  | some sender_chain =>
+    let (current_root_key, self1) ←
+      double_ratchet.RatchetState.take_root_key self
+    let r ←
+      ratchet.keys.RootKey.create_chain current_root_key their_ephemeral
+        sender_chain.ratchet_key.private_key
+    let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let (new_root_key, receiver_chain_key) := val
+      let (new_sender_key, csprng1) ←
+        libsignal_core.curve.KeyPair.generate rand_1rngRngInst
+          rand_core_1CryptoRngInst csprng
+      let r1 ←
+        ratchet.keys.RootKey.create_chain new_root_key their_ephemeral
+          new_sender_key.private_key
+      let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+      match cf1 with
+      | core.ops.control_flow.ControlFlow.Continue val1 =>
+        let (final_root_key, sender_chain_key) := val1
+        let o1 ← core.option.Option.as_ref self1.sender_chain
+        let sc ← core.option.Option.expect o1 (toStr "checked above")
+        let current_index ← ratchet.keys.ChainKey.impl.index sc.chain_key
+        let i ← lift (core.num.U32.saturating_sub current_index 1#u32)
+        let s ← libsignal_core.curve.PublicKey.serialize their_ephemeral
+        let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s
+        let ck ← double_ratchet.ChainKey.to_pb receiver_chain_key
+        let v1 ←
+          alloc.vec.Vec.push self1.receiver_chains
+            ({
+               sender_ratchet_key := v,
+               sender_ratchet_key_private := (alloc.vec.Vec.new Std.U8),
+               chain_key := (some ck),
+               message_keys :=
+                 (alloc.vec.Vec.new
+                   proto.storage.session_structure.chain.MessageKey)
+             } : proto.storage.session_structure.Chain)
+        let v2 ← double_ratchet.RatchetState.dh_ratchet_step_loop v1
+        ok (core.result.Result.Ok receiver_chain_key,
+          {
+            self1
+              with
+              root_key := final_root_key,
+              sender_chain :=
+                (some
+                  {
+                    ratchet_key := new_sender_key,
+                    chain_key := sender_chain_key
+                  }),
+              receiver_chains := v2,
+              previous_counter := i
+          }, csprng1)
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        let r2 ←
+          core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+            ratchet.keys.ChainKey (core.convert.FromSame
+            error.SignalProtocolError) residual
+        ok (r2, self1, csprng1)
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      let r1 ←
+        core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+          ratchet.keys.ChainKey (core.convert.FromSame
+          error.SignalProtocolError) residual
+      ok (r1, self1, csprng)
+
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}::call_mut]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 def
   double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool.call_mut
   (c : double_ratchet.RatchetState.find_receiver_chain_index.closure)
@@ -1654,7 +1762,7 @@ def
     ok (false, c)
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}::call_once]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 def
   double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool.call_once
   (c : double_ratchet.RatchetState.find_receiver_chain_index.closure)
@@ -1667,7 +1775,7 @@ def
   ok b
 
 /-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 @[reducible]
 def
   double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnOnceTupleShared0ChainBool
@@ -1679,7 +1787,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::Chain,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index::{closure}<'_0, '_1, '_2>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 418:45-426:9 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 416:45-424:9 -/
 @[reducible]
 def
   double_ratchet.RatchetState.find_receiver_chain_index.closure.Insts.CoreOpsFunctionFnMutTupleShared0ChainBool
@@ -1693,7 +1801,7 @@ def
 }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::find_receiver_chain_index]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 417:4-427:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 415:4-425:5 -/
 def double_ratchet.RatchetState.find_receiver_chain_index
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) :
@@ -1814,7 +1922,7 @@ def ratchet.keys.ChainKey.next_chain_key
   ok { key := a, index := i }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::set_receiver_chain_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 410:4-415:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 408:4-413:5 -/
 def double_ratchet.RatchetState.set_receiver_chain_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey)
@@ -1895,7 +2003,7 @@ def ratchet.keys.MessageKeyGenerator.into_pb
       }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::store_skipped_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 393:4-408:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 391:4-406:5 -/
 def double_ratchet.RatchetState.store_skipped_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey)
@@ -1923,7 +2031,7 @@ def double_ratchet.RatchetState.store_skipped_key
     ok { self with receiver_chains := v }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}::call_mut]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 def
   double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool.call_mut
   (c : double_ratchet.RatchetState.take_skipped_key.closure)
@@ -1933,7 +2041,7 @@ def
   ok (tupled_args.index = c, c)
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}::call_once]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 def
   double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool.call_once
   (c : double_ratchet.RatchetState.take_skipped_key.closure)
@@ -1946,7 +2054,7 @@ def
   ok b
 
 /-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnOnce<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 @[reducible]
 def
   double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnOnceTupleShared0MessageKeyBool
@@ -1958,7 +2066,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{impl core::ops::function::FnMut<(&'_0 libsignal_protocol::proto::storage::session_structure::chain::MessageKey,), bool> for libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key::{closure}<'_0, '_1>}]
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 382:45-382:69 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 380:45-380:69 -/
 @[reducible]
 def
   double_ratchet.RatchetState.take_skipped_key.closure.Insts.CoreOpsFunctionFnMutTupleShared0MessageKeyBool
@@ -1972,7 +2080,7 @@ def
 }
 
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::take_skipped_key]:
-    Source: 'rust/protocol/src/double_ratchet.rs', lines 371:4-391:5 -/
+    Source: 'rust/protocol/src/double_ratchet.rs', lines 369:4-389:5 -/
 def double_ratchet.RatchetState.take_skipped_key
   (self : double_ratchet.RatchetState)
   (their_ephemeral : libsignal_core.curve.PublicKey) (counter : Std.U32) :
