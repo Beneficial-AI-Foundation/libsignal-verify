@@ -6,6 +6,7 @@ Authors: Alessandro D'Angelo
 import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Security
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.DistAdvantage
 
 /-!
 # Spec summary: the Full realization of PQXDH
@@ -1098,3 +1099,22 @@ info: 'Protocols.PQXDH.pqrKeyBytes' depends on axioms:
 /-- info: 'Protocols.PQXDH.Bytes' does not depend on any axioms -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.Bytes
+
+/-! ## Score convention
+
+Under the `ProbComp` runtime, the guess-form UAKE advantage is half the real-versus-random
+advantage. No statement above uses `distAdvantage`. -/
+
+recall AKE.UAKE.advantage_eq_distAdvantage_div_two {K UK TK W : Type} [SampleableType K]
+    [DecidableEq W] {proto : AKE.UAKE.Scheme ProbComp K UK TK W} (A : AKE.UAKE.Adversary proto) :
+    AKE.UAKE.advantage ProbCompRuntime.probComp A =
+      AKE.UAKE.distAdvantage ProbCompRuntime.probComp A / 2
+
+/--
+info: 'AKE.UAKE.advantage_eq_distAdvantage_div_two' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms AKE.UAKE.advantage_eq_distAdvantage_div_two
