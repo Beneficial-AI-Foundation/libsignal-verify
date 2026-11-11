@@ -12,7 +12,7 @@ the admission counts of the State table. The command is at the end.
 | Mathlib | fabf563a (v4.31.0) |
 | VCVio | cbd4144b |
 | Aeneas | nightly-2026.09.30-0855ce1 |
-| `sorry` or `sorryAx` under `Protocols/` | 18 |
+| `sorry` or `sorryAx` under `Protocols/` | 14 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -26,21 +26,33 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/PQXDH.lean`: the key-derivation mirror and the statements of the Full realization;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
 - `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
-  `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end.
+  `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end;
+- `ProtocolsTest/ToVCVio/CryptoFoundations/AEADAxioms.lean`: the twelve lemmas listed under "AEAD lemmas"
+  below.
 
 The `sorryAx` in the closures of the two security theorems of the abstract model comes from the five
-admitted hops below, which are the only admitted declarations these theorems depend on. Their imports
-also reach the four AEAD admissions, which no theorem uses. The `sorryAx` in the closures of the Full
-realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
+admitted hops below, which are the only admitted declarations these theorems depend on. The four AEAD
+lemmas that their imports reach are proved; see "AEAD lemmas" below. The `sorryAx` in the closures of the
+Full realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
+
+## AEAD lemmas
+
+The four integrity lemmas of `Protocols/ToVCVio/CryptoFoundations/AEAD.lean`, repaired and proved
+(#31, #32, #33), with the two advantage equalities and the six query-bound lemmas of their reductions.
+No PQXDH theorem uses them: both security theorems assume a bound on `INT_CTXT_D_Advantage` directly.
+
+The twelve lemmas are `AEAD.INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage`,
+`INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage`, `INT_CTXT_Advantage_le_INT_CTXT_D_Advantage`,
+`INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage`, `INT_CTXT_VF_Advantage_ctxtToVf`,
+`INT_CTXT_D_Advantage_ctxtToDec`, `ctxtToVf_encBound`, `ctxtToVf_vfBound`, `ctxtToDec_encBound`,
+`ctxtToDec_decBound`, `vfToCtxt_encBound` and `decToCtxt_encBound`. The closure of each is `propext`,
+`Classical.choice`, `Quot.sound`. `ProtocolsTest/ToVCVio/CryptoFoundations/AEADAxioms.lean` freezes these
+closures.
 
 ## Admitted lemmas
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `AEAD.INT_CTXT_Advantage_le_INT_CTXT_VF_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_VF_Advantage_le_mul_INT_CTXT_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_Advantage_le_INT_CTXT_D_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
-| `AEAD.INT_CTXT_D_Advantage_le_mul_INT_CTXT_Advantage` | `Protocols/ToVCVio/CryptoFoundations/AEAD.lean` | no theorem (both security theorems assume a bound on `INT_CTXT_D_Advantage` directly) | PQXDH-model, and this repository for the statement gaps |
 | `Protocols.Models.PQXDH.sigForgeProb_le_sig` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | both security theorems, hop 3 | PQXDH-model |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
 | `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
@@ -99,8 +111,18 @@ choice describes something outside the extracted code. The contracts are in
 | `PQKeyPairShape` on `P.pqKeygen` | policy | Kyber pairs have the Kyber1024 type and lengths | a correspondence with production key generation |
 | `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | none needed |
 | `P.coins` | modelling choice | one ideal draw of the generator state per session | a correspondence with production's generator |
-| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent | a correspondence with production key generation |
+| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent (see "Full EC key generation and abstract-generator relation" below) | a correspondence with production key generation |
 | `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
+
+## Modelling choices of the abstract model
+
+Choices of the abstract model in `Protocols/Models/PQXDH/` that the theorems above rest on. None of them is
+an admission.
+
+| Item | Kind | Describes | Status |
+| --- | --- | --- | --- |
+| Single identity key, `Parameters.sig` | modelling choice | Bob's identity key pair signs his pre-keys and takes part in Diffie-Hellman, as in production; the signature scheme `Parameters.sig` draws its keys with `dhKeygen`, so completeness and unforgeability of `P.sig` refer to Diffie-Hellman identity keys | matches production's key use |
+| Full EC key generation and abstract-generator relation | open bridge obligation | the abstract model draws identity, signed and one-time keys with `dhKeygen`, a uniform exponent; the Full realization draws with `P.ecKeygen`, whose law, public/private relation (`ECKeyPairValid`), clamping and generator assumption are separate. The relation between the two generators is not established, and results proved on the uniform exponent are not transferred to production | open |
 
 ## How to check
 

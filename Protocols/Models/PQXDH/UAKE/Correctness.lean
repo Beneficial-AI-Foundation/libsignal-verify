@@ -22,17 +22,18 @@ open scoped ENNReal
 
 namespace Protocols.Models.PQXDH
 
-variable {F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK : Type}
+variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- The PQXDH model in the T=Bob direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). See the module note for its scope. -/
+  when paired with the message used to generate it) on identity keys drawn by
+  `dhKeygen` (`sig_perfectlyComplete_iff`). See the module note for its scope. -/
 theorem uakeInitiator_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq K] [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead) :
@@ -48,24 +49,23 @@ theorem uakeInitiator_perfectlyCorrect
   suffices h : ∃ k, uOut = some (some k) ∧ tOut = some (some k) by
     obtain ⟨k, rfl, rfl⟩ := h
     simp
-  simp only [setup, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff, Prod.mk.injEq] at hsetup
-  obtain ⟨ikA, hikA, ikB, hikB, sigkB, hsigkB, spkB, hspkB, spkSigB, hspkSigB,
-    huk, htk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, huk, htk⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup
   subst huk htk
-  exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
+  exact (run_support_initiator P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).1
 
 /-- The PQXDH model in the T=Alice direction has perfect UAKE correctness,
   assuming the KEM and AEAD are perfectly correct and the signature is
   perfectly complete (i.e., never fails on an honestly generated signature,
-  when paired with the message used to generate it). This scheme is correctness-only; see
+  when paired with the message used to generate it) on identity keys drawn by
+  `dhKeygen` (`sig_perfectlyComplete_iff`). This scheme is correctness-only; see
   the module note of `UAKE/Defs.lean`. -/
 theorem uakeRecipient_perfectlyCorrect
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq IdC] [DecidableEq IdK]
     [DecidableEq K] [DecidableEq SS] [DecidableEq Msg] [SampleableType K]
-    (P : Parameters F G SS PQPK PQSK CT SPK SSK S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
+    (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     (hsig : P.sig.PerfectlyComplete ProbCompRuntime.probComp)
     (hkem : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (haead : AEAD.PerfectlyCorrect P.aead) :
@@ -81,14 +81,14 @@ theorem uakeRecipient_perfectlyCorrect
   suffices h : ∃ k, uOut = some (some k) ∧ tOut = some (some k) by
     obtain ⟨k, rfl, rfl⟩ := h
     simp
-  simp only [setup, support_map, Set.mem_image, mem_support_bind_iff,
-    support_pure, Set.mem_singleton_iff] at hsetup
-  obtain ⟨x, ⟨ikA, hikA, ikB, hikB, sigkB, hsigkB, spkB, hspkB, spkSigB, hspkSigB, rfl⟩,
-    hswap⟩ := hsetup
-  simp only [Prod.swap_prod_mk, Prod.mk.injEq] at hswap
-  obtain ⟨huk, htk⟩ := hswap
+  replace hsetup : (uk, tk) ∈ support (Prod.swap <$> setup P msg) := hsetup
+  simp only [support_map, Set.mem_image, Prod.exists, Prod.swap_prod_mk,
+    Prod.mk.injEq] at hsetup
+  obtain ⟨uk₀, tk₀, hsetup₀, htk, huk⟩ := hsetup
+  obtain ⟨ikA, hikA, ikB, hikB, spkB, hspkB, spkSigB, hspkSigB, rfl, rfl⟩ :=
+    (mem_support_setup_iff P msg).mp hsetup₀
   subst huk htk
-  exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hsigkB hspkB
+  exact (run_support_recipient P hasOPK hsig hkem haead msg hikA hikB hspkB
     hspkSigB hrun).1
 
 end Protocols.Models.PQXDH

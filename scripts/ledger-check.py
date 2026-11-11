@@ -11,8 +11,9 @@ Exits 0 iff the three admission counts and the Lean, Mathlib, VCVio and Aeneas p
 table match the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
 The script does not check axiom closures. The `#guard_msgs` checks on `#print axioms` in the spec
-summaries (`Protocols/Specs/`, `rust/Libsignal/Specs/`) and in the fault fixtures
-(`ProtocolsTest/PQXDH/FaultFixtures.lean`) do, and `lake build` runs them.
+summaries (`Protocols/Specs/`, `rust/Libsignal/Specs/`) and in two files of `ProtocolsTest/` (the
+fault fixtures `PQXDH/FaultFixtures.lean` and `ToVCVio/CryptoFoundations/AEADAxioms.lean`) do, and
+`lake build` runs them.
 
 The `rg` pattern only selects candidate lines. A listed line counts as an admission when its
 executable text, what is left of it once `code_lines` blanks the comments of its file, contains
