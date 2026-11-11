@@ -3,7 +3,6 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
-import Mathlib.Tactic.Recall
 import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.Derive
 
 /-!
@@ -35,8 +34,7 @@ info: 'libsignal_protocol.pqxdh.HandshakeKeys.derive_with_label_spec' depends on
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.pqxdh.HandshakeKeys.derive_with_label_spec
@@ -70,8 +68,7 @@ info: 'libsignal_protocol.pqxdh.HandshakeKeys.derive_spec' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.pqxdh.HandshakeKeys.derive_spec
@@ -97,7 +94,6 @@ info: 'libsignal_protocol.pqxdh.pqxdh_initiate' depends on axioms:
  alloc.vec.Vec.into_boxed_slice,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
 -/
@@ -117,10 +113,8 @@ info: 'libsignal_protocol.pqxdh.pqxdh_accept' depends on axioms:
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- Aeneas.Std.core.fmt.Formatter,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- libsignal_protocol.pqxdh.pqxdh_accept._native.decide.ax_1]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.pqxdh.pqxdh_accept

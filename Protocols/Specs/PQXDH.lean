@@ -930,8 +930,7 @@ info: 'Protocols.PQXDH.deriveKeysTotal' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveKeysTotal
@@ -982,8 +981,7 @@ info: 'Protocols.PQXDH.deriveHK' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveHK
@@ -993,8 +991,7 @@ info: 'Protocols.PQXDH.deriveKeys' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.deriveKeys
@@ -1004,8 +1001,7 @@ info: 'Protocols.PQXDH.DeriveKeysTotal' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- crypto.hkdf_sha256,
- Aeneas.Std.core.fmt.Formatter]
+ crypto.hkdf_sha256]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.DeriveKeysTotal

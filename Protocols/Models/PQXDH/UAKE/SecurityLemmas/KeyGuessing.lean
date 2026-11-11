@@ -410,10 +410,10 @@ theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G S) (t)
           exact badEnv_challenge_append P msg hasOPK env h _ _ _ _ w [] (by simp [recordOne])
 
 theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ≥0∞)
-    (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε) (t)
+    (hpk : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤ ε) (t)
     (ht : t = Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
     (hbad : badEnv P msg hasOPK env = false) :
-    Pr[ fun z => badEnv P msg hasOPK z.2 = true | (oracle P msg hasOPK tk t).run env] ≤
+    Pr{let z ← ((oracle P msg hasOPK tk t).run env)}[badEnv P msg hasOPK z.2 = true] ≤
       ε * ((env.tSessions.length + 1 : ℕ) : ℝ≥0∞) := by
   subst ht
   rw [oracleImpl_openT_run]
@@ -422,8 +422,8 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ�
     fun r _ hr => by simp [probEvent_pure, hr]).trans ?_
   have hinit : (uakeInitiator P msg hasOPK).T.init tk = (recipient P hasOPK).init tk := rfl
   rw [hinit]
-  refine (probEvent_bind_le_of_forall_le (ε := Pr[ fun kp =>
-    kp.1 ∈ keySet P msg hasOPK env | P.pqkem.keygen]) fun opk _ => ?_).trans ?_
+  refine (probEvent_bind_le_of_forall_le
+    (ε := Pr{let kp ← P.pqkem.keygen}[kp.1 ∈ keySet P msg hasOPK env]) fun opk _ => ?_).trans ?_
   · refine probEvent_bind_le_probEvent fun kp _ hkp =>
       le_antisymm (probEvent_bind_le_of_forall_le fun bd hbd => ?_) zero_le
     erw [probEvent_pure]
@@ -442,14 +442,13 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ�
 /-- The potential bound for the UAKE oracle, for any budget predicate that holds exactly at
 `openT`. -/
 theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G S)
-    (ε : ℝ≥0∞) (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε)
+    (ε : ℝ≥0∞) (hpk : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤ ε)
     {p : (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)).Domain → Prop}
     {_ : DecidablePred p} (hp : ∀ t, p t ↔ t = Sum.inr .openT) {α : Type}
     (oa : OracleComp (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)) α) (b : ℕ)
     (hb : oa.IsQueryBoundP p b)
     (env : Env (uakeInitiator P msg hasOPK)) (h : env.SessionsStarted) :
-    Pr[ fun z => badEnv P msg hasOPK z.2 = true |
-        (simulateQ (oracle P msg hasOPK tk) oa).run env] ≤
+    Pr{let z ← ((simulateQ (oracle P msg hasOPK tk) oa).run env)}[badEnv P msg hasOPK z.2 = true] ≤
       (if badEnv P msg hasOPK env then 1 else 0) +
         ε * ((b * (env.tSessions.length + b) : ℕ) : ℝ≥0∞) :=
   probEvent_simulateQ_bad_le (oracle P msg hasOPK tk) p

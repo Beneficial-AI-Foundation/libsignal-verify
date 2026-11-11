@@ -39,10 +39,10 @@ theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
     (h_count : ∀ t s, isCounted t → inv s → ∀ z ∈ support ((impl t).run s),
       count z.2 = count s + 1)
     (h_hit : ∀ t s, isCounted t → inv s → bad s = false →
-      Pr[ fun z => bad z.2 = true | (impl t).run s] ≤ ε * ((count s + 1 : ℕ) : ℝ≥0∞))
+      Pr{let z ← ((impl t).run s)}[bad z.2 = true] ≤ ε * ((count s + 1 : ℕ) : ℝ≥0∞))
     {α : Type} (oa : OracleComp spec α) :
     ∀ b : ℕ, oa.IsQueryBoundP isCounted b → ∀ s, inv s →
-      Pr[ fun z => bad z.2 = true | (simulateQ impl oa).run s] ≤
+      Pr{let z ← ((simulateQ impl oa).run s)}[bad z.2 = true] ≤
         (if bad s then 1 else 0) + ε * ((b * (count s + b) : ℕ) : ℝ≥0∞) := by
   induction oa using OracleComp.inductionOn with
   | pure a =>
@@ -60,14 +60,14 @@ theorem probEvent_simulateQ_bad_le (impl : QueryImpl spec (StateT σ ProbComp))
       simp only [ht, if_true, Nat.add_sub_cancel] at hcont
       cases hbad : bad s
       · refine le_add_left ?_
-        calc Pr[ fun z => bad z.2 = true |
-              (impl t).run s >>= fun p => (simulateQ impl (k p.1)).run p.2]
-            ≤ ∑' z, Pr[= z | (impl t).run s] * ((if bad z.2 then 1 else 0) +
+        calc Pr{let z ← ((impl t).run s >>= fun p =>
+              (simulateQ impl (k p.1)).run p.2)}[bad z.2 = true]
+            ≤ ∑' z, Pr{let y ← ((impl t).run s)}[y = z] * ((if bad z.2 then 1 else 0) +
                 ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞)) := by
               refine probEvent_bind_le_tsum _ fun z hz => ?_
               have h1 := ih z.1 b' (hcont z.1) z.2 (h_inv t s hs z hz)
               rwa [h_count t s ht hs z hz] at h1
-          _ ≤ Pr[ fun z => bad z.2 = true | (impl t).run s] +
+          _ ≤ Pr{let z ← ((impl t).run s)}[bad z.2 = true] +
                 ε * ((b' * (count s + 1 + b') : ℕ) : ℝ≥0∞) := by
               simp only [mul_add, ENNReal.tsum_add, mul_ite, mul_one, mul_zero]
               rw [← probEvent_eq_tsum_ite, ENNReal.tsum_mul_right]

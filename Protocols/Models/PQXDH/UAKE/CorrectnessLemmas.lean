@@ -62,10 +62,10 @@ lemma fst_eq_smul_of_mem_support_dhKeygen
 lemma sig_perfectlyComplete_iff [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     P.sig.PerfectlyComplete ProbCompRuntime.probComp ↔
-      ∀ m : G ⊕ PQPK, Pr[= true | do
+      ∀ m : G ⊕ PQPK, Pr{let y ← (do
         let (pk, sk) ← dhKeygen (F := F) P.gen
         let σ ← P.sign pk sk m
-        P.verify pk m σ] = 1 :=
+        P.verify pk m σ)}[y = true] = 1 :=
   Iff.rfl
 
 /-- For a perfectly complete signature scheme, verifying an honestly generated

@@ -242,9 +242,10 @@ lemma pqpkGuessedProb_le
   -- `εpk * b * (n + b)` for `n` open sessions and `b` remaining openings. That is `εpk * q ^ 2`
   -- at the start. Only the challenge-stage half of `hq` is used.
   have hε0 : 0 ≤ εpk := nonneg_of_probOutput_le _ hpk
-  have hpk' : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ENNReal.ofReal εpk := fun pk =>
+  have hpk' : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤
+      ENNReal.ofReal εpk := fun pk =>
     (ENNReal.le_ofReal_iff_toReal_le probOutput_ne_top hε0).2 (hpk pk)
-  have key : Pr[= true | pqpkGuessedExp P msg hasOPK A] ≤
+  have key : Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true] ≤
       ENNReal.ofReal εpk * ((q * q : ℕ) : ℝ≥0∞) := by
     rw [← probEvent_eq_eq_probOutput]
     simp only [pqpkGuessedExp, challengePhase, bind_assoc]
