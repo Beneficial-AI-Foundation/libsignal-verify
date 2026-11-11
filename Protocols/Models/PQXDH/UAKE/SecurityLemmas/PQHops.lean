@@ -83,11 +83,11 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
     (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
       AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf) :
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf) :
     forgeHonestGoodProb P msg hasOPK A ≤ q * (εkem + 2 * εaead + εkdf) := by
   sorry
 
@@ -132,10 +132,10 @@ lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [In
     (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
-      P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B ≤ εkem)
+      (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
-      (kdfPRF P).prfAdvantage D ≤ εkdf)
-    (hpk : ∀ pk : PQPK, (Pr[= pk | Prod.fst <$> P.pqkem.keygen]).toReal ≤ εpk) :
+      ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf)
+    (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
     indistAdvantage P msg hasOPK A ≤
       q * (εkem + εkdf) + 2 * (q : ℝ) ^ 2 * εpk := by
   sorry

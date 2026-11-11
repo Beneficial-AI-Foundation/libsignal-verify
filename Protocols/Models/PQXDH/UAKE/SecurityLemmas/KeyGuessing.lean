@@ -102,8 +102,18 @@ theorem mem_keySet_of_badEnv_openNext [DecidableEq PQPK]
     decide_eq_false_iff_not, not_and, not_forall, Decidable.not_not, keySet,
     List.toFinset_append, Finset.mem_union, List.mem_toFinset, Option.mem_toList] at hbad h ⊢
   rcases h with h | h
-  · obtain ⟨x, y, s, hs, hy, hyx, rfl⟩ := h hbad.1
-    exact Or.inl ⟨y, ⟨s, hs, hy⟩, hyx⟩
+  · replace h := of_decide_eq_false h
+    simp only [List.map_append, List.map_cons, List.map_nil, List.filterMap_append,
+      List.filterMap_map, List.nodup_append, List.filterMap_cons, transcriptBundle,
+      List.head?_cons, List.filterMap_nil, List.nodup_cons, List.not_mem_nil,
+      not_false_eq_true, List.nodup_nil, and_true, List.mem_cons, List.mem_map,
+      List.mem_filterMap] at h
+    by_contra hc
+    refine h ⟨hbad.1, trivial, ?_⟩
+    rintro a ⟨y, ⟨s, hs, hy⟩, rfl⟩ b hb rfl
+    rcases hb with hb | hb
+    · exact hc (Or.inl ⟨y, ⟨s, hs, hy⟩, hb⟩)
+    · exact hb
   · right
     obtain ⟨-, h2⟩ := hbad
     rcases hh : (env.challenge.transcript).entries.head? with _ | ⟨m, tc⟩
@@ -247,7 +257,8 @@ theorem oracle_inv (tk : RecipientIdentity F G S) (t)
             · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
                 bind_pure_comp, StateT.run_map, StateT.run_set, map_pure, Functor.map_map,
                 support_map, Set.mem_image] at hz
-              obtain ⟨y, -, hz⟩ := hz
+              obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+              simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
               subst hz
               exact env.sessionsStarted_set_extend h hs _ _ (by simp [recordOne]; rfl) _
                 (by simp [recordOne]; omega) _ _
@@ -255,7 +266,8 @@ theorem oracle_inv (tk : RecipientIdentity F G S) (t)
             simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self, bind_pure_comp,
               StateT.run_map, StateT.run_set, map_pure, Functor.map_map, support_map, Set.mem_image]
               at hz
-            obtain ⟨y, -, hz⟩ := hz
+            obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+            simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
             subst hz
             exact env.sessionsStarted_set_extend h hs _ _ (by simp [recordOne]; rfl) _
               (by simp [recordOne]) _ _
@@ -367,14 +379,16 @@ theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G S) (t)
             · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
                 bind_pure_comp, StateT.run_map, StateT.run_set, map_pure, Functor.map_map,
                 support_map, Set.mem_image] at hz
-              obtain ⟨y, -, hz⟩ := hz
+              obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+              simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
               subst hz
               exact badEnv_set_of_head P msg hasOPK env hs _ (by simp [recordOne, he]) _ _
           | complete st' =>
             simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self, bind_pure_comp,
               StateT.run_map, StateT.run_set, map_pure, Functor.map_map, support_map, Set.mem_image]
               at hz
-            obtain ⟨y, -, hz⟩ := hz
+            obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+            simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
             subst hz
             exact badEnv_set_of_head P msg hasOPK env hs _ (by simp [recordOne, he]) _ _
         · simp only [add_apply_inr, bind_pure_comp, pure_bind, StateT.run_bind, StateT.run_get,
@@ -409,24 +423,39 @@ theorem oracle_free [DecidableEq PQPK] (tk : RecipientIdentity F G S) (t)
           subst hz
           exact badEnv_challenge_append P msg hasOPK env h _ _ _ _ w [] (by simp [recordOne])
 
+theorem prEvent_bind_le_of_forall_mem_support_le {α β : Type} {mx : ProbComp α}
+    {f : α → ProbComp β} {q : β → Prop} {ε : ℝ≥0∞}
+    (h : ∀ x ∈ support mx, Pr{let y ← (f x)}[(q) y] ≤ ε) :
+    Pr{let y ← (mx >>= f)}[(q) y] ≤ ε := by
+  let _ : MeasurableSpace α := ⊤
+  rw [prEvent_bind_eq_lintegral_of_discrete]
+  calc ∫⁻ a, Pr{let y ← f a}[q y] ∂𝒟[mx]
+      ≤ ∫⁻ _, ε ∂𝒟[mx] := MeasureTheory.lintegral_mono_ae
+        (evalDist.ae_of_forall_mem_support mx _ MeasurableSet.of_discrete h)
+    _ = ε * 𝒟[mx] Set.univ := MeasureTheory.lintegral_const ε
+    _ ≤ ε := mul_le_of_le_one_right' (evalDist_apply_univ_le_one mx)
+
 theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ≥0∞)
-    (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε) (t)
+    (hpk : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤ ε) (t)
     (ht : t = Sum.inr .openT) (env : Env (uakeInitiator P msg hasOPK))
     (hbad : badEnv P msg hasOPK env = false) :
-    Pr[ fun z => badEnv P msg hasOPK z.2 = true | (oracle P msg hasOPK tk t).run env] ≤
+    Pr{let z ← ((oracle P msg hasOPK tk t).run env)}[badEnv P msg hasOPK z.2 = true] ≤
       ε * ((env.tSessions.length + 1 : ℕ) : ℝ≥0∞) := by
   subst ht
   rw [oracleImpl_openT_run]
-  refine (probEvent_bind_le_probEvent
-    (p := fun r => badEnv P msg hasOPK (env.openNext r) = true)
-    fun r _ hr => by simp [probEvent_pure, hr]).trans ?_
+  refine (prEvent_bind_le_prEvent_mul_of_forall_le _ _
+    (fun r => badEnv P msg hasOPK (env.openNext r) = true) _ (ε := 1)
+    (fun _ _ => prEvent_le_one _) fun r hr => by simp [hr]).trans ?_
+  rw [mul_one]
   have hinit : (uakeInitiator P msg hasOPK).T.init tk = (recipient P hasOPK).init tk := rfl
   rw [hinit]
-  refine (probEvent_bind_le_of_forall_le (ε := Pr[ fun kp =>
-    kp.1 ∈ keySet P msg hasOPK env | P.pqkem.keygen]) fun opk _ => ?_).trans ?_
-  · refine probEvent_bind_le_probEvent fun kp _ hkp =>
-      le_antisymm (probEvent_bind_le_of_forall_le fun bd hbd => ?_) zero_le
-    erw [probEvent_pure]
+  refine (prEvent_bind_le_of_forall_le _ _ _
+    (ε := Pr{let kp ← P.pqkem.keygen}[kp.1 ∈ keySet P msg hasOPK env]) fun opk => ?_).trans ?_
+  · refine (prEvent_bind_le_prEvent_mul_of_forall_le _ _ _ _ (ε := 1)
+      (fun _ _ => prEvent_le_one _) fun kp hkp =>
+      le_antisymm (prEvent_bind_le_of_forall_mem_support_le fun bd hbd => ?_) zero_le).trans
+      (by rw [mul_one])
+    erw [prEvent_pure]
     split_ifs with hb
     · exfalso
       refine hkp ?_
@@ -442,14 +471,13 @@ theorem oracle_hit [DecidableEq PQPK] (tk : RecipientIdentity F G S) (ε : ℝ�
 /-- The potential bound for the UAKE oracle, for any budget predicate that holds exactly at
 `openT`. -/
 theorem probEvent_badEnv_le [DecidableEq PQPK] (tk : RecipientIdentity F G S)
-    (ε : ℝ≥0∞) (hpk : ∀ pk, Pr[= pk | Prod.fst <$> P.pqkem.keygen] ≤ ε)
+    (ε : ℝ≥0∞) (hpk : ∀ pk, Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk] ≤ ε)
     {p : (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)).Domain → Prop}
     {_ : DecidablePred p} (hp : ∀ t, p t ↔ t = Sum.inr .openT) {α : Type}
     (oa : OracleComp (unifSpec + oracleSpec K (Message G PQPK CT S C IdC IdK)) α) (b : ℕ)
     (hb : oa.IsQueryBoundP p b)
     (env : Env (uakeInitiator P msg hasOPK)) (h : env.SessionsStarted) :
-    Pr[ fun z => badEnv P msg hasOPK z.2 = true |
-        (simulateQ (oracle P msg hasOPK tk) oa).run env] ≤
+    Pr{let z ← ((simulateQ (oracle P msg hasOPK tk) oa).run env)}[badEnv P msg hasOPK z.2 = true] ≤
       (if badEnv P msg hasOPK env then 1 else 0) +
         ε * ((b * (env.tSessions.length + b) : ℕ) : ℝ≥0∞) :=
   probEvent_simulateQ_bad_le (oracle P msg hasOPK tk) p

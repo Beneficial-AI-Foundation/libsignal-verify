@@ -9,6 +9,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -23,8 +24,8 @@ namespace signal_crypto
     Name pattern: [core::ops::arith::Add]
     Visibility: public -/
 @[rust_trait "core::ops::arith::Add"]
-structure core.ops.arith.Add (Self : Type) (Rhs : Type) (Self_Output : Type)
-  where
+structure core.ops.arith.Add (Self : Type _) (Rhs : Type _) (Self_Output :
+  Type _) where
   add : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [core::ops::arith::Sub]
@@ -32,8 +33,8 @@ structure core.ops.arith.Add (Self : Type) (Rhs : Type) (Self_Output : Type)
     Name pattern: [core::ops::arith::Sub]
     Visibility: public -/
 @[rust_trait "core::ops::arith::Sub"]
-structure core.ops.arith.Sub (Self : Type) (Rhs : Type) (Self_Output : Type)
-  where
+structure core.ops.arith.Sub (Self : Type _) (Rhs : Type _) (Self_Output :
+  Type _) where
   sub : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [core::ops::arith::Div]
@@ -41,8 +42,8 @@ structure core.ops.arith.Sub (Self : Type) (Rhs : Type) (Self_Output : Type)
     Name pattern: [core::ops::arith::Div]
     Visibility: public -/
 @[rust_trait "core::ops::arith::Div"]
-structure core.ops.arith.Div (Self : Type) (Rhs : Type) (Self_Output : Type)
-  where
+structure core.ops.arith.Div (Self : Type _) (Rhs : Type _) (Self_Output :
+  Type _) where
   div : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [core::ops::arith::Rem]
@@ -50,8 +51,8 @@ structure core.ops.arith.Div (Self : Type) (Rhs : Type) (Self_Output : Type)
     Name pattern: [core::ops::arith::Rem]
     Visibility: public -/
 @[rust_trait "core::ops::arith::Rem"]
-structure core.ops.arith.Rem (Self : Type) (Rhs : Type) (Self_Output : Type)
-  where
+structure core.ops.arith.Rem (Self : Type _) (Rhs : Type _) (Self_Output :
+  Type _) where
   rem : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [core::ops::bit::Shl]
@@ -59,8 +60,8 @@ structure core.ops.arith.Rem (Self : Type) (Rhs : Type) (Self_Output : Type)
     Name pattern: [core::ops::bit::Shl]
     Visibility: public -/
 @[rust_trait "core::ops::bit::Shl"]
-structure core.ops.bit.Shl (Self : Type) (Rhs : Type) (Self_Output : Type)
-  where
+structure core.ops.bit.Shl (Self : Type _) (Rhs : Type _) (Self_Output :
+  Type _) where
   shl : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [subtle::ConstantTimeEq]
@@ -68,7 +69,7 @@ structure core.ops.bit.Shl (Self : Type) (Rhs : Type) (Self_Output : Type)
     Name pattern: [subtle::ConstantTimeEq]
     Visibility: public -/
 @[rust_trait "subtle::ConstantTimeEq"]
-structure subtle.ConstantTimeEq (Self : Type) where
+structure subtle.ConstantTimeEq (Self : Type _) where
   ct_eq : Self → Self → Result subtle.Choice
 
 /-- [typenum::bit::B0]
@@ -90,7 +91,7 @@ def typenum.bit.B1 := Unit
     Name pattern: [typenum::sealed::Sealed]
     Visibility: public -/
 @[rust_trait "typenum::sealed::Sealed"]
-structure typenum.sealed.Sealed (Self : Type) where
+structure typenum.sealed.Sealed (Self : Type _) where
 
 /-- Trait declaration: [typenum::marker_traits::Bit]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/marker_traits.rs', lines 35:0-35:48
@@ -99,7 +100,7 @@ structure typenum.sealed.Sealed (Self : Type) where
 @[rust_trait "typenum::marker_traits::Bit"
   (parentClauses := ["sealedSealedInst", "coremarkerCopyInst", "coredefaultDefaultInst"])
   (consts := ["U8", "BOOL"])]
-structure typenum.marker_traits.Bit (Self : Type) where
+structure typenum.marker_traits.Bit (Self : Type _) where
   U8 : Result Std.U8
   BOOL : Result Bool
   sealedSealedInst : typenum.sealed.Sealed Self
@@ -136,7 +137,7 @@ def typenum.Equal := Unit
     Visibility: public -/
 @[rust_trait "typenum::marker_traits::Ord"
   (parentClauses := ["sealedSealedInst"])]
-structure typenum.marker_traits.Ord (Self : Type) where
+structure typenum.marker_traits.Ord (Self : Type _) where
   sealedSealedInst : typenum.sealed.Sealed Self
   to_ordering : Result Ordering
 
@@ -154,7 +155,7 @@ def typenum.uint.UTerm := Unit
 @[rust_trait "typenum::marker_traits::Unsigned"
   (parentClauses := ["sealedSealedInst", "coremarkerCopyInst", "coredefaultDefaultInst"])
   (consts := ["U8", "U16", "U32", "U64", "USIZE", "I8", "I16", "I32", "I64", "ISIZE"])]
-structure typenum.marker_traits.Unsigned (Self : Type) where
+structure typenum.marker_traits.Unsigned (Self : Type _) where
   U8 : Result Std.U8
   U16 : Result Std.U16
   U32 : Result Std.U32
@@ -185,7 +186,7 @@ structure typenum.marker_traits.Unsigned (Self : Type) where
     Visibility: public -/
 @[rust_trait "typenum::marker_traits::NonZero"
   (parentClauses := ["sealedSealedInst"])]
-structure typenum.marker_traits.NonZero (Self : Type) where
+structure typenum.marker_traits.NonZero (Self : Type _) where
   sealedSealedInst : typenum.sealed.Sealed Self
 
 /-- Trait declaration: [typenum::private::InternalMarker]
@@ -193,14 +194,14 @@ structure typenum.marker_traits.NonZero (Self : Type) where
     Name pattern: [typenum::private::InternalMarker]
     Visibility: public -/
 @[rust_trait "typenum::private::InternalMarker"]
-structure typenum.private.InternalMarker (Self : Type) where
+structure typenum.private.InternalMarker (Self : Type _) where
 
 /-- Trait declaration: [typenum::private::Trim]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1/src/private.rs', lines 36:0-36:14
     Name pattern: [typenum::private::Trim]
     Visibility: public -/
 @[rust_trait "typenum::private::Trim"]
-structure typenum.private.Trim (Self : Type) (Self_Output : Type) where
+structure typenum.private.Trim (Self : Type _) (Self_Output : Type _) where
   trim : Self → Result Self_Output
 
 /-- Trait declaration: [typenum::private::TrimTrailingZeros]
@@ -208,8 +209,8 @@ structure typenum.private.Trim (Self : Type) (Self_Output : Type) where
     Name pattern: [typenum::private::TrimTrailingZeros]
     Visibility: public -/
 @[rust_trait "typenum::private::TrimTrailingZeros"]
-structure typenum.private.TrimTrailingZeros (Self : Type) (Self_Output : Type)
-  where
+structure typenum.private.TrimTrailingZeros (Self : Type _) (Self_Output :
+  Type _) where
   trim_trailing_zeros : Self → Result Self_Output
 
 /-- Trait declaration: [typenum::private::Invert]
@@ -217,7 +218,7 @@ structure typenum.private.TrimTrailingZeros (Self : Type) (Self_Output : Type)
     Name pattern: [typenum::private::Invert]
     Visibility: public -/
 @[rust_trait "typenum::private::Invert"]
-structure typenum.private.Invert (Self : Type) (Self_Output : Type) where
+structure typenum.private.Invert (Self : Type _) (Self_Output : Type _) where
   invert : Self → Result Self_Output
 
 /-- Trait declaration: [typenum::private::PrivateInvert]
@@ -225,8 +226,8 @@ structure typenum.private.Invert (Self : Type) (Self_Output : Type) where
     Name pattern: [typenum::private::PrivateInvert]
     Visibility: public -/
 @[rust_trait "typenum::private::PrivateInvert"]
-structure typenum.private.PrivateInvert (Self : Type) (Rhs : Type) (Self_Output
-  : Type) where
+structure typenum.private.PrivateInvert (Self : Type _) (Rhs : Type _)
+  (Self_Output : Type _) where
   private_invert : Self → Rhs → Result Self_Output
 
 /-- [typenum::private::InvertedUTerm]
@@ -241,7 +242,7 @@ def typenum.private.InvertedUTerm := Unit
     Name pattern: [typenum::private::InvertedUnsigned]
     Visibility: public -/
 @[rust_trait "typenum::private::InvertedUnsigned"]
-structure typenum.private.InvertedUnsigned (Self : Type) where
+structure typenum.private.InvertedUnsigned (Self : Type _) where
   to_u64 : Result Std.U64
 
 /-- Trait declaration: [typenum::private::PrivateCmp]
@@ -249,8 +250,8 @@ structure typenum.private.InvertedUnsigned (Self : Type) where
     Name pattern: [typenum::private::PrivateCmp]
     Visibility: public -/
 @[rust_trait "typenum::private::PrivateCmp"]
-structure typenum.private.PrivateCmp (Self : Type) (Rhs : Type) (SoFar : Type)
-  (Self_Output : Type) where
+structure typenum.private.PrivateCmp (Self : Type _) (Rhs : Type _) (SoFar :
+  Type _) (Self_Output : Type _) where
   private_cmp : Self → Rhs → SoFar → Result Self_Output
 
 /-- Trait declaration: [typenum::private::PrivateSetBit]
@@ -258,8 +259,8 @@ structure typenum.private.PrivateCmp (Self : Type) (Rhs : Type) (SoFar : Type)
     Name pattern: [typenum::private::PrivateSetBit]
     Visibility: public -/
 @[rust_trait "typenum::private::PrivateSetBit"]
-structure typenum.private.PrivateSetBit (Self : Type) (I : Type) (B : Type)
-  (Self_Output : Type) where
+structure typenum.private.PrivateSetBit (Self : Type _) (I : Type _) (B :
+  Type _) (Self_Output : Type _) where
   private_set_bit : Self → I → B → Result Self_Output
 
 /-- Trait declaration: [typenum::private::PrivateDiv]
@@ -267,9 +268,9 @@ structure typenum.private.PrivateSetBit (Self : Type) (I : Type) (B : Type)
     Name pattern: [typenum::private::PrivateDiv]
     Visibility: public -/
 @[rust_trait "typenum::private::PrivateDiv"]
-structure typenum.private.PrivateDiv (Self : Type) (N : Type) (D : Type) (Q :
-  Type) (R : Type) (I : Type) (Self_Quotient : Type) (Self_Remainder : Type)
-  where
+structure typenum.private.PrivateDiv (Self : Type _) (N : Type _) (D : Type _)
+  (Q : Type _) (R : Type _) (I : Type _) (Self_Quotient : Type _)
+  (Self_Remainder : Type _) where
   private_div_quotient : Self → N → D → Q → R → I → Result
     Self_Quotient
   private_div_remainder : Self → N → D → Q → R → I → Result
@@ -280,9 +281,9 @@ structure typenum.private.PrivateDiv (Self : Type) (N : Type) (D : Type) (Q :
     Name pattern: [typenum::private::PrivateDivIf]
     Visibility: public -/
 @[rust_trait "typenum::private::PrivateDivIf"]
-structure typenum.private.PrivateDivIf (Self : Type) (N : Type) (D : Type) (Q :
-  Type) (R : Type) (I : Type) (RcmpD : Type) (Self_Quotient : Type)
-  (Self_Remainder : Type) where
+structure typenum.private.PrivateDivIf (Self : Type _) (N : Type _) (D :
+  Type _) (Q : Type _) (R : Type _) (I : Type _) (RcmpD : Type _)
+  (Self_Quotient : Type _) (Self_Remainder : Type _) where
   private_div_if_quotient : Self → N → D → Q → R → I → RcmpD →
     Result Self_Quotient
   private_div_if_remainder : Self → N → D → Q → R → I → RcmpD →
@@ -294,8 +295,8 @@ structure typenum.private.PrivateDivIf (Self : Type) (N : Type) (D : Type) (Q :
     Visibility: public -/
 @[rust_trait "typenum::private::IsLessPrivate"
   (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.private.IsLessPrivate (Self : Type) (Rhs : Type) (Cmp : Type)
-  (Self_Output : Type) where
+structure typenum.private.IsLessPrivate (Self : Type _) (Rhs : Type _) (Cmp :
+  Type _) (Self_Output : Type _) where
   marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
   is_less_private : Self → Rhs → Cmp → Result Self_Output
 
@@ -304,8 +305,8 @@ structure typenum.private.IsLessPrivate (Self : Type) (Rhs : Type) (Cmp : Type)
     Name pattern: [typenum::type_operators::Cmp]
     Visibility: public -/
 @[rust_trait "typenum::type_operators::Cmp"]
-structure typenum.type_operators.Cmp (Self : Type) (Rhs : Type) (Self_Output :
-  Type) where
+structure typenum.type_operators.Cmp (Self : Type _) (Rhs : Type _)
+  (Self_Output : Type _) where
   compare : forall {IM : Type} (privateInternalMarkerInst :
     typenum.private.InternalMarker IM), Self → Rhs → Result Self_Output
 
@@ -315,7 +316,8 @@ structure typenum.type_operators.Cmp (Self : Type) (Rhs : Type) (Self_Output :
     Visibility: public -/
 @[rust_trait "typenum::type_operators::Len"
   (parentClauses := ["marker_traitsUnsignedInst"])]
-structure typenum.type_operators.Len (Self : Type) (Self_Output : Type) where
+structure typenum.type_operators.Len (Self : Type _) (Self_Output : Type _)
+  where
   marker_traitsUnsignedInst : typenum.marker_traits.Unsigned Self_Output
   len : Self → Result Self_Output
 
@@ -324,8 +326,8 @@ structure typenum.type_operators.Len (Self : Type) (Self_Output : Type) where
     Name pattern: [typenum::type_operators::PartialDiv]
     Visibility: public -/
 @[rust_trait "typenum::type_operators::PartialDiv"]
-structure typenum.type_operators.PartialDiv (Self : Type) (Rhs : Type)
-  (Self_Output : Type) where
+structure typenum.type_operators.PartialDiv (Self : Type _) (Rhs : Type _)
+  (Self_Output : Type _) where
   partial_div : Self → Rhs → Result Self_Output
 
 /-- Trait declaration: [typenum::type_operators::IsLess]
@@ -334,8 +336,8 @@ structure typenum.type_operators.PartialDiv (Self : Type) (Rhs : Type)
     Visibility: public -/
 @[rust_trait "typenum::type_operators::IsLess"
   (parentClauses := ["marker_traitsBitInst"])]
-structure typenum.type_operators.IsLess (Self : Type) (Rhs : Type) (Self_Output
-  : Type) where
+structure typenum.type_operators.IsLess (Self : Type _) (Rhs : Type _)
+  (Self_Output : Type _) where
   marker_traitsBitInst : typenum.marker_traits.Bit Self_Output
   is_less : Self → Rhs → Result Self_Output
 
@@ -344,8 +346,8 @@ structure typenum.type_operators.IsLess (Self : Type) (Rhs : Type) (Self_Output
     Name pattern: [typenum::uint::GetBit]
     Visibility: public -/
 @[rust_trait "typenum::uint::GetBit"]
-structure typenum.uint.GetBit (Self : Type) (I : Type) (Self_Output : Type)
-  where
+structure typenum.uint.GetBit (Self : Type _) (I : Type _) (Self_Output :
+  Type _) where
   get_bit : forall {IM : Type} (privateInternalMarkerInst :
     typenum.private.InternalMarker IM), Self → I → Result Self_Output
 
@@ -354,8 +356,8 @@ structure typenum.uint.GetBit (Self : Type) (I : Type) (Self_Output : Type)
     Name pattern: [typenum::uint::SetBit]
     Visibility: public -/
 @[rust_trait "typenum::uint::SetBit"]
-structure typenum.uint.SetBit (Self : Type) (I : Type) (B : Type) (Self_Output
-  : Type) where
+structure typenum.uint.SetBit (Self : Type _) (I : Type _) (B : Type _)
+  (Self_Output : Type _) where
   set_bit : forall {IM : Type} (privateInternalMarkerInst :
     typenum.private.InternalMarker IM), Self → I → B → Result Self_Output
 

@@ -55,12 +55,11 @@ theorem extend_from_slice_spec {T : Type} (cloneInst : core.clone.Clone T)
     (h_len : v.length + s.length ≤ Usize.max) :
     extend_from_slice cloneInst v s ⦃ (v' : alloc.vec.Vec T) =>
       v'.val = v.val ++ s.val ∧ v'.length = v.length + s.length ⦄ := by
-  have h_cl : Slice.clone cloneInst.clone s = ok s := by
-    obtain ⟨s', h_eq, hs⟩ := WP.spec_imp_exists (Slice.clone_spec h_clone)
-    rw [h_eq, ← hs]
   unfold extend_from_slice
   rw [dif_pos h_len]
-  grind
+  apply WP.spec_bind (List.clone_spec h_clone)
+  intro l hl
+  simp [hl]
 
 /-- `alloc.vec.Vec.extend_from_slice` panics when the combined length exceeds `usize`. -/
 theorem extend_from_slice_overflow {T : Type} (cloneInst : core.clone.Clone T)

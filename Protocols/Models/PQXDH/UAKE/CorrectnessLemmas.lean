@@ -30,17 +30,22 @@ section CorrectnessLemmas
 
 /-- Output probabilities under the `probComp` runtime's `evalDist` coincide
   with those of the computation itself. -/
-lemma probOutput_probComp_evalDist {α : Type} (oa : ProbComp α) (x : α) :
-    Pr[= x | ProbCompRuntime.probComp.evalDist oa] = Pr[= x | oa] := by
+lemma probOutput_probComp_evalDist {α : Type} [MeasurableSpace α] (oa : ProbComp α) (x : α) :
+    ProbCompRuntime.probComp.evalDist oa {x} = 𝒟[oa] {x} := by
   rfl
 
 /-- A Boolean computation that returns `true` with probability 1 has support
   `{true}`. -/
 lemma support_eq_singleton_true_of_evalDist {oa : ProbComp Bool}
-    (h : Pr[= true | ProbCompRuntime.probComp.evalDist oa] = 1) :
+    (h : ProbCompRuntime.probComp.evalDist oa {true} = 1) :
     support oa = {true} := by
-  rw [probOutput_probComp_evalDist, probOutput_eq_one_iff] at h
-  exact h.2
+  rw [probOutput_probComp_evalDist, ← prEvent_eq_evalDist_singleton] at h
+  have hall := (OracleComp.prEvent_eq_one_iff oa (fun x => x = true)).1 h
+  have hmem : true ∈ support oa := by
+    rw [OracleComp.mem_support_iff_prEvent_ne_zero, h]
+    exact one_ne_zero
+  ext x
+  exact ⟨hall x, fun hx => hx ▸ hmem⟩
 
 /-- Every key pair produced by `dhKeygen` satisfies `pk = sk • gen`. -/
 lemma fst_eq_smul_of_mem_support_dhKeygen
@@ -57,11 +62,12 @@ lemma fst_eq_smul_of_mem_support_dhKeygen
 lemma sig_perfectlyComplete_iff [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     P.sig.PerfectlyComplete ProbCompRuntime.probComp ↔
-      ∀ m : G ⊕ PQPK, Pr[= true | do
+      ∀ m : G ⊕ PQPK, Pr{let y ← (do
         let (pk, sk) ← dhKeygen (F := F) P.gen
         let σ ← P.sign pk sk m
-        P.verify pk m σ] = 1 :=
-  Iff.rfl
+        P.verify pk m σ)}[y = true] = 1 := by
+  refine forall_congr' fun m => ?_
+  rw [probOutput_probComp_evalDist, prEvent_eq_evalDist_singleton]
 
 /-- For a perfectly complete signature scheme, verifying an honestly generated
   signature can only return `true`. -/
@@ -91,8 +97,8 @@ lemma decaps_eq_some_of_perfectlyCorrect [DecidableEq SS]
     {cs : CT × SS} (hcs : cs ∈ support (P.pqkem.encaps kp.1))
     {r : Option SS} (hr : r ∈ support (P.pqkem.decaps kp.2 cs.1)) : r = some cs.2 := by
   have h := support_eq_singleton_true_of_evalDist hkem
-  have hmem : decide (r = some cs.2) ∈ support P.pqkem.CorrectExp := by
-    unfold KEMScheme.CorrectExp
+  have hmem : decide (r = some cs.2) ∈ support P.pqkem.correctnessExperiment := by
+    unfold KEMScheme.correctnessExperiment
     refine (mem_support_bind_iff _ _ _).mpr ⟨kp, hkp, ?_⟩
     refine (mem_support_bind_iff _ _ _).mpr ⟨cs, hcs, ?_⟩
     refine (mem_support_bind_iff _ _ _).mpr ⟨r, hr, ?_⟩
@@ -109,15 +115,14 @@ lemma aead_decrypt_encrypt_of_perfectlyCorrect [DecidableEq Msg] [SampleableType
     (hc : c ∈ support (P.aead.encrypt k ad m)) :
     P.aead.decrypt k ad c = some m := by
   have h := haead m ad
-  rw [probOutput_eq_one_iff] at h
+  rw [OracleComp.prEvent_eq_one_iff] at h
   have hmem : decide (P.aead.decrypt k ad c = some m) ∈
       support (AEAD.CorrectExp P.aead m ad) := by
     unfold AEAD.CorrectExp
     refine (mem_support_bind_iff _ _ _).mpr ⟨k, mem_support_uniformSample K, ?_⟩
     refine (mem_support_bind_iff _ _ _).mpr ⟨c, hc, ?_⟩
     simp
-  rw [h.2] at hmem
-  simpa using hmem
+  simpa using h _ hmem
 
 /-- Characterization of `initiate` on a pinned, correctly signed bundle: every
   outcome is `some`, built from an ephemeral key, an encapsulation, and an
@@ -148,12 +153,12 @@ lemma mem_support_initiate
           (p.ikA.1, p.ikB, bundle.pqpkB.1), p.msg⟩) := by
   simp only [initiate, hpin, ne_eq, not_true_eq_false, if_false,
     mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hr
-  obtain ⟨_, _, okSPK, hok, okPQPK, hok', hr⟩ := hr
+  obtain ⟨okSPK, hok, okPQPK, hok', hr⟩ := hr
   obtain rfl := hok₁ _ hok
   obtain rfl := hok₂ _ hok'
   simp only [Bool.and_self, Bool.not_true, Bool.false_eq_true, if_false,
     mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hr
-  obtain ⟨_, _, ekA, hekA, cs, hcs, ctxt, hctxt, rfl⟩ := hr
+  obtain ⟨ekA, hekA, cs, hcs, ctxt, hctxt, rfl⟩ := hr
   exact ⟨ekA, hekA, cs, hcs, ctxt, hctxt, rfl⟩
 
 /-- DH agreement commutes on key pairs produced by `dhKeygen`. -/
@@ -188,7 +193,7 @@ lemma mem_support_accept
       (im.ikA, p.ikB.1, p.pqpkB.1), m₀⟩ := by
   simp only [accept, hid₁, hid₂, hid₃, ne_eq, not_true, or_self, if_false,
     mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hr
-  obtain ⟨_, _, o, ho, hr⟩ := hr
+  obtain ⟨o, ho, hr⟩ := hr
   obtain rfl := hdec _ ho
   simp only [hdecr, support_pure, Set.mem_singleton_iff] at hr
   exact hr

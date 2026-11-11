@@ -40,8 +40,7 @@ theorem uakeInitiator_perfectlyCorrect
     UAKE.PerfectlyCorrect (uakeInitiator P msg hasOPK) ProbCompRuntime.probComp := by
   unfold UAKE.PerfectlyCorrect
   rw [probOutput_probComp_evalDist]
-  refine probOutput_eq_one_of_support_subset_singleton ?_ ?_
-  · exact probFailure_of_liftM_PMF _
+  rw [← prEvent_eq_evalDist_singleton, OracleComp.prEvent_eq_one_iff]
   intro b hb
   simp only [UAKE.CorrectExp, uakeInitiator, mem_support_bind_iff, support_pure,
     Set.mem_singleton_iff, Prod.exists] at hb
@@ -72,8 +71,7 @@ theorem uakeRecipient_perfectlyCorrect
     UAKE.PerfectlyCorrect (uakeRecipient P msg hasOPK) ProbCompRuntime.probComp := by
   unfold UAKE.PerfectlyCorrect
   rw [probOutput_probComp_evalDist]
-  refine probOutput_eq_one_of_support_subset_singleton ?_ ?_
-  · exact probFailure_of_liftM_PMF _
+  rw [← prEvent_eq_evalDist_singleton, OracleComp.prEvent_eq_one_iff]
   intro b hb
   simp only [UAKE.CorrectExp, uakeRecipient, mem_support_bind_iff, support_pure,
     Set.mem_singleton_iff, Prod.exists] at hb

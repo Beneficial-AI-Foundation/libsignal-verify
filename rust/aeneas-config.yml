@@ -8,21 +8,21 @@
 aeneas:
   # The executable and Lake/Lean backend must use the same release revision.
   mode: release
-  commit: "0855ce1b8ed3958512b6c19de6bf3035b7acb552"
+  commit: "de16f3cf877976e966906dc890f63dcb418884fa"
   repo: "https://github.com/AeneasVerif/aeneas.git"
   release:
     # The release tag is selected by the Aeneas requirement in lakefile.toml.
-    commit: "0855ce1b8ed3958512b6c19de6bf3035b7acb552"
-    charon_commit: "e435e5f341863a49a7e85d2fee9988bc0c687c82"
-    lean: "leanprover/lean4:v4.31.0"
+    commit: "de16f3cf877976e966906dc890f63dcb418884fa"
+    charon_commit: "373d84044d80f6eb44285c2c349bae1453f5b6ca"
+    lean: "leanprover/lean4:v4.35.0"
     rust_channel: "nightly-2026-09-17"
     assets:
       darwin-arm64:
-        sha256: "b5a53f40691cb30871fe100e7d516c98eca9e8f6b52a288bb87242a259810db6"
+        sha256: "4bea963cc2a3fe422dcf580f3e19650f9c9c211d59b38f398496f3a9cfb93a3d"
       linux-x64:
-        sha256: "87ab6015ee15633495e65ccaab4f6a6577eda098599e00419f5d05f1faed5fdd"
+        sha256: "0963dc77cab890de16b213b903091721961afca6303b9b0ea05ff8d76013f624"
       linux-arm64:
-        sha256: "17a90fd730332866d0d841cabc74032b2775aef3d3dc39f0f6442c2c30651d31"
+        sha256: "76e2a1a389f4c46efdc85361bb6abb37561167bd2adc12bc228bd30500e784df"
 
 upstream:
   repo: "https://github.com/signalapp/libsignal"

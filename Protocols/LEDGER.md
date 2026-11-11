@@ -7,11 +7,11 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-06 |
-| Lean | v4.31.0 |
-| Mathlib | fabf563a (v4.31.0) |
-| VCVio | cbd4144b |
-| Aeneas | nightly-2026.09.30-0855ce1 |
+| Date | 2026-11-11 |
+| Lean | v4.35.0 |
+| Mathlib | 56a00585 (v4.35.0) |
+| VCVio | 88efe971 |
+| Aeneas | nightly-2026.10.30-de16f3c |
 | `sorry` or `sorryAx` under `Protocols/` | 14 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |

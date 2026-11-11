@@ -10,6 +10,7 @@ set_option linter.unusedVariables false
 set_option linter.style.whitespace false
 set_option linter.style.setOption false
 set_option linter.style.longLine false
+set_option linter.internalConstructors false
 
 /- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
 set_option maxHeartbeats 1000000
@@ -23,7 +24,7 @@ noncomputable section
 namespace libsignal_core
 
 /-- Trait implementation: [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU64Inner}]
-    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22; this code is generated from a macro invocation at: '/rustc/library/core/src/num/niche_types.rs', lines 115:0-139:1
     Name pattern: [core::clone::Clone<core::num::niche_types::NonZeroU64Inner>] -/
 @[reducible, rust_trait_impl
   "core::clone::Clone<core::num::niche_types::NonZeroU64Inner>"]
@@ -32,18 +33,8 @@ def core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone :
   clone := core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone.clone
 }
 
-/-- Trait implementation: [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU8Inner}]
-    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
-    Name pattern: [core::clone::Clone<core::num::niche_types::NonZeroU8Inner>] -/
-@[reducible, rust_trait_impl
-  "core::clone::Clone<core::num::niche_types::NonZeroU8Inner>"]
-def core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone : core.clone.Clone
-  core.num.niche_types.NonZeroU8Inner := {
-  clone := core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone
-}
-
 /-- Trait implementation: [core::num::niche_types::{impl core::marker::Copy for core::num::niche_types::NonZeroU64Inner}]
-    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:24-17:28
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:24-17:28; this code is generated from a macro invocation at: '/rustc/library/core/src/num/niche_types.rs', lines 115:0-139:1
     Name pattern: [core::marker::Copy<core::num::niche_types::NonZeroU64Inner>] -/
 @[reducible, rust_trait_impl
   "core::marker::Copy<core::num::niche_types::NonZeroU64Inner>"]
@@ -52,8 +43,18 @@ def core.num.niche_types.NonZeroU64Inner.Insts.CoreMarkerCopy :
   cloneInst := core.num.niche_types.NonZeroU64Inner.Insts.CoreCloneClone
 }
 
+/-- Trait implementation: [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU8Inner}]
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22; this code is generated from a macro invocation at: '/rustc/library/core/src/num/niche_types.rs', lines 115:0-139:1
+    Name pattern: [core::clone::Clone<core::num::niche_types::NonZeroU8Inner>] -/
+@[reducible, rust_trait_impl
+  "core::clone::Clone<core::num::niche_types::NonZeroU8Inner>"]
+def core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone : core.clone.Clone
+  core.num.niche_types.NonZeroU8Inner := {
+  clone := core.num.niche_types.NonZeroU8Inner.Insts.CoreCloneClone.clone
+}
+
 /-- Trait implementation: [core::num::niche_types::{impl core::marker::Copy for core::num::niche_types::NonZeroU8Inner}]
-    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:24-17:28
+    Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:24-17:28; this code is generated from a macro invocation at: '/rustc/library/core/src/num/niche_types.rs', lines 115:0-139:1
     Name pattern: [core::marker::Copy<core::num::niche_types::NonZeroU8Inner>] -/
 @[reducible, rust_trait_impl
   "core::marker::Copy<core::num::niche_types::NonZeroU8Inner>"]
@@ -63,7 +64,7 @@ def core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy : core.marker.Copy
 }
 
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU64Inner> for u64}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56; this code is generated from a macro invocation at: '/rustc/library/core/src/num/nonzero.rs', lines 54:0-68:1
     Name pattern: [core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>] -/
 @[reducible, rust_trait_impl
   "core::num::nonzero::ZeroablePrimitive<u64, core::num::niche_types::NonZeroU64Inner>"]
@@ -75,7 +76,7 @@ def U64.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU64Inner :
 }
 
 /-- Trait implementation: [core::num::nonzero::{impl core::num::nonzero::ZeroablePrimitive<core::num::niche_types::NonZeroU8Inner> for u8}]
-    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56
+    Source: '/rustc/library/core/src/num/nonzero.rs', lines 47:12-47:56; this code is generated from a macro invocation at: '/rustc/library/core/src/num/nonzero.rs', lines 54:0-68:1
     Name pattern: [core::num::nonzero::ZeroablePrimitive<u8, core::num::niche_types::NonZeroU8Inner>] -/
 @[reducible, rust_trait_impl
   "core::num::nonzero::ZeroablePrimitive<u8, core::num::niche_types::NonZeroU8Inner>"]
@@ -224,7 +225,7 @@ def address.ServiceId.service_id_binary
     Source: 'rust/core/src/address.rs', lines 99:4-101:5
     Visibility: public -/
 def address.SpecificServiceId.service_id_binary
-  {Clause1_Error : Type} {KIND : Std.U8}
+  {Clause1_Error : Type _} {KIND : Std.U8}
   (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
   address.ServiceId (address.SpecificServiceId KIND))
   (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
@@ -239,7 +240,7 @@ def address.SpecificServiceId.service_id_binary
     Source: 'rust/core/src/address.rs', lines 105:4-107:5
     Visibility: public -/
 def address.SpecificServiceId.service_id_fixed_width_binary
-  {Clause1_Error : Type} {KIND : Std.U8}
+  {Clause1_Error : Type _} {KIND : Std.U8}
   (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
   address.ServiceId (address.SpecificServiceId KIND))
   (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
@@ -352,7 +353,7 @@ def address.ServiceId.parse_from_service_id_binary
     Source: 'rust/core/src/address.rs', lines 116:4-120:5
     Visibility: public -/
 def address.SpecificServiceId.parse_from_service_id_binary
-  {Clause1_Error : Type} {KIND : Std.U8}
+  {Clause1_Error : Type _} {KIND : Std.U8}
   (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
   address.ServiceId (address.SpecificServiceId KIND))
   (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
@@ -376,7 +377,7 @@ def address.SpecificServiceId.parse_from_service_id_binary
     Source: 'rust/core/src/address.rs', lines 124:4-130:5
     Visibility: public -/
 def address.SpecificServiceId.parse_from_service_id_fixed_width_binary
-  {Clause1_Error : Type} {KIND : Std.U8}
+  {Clause1_Error : Type _} {KIND : Std.U8}
   (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
   address.ServiceId (address.SpecificServiceId KIND))
   (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
@@ -660,8 +661,9 @@ def e164.E164.from_be_bytes
     Source: 'rust/core/src/lib.rs', lines 29:0-31:1
     Visibility: public -/
 def try_scoped
-  {T : Type} {E : Type} {T2 : Type} (coreopsfunctionFnOnceT2TupleResultInst :
-  core.ops.function.FnOnce T2 Unit (core.result.Result T E)) (f : T2) :
+  {T : Type _} {E : Type _} {T2 : Type _}
+  (coreopsfunctionFnOnceT2TupleResultInst : core.ops.function.FnOnce T2 Unit
+  (core.result.Result T E)) (f : T2) :
   Result (core.result.Result T E)
   := do
   coreopsfunctionFnOnceT2TupleResultInst.call_once f ()

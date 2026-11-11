@@ -120,7 +120,7 @@ theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) :
-    Pr[= true | rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK)] = 1 := by
+    rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK) {true} = 1 := by
   sorry
 
 /-- Joint key-record agreement: on honest inputs, both extracted entry points return their keys,
@@ -135,7 +135,7 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
-    1 - δ ≤ Pr[= true | rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK)] := by
+    1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK) {true} := by
   sorry
 
 /-- Wrapper agreement with Bob authenticated: in an honest run of `uakeInitiator` on the extracted
@@ -153,8 +153,8 @@ theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
-    1 - δ ≤ Pr[= true | rustRuntime.evalDist
-      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK))] := by
+    1 - δ ≤ rustRuntime.evalDist
+      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK)) {true} := by
   sorry
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
@@ -171,8 +171,8 @@ theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
-    1 - δ ≤ Pr[= true | rustRuntime.evalDist
-      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK))] := by
+    1 - δ ≤ rustRuntime.evalDist
+      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK)) {true} := by
   sorry
 
 end

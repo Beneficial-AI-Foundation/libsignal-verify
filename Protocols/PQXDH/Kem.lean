@@ -24,8 +24,9 @@ with the Full scheme the key generator `P.pqKeygen`, the law `P.coins` of the ge
 and the runtime `rustRuntime`. The KEM uses no default value. A protocol error is a value: the
 shared secret and the ciphertext are the `Result`s that the extracted calls return, and
 decapsulating an encapsulation error returns no key. Hence the experiment
-`KEMScheme.CorrectExp` returns `true` only when encapsulation returned a ciphertext and a secret
-and decapsulation of that ciphertext returned the same secret (`kyberKem_correctExp_sound`). A
+`KEMScheme.correctnessExperiment` returns `true` only when encapsulation returned a ciphertext and
+a secret and decapsulation of that ciphertext returned the same secret
+(`kyberKem_correctExp_sound`). A
 fault in either call is missing mass, which `KEMScheme.correctnessError` counts as error.
 
 `KyberDeltaCorrect P δ` states that this experiment has correctness error at most `δ`. It is a
@@ -80,11 +81,11 @@ noncomputable def kyberKem (P : Params Rand Msg C IdC IdK) :
 and a ciphertext `ct`, and the extracted decapsulation of `ct` return the same `ss`. In
 particular, the experiment never counts a protocol error or a fault as a correct run. -/
 theorem kyberKem_correctExp_sound (P : Params Rand Msg C IdC IdK)
-    (h : true ∈ support (kyberKem P).CorrectExp) :
+    (h : true ∈ support (kyberKem P).correctnessExperiment) :
     ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ (ss ct : Slice U8) (r' : Rand),
       kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key r = .ok (.Ok (ss, ct), r') ∧
         kem.KeySecret.decapsulate kp.secret_key ct = .ok (.Ok ss) := by
-  simp only [KEMScheme.CorrectExp, kyberKem, bind_pure_comp, bind_assoc, bind_map_left,
+  simp only [KEMScheme.correctnessExperiment, kyberKem, bind_pure_comp, bind_assoc, bind_map_left,
     support_bind, ExceptT.support_liftM, ExceptT.mem_support_iff, support_map, Set.mem_iUnion,
     Set.mem_image, decide_eq_true_eq, exists_eq_right, exists_prop, Prod.exists,
     exists_and_right] at h
