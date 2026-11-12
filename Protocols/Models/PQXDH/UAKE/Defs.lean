@@ -8,7 +8,6 @@ Protocols/ATTRIBUTION.md.
 import Protocols.Models.PQXDH.Basic
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
 import Protocols.ToMathlib
-import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
 import VCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 import VCVio.CryptoFoundations.PRF
 import VCVio.OracleComp.QueryTracking.QueryBound

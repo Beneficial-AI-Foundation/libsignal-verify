@@ -29,10 +29,11 @@ theorem):
   experiment's advantage.
 * Hop 2 (`forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood`,
   `SharedHops.lean`): a forgery is a signature forgery, a KEM public-key
-  collision or prediction, or a forgery on an honestly signed bundle with
-  separated KEM keys.
-* Hop 3 (`sigForgeProb_le_sig`, `SharedHops.lean`): the SUF-CMA reduction
-  for dishonest bundles.
+  collision or prediction, or a forgery on an honest bundle, whose keys are
+  the signed keys as published, with separated KEM keys.
+* Hop 3 (`sigForgeProb_le_sig`, `SharedHops.lean`): the joint unforgeability
+  reduction for dishonest bundles. The signature forgery event compares signed
+  keys, not signature bytes.
 * Hop 4 (`pqpkGuessedProb_le`, `SharedHops.lean`): KEM public-key
   collisions and predictions reduce to guessing the public key output by
   `P.pqkem.keygen`.
@@ -44,9 +45,9 @@ theorem):
 
 The games and event predicates live in `SecurityLemmas/Games.lean`. Hops 1
 and 2 are proven; they are purely probabilistic. Hop 4 is proven by a union bound over the
-fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is
-deferred as reduction work, with the intended reduction recorded in its doc
-comment. The GapDH cores idealize the KDF outputs on the challenge
+fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is proven by an
+explicit reduction, built and compared with the real challenge phase in
+`SecurityLemmas/SigReduction.lean`. The GapDH cores idealize the KDF outputs on the challenge
 session's key material, which requires the KDF to be a programmable random
 oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
 are expressible in the current model (the KDF's PRF key slot is the KEM

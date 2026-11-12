@@ -12,7 +12,7 @@ the admission counts of the State table. The command is at the end.
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
-| `sorry` or `sorryAx` under `Protocols/` | 14 |
+| `sorry` or `sorryAx` under `Protocols/` | 13 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -30,7 +30,7 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `ProtocolsTest/ToVCVio/CryptoFoundations/AEADAxioms.lean`: the twelve lemmas listed under "AEAD lemmas"
   below.
 
-The `sorryAx` in the closures of the two security theorems of the abstract model comes from the five
+The `sorryAx` in the closures of the two security theorems of the abstract model comes from the four
 admitted hops below, which are the only admitted declarations these theorems depend on. The four AEAD
 lemmas that their imports reach are proved; see "AEAD lemmas" below. The `sorryAx` in the closures of the
 Full realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
@@ -53,7 +53,6 @@ closures.
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `Protocols.Models.PQXDH.sigForgeProb_le_sig` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/SharedHops.lean` | both security theorems, hop 3 | PQXDH-model |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
 | `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked, this repository for the statement repair |
@@ -69,7 +68,7 @@ These statements of the Full realization are stubs by design, apart from the adm
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
-| `Protocols.PQXDH.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint unforgeability of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (an adaptation of mmPRF-ODH, assumed separately; the paper's random-oracle proof under ClawStDH and GapDH does not cover it), AEAD integrity, Kyber public-key guessing | stub |
+| `Protocols.PQXDH.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint EUF-CMA of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (an adaptation of mmPRF-ODH, assumed separately; the paper's random-oracle proof under ClawStDH and GapDH does not cover it), AEAD integrity, Kyber public-key guessing | stub |
 | `Protocols.PQXDH.uakeInitiator_secure_pq` | advantage ≤ `εsig + 2q(εkem + εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | as above without Diffie-Hellman, with IND-CCA of an abstract KEM and the Kyber bridge contract, KDF as a PRF keyed by the Kyber secret | stub |
 | `Protocols.PQXDH.fullExp_noLostMass` | the Full experiment faults with probability 0 | the total contracts, RNG totality on the coin domain, Kyber1024-shaped honest Kyber pairs, an adversary sending only messages that fit in memory | stub |
 
@@ -122,6 +121,7 @@ an admission.
 | Item | Kind | Describes | Status |
 | --- | --- | --- | --- |
 | Single identity key, `Parameters.sig` | modelling choice | Bob's identity key pair signs his pre-keys and takes part in Diffie-Hellman, as in production; the signature scheme `Parameters.sig` draws its keys with `dhKeygen`, so completeness and unforgeability of `P.sig` refer to Diffie-Hellman identity keys | matches production's key use |
+| Joint EUF-CMA of the identity key (hop 3) | premise | the premise `hsig` of both security theorems bounds every adversary in `SignatureAlg.jointUnforgeableExp` for `P.sig`: signing queries and agreement queries `Y ↦ DH x Y` on the one key pair, with no freshness condition on agreement queries, and a win by a valid signature on a message that was never signed. The signature forgery event compares signed keys and not signature bytes, because XEdDSA signatures are malleable. The bound has no resource limit (#41) | assumed; the Full realization states the same premise as `jointSigForgeExp` |
 | Full EC key generation and abstract-generator relation | open bridge obligation | the abstract model draws identity, signed and one-time keys with `dhKeygen`, a uniform exponent; the Full realization draws with `P.ecKeygen`, whose law, public/private relation (`ECKeyPairValid`), clamping and generator assumption are separate. The relation between the two generators is not established, and results proved on the uniform exponent are not transferred to production | open |
 
 ## How to check
