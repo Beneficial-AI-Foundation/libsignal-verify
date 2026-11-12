@@ -68,12 +68,12 @@ def jointSigImpl (P : Params Rand Msg C IdC IdK) (sk : ECPriv) :
     liftM (liftResult (curve.PrivateKey.calculate_agreement sk pk) : RustOracleComp unifSpec _)
   unifImpl + (signImpl + agreeImpl)
 
-/-- The joint unforgeability game: existential unforgeability under chosen messages, with an
+/-- The joint EUF-CMA game: existential unforgeability under chosen-message attack, with an
 agreement oracle on the same key. Draw the identity key pair from `P.ecKeygen`, run the adversary
 with the signing and agreement oracles, and verify its output with the extracted verification.
 The adversary wins when the signature verifies and the message was never signed.
 
-Strong unforgeability is false of production, because production verification accepts
+SUF-CMA is false of production, because production verification accepts
 `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`
 (`rust/core/src/curve/curve25519.rs:134-155`). -/
 def jointSigForgeExp (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) :

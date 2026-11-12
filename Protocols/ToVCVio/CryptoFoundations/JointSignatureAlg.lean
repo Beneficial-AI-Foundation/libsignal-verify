@@ -6,11 +6,11 @@ Authors: Alessandro D'Angelo
 import VCVio.CryptoFoundations.SignatureAlg
 
 /-!
-# Joint unforgeability of a signature key that is also used for agreement
+# Joint EUF-CMA of a signature key that is also used for agreement
 
-This file defines existential unforgeability under chosen messages for a key pair that also
-takes part in a second computation, such as Diffie-Hellman agreement. The adversary has an
-oracle on the secret key for that computation.
+This file defines joint EUF-CMA. It is existential unforgeability under chosen-message attack
+(EUF-CMA) with an extra oracle on the same secret key. The key pair also takes part in a second
+computation, such as Diffie-Hellman agreement, and the extra oracle answers that computation.
 
 `SignatureAlg.jointUnforgeableExp` draws one key pair from `sigAlg.keygen` and runs the adversary
 with three oracles: uniform sampling, signing, and the second use `agree sk`. The game records the
@@ -18,10 +18,11 @@ signing queries. It does not record the queries to the second oracle, and they c
 condition. The adversary wins when its signature verifies and it never sent its message to the
 signing oracle.
 
-VCVio's `SignatureAlg.unforgeableExperiment` has the signing oracle only. Its strong variant
-`strongUnforgeableExperiment` also counts a new signature on a signed message as a win. That
-variant is false for XEdDSA. Its verification reduces `s` modulo the group order `ℓ`, so it accepts
-`(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`.
+VCVio's `SignatureAlg.unforgeableExperiment` is EUF-CMA with the signing oracle only. The strong
+notion SUF-CMA (`strongUnforgeableExperiment`) also counts a new signature on a signed message as
+a win. SUF-CMA is false for XEdDSA: its verification reduces `s` modulo the group order `ℓ`, so it
+accepts `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`. The joint game therefore
+uses the EUF-CMA winning condition.
 
 The definitions in this file are AI-written.
 -/

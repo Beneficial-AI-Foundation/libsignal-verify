@@ -188,8 +188,8 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
     (prEvent_ne_top _), ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h3
 
 omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
-/-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a forgery
-against `P.sig` in the joint unforgeability game of the identity key.
+/-- Hop 3 (joint EUF-CMA): a signature forgery in the challenge phase yields a forgery
+against `P.sig` in the joint EUF-CMA game of the identity key.
 
 The joint game gives the adversary signing and agreement queries `Y ↦ DH x Y` on one identity
 key pair. It wins with a valid signature on a message that it never had signed. With deterministic
@@ -197,11 +197,11 @@ verification (`hverifyDet`), the advantage of `SigReduction.sigAdversary` is at 
 `sigForgeProb`, the probability of the signature forgery event. That event compares signed keys,
 so a different valid signature on a signed key is not a forgery.
 
-The premise `hsig` bounds adversaries without a resource limit (#41), so the statement does not
-yet say anything about efficient adversaries. The reduction makes one signing query for `setup` and
-one for each `openT` query, and one agreement query for each `stepT` query that reaches `DH2`. A
-rejected `stepT` query leaves the session open for another try, so the number of agreement queries
-is not bounded by the number of sessions.
+The premise `hsig` states joint EUF-CMA of the identity key. It bounds adversaries without a
+resource limit (#41), so the statement does not yet say anything about efficient adversaries. The
+reduction makes one signing query for `setup` and one for each `openT` query, and one agreement
+query for each `stepT` query that reaches `DH2`. A rejected `stepT` query leaves the session open
+for another try, so the number of agreement queries is not bounded by the number of sessions.
 
 Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
 lemma sigForgeProb_le_sig [Inhabited F]

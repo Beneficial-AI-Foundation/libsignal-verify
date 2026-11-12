@@ -36,13 +36,14 @@ Model simplifications
   implicit via the adversary being unable to compute the DH output, rather than
   relying on Alice's signature (she signs nothing). The other direction,
   `uakeRecipient`, is correctness-only and has no advantage statement here.
-* **Joint unforgeability of the identity key:** One identity key signs and does
-  Diffie-Hellman. The premise `hsig` bounds an adversary in the game of
-  `SignatureAlg.jointUnforgeableExp`. The adversary has signing queries and agreement
-  queries `Y ↦ DH x Y` on the same key pair, and it wins with a valid signature on a
-  message that it never had signed. Strong unforgeability is false of production XEdDSA:
-  its verification reduces `s` modulo the group order `ℓ`, so it accepts `(R, s + ℓ)`
-  whenever it accepts `(R, s)` and `s + ℓ < 2^253`
+* **Joint EUF-CMA of the identity key:** One identity key signs and does
+  Diffie-Hellman. The premise `hsig` is joint EUF-CMA: it bounds an adversary in the game of
+  `SignatureAlg.jointUnforgeableExp`, which is EUF-CMA with an extra oracle on the same secret
+  key. The adversary has signing queries and agreement queries `Y ↦ DH x Y` on the same key
+  pair, and it wins with a valid signature on a message that it never had signed. The model
+  does not assume the strong notion SUF-CMA, which also counts a new signature on a signed
+  message. SUF-CMA is false of production XEdDSA: its verification reduces `s` modulo the
+  group order `ℓ`, so it accepts `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`
   (`rust/core/src/curve/curve25519.rs:134-155`). The signature forgery event therefore
   compares signed keys and not signature bytes. A run in which the adversary only
   changes a signature on an honestly signed key is no signature forgery. Under transcript
