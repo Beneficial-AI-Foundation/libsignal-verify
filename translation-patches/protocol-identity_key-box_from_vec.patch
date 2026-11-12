@@ -1,7 +1,7 @@
 Translation patch: libsignal_protocol::identity_key::IdentityKeyPair::serialize
 
 Change: the function returns `Box::from(result)` instead of `result.into_boxed_slice()`.
-Why: Aeneas's Lean standard library models `From<Vec<T>> for Box<[T]>` (`alloc.vec.FromBoxSliceVec.from`), but not `Vec::into_boxed_slice`. The extraction therefore declares `alloc.vec.Vec.into_boxed_slice` as an axiom. This is not a Charon or Aeneas failure, and no blocker-catalog id covers it.
+Why: Aeneas's Lean standard library models `From<Vec<T>> for Box<[T]>` (`alloc.vec.FromBoxSliceVec.from`), but not `Vec::into_boxed_slice`. The extraction therefore declares `alloc.vec.Vec.into_boxed_slice` as an axiom.
 Behaviour: same values. At the pinned rustc, `impl From<Vec<T, A>> for Box<[T], A>` is `fn from(v) -> Self { v.into_boxed_slice() }` (library/alloc/src/vec/mod.rs).
 
 diff --git a/rust/protocol/src/identity_key.rs b/rust/protocol/src/identity_key.rs

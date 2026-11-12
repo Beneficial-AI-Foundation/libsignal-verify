@@ -1,7 +1,7 @@
 Translation patch: libsignal_protocol::kem::Key::deserialize and libsignal_protocol::kem::Ciphertext::deserialize
 
 Change: both functions copy the bytes after the type byte with `Box::from(value[1..].to_vec())` instead of `value[1..].into()`.
-Why: Aeneas's Lean standard library models `<[T]>::to_vec` and `From<Vec<T>> for Box<[T]>`, but not `From<&[T]> for Box<[T]>`. The extraction therefore declares `BoxSlice.Insts.CoreConvertFromShared0Slice.from` as an axiom, and the closure of `pqxdh_accept` depends on it through `Ciphertext::deserialize`. This is not a Charon or Aeneas failure, and no blocker-catalog id covers it.
+Why: Aeneas's Lean standard library models `<[T]>::to_vec` and `From<Vec<T>> for Box<[T]>`, but not `From<&[T]> for Box<[T]>`. The extraction therefore declares `BoxSlice.Insts.CoreConvertFromShared0Slice.from` as an axiom, and the closure of `pqxdh_accept` depends on it through `Ciphertext::deserialize`.
 Behaviour: same values. `From<&[T]> for Box<[T]>` clones each element of the slice into a new box. `to_vec` clones each element into a vector, and `Box::from(vec)` turns that vector into a box. For `u8` the clone is a copy that cannot panic.
 Applies after: protocol-kem-Ciphertext.patch (the second hunk's line `data: value[1..].into()` comes from it).
 

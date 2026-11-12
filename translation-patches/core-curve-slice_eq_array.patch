@@ -1,7 +1,7 @@
 Translation patch: libsignal_core::curve::PublicKey::scalar_is_in_range
 
 Change: the comparison `k[1..31] == [0xFFu8; 30]` becomes `k[1..31] == [0xFFu8; 30][..]`, so it compares a slice with a slice instead of a slice with an array.
-Why: Aeneas's Lean standard library models `<[T] as PartialEq<[U]>>::eq` and `<[T; N] as PartialEq<[U; N]>>::eq`, but not `<[T] as PartialEq<[U; N]>>::eq`. The extraction therefore declares `Slice.Insts.CoreCmpPartialEqArray.eq` as an axiom, and the closure of `pqxdh_accept` depends on it through `PublicKey::is_canonical`. This is not a Charon or Aeneas failure, and no blocker-catalog id covers it.
+Why: Aeneas's Lean standard library models `<[T] as PartialEq<[U]>>::eq` and `<[T; N] as PartialEq<[U; N]>>::eq`, but not `<[T] as PartialEq<[U; N]>>::eq`. The extraction therefore declares `Slice.Insts.CoreCmpPartialEqArray.eq` as an axiom, and the closure of `pqxdh_accept` depends on it through `PublicKey::is_canonical`.
 Behaviour: same Boolean. At the pinned rustc, `<[T] as PartialEq<[U; N]>>::eq` returns `false` unless `self.as_array::<N>()` succeeds, which needs the slice to have length `N`, and otherwise compares the two arrays (library/core/src/array/equality.rs). `<[T] as PartialEq<[U]>>::eq` returns `false` on unequal lengths and otherwise compares element by element (library/core/src/slice/cmp.rs). The right-hand side `[0xFFu8; 30][..]` has length 30, and the left-hand side `k[1..31]` has length 30.
 
 diff --git a/rust/core/src/curve.rs b/rust/core/src/curve.rs

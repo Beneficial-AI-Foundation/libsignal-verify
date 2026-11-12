@@ -26,9 +26,9 @@ open Aeneas Aeneas.Std Result
 
 namespace Aeneas.Std.alloc.boxed
 
-/-- **Spec and proof concerning `Box::from(slice.to_vec())` on bytes**: for every byte slice `s`,
-the call `alloc.slice.Slice.to_vec` followed by `alloc.vec.FromBoxSliceVec.from` succeeds and
-returns `s`. -/
+/-- For every byte slice `s`, `alloc.slice.Slice.to_vec` followed by
+`alloc.vec.FromBoxSliceVec.from` succeeds and returns `s`. These calls extract
+`Box::from(slice.to_vec())`. -/
 theorem from_slice_u8 (s : Slice U8) :
     (do
       let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s

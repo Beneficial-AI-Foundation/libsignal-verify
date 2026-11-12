@@ -28,9 +28,9 @@ open Aeneas Aeneas.Std Result
 
 namespace Aeneas.Std.core.array.equality
 
-/-- **Spec and proof concerning `slice == array[..]` on bytes**: for every byte slice `s` and byte
-array `a`, indexing `a` with `RangeFull` and comparing the result with `s` succeeds and returns
-`true` exactly when the byte lists of `s` and `a` are equal. -/
+/-- For every byte slice `s` and byte array `a`, indexing `a` with `RangeFull` and comparing the
+result with `s` succeeds and returns `true` exactly when the byte lists of `s` and `a` are equal.
+These calls extract `slice == array[..]`. -/
 theorem slice_eq_array_u8 {N : Usize} (s : Slice U8) (a : Array U8 N) :
     (do
       let s1 ← core.array.Array.index
