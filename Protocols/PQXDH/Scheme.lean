@@ -27,11 +27,22 @@ specification's initial ciphertext. Production sends that first message under ra
 keys instead. Bob answers with an AEAD confirmation that exists only in the model, because the
 UAKE game needs the authenticated party to speak last.
 
-Every key pair comes from the ideal generators `P.ecKeygen` and `P.pqKeygen`. Alice's state holds
-her generator state `R`, one draw from `P.coins` per session, and a rejected message leaves it
-unchanged. A completed state keeps the joint output `JointKeys`, the associated data and the exact
-inputs of its entry-point call. The UAKE output is the root key of the joint output
-(`initiator_output_eq`, `recipient_output_eq`).
+Every key pair comes from the ideal generators `P.ecKeygen` and `P.pqKeygen`, except Alice's
+ephemeral key. She draws it with Core's extracted `curve.KeyPair.generate` on her generator state
+`R`, one draw from `P.coins` per session. She passes the state that `generate` returns to the
+entry point, as `process_prekey_bundle` does (`rust/protocol/src/session.rs:237`, `:262`). A
+rejected message leaves `R` unchanged. If a message is rejected after `generate` has run, a retry
+draws the same ephemeral key again. Production's generator has advanced and draws a new key. A
+completed state keeps the joint output `JointKeys`, the associated data and the exact inputs of its
+entry-point call, with the state that the entry point received. The UAKE output is the root key of
+the joint output (`initiator_output_eq`, `recipient_output_eq`).
+
+Bob holds two kinds of Kyber prekey. He draws a last-resort Kyber prekey once, in `setup`, and
+signs it there. In each session he uses either a fresh one-time Kyber prekey, drawn and signed in
+that session, or the last-resort prekey. The statements choose the kind with `KyberPrekeyKind`,
+the same for all of Bob's sessions. Runs in which some sessions use one kind and others use the
+other kind are not covered. The model never replaces the last-resort prekey, and it has no replay
+check for it (`rust/protocol/src/storage/traits.rs:129-133`).
 
 The file builds two schemes. In `uakeInitiator`, Bob is the authenticated party and sends the
 confirmation, and the security statements concern this scheme. In `uakeRecipient`, Alice is the
@@ -91,8 +102,18 @@ structure InitiatorParameters (Msg : Type) where
   /-- The message of the synthetic initial ciphertext. -/
   msg : Msg
 
+/-- The kind of Kyber prekey that Bob uses in his sessions. A one-time prekey is drawn and signed
+afresh in each session. The last-resort prekey is the one that `setup` drew and signed, and every
+session of that kind uses it. -/
+inductive KyberPrekeyKind where
+  /-- A fresh one-time Kyber prekey in each session. -/
+  | oneTime
+  /-- The last-resort Kyber prekey of `setup`, in every session. -/
+  | lastResort
+
 /-- Bob's long-term state: his identity key pair, which both signs and agrees, his signed prekey
-pair and the result of signing it. -/
+pair and the result of signing it, and his last-resort Kyber prekey pair and the result of signing
+it. -/
 structure RecipientIdentity where
   /-- Bob's identity key pair. -/
   ikB : IdKeyPair
@@ -101,9 +122,16 @@ structure RecipientIdentity where
   /-- The result of signing the signed prekey: a signature, or the error that signing
   returned. -/
   spkSigB : core.result.Result (Slice U8) libsignal_core.curve.CurveError
+  /-- Bob's last-resort Kyber prekey pair. -/
+  lrpqpkB : PQKeyPair
+  /-- The result of signing the last-resort Kyber prekey: a signature, or the error that signing
+  returned. -/
+  lrpqpkSigB : core.result.Result (Slice U8) libsignal_core.curve.CurveError
 
-/-- Bob's state for one session: his long-term keys, the signature of his signed prekey, and the
-one-time and Kyber prekey pairs drawn for this session. -/
+/-- Bob's state for one session: his long-term keys, the signature of his signed prekey, the
+one-time prekey pair drawn for this session, and the Kyber prekey pair of this session with its
+signature. The Kyber prekey is a fresh one-time prekey or the last-resort prekey, as the kind
+says. -/
 structure RecipientParameters where
   /-- Bob's identity key pair. -/
   ikB : IdKeyPair
@@ -115,6 +143,8 @@ structure RecipientParameters where
   opkB : Option ECKeyPair
   /-- Bob's Kyber prekey pair for this session. -/
   pqpkB : PQKeyPair
+  /-- The signature of the Kyber prekey. -/
+  pqpkSigB : Slice U8
 
 /-- What Alice keeps after her entry point succeeded: the exact inputs of the call, the generator
 state she passed to it, the joint output, the associated data and her message. -/
@@ -166,10 +196,12 @@ or a non-terminating call is a fault of the run, never `false`. -/
 def verifyBytes (pk : ECPub) (m σ : Slice U8) : RustOracleComp unifSpec Bool :=
   liftResult (libsignal_core.curve.PublicKey.verify_signature pk m σ)
 
-/-- Long-term keys: Alice's identity key pair, Bob's identity key pair and Bob's signed prekey
-pair, all from the ideal generator, and Bob's signature of his signed prekey with his identity
-key, computed on the extracted serialization of the prekey as libsignal's test helper does
-(`rust/protocol/src/session_management.rs:883-890`). -/
+/-- Long-term keys: Alice's identity key pair, Bob's identity key pair, Bob's signed prekey pair
+and his last-resort Kyber prekey pair, all from the ideal generators. Bob signs his signed prekey
+and his last-resort Kyber prekey once each with his identity key, on the extracted serializations
+of the keys as libsignal's test helper does for the signed prekey
+(`rust/protocol/src/session_management.rs:883-890`). A session of the one-time kind never uses
+the last-resort key. -/
 def setup (P : Params Rand Msg C IdC IdK) (msg : Msg) :
     RustOracleComp unifSpec (InitiatorParameters Msg × RecipientIdentity) := do
   let ikA ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
@@ -177,28 +209,22 @@ def setup (P : Params Rand Msg C IdC IdK) (msg : Msg) :
   let spkB ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
   let spkBytes ← encodeEC spkB.public_key
   let spkSigB ← signBytes P ikB.private_key spkBytes
+  let lrpqpkB ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
+  let lrBytes ← encodeKEM lrpqpkB.public_key
+  let lrpqpkSigB ← signBytes P ikB.private_key lrBytes
   pure ({ ikA := identityKeyPairOf ikA, ikB := identityKeyOf ikB, msg := msg },
-    { ikB := identityKeyPairOf ikB, spkB := spkB, spkSigB := spkSigB })
+    { ikB := identityKeyPairOf ikB, spkB := spkB, spkSigB := spkSigB, lrpqpkB := lrpqpkB,
+      lrpqpkSigB := lrpqpkSigB })
 
-/-- Bob's bundle for one session: he signs his Kyber prekey with his identity key and publishes
-his public keys with their identifiers. If signing returns an error, Bob returns it and publishes
-nothing. In production the bundle comes from a server. The UAKE game has two parties, so Bob
-sends it. -/
-def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) :
-    RustOracleComp unifSpec
-      (core.result.Result (FullBundle IdC IdK) libsignal_core.curve.CurveError) := do
-  let pqBytes ← encodeKEM p.pqpkB.public_key
-  let sig ← signBytes P p.ikB.private_key pqBytes
-  match sig with
-  | .Err e => pure (.Err e)
-  | .Ok pqpkSigB =>
-      pure (.Ok
-        { ikB := p.ikB.identity_key.public_key
-          spkB := (p.spkB.public_key, P.idEC p.spkB.public_key)
-          spkSigB := p.spkSigB
-          pqpkB := (p.pqpkB.public_key, P.idKEM p.pqpkB.public_key)
-          pqpkSigB := pqpkSigB
-          opkB := p.opkB.map fun opk => (opk.public_key, P.idEC opk.public_key) })
+/-- Bob's bundle for one session: his public keys with their identifiers and the two signatures.
+In production the bundle comes from a server. The UAKE game has two parties, so Bob sends it. -/
+def publish (P : Params Rand Msg C IdC IdK) (p : RecipientParameters) : FullBundle IdC IdK :=
+  { ikB := p.ikB.identity_key.public_key
+    spkB := (p.spkB.public_key, P.idEC p.spkB.public_key)
+    spkSigB := p.spkSigB
+    pqpkB := (p.pqpkB.public_key, P.idKEM p.pqpkB.public_key)
+    pqpkSigB := p.pqpkSigB
+    opkB := p.opkB.map fun opk => (opk.public_key, P.idEC opk.public_key) }
 
 /-- Draw a one-time prekey pair when `hasOPK` holds. -/
 def genOPK (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) : ProbComp (Option ECKeyPair) :=
@@ -207,10 +233,13 @@ def genOPK (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) : ProbComp (Option EC
 /-- Alice checks Bob's identity key, then the signed-prekey signature, then the Kyber-prekey
 signature, stopping at the first failure as `process_prekey_bundle` does
 (`rust/protocol/src/session.rs:208-230`). A failed signed-prekey signature check skips Kyber
-serialization. She draws her ephemeral key pair and runs the initiator's entry point on her
-generator state `R`. On success, she encrypts her message under the synthetic key and returns her
-initial message, session and new generator state. Failed checks or returned protocol errors give
-`none`. Faults of extracted code propagate to the run. -/
+serialization. Then she draws her ephemeral key pair with Core's `curve.KeyPair.generate` on her
+generator state `R` (`rust/protocol/src/session.rs:237`). She runs the initiator's entry point on
+the state `R₁` that `generate` returns (`:262`), and the session records `R₁`. On success, she
+encrypts her message under the synthetic key and returns her initial message, session and new
+generator state. Failed checks or returned protocol errors give `none`. The step that called
+`initiate` then keeps `R`, so a retry draws the same ephemeral key again. Faults of extracted code
+propagate to the run. -/
 def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : InitiatorParameters Msg)
     (R : Rand) (b : FullBundle IdC IdK) :
     RustOracleComp unifSpec
@@ -222,7 +251,7 @@ def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : Initiat
   let pqBytes ← encodeKEM b.pqpkB.1
   let okPQ ← verifyBytes b.ikB pqBytes b.pqpkSigB
   if !okPQ then return none
-  let ekA ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
+  let (ekA, R₁) ← liftResult (curve.KeyPair.generate P.rngInst P.cryptoRngInst R)
   let ip : pqxdh.InitiatorParameters :=
     { our_identity_key_pair := p.ikA
       our_ephemeral_key_pair := ekA
@@ -232,7 +261,7 @@ def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : Initiat
       their_ratchet_key := b.spkB.1
       their_kyber_pre_key := b.pqpkB.1
       self_session := false }
-  let (res, R') ← liftResult (E.initiate P.rngInst P.cryptoRngInst ip R)
+  let (res, R') ← liftResult (E.initiate P.rngInst P.cryptoRngInst ip R₁)
   match res with
   | .Err _ => return none
   | .Ok ag =>
@@ -248,7 +277,7 @@ def initiate (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (p : Initiat
            idPQPK := b.pqpkB.2
            idOPK := b.opkB.map Prod.snd
            ctxt := ctxt },
-         { inputs := ip, coins := R, keys := keys, ad := ad, msg := p.msg }, R')
+         { inputs := ip, coins := R₁, keys := keys, ad := ad, msg := p.msg }, R')
 
 /-- The one-time prekey that Bob uses for an initial message naming `id`: none if the message
 names none, his own if it names his, and no admissible choice (`none`) otherwise. In production,
@@ -326,20 +355,39 @@ def RecipientState.jointKeys : RecipientState Msg → Option JointKeys
   | .done s => some s.keys
   | _ => none
 
+/-- Bob's Kyber prekey for one session and the result of signing it. A one-time prekey is drawn
+from `P.pqKeygen` and signed with his identity key on its extracted serialization. The last-resort
+prekey and its signature are those of `setup`. -/
+def sessionKyberPrekey (P : Params Rand Msg C IdC IdK) (kind : KyberPrekeyKind)
+    (idn : RecipientIdentity) :
+    RustOracleComp unifSpec
+      (PQKeyPair × core.result.Result (Slice U8) libsignal_core.curve.CurveError) :=
+  match kind with
+  | .oneTime => do
+      let pqpkB ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
+      let pqBytes ← encodeKEM pqpkB.public_key
+      let sig ← signBytes P idn.ikB.private_key pqBytes
+      pure (pqpkB, sig)
+  | .lastResort => pure (idn.lrpqpkB, idn.lrpqpkSigB)
+
 /-- Bob's start of a session: unless signing his signed prekey failed, he draws his one-time
-and Kyber prekey pairs and publishes his bundle. -/
-def recipientInit (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) (idn : RecipientIdentity) :
+prekey pair and takes his Kyber prekey of the given kind, as `sessionKyberPrekey` says. If signing
+the Kyber prekey returned an error, he does nothing. Otherwise he publishes his bundle. -/
+def recipientInit (P : Params Rand Msg C IdC IdK) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (idn : RecipientIdentity) :
     RustOracleComp unifSpec (Party.InitResult (RecipientState Msg) (FullMessage C IdC IdK)) :=
   match idn.spkSigB with
   | .Err _ => pure (.waitForMsg .dead)
   | .Ok spkSig => do
       let opkB ← (liftM (genOPK P hasOPK) : RustOracleComp unifSpec (Option ECKeyPair))
-      let pqpkB ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
-      let p : RecipientParameters :=
-        { ikB := idn.ikB, spkB := idn.spkB, spkSigB := spkSig, opkB := opkB, pqpkB := pqpkB }
-      match ← publish P p with
-      | .Ok bundle => pure (.speakFirst (.awaiting p) (.bundle bundle))
+      let (pqpkB, pqSig) ← sessionKyberPrekey P kind idn
+      match pqSig with
       | .Err _ => pure (.waitForMsg .dead)
+      | .Ok pqpkSigB =>
+          let p : RecipientParameters :=
+            { ikB := idn.ikB, spkB := idn.spkB, spkSigB := spkSig, opkB := opkB, pqpkB := pqpkB,
+              pqpkSigB := pqpkSigB }
+          pure (.speakFirst (.awaiting p) (.bundle (publish P p)))
 
 /-- Alice in the three-message scheme: she answers a bundle with her initial message and
 completes on Bob's confirmation. Her output is the root key. -/
@@ -363,10 +411,10 @@ def initiator [DecidableEq Msg] (P : Params Rand Msg C IdC IdK) (E : EntryPoints
 /-- Bob in the three-message scheme: he publishes his bundle, answers Alice's initial message with
 his confirmation and completes. His output is the root key. -/
 def recipient [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
-    (E : EntryPoints Rand) (hasOPK : Bool) :
+    (E : EntryPoints Rand) (hasOPK : Bool) (kind : KyberPrekeyKind) :
     Party (RustOracleComp unifSpec) RecipientIdentity (FullMessage C IdC IdK) (Option Key) where
   State := RecipientState Msg
-  init := recipientInit P hasOPK
+  init := recipientInit P hasOPK kind
   step st w := match st, w with
     | .awaiting p, .initial im => do
         match ← accept P E p im with
@@ -398,10 +446,10 @@ def initiatorNoConfirm (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) :
 /-- Bob in the two-message scheme: he publishes his bundle and completes on Alice's initial
 message. -/
 def recipientNoConfirm [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
-    (E : EntryPoints Rand) (hasOPK : Bool) :
+    (E : EntryPoints Rand) (hasOPK : Bool) (kind : KyberPrekeyKind) :
     Party (RustOracleComp unifSpec) RecipientIdentity (FullMessage C IdC IdK) (Option Key) where
   State := RecipientState Msg
-  init := recipientInit P hasOPK
+  init := recipientInit P hasOPK kind
   step st w := match st, w with
     | .awaiting p, .initial im => do
         match ← accept P E p im with
@@ -412,27 +460,30 @@ def recipientNoConfirm [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg 
 
 /-- The Full realization with Bob authenticated. It has three messages: Bob's bundle, Alice's
 initial message and Bob's confirmation. Alice is the unauthenticated party U and Bob the
-authenticated party T. The security statements concern this scheme. -/
+authenticated party T. All of Bob's sessions use the Kyber prekeys of the given kind. The security
+statements concern this scheme. -/
 def uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) :
+    (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool)
+    (kind : KyberPrekeyKind) :
     UAKE.Scheme (RustOracleComp unifSpec) Key (InitiatorParameters Msg) RecipientIdentity
       (FullMessage C IdC IdK) where
   rounds := 3
   setup := setup P msg
   U := initiator P E
-  T := recipient P E hasOPK
+  T := recipient P E hasOPK kind
 
 /-- The Full realization with Alice authenticated, for correctness only. It has two messages:
 Bob's bundle and Alice's initial message. Bob is the unauthenticated party U and Alice the
 authenticated party T. No security statement concerns this scheme, because Alice signs nothing
-and the UAKE notion does not fit this direction. -/
+and the UAKE notion does not fit this direction. All of Bob's sessions use the Kyber prekeys of
+the given kind. -/
 def uakeRecipient [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
-    (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) :
+    (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind) :
     UAKE.Scheme (RustOracleComp unifSpec) Key RecipientIdentity (InitiatorParameters Msg)
       (FullMessage C IdC IdK) where
   rounds := 2
   setup := Prod.swap <$> setup P msg
-  U := recipientNoConfirm P E hasOPK
+  U := recipientNoConfirm P E hasOPK kind
   T := initiatorNoConfirm P E
 
 /-- In both schemes, Alice's output is the root key of her stored joint output, and nothing
@@ -446,9 +497,10 @@ theorem initiator_output_eq [DecidableEq Msg] (P : Params Rand Msg C IdC IdK)
 /-- In both schemes, Bob's output is the root key of his stored joint output, and nothing before
 completion. -/
 theorem recipient_output_eq [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
-    (E : EntryPoints Rand) (hasOPK : Bool) (st : RecipientState Msg) :
-    (recipient P E hasOPK).output st = pure (st.jointKeys.map fun j => some j.root) ∧
-      (recipientNoConfirm P E hasOPK).output st = pure (st.jointKeys.map fun j => some j.root) :=
+    (E : EntryPoints Rand) (hasOPK : Bool) (kind : KyberPrekeyKind) (st : RecipientState Msg) :
+    (recipient P E hasOPK kind).output st = pure (st.jointKeys.map fun j => some j.root) ∧
+      (recipientNoConfirm P E hasOPK kind).output st =
+        pure (st.jointKeys.map fun j => some j.root) :=
   ⟨rfl, rfl⟩
 
 end

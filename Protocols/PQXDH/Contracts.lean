@@ -26,9 +26,11 @@ verify it, so every contract is trusted and has its own row in `Protocols/LEDGER
 
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
-and `fullExp_noLostMass` take. The fault-or-value form says only what a leaf returns if it
+and `fullExp_noLostMass` take, together with `GenerateTotal`, the total form for Core's key
+generator `KeyPair::generate`. The fault-or-value form says only what a leaf returns if it
 returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
+`generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
 -/
 
 open Aeneas Aeneas.Std Result
@@ -128,6 +130,22 @@ def VerifyTotal : Prop :=
     ∃ b, curve.PublicKey.verify_signature_for_multipart_message pk parts σ = .ok b
 
 end Signature
+
+section KeyGen
+
+/-- When both views of the generator are total on `Dom` and the state is in `Dom`, Core's
+`KeyPair::generate` returns a valid curve25519 key pair and a state in `Dom`. It reads 32 bytes
+through `fill_bytes`, clamps them and derives the public key
+(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). So it terminates
+and returns a pair that `ECKeyPairValid` accepts whenever the generator terminates. The extracted
+call is Core's opaque leaf `curve.KeyPair.generate`. -/
+def GenerateTotal : Prop :=
+  ∀ {R : Type} (rng : rand.rng.Rng R) (crng : rand_core_1.CryptoRng R) (Dom : R → Prop),
+    RngTotal crng.RngCoreInst Dom → RngTotal rng.rand_core_1RngCoreInst Dom →
+      ∀ r : R, Dom r →
+        curve.KeyPair.generate rng crng r ⦃ kp r' => ECKeyPairValid kp ∧ Dom r' ⦄
+
+end KeyGen
 
 section Kyber
 
@@ -274,9 +292,10 @@ def HkdfSha256Partial (H : crypto.HmacSha256) : Prop :=
 
 end Partial
 
-/-- The fault-or-value contracts on every opaque leaf that the Full realization calls, for the
-MAC interface `H`. They are the premises of the security statements, which count faults
-separately. -/
+/-- The fault-or-value contracts on the opaque leaves that the Full realization calls, for the
+MAC interface `H`, except Core's `generate`, which has only the total form `GenerateTotal`. They
+are the premises of the security statements, which count faults separately. The security
+statements are placeholders that are to be restated with a fault-or-value form of `generate`. -/
 structure PartialContracts (H : crypto.HmacSha256) : Prop where
   /-- See `AgreementPartial`. -/
   agreement : AgreementPartial

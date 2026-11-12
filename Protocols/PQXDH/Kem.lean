@@ -30,7 +30,10 @@ a secret and decapsulation of that ciphertext returned the same secret
 fault in either call is missing mass, which `KEMScheme.correctnessError` counts as error.
 
 `KyberDeltaCorrect P δ` states that this experiment has correctness error at most `δ`. It is a
-named hypothesis of the correctness statements, not proved here, and `δ` stays symbolic.
+named hypothesis of the correctness statements, not proved here, and `δ` stays symbolic. The
+wrapper encapsulates on the state that Alice's key generation returns, not on a state from
+`P.coins`. `kyberKemAfterGenerate P` is the KEM for that run, and `KyberDeltaCorrectAfterGenerate`
+is its `δ`. The wrapper statements take it in place of `KyberDeltaCorrect`.
 Production calls libcrux's pre-standard Kyber-1024 (`libcrux_ml_kem::kyber1024`,
 `rust/protocol/src/kem/kyber1024.rs:6-7`), not ML-KEM-1024, and this repository has no model of
 that backend.
@@ -110,5 +113,30 @@ an encapsulation on a state from `P.coins` and the decapsulation of its cipherte
 produce the same secret, counting faults and protocol errors as failures, is at most `δ`. -/
 def KyberDeltaCorrect (P : Params Rand Msg C IdC IdK) (δ : ℝ≥0∞) : Prop :=
   (kyberKem P).deltaCorrect rustRuntime δ
+
+/-- The extracted Kyber operations as a KEM, with Alice's encapsulation on the state that her key
+generation returns. Encapsulation draws the generator state from `P.coins`, runs Core's extracted
+`curve.KeyPair.generate` on it, drops the key pair, and runs the extracted `encapsulate` on the
+state that `generate` returns. This is the state on which `initiate` calls `pqxdh_initiate`.
+Key generation and decapsulation are those of `kyberKem P`. -/
+noncomputable def kyberKemAfterGenerate (P : Params Rand Msg C IdC IdK) :
+    KEMScheme (RustOracleComp unifSpec) KemSecret PQPub PQPriv KemCiphertext where
+  keygen := (kyberKem P).keygen
+  encaps pk := do
+    let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
+    let (_, r₁) ← liftResult (curve.KeyPair.generate P.rngInst P.cryptoRngInst r)
+    let (res, _) ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst pk r₁)
+    match res with
+    | .Ok (ss, ct) => pure (.Ok ct, .Ok ss)
+    | .Err e => pure (.Err e, .Err e)
+  decaps := (kyberKem P).decaps
+
+/-- `δ`-correctness of the extracted Kyber operations on the state that `generate` returns: the
+correctness error of `kyberKemAfterGenerate P` under `rustRuntime` is at most `δ`. It is the
+bound of `KyberDeltaCorrect` for the state on which Alice's entry point encapsulates in the
+wrapper, and it assumes no law of that state beyond the law of `P.coins`. Faults of `generate`
+count as failures. -/
+def KyberDeltaCorrectAfterGenerate (P : Params Rand Msg C IdC IdK) (δ : ℝ≥0∞) : Prop :=
+  (kyberKemAfterGenerate P).deltaCorrect rustRuntime δ
 
 end Protocols.PQXDH
