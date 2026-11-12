@@ -6658,10 +6658,8 @@ def session_core.choose_initiator_keys
       let cf2 ← core.result.Result.Insts.CoreOpsTry.branch r2
       match cf2 with
       | core.ops.control_flow.ControlFlow.Continue val2 =>
-        let k ←
-          kem.Key.Insts.CoreCloneClone.clone
-            kem.Public.Insts.Libsignal_protocolKemKeyKind val1
-        ok (core.result.Result.Ok (our_base_key_pair, val, k, val2), csprng1)
+        ok (core.result.Result.Ok (our_base_key_pair, val, val1, val2),
+          csprng1)
       | core.ops.control_flow.ControlFlow.Break residual =>
         let r3 ←
           core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
@@ -6683,6 +6681,61 @@ def session_core.choose_initiator_keys
         (kem.Key kem.Public) × (Option state.prekey.PreKeyId))
         (core.convert.FromSame error.SignalProtocolError) residual
     ok (r1, csprng1)
+
+/-- [libsignal_protocol::state::bundle::{libsignal_protocol::state::bundle::PreKeyBundle}::pre_key_public]:
+    Source: 'rust/protocol/src/state/bundle.rs', lines 189:4-191:5
+    Visibility: public -/
+def state.bundle.PreKeyBundle.impl.pre_key_public
+  (self : state.bundle.PreKeyBundle) :
+  Result (core.result.Result (Option libsignal_core.curve.PublicKey)
+    error.SignalProtocolError)
+  := do
+  ok (core.result.Result.Ok self.pre_key_public)
+
+/-- [libsignal_protocol::session_core::start_initiator_session]:
+    Source: 'rust/protocol/src/session_core.rs', lines 82:0-111:1 -/
+def session_core.start_initiator_session
+  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
+  : rand_core_1.CryptoRng R)
+  (local_address : libsignal_core.address.ProtocolAddress)
+  (remote_address : libsignal_core.address.ProtocolAddress)
+  (their_identity_key : identity_key.IdentityKey)
+  (our_identity_key_pair : identity_key.IdentityKeyPair)
+  (our_base_key_pair : libsignal_core.curve.KeyPair)
+  (their_signed_prekey : libsignal_core.curve.PublicKey)
+  (their_kyber_prekey : kem.Key kem.Public)
+  (bundle : state.bundle.PreKeyBundle) (csprng : R) :
+  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
+    error.SignalProtocolError) × R)
+  := do
+  let k ←
+    kem.Key.Insts.CoreCloneClone.clone
+      kem.Public.Insts.Libsignal_protocolKemKeyKind their_kyber_prekey
+  let ik ←
+    identity_key.IdentityKeyPair.impl.identity_key our_identity_key_pair
+  let b ←
+    identity_key.IdentityKey.is_same_account ik local_address
+      their_identity_key remote_address
+  let parameters ←
+    pqxdh.InitiatorParameters.new our_identity_key_pair our_base_key_pair
+      their_identity_key their_signed_prekey their_signed_prekey k b
+  let r ← state.bundle.PreKeyBundle.impl.pre_key_public bundle
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let parameters1 ←
+      match val with
+      | none => ok parameters
+      | some key =>
+        pqxdh.InitiatorParameters.set_their_one_time_pre_key parameters key
+    ratchet.initialize_alice_session rand_1rngRngInst rand_core_1CryptoRngInst
+      parameters1 csprng
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    let r1 ←
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+        state.session.SessionState (core.convert.FromSame
+        error.SignalProtocolError) residual
+    ok (r1, csprng)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_unacknowledged_kyber_pre_key_id]:
     Source: 'rust/protocol/src/state/session.rs', lines 565:4-576:5 -/
@@ -6770,99 +6823,42 @@ def state.bundle.PreKeyBundle.signed_pre_key_id
   := do
   ok (core.result.Result.Ok self.ec_signed_pre_key.id)
 
-/-- [libsignal_protocol::state::bundle::{libsignal_protocol::state::bundle::PreKeyBundle}::pre_key_public]:
-    Source: 'rust/protocol/src/state/bundle.rs', lines 189:4-191:5
-    Visibility: public -/
-def state.bundle.PreKeyBundle.impl.pre_key_public
-  (self : state.bundle.PreKeyBundle) :
-  Result (core.result.Result (Option libsignal_core.curve.PublicKey)
-    error.SignalProtocolError)
-  := do
-  ok (core.result.Result.Ok self.pre_key_public)
-
-/-- [libsignal_protocol::session_core::start_initiator_session]:
-    Source: 'rust/protocol/src/session_core.rs', lines 93:0-135:1 -/
-def session_core.start_initiator_session
-  {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
-  : rand_core_1.CryptoRng R)
-  (local_address : libsignal_core.address.ProtocolAddress)
-  (remote_address : libsignal_core.address.ProtocolAddress)
-  (their_identity_key : identity_key.IdentityKey)
-  (our_identity_key_pair : identity_key.IdentityKeyPair)
-  (our_base_key_pair : libsignal_core.curve.KeyPair)
-  (their_signed_prekey : libsignal_core.curve.PublicKey)
-  (their_kyber_prekey : kem.Key kem.Public)
+/-- [libsignal_protocol::session_core::set_unacknowledged_prekey_ids]:
+    Source: 'rust/protocol/src/session_core.rs', lines 115:0-130:1 -/
+def session_core.set_unacknowledged_prekey_ids
+  (session : state.session.SessionState)
   (their_one_time_prekey_id : Option state.prekey.PreKeyId)
-  (bundle : state.bundle.PreKeyBundle) (now : std.time.SystemTime) (csprng : R)
-  :
-  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionState
-    error.SignalProtocolError) × R)
+  (bundle : state.bundle.PreKeyBundle)
+  (our_base_key_pair : libsignal_core.curve.KeyPair)
+  (now : std.time.SystemTime) :
+  Result ((core.result.Result Unit error.SignalProtocolError) ×
+    state.session.SessionState)
   := do
-  let ik ←
-    identity_key.IdentityKeyPair.impl.identity_key our_identity_key_pair
-  let b ←
-    identity_key.IdentityKey.is_same_account ik local_address
-      their_identity_key remote_address
-  let parameters ←
-    pqxdh.InitiatorParameters.new our_identity_key_pair our_base_key_pair
-      their_identity_key their_signed_prekey their_signed_prekey
-      their_kyber_prekey b
-  let r ← state.bundle.PreKeyBundle.impl.pre_key_public bundle
+  let r ← state.bundle.PreKeyBundle.signed_pre_key_id bundle
   let cf ← core.result.Result.Insts.CoreOpsTry.branch r
   match cf with
   | core.ops.control_flow.ControlFlow.Continue val =>
-    let parameters1 ←
-      match val with
-      | none => ok parameters
-      | some key =>
-        pqxdh.InitiatorParameters.set_their_one_time_pre_key parameters key
-    let (r1, csprng1) ←
-      ratchet.initialize_alice_session rand_1rngRngInst
-        rand_core_1CryptoRngInst parameters1 csprng
+    let session1 ←
+      state.session.SessionState.set_unacknowledged_pre_key_message session
+        their_one_time_prekey_id val our_base_key_pair.public_key now
+    let r1 ← state.bundle.PreKeyBundle.kyber_pre_key_id bundle
     let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
     match cf1 with
     | core.ops.control_flow.ControlFlow.Continue val1 =>
-      session_core.log_unacknowledged_pre_key_message remote_address
-        their_one_time_prekey_id
-      let r2 ← state.bundle.PreKeyBundle.signed_pre_key_id bundle
-      let cf2 ← core.result.Result.Insts.CoreOpsTry.branch r2
-      match cf2 with
-      | core.ops.control_flow.ControlFlow.Continue val2 =>
-        let val3 ←
-          state.session.SessionState.set_unacknowledged_pre_key_message val1
-            their_one_time_prekey_id val2 our_base_key_pair.public_key now
-        let r3 ← state.bundle.PreKeyBundle.kyber_pre_key_id bundle
-        let cf3 ← core.result.Result.Insts.CoreOpsTry.branch r3
-        match cf3 with
-        | core.ops.control_flow.ControlFlow.Continue val4 =>
-          let val5 ←
-            state.session.SessionState.set_unacknowledged_kyber_pre_key_id val3
-              val4
-          ok (core.result.Result.Ok val5, csprng1)
-        | core.ops.control_flow.ControlFlow.Break residual =>
-          let r4 ←
-            core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
-              state.session.SessionState (core.convert.FromSame
-              error.SignalProtocolError) residual
-          ok (r4, csprng1)
-      | core.ops.control_flow.ControlFlow.Break residual =>
-        let r3 ←
-          core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
-            state.session.SessionState (core.convert.FromSame
-            error.SignalProtocolError) residual
-        ok (r3, csprng1)
+      let session2 ←
+        state.session.SessionState.set_unacknowledged_kyber_pre_key_id session1
+          val1
+      ok (core.result.Result.Ok (), session2)
     | core.ops.control_flow.ControlFlow.Break residual =>
       let r2 ←
         core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
-          state.session.SessionState (core.convert.FromSame
-          error.SignalProtocolError) residual
-      ok (r2, csprng1)
+          Unit (core.convert.FromSame error.SignalProtocolError) residual
+      ok (r2, session1)
   | core.ops.control_flow.ControlFlow.Break residual =>
     let r1 ←
       core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
-        state.session.SessionState (core.convert.FromSame
-        error.SignalProtocolError) residual
-    ok (r1, csprng)
+        Unit (core.convert.FromSame error.SignalProtocolError) residual
+    ok (r1, session)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_state]:
     Source: 'rust/protocol/src/state/session.rs', lines 822:4-824:5 -/
@@ -7123,7 +7119,7 @@ def state.session.SessionRecord.promote_matching_session
       ok (r1, self)
 
 /-- [libsignal_protocol::session_core::reuse_matching_session::{impl core::ops::function::FnOnce<(libsignal_protocol::identity_key::IdentityKey,), bool> for libsignal_protocol::session_core::reuse_matching_session::{closure}<'_0>}::call_once]:
-    Source: 'rust/protocol/src/session_core.rs', lines 154:25-154:67 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 def
   session_core.reuse_matching_session.closure.Insts.CoreOpsFunctionFnOnceTupleIdentityKeyBool.call_once
   (c : session_core.reuse_matching_session.closure)
@@ -7134,7 +7130,7 @@ def
   identity_key.IdentityKey.Insts.CoreCmpPartialEqIdentityKey.eq ik tupled_args
 
 /-- Trait implementation: [libsignal_protocol::session_core::reuse_matching_session::{impl core::ops::function::FnOnce<(libsignal_protocol::identity_key::IdentityKey,), bool> for libsignal_protocol::session_core::reuse_matching_session::{closure}<'_0>}]
-    Source: 'rust/protocol/src/session_core.rs', lines 154:25-154:67 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 @[reducible]
 def
   session_core.reuse_matching_session.closure.Insts.CoreOpsFunctionFnOnceTupleIdentityKeyBool
@@ -7145,7 +7141,7 @@ def
 }
 
 /-- [libsignal_protocol::session_core::reuse_matching_session]:
-    Source: 'rust/protocol/src/session_core.rs', lines 139:0-168:1 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 134:0-163:1 -/
 def session_core.reuse_matching_session
   (message : protocol.PreKeySignalMessage)
   (session_record : state.session.SessionRecord) :
@@ -7197,7 +7193,7 @@ def session_core.reuse_matching_session
     ok (r1, session_record1)
 
 /-- [libsignal_protocol::session_core::reject_pre_kyber_version]:
-    Source: 'rust/protocol/src/session_core.rs', lines 171:0-184:1 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 166:0-179:1 -/
 def session_core.reject_pre_kyber_version
   (message : protocol.PreKeySignalMessage) :
   Result (core.result.Result Unit error.SignalProtocolError)
@@ -7213,7 +7209,7 @@ def session_core.reject_pre_kyber_version
   else ok (core.result.Result.Ok ())
 
 /-- [libsignal_protocol::session_core::required_kyber_pre_key_id]:
-    Source: 'rust/protocol/src/session_core.rs', lines 187:0-196:1 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 182:0-191:1 -/
 def session_core.required_kyber_pre_key_id
   (message : protocol.PreKeySignalMessage) :
   Result (core.result.Result state.kyber_prekey.KyberPreKeyId
@@ -7230,7 +7226,7 @@ def session_core.required_kyber_pre_key_id
   | some kyber_pre_key_id => ok (core.result.Result.Ok kyber_pre_key_id)
 
 /-- [libsignal_protocol::session_core::required_kyber_ciphertext]:
-    Source: 'rust/protocol/src/session_core.rs', lines 199:0-210:1 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 194:0-205:1 -/
 def session_core.required_kyber_ciphertext
   (message : protocol.PreKeySignalMessage) :
   Result (core.result.Result (Slice Std.U8) error.SignalProtocolError)
@@ -7250,7 +7246,7 @@ def session_core.required_kyber_ciphertext
       (Slice Std.U8) (core.convert.FromSame error.SignalProtocolError) residual
 
 /-- [libsignal_protocol::session_core::start_responder_session]:
-    Source: 'rust/protocol/src/session_core.rs', lines 215:0-242:1 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 210:0-237:1 -/
 def session_core.start_responder_session
   (message : protocol.PreKeySignalMessage)
   (remote_address : libsignal_core.address.ProtocolAddress)

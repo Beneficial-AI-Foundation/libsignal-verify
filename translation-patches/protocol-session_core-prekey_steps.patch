@@ -1,8 +1,8 @@
 Translation patch: libsignal_protocol::session_core (new module)
 
-Change: the new module `session_core` (declared in `lib.rs`) holds nine functions and one private logging function. Each function is a stretch of `process_prekey` or `process_prekey_bundle` between two store calls, moved out of `session.rs`: the trust check, the two signature checks, the initiator's key choice and session set-up, the responder's session lookup, version check, Kyber prekey ID check, Kyber ciphertext check and session set-up. The `log::info!` of `process_prekey_bundle` moves into the private function `log_unacknowledged_pre_key_message`. The two call-site patches `protocol-session-process_prekey` and `protocol-session-process_prekey_bundle` call the functions.
-Why: both callers are `async` and call the application's stores, so Charon cannot translate them, and the extraction leaves out the `session` module (protocol-lib-store_api.patch). The code between the store calls has no `async` and no store. In its own module the extraction can translate it. Aeneas stops on `log!` expansions, so the logging function is opaque in the extraction, as the logging functions of `double_ratchet.rs` are.
-Behaviour: the same code runs in the same order, and the callers keep every store call in its original place (see the two call-site patches). The moved code has the same effects, with three differences of form. `choose_initiator_keys` clones the Kyber prekey of the bundle before the caller asks the store for its identity key pair, where the original cloned it after that call, when it built the parameters. `required_kyber_ciphertext` returns the reference that the original kept in a local variable. The log record of the initiator carries the module path `libsignal_protocol::session_core` and the line of the new function, where the original record carried `libsignal_protocol::session`.
+Change: the new module `session_core` (declared in `lib.rs`) holds ten functions. Each function is a stretch of `process_prekey` or `process_prekey_bundle` between two store calls, moved out of `session.rs`: the trust check, the two signature checks, the initiator's key choice, the initiator's session set-up up to `ratchet::initialize_alice_session`, the initiator's pending prekey IDs, the responder's session lookup, version check, Kyber prekey ID check, Kyber ciphertext check and session set-up. The two call-site patches `protocol-session-process_prekey` and `protocol-session-process_prekey_bundle` call the functions.
+Why: both callers are `async` and call the application's stores, so Charon cannot translate them, and the extraction leaves out the `session` module (protocol-lib-store_api.patch). The code between the store calls has no `async` and no store. In its own module the extraction can translate it. The `log::info!` of `process_prekey_bundle` stays in the caller, which is outside the extraction, because Aeneas stops on `log!` expansions.
+Behaviour: the same code runs in the same order, and the callers keep every store call and every log call in its original place in that order (see the two call-site patches). The moved code has the same effects, with three differences of form. `required_kyber_ciphertext` returns the reference that the original kept in a local variable. `choose_initiator_keys` returns a reference to the Kyber prekey of the bundle, and `start_initiator_session` clones it where the original built the parameters, after the store call for the identity key pair. The parameter objects of the two session set-up functions drop when those functions return, where the original dropped them at the end of the caller.
 Relies on: protocol-pqxdh-RecipientParameters.patch
 
 diff --git a/rust/protocol/src/lib.rs b/rust/protocol/src/lib.rs
@@ -20,7 +20,7 @@ diff --git a/rust/protocol/src/session_core.rs b/rust/protocol/src/session_core.
 new file mode 100644
 --- /dev/null
 +++ b/rust/protocol/src/session_core.rs
-@@ -0,0 +1,242 @@
+@@ -0,0 +1,237 @@
 +//
 +// Copyright 2020-2022 Signal Messenger, LLC.
 +// SPDX-License-Identifier: AGPL-3.0-only
@@ -82,10 +82,10 @@ new file mode 100644
 +/// The initiator's choices in `process_prekey_bundle` before it asks the store for its own
 +/// identity key pair: its ephemeral key pair, and the bundle's signed prekey, Kyber prekey and
 +/// one-time prekey ID.
-+pub(crate) fn choose_initiator_keys<R: Rng + CryptoRng>(
-+    bundle: &PreKeyBundle,
++pub(crate) fn choose_initiator_keys<'a, R: Rng + CryptoRng>(
++    bundle: &'a PreKeyBundle,
 +    csprng: &mut R,
-+) -> Result<(KeyPair, PublicKey, kem::PublicKey, Option<PreKeyId>)> {
++) -> Result<(KeyPair, PublicKey, &'a kem::PublicKey, Option<PreKeyId>)> {
 +    let our_base_key_pair = KeyPair::generate(csprng);
 +    let their_signed_prekey = bundle.signed_pre_key_public()?;
 +    let their_kyber_prekey = bundle.kyber_pre_key_public()?;
@@ -94,24 +94,13 @@ new file mode 100644
 +    Ok((
 +        our_base_key_pair,
 +        their_signed_prekey,
-+        their_kyber_prekey.clone(),
++        their_kyber_prekey,
 +        their_one_time_prekey_id,
 +    ))
 +}
 +
-+fn log_unacknowledged_pre_key_message(
-+    remote_address: &ProtocolAddress,
-+    their_one_time_prekey_id: Option<PreKeyId>,
-+) {
-+    log::info!(
-+        "set_unacknowledged_pre_key_message for: {} with preKeyId: {}",
-+        remote_address,
-+        their_one_time_prekey_id.map_or_else(|| "<none>".to_string(), |id| id.to_string())
-+    );
-+}
-+
-+/// The initiator's PQXDH and session set-up in `process_prekey_bundle`, up to and including the
-+/// pending prekey IDs that its first message carries.
++/// The initiator's PQXDH and session set-up in `process_prekey_bundle`, up to and including
++/// `ratchet::initialize_alice_session`.
 +#[allow(clippy::too_many_arguments)]
 +pub(crate) fn start_initiator_session<R: Rng + CryptoRng>(
 +    local_address: &ProtocolAddress,
@@ -120,10 +109,8 @@ new file mode 100644
 +    our_identity_key_pair: IdentityKeyPair,
 +    our_base_key_pair: KeyPair,
 +    their_signed_prekey: PublicKey,
-+    their_kyber_prekey: kem::PublicKey,
-+    their_one_time_prekey_id: Option<PreKeyId>,
++    their_kyber_prekey: &kem::PublicKey,
 +    bundle: &PreKeyBundle,
-+    now: SystemTime,
 +    csprng: &mut R,
 +) -> Result<SessionState> {
 +    let mut parameters = AliceSignalProtocolParameters::new(
@@ -132,7 +119,7 @@ new file mode 100644
 +        *their_identity_key,
 +        their_signed_prekey,
 +        their_signed_prekey,
-+        their_kyber_prekey,
++        their_kyber_prekey.clone(),
 +        our_identity_key_pair.identity_key().is_same_account(
 +            local_address,
 +            their_identity_key,
@@ -143,10 +130,18 @@ new file mode 100644
 +        parameters.set_their_one_time_pre_key(key);
 +    }
 +
-+    let mut session = ratchet::initialize_alice_session(&parameters, csprng)?;
++    ratchet::initialize_alice_session(&parameters, csprng)
++}
 +
-+    log_unacknowledged_pre_key_message(remote_address, their_one_time_prekey_id);
-+
++/// The initiator's pending prekey IDs in `process_prekey_bundle`, which its first message
++/// carries.
++pub(crate) fn set_unacknowledged_prekey_ids(
++    session: &mut SessionState,
++    their_one_time_prekey_id: Option<PreKeyId>,
++    bundle: &PreKeyBundle,
++    our_base_key_pair: &KeyPair,
++    now: SystemTime,
++) -> Result<()> {
 +    session.set_unacknowledged_pre_key_message(
 +        their_one_time_prekey_id,
 +        bundle.signed_pre_key_id()?,
@@ -154,7 +149,7 @@ new file mode 100644
 +        now,
 +    );
 +    session.set_unacknowledged_kyber_pre_key_id(bundle.kyber_pre_key_id()?);
-+    Ok(session)
++    Ok(())
 +}
 +
 +/// The responder's lookup of an existing session with the same version and base key. Returns

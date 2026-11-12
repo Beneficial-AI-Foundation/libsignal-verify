@@ -1850,14 +1850,6 @@ axiom sender_keys.SenderKeyRecord.remove_states_with_chain_id
   sender_keys.SenderKeyRecord → Std.U32 → Result (Std.Usize ×
     sender_keys.SenderKeyRecord)
 
-/-- [libsignal_protocol::session_core::log_unacknowledged_pre_key_message]:
-    Source: 'rust/protocol/src/session_core.rs', lines 79:0-88:1 -/
--- Logging has no effect on protocol state or results.
-def session_core.log_unacknowledged_pre_key_message
-  (_remote_address : libsignal_core.address.ProtocolAddress)
-  (_their_one_time_prekey_id : Option state.prekey.PreKeyId) : Result Unit :=
-  ok ()
-
 /-- [libsignal_protocol::session_management::try_decrypt_from_record]:
     Source: 'rust/protocol/src/session_management.rs', lines 379:0-567:1 -/
 axiom session_management.try_decrypt_from_record

@@ -1048,7 +1048,7 @@ structure state.bundle.PreKeyBundle where
   kyber_pre_key : state.bundle.KyberPreKey
 
 /-- [libsignal_protocol::session_core::reuse_matching_session::{closure}]
-    Source: 'rust/protocol/src/session_core.rs', lines 154:25-154:67 -/
+    Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 @[reducible]
 def session_core.reuse_matching_session.closure := protocol.PreKeySignalMessage
 
