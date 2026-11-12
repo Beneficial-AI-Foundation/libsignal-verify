@@ -1,0 +1,120 @@
+Translation patch: libsignal_protocol::session::process_prekey_bundle
+
+Change: `process_prekey_bundle` calls the functions of `session_core` for the stretches of code between its store calls. `require_trusted_identity` takes the store's answer to `is_trusted_identity`. `verify_bundle_signatures` makes the two signature checks. `choose_initiator_keys` draws the ephemeral key pair and reads the bundle's prekeys. `start_initiator_session` builds the parameters, calls `ratchet::initialize_alice_session` and sets the pending prekey IDs. The store calls stay in the same order, and the `use` list loses the names that only the moved code used.
+Why: Charon cannot translate the `async` store calls, so the extraction leaves out the `session` module (protocol-lib-store_api.patch). The code between the store calls has no `async` and no store, and it moves to `session_core`, where the extraction reaches it.
+Behaviour: identical. The code that moved is the same code, and it runs at the same point. Each store call keeps its place, so the first failing step returns the same error as before. The random generator is the same value and is used in the same order: `choose_initiator_keys` draws with `&mut csprng`, as the original did, and `start_initiator_session` receives `csprng` as the original passed it to `ratchet::initialize_alice_session`. Each `?` returns the same error value, because `Result` in `session_core` is the `Result` of the caller.
+Relies on: protocol-session_core-prekey_steps.patch
+Applies after: protocol-pqxdh-Pqxdh-Handshake.patch, protocol-pqxdh-RecipientParameters.patch, protocol-session-process_prekey.patch (the last changes lines of the `use` list that this patch changes, and needs the first two)
+
+diff --git a/rust/protocol/src/session.rs b/rust/protocol/src/session.rs
+--- a/rust/protocol/src/session.rs
++++ b/rust/protocol/src/session.rs
+@@ -7,13 +7,12 @@ use std::time::SystemTime;
+ 
+ use rand::{CryptoRng, Rng};
+ 
+-use crate::ratchet::AliceSignalProtocolParameters;
+ use crate::session_core;
+ use crate::state::GenericSignedPreKey;
+ use crate::{
+-    Direction, IdentityKey, IdentityKeyStore, KeyPair, KyberPreKeyId, KyberPreKeyStore,
+-    PreKeyBundle, PreKeyId, PreKeySignalMessage, PreKeyStore, ProtocolAddress, Result,
+-    SessionRecord, SessionStore, SignalProtocolError, SignedPreKeyId, SignedPreKeyStore, ratchet,
++    Direction, IdentityKey, IdentityKeyStore, KyberPreKeyId, KyberPreKeyStore, PreKeyBundle,
++    PreKeyId, PreKeySignalMessage, PreKeyStore, ProtocolAddress, Result, SessionRecord,
++    SessionStore, SignedPreKeyId, SignedPreKeyStore,
+ };
+ 
+ pub struct PreKeysUsed {
+@@ -153,74 +152,38 @@ pub async fn process_prekey_bundle<R: Rng + CryptoRng>(
+ ) -> Result<()> {
+     let their_identity_key = bundle.identity_key()?;
+ 
+-    if !identity_store
+-        .is_trusted_identity(remote_address, their_identity_key, Direction::Sending)
+-        .await?
+-    {
+-        return Err(SignalProtocolError::UntrustedIdentity(
+-            remote_address.clone(),
+-        ));
+-    }
+-
+-    if !their_identity_key.public_key().verify_signature(
+-        &bundle.signed_pre_key_public()?.serialize(),
+-        bundle.signed_pre_key_signature()?,
+-    ) {
+-        return Err(SignalProtocolError::SignatureValidationFailed);
+-    }
++    session_core::require_trusted_identity(
++        identity_store
++            .is_trusted_identity(remote_address, their_identity_key, Direction::Sending)
++            .await?,
++        remote_address,
++    )?;
+ 
+-    if !their_identity_key.public_key().verify_signature(
+-        &bundle.kyber_pre_key_public()?.serialize(),
+-        bundle.kyber_pre_key_signature()?,
+-    ) {
+-        return Err(SignalProtocolError::SignatureValidationFailed);
+-    }
++    session_core::verify_bundle_signatures(their_identity_key, bundle)?;
+ 
+     let mut session_record = session_store
+         .load_session(remote_address)
+         .await?
+         .unwrap_or_else(SessionRecord::new_fresh);
+ 
+-    let our_base_key_pair = KeyPair::generate(&mut csprng);
+-    let their_signed_prekey = bundle.signed_pre_key_public()?;
+-    let their_kyber_prekey = bundle.kyber_pre_key_public()?;
+-
+-    let their_one_time_prekey_id = bundle.pre_key_id()?;
++    let (our_base_key_pair, their_signed_prekey, their_kyber_prekey, their_one_time_prekey_id) =
++        session_core::choose_initiator_keys(bundle, &mut csprng)?;
+ 
+     let our_identity_key_pair = identity_store.get_identity_key_pair().await?;
+ 
+-    let mut parameters = AliceSignalProtocolParameters::new(
++    let mut session = session_core::start_initiator_session(
++        local_address,
++        remote_address,
++        their_identity_key,
+         our_identity_key_pair,
+         our_base_key_pair,
+-        *their_identity_key,
+         their_signed_prekey,
+-        their_signed_prekey,
+-        their_kyber_prekey.clone(),
+-        our_identity_key_pair.identity_key().is_same_account(
+-            local_address,
+-            their_identity_key,
+-            remote_address,
+-        ),
+-    );
+-    if let Some(key) = bundle.pre_key_public()? {
+-        parameters.set_their_one_time_pre_key(key);
+-    }
+-
+-    let mut session = ratchet::initialize_alice_session(&parameters, csprng)?;
+-
+-    log::info!(
+-        "set_unacknowledged_pre_key_message for: {} with preKeyId: {}",
+-        remote_address,
+-        their_one_time_prekey_id.map_or_else(|| "<none>".to_string(), |id| id.to_string())
+-    );
+-
+-    session.set_unacknowledged_pre_key_message(
++        their_kyber_prekey,
+         their_one_time_prekey_id,
+-        bundle.signed_pre_key_id()?,
+-        &our_base_key_pair.public_key,
++        bundle,
+         now,
+-    );
+-    session.set_unacknowledged_kyber_pre_key_id(bundle.kyber_pre_key_id()?);
++        csprng,
++    )?;
+ 
+     session.set_local_registration_id(identity_store.get_local_registration_id().await?);
+     session.set_remote_registration_id(bundle.registration_id()?);
