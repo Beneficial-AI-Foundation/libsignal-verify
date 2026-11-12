@@ -1,10 +1,14 @@
 /-
+Copyright (c) 2026 Galois Inc. All rights reserved.
 Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
-Released under the terms of the LICENSE file in the project root.
-Authors: Alessandro D'Angelo
+Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
+Authors: Ben Hamlin, Alessandro D'Angelo
+Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
+Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas.Games
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OracleInvariants
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.JointSignatureAlg
 
 /-!
@@ -24,7 +28,10 @@ of `DH2` in `accept`. `OpensAtMost` bounds the openings only, and a rejected `st
 the session open for another try. So the number of agreement queries is not bounded by the number
 of sessions. The file proves no resource bound for the reduction (#41).
 
-The definitions and proofs in this file are AI-written.
+The parties `recipientSim` and `initiatorSim` and the computations `setupSim`, `publishSim` and
+`acceptSim` copy the code of `setup`, `publish`, `accept`, `recipient` and `initiator` from the
+Galois model, with oracle queries in place of the identity secret. The other definitions and the
+proofs in this file are new here and AI-written.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -259,12 +266,13 @@ lemma run_unif {α : Type} (c : ProbComp α) (log : List (SignatureInput G PQPK)
       (liftM ((HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)) t) :
         StateT (List (SignatureInput G PQPK)) ProbComp _)) c).run log =
       (fun a => (a, log)) <$> c := by
-  induction c using OracleComp.inductionOn generalizing log with
-  | pure a => simp
-  | query_bind t k ih =>
-    rw [OracleComp.run_simulateQ_query_bind]
-    simp only [StateT.run_monadLift, bind_assoc, pure_bind, map_bind]
-    exact bind_congr fun a => ih a log
+  have h : (fun t : unifSpec.Domain =>
+      (liftM ((HasQuery.toQueryImpl (spec := unifSpec) (m := ProbComp)) t) :
+        StateT (List (SignatureInput G PQPK)) ProbComp _)) =
+      (QueryImpl.ofLift unifSpec ProbComp).liftTarget
+        (StateT (List (SignatureInput G PQPK)) ProbComp) := rfl
+  rw [h, simulateQ_liftTarget, simulateQ_ofLift_eq_self, StateT.run_monadLift]
+  simp
 
 omit [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] [DecidableEq G]
  [DecidableEq PQPK] in
@@ -327,13 +335,6 @@ lemma run_acceptSim [Inhabited F] (pk : G) (x : F)
         Option.map (fun opk => DH opk.2 im.ekA) p.opkB, SS)).2.1 (im.ikA, pk, p.pqpkB.1) im.ctxt
         with _ | m <;> simp [hd]
 
-/-- The initial result of a session of Bob, with the secret placeholder. -/
-def scrubInit [Inhabited F] :
-    Party.InitResult (RecipientParameters F G PQPK PQSK S ⊕ K) (Message G PQPK CT S C IdC IdK) →
-      Party.InitResult (RecipientParameters F G PQPK PQSK S ⊕ K) (Message G PQPK CT S C IdC IdK)
-  | .speakFirst st w => .speakFirst (scrubState st) w
-  | .waitForMsg st => .waitForMsg (scrubState st)
-
 /-- The message that an initial result signs: the KEM key of the bundle that it opens with. -/
 def initLog :
     Party.InitResult (RecipientParameters F G PQPK PQSK S ⊕ K) (Message G PQPK CT S C IdC IdK) →
@@ -346,7 +347,8 @@ lemma run_recipientSim_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdenti
     (htk : tk.ikB = (pk, x)) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((recipientSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
       (K := K) P hasOPK).init (scrubId tk))).run log =
-      (fun r => (scrubInit r, initLog r ++ log)) <$> (recipient P hasOPK).init tk := by
+      (fun r => (Party.InitResult.map scrubState r, initLog r ++ log)) <$>
+        (recipient P hasOPK).init tk := by
   simp only [recipientSim, recipient, simulateQ_bind, StateT.run_bind, run_up, map_bind,
     bind_map_left]
   refine bind_congr fun opkB => bind_congr fun pqpkB => ?_
@@ -355,7 +357,7 @@ lemma run_recipientSim_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdenti
     htk log
   simp only [scrubId] at hpub ⊢
   rw [hpub]
-  simp [scrubInit, initLog, scrubState]
+  simp [Party.InitResult.map, initLog, scrubState]
 
 omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_step [Inhabited F] (pk : G) (x : F)
@@ -402,14 +404,6 @@ lemma run_initiatorSim_step [Inhabited F] (pk : G) (x : F)
   · simp [initiatorSim, initiator]
 
 omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
-lemma run_initiatorSim_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
-    (log : List (SignatureInput G PQPK)) :
-    (simulateQ (jointOr P pk x) ((initiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
-      (K := K) P).init uk)).run log =
-      (fun r => (r, log)) <$> (initiator P).init uk := by
-  simp [initiatorSim, initiator]
-
-omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_output [Inhabited F] (pk : G) (x : F)
     (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
     (log : List (SignatureInput G PQPK)) :
@@ -438,7 +432,8 @@ lemma simT_run_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S
     (simulateQ (jointOr P pk x)
       ((uakeInitiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK) (K := K) P msg hasOPK
         pk).T.init (scrubId tk))).run log =
-      (fun r => (scrubInit r, initLog r ++ log)) <$> (uakeInitiator P msg hasOPK).T.init tk :=
+      (fun r => (Party.InitResult.map scrubState r, initLog r ++ log)) <$>
+        (uakeInitiator P msg hasOPK).T.init tk :=
   run_recipientSim_init P hasOPK pk x tk htk log
 
 omit [DecidableEq PQPK] [SampleableType K] in
@@ -460,15 +455,6 @@ lemma simT_run_output [Inhabited F] (pk : G) (x : F)
         pk).T.output st)).run log =
       (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).T.output st :=
   run_recipientSim_output P hasOPK pk x st log
-
-omit [DecidableEq PQPK] [SampleableType K] in
-lemma simU_run_init [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
-    (log : List (SignatureInput G PQPK)) :
-    (simulateQ (jointOr P pk x)
-      ((uakeInitiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK) (K := K) P msg hasOPK
-        pk).U.init uk)).run log =
-      (fun r => (r, log)) <$> (uakeInitiator P msg hasOPK).U.init uk :=
-  run_initiatorSim_init P pk x uk log
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_step [Inhabited F] (pk : G) (x : F)
@@ -581,9 +567,9 @@ theorem step_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg
       refine bind_congr fun r => ?_
       erw [StateT.run_pure, StateT.run_pure]
       rcases r with ⟨st, w⟩ | ⟨st⟩
-      · cases w <;> simp [scrubEnv, signedLog, initLog, scrubInit, recordOpt, recordOne,
-          transcriptBundle]
-      · simp [scrubEnv, signedLog, initLog, scrubInit, recordOpt, transcriptBundle]
+      · cases w <;> simp [scrubEnv, signedLog, initLog, Party.InitResult.map, recordOpt,
+          recordOne, transcriptBundle]
+      · simp [scrubEnv, signedLog, initLog, Party.InitResult.map, recordOpt, transcriptBundle]
     | stepT sid w =>
       simp only [simImpl, realImpl, oracleImpl, QueryImpl.add_apply_inr, opImpl]
       rcases hs : env.tSessions[sid]? with _ | t
@@ -747,14 +733,6 @@ lemma simInv_set_session [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameter
   · exact hI.sessions s hs'
   · obtain ⟨⟨b, c', es, he⟩, -⟩ := hI.sessions t (List.mem_of_getElem? hs)
     exact ⟨⟨b, c', es ++ ext, by rw [hext, he]; rfl⟩, hst⟩
-
-omit [DecidableEq PQPK] [SampleableType K] in
-/-- The same for a change of the clock and the flag only, with the sessions unchanged. -/
-lemma simInv_clock [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameters F G Msg}
-    {env : Env (uakeInitiator P msg hasOPK)} (hI : SimInv P msg hasOPK pk x uk env)
-    (c : ℕ) (d : Bool) :
-    SimInv P msg hasOPK pk x uk ⟨c, env.challenge, d, env.tSessions⟩ :=
-  ⟨hI.pinned, hI.sessions, hI.challenge⟩
 
 omit [DecidableEq PQPK] [SampleableType K] in
 /-- Every oracle query keeps the invariant. -/
@@ -1124,13 +1102,6 @@ lemma joint_exp_eq [Inhabited F] (A : UAKE.Adversary (uakeInitiator P msg hasOPK
   rw [forgery_ikB (pk, default) (pk, x)]
   simp
 
-/-- Two independent draws commute under an event. -/
-lemma pr_swap {α β : Type} (mx : ProbComp α) (my : ProbComp β) (f : α → β → ProbComp Bool) :
-    Pr{let y ← (mx >>= fun a => my >>= fun b => f a b)}[y = true] =
-      Pr{let y ← (my >>= fun b => mx >>= fun a => f a b)}[y = true] := by
-  simp only [map_bind]
-  exact prEvent_bind_bind_swap_of_uniform _ _ _
-
 omit [SampleableType K] in
 /-- The signature forgery probability of any UAKE adversary is at most the advantage of the
 reduction `sigAdversary` in the joint unforgeability game. -/
@@ -1144,7 +1115,9 @@ theorem sigForgeProb_le_advantage_sigAdversary [Inhabited F]
     rw [joint_exp_eq P msg hasOPK A]
     unfold sigForgeExp challengePhase setup
     simp only [bind_assoc, pure_bind]
-    refine le_of_eq_of_le (pr_swap _ _ _) ?_
+    simp only [map_bind]
+    rw [prEvent_bind_bind_swap_of_uniform]
+    simp only [← map_bind]
     refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun ikB hikB => ?_
     refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun ikA hikA => ?_
     refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun spkB hspkB => ?_

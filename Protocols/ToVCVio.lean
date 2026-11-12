@@ -15,7 +15,6 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 import Protocols.ToVCVio.CryptoFoundations.JointSignatureAlg
 import Protocols.ToVCVio.CryptoFoundations.KEMCorrectness
-import Protocols.ToVCVio.CryptoFoundations.SignatureAlg
 import Protocols.ToVCVio.EvalDist.Monad.Basic
 import Protocols.ToVCVio.OracleComp.ProbComp
 import Protocols.ToVCVio.OracleComp.QueryTracking.QueryBound

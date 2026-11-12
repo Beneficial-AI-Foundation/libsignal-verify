@@ -211,7 +211,7 @@ rejected `stepT` query leaves the session open for another try, so the number of
 is not bounded by the number of sessions.
 
 Used by `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` as hop 3. -/
-lemma sigForgeProb_le_sig [Inhabited S] [Inhabited F]
+lemma sigForgeProb_le_sig [Inhabited F]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (εsig : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
     (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig) :
