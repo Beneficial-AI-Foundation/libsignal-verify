@@ -41,15 +41,17 @@ recall Protocols.PQXDH.uakeInitiator_secure_dh
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
-    (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
-    (hq : A.OpensAtMostPerPhase q) (εsig εodh εaead εpk : ℝ)
+    (A : AKE.UAKE.Adversary
+      (uakeInitiator P EntryPoints.extracted msg hasOPK KyberPrekeyKind.oneTime))
+    (q : ℕ) (hq : A.OpensAtMostPerPhase q) (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
     (hodh : ∀ (D : PqxdhODHAdversary), pqxdhODHAdvantage H P D ≤ εodh)
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hpk : ∀ (pk : PQPub),
       (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
-      + (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal
+    : fullAdvantage P msg hasOPK KyberPrekeyKind.oneTime A
+        ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
+      + (rustRuntime.prFail (fullExp P msg hasOPK KyberPrekeyKind.oneTime A)).toReal
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
@@ -58,6 +60,7 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -78,13 +81,15 @@ recall Protocols.PQXDH.uakeInitiator_secure_dh_total
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H) (hCt : CoreContracts)
-    (hS : SignatureContracts) (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
+    (hS : SignatureContracts) (hG : GenerateTotal)
+    (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r)
-    (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : AKE.UAKE.Adversary
+      (uakeInitiator P EntryPoints.extracted msg hasOPK KyberPrekeyKind.oneTime))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
@@ -92,7 +97,8 @@ recall Protocols.PQXDH.uakeInitiator_secure_dh_total
     (haead : ∀ (B : AEAD.INT_CTXT_D_Adversary P.aead), AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hpk : ∀ (pk : PQPub),
       (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
+    : fullAdvantage P msg hasOPK KyberPrekeyKind.oneTime A
+        ≤ εsig + 2 * ↑q * (εodh + 2 * εaead) + 3 * ↑q ^ 2 * εpk
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_dh_total' depends on axioms:
@@ -101,6 +107,7 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh_total' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -125,8 +132,9 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (K : KEMScheme ProbComp Key PQPub PQPriv (Aeneas.Std.Slice Aeneas.Std.U8))
     (hK : KyberBridge P K)
-    (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
-    (hq : A.OpensAtMostPerPhase q) (εsig εkem εaead εkdf εpk : ℝ)
+    (A : AKE.UAKE.Adversary
+      (uakeInitiator P EntryPoints.extracted msg hasOPK KyberPrekeyKind.oneTime))
+    (q : ℕ) (hq : A.OpensAtMostPerPhase q) (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
     (hkem : ∀ (B : K.IND_CCA_Adversary),
       (KEMScheme.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
@@ -135,8 +143,9 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq
       ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ (pk : PQPub),
       (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
-      + (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal
+    : fullAdvantage P msg hasOPK KyberPrekeyKind.oneTime A
+        ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
+      + (rustRuntime.prFail (fullExp P msg hasOPK KyberPrekeyKind.oneTime A)).toReal
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
@@ -145,6 +154,7 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -165,7 +175,8 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq_total
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC]
     [DecidableEq IdK] (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : libsignal_protocol.crypto.HmacSha256) (hC : PartialContracts H) (hCt : CoreContracts)
-    (hS : SignatureContracts) (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
+    (hS : SignatureContracts) (hG : GenerateTotal)
+    (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
@@ -173,7 +184,8 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq_total
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (K : KEMScheme ProbComp Key PQPub PQPriv (Aeneas.Std.Slice Aeneas.Std.U8))
     (hK : KyberBridge P K)
-    (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : AKE.UAKE.Adversary
+      (uakeInitiator P EntryPoints.extracted msg hasOPK KyberPrekeyKind.oneTime))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ (B : JointSigAdversary), (jointSigAdvantage P B).toReal ≤ εsig)
@@ -184,7 +196,8 @@ recall Protocols.PQXDH.uakeInitiator_secure_pq_total
       ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ (pk : PQPub),
       (Pr{let y ← (fun x => x.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk)
-    : fullAdvantage P msg hasOPK A ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
+    : fullAdvantage P msg hasOPK KyberPrekeyKind.oneTime A
+        ≤ εsig + 2 * ↑q * (εkem + εaead + εkdf) + 3 * ↑q ^ 2 * εpk
 
 /--
 info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
@@ -193,6 +206,7 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -212,15 +226,16 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
 recall Protocols.PQXDH.fullExp_noLostMass
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
-    (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
+    (hS : SignatureContracts) (hG : GenerateTotal) (H : libsignal_protocol.crypto.HmacSha256)
     (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r)
-    (A : AKE.UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : AKE.UAKE.Adversary
+      (uakeInitiator P EntryPoints.extracted msg hasOPK KyberPrekeyKind.oneTime))
     (hA : Adversary.SendsFittingMessages A)
-    : rustRuntime.prFail (fullExp P msg hasOPK A) = 0
+    : rustRuntime.prFail (fullExp P msg hasOPK KyberPrekeyKind.oneTime A) = 0
 
 /--
 info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
@@ -229,6 +244,7 @@ info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -308,18 +324,19 @@ info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
 
 recall Protocols.PQXDH.wrapperAgreement_uakeInitiator
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
-    (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (H : libsignal_protocol.crypto.HmacSha256)
     (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead) (δ : ENNReal)
-    (hδ : KyberDeltaCorrect P δ)
+    (hδ : KyberDeltaCorrectAfterGenerate P δ)
     : 1 - δ
       ≤ rustRuntime.evalDist
-      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK)) {true}
+      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true}
 
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
@@ -328,6 +345,7 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -346,18 +364,19 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
 
 recall Protocols.PQXDH.wrapperAgreement_uakeRecipient
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (hC : CoreContracts)
-    (hS : SignatureContracts) (H : libsignal_protocol.crypto.HmacSha256)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (H : libsignal_protocol.crypto.HmacSha256)
     (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead) (δ : ENNReal)
-    (hδ : KyberDeltaCorrect P δ)
+    (hδ : KyberDeltaCorrectAfterGenerate P δ)
     : 1 - δ
       ≤ rustRuntime.evalDist
-      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK)) {true}
+      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true}
 
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
@@ -366,6 +385,7 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PrivateKey.public_key,
@@ -565,6 +585,7 @@ info: 'Protocols.PQXDH.initiator_output_eq' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
@@ -575,9 +596,10 @@ info: 'Protocols.PQXDH.initiator_output_eq' depends on axioms:
 
 recall Protocols.PQXDH.recipient_output_eq
     {Rand Msg C IdC IdK : Type} [DecidableEq IdC] [DecidableEq IdK] (P : Params Rand Msg C IdC IdK)
-    (E : EntryPoints Rand) (hasOPK : Bool) (st : RecipientState Msg)
-    : (recipient P E hasOPK).output st = pure (Option.map (fun j => some j.root) st.jointKeys) ∧
-      (recipientNoConfirm P E hasOPK).output st = pure
+    (E : EntryPoints Rand) (hasOPK : Bool) (kind : KyberPrekeyKind) (st : RecipientState Msg)
+    : (recipient P E hasOPK kind).output st =
+        pure (Option.map (fun j => some j.root) st.jointKeys) ∧
+      (recipientNoConfirm P E hasOPK kind).output st = pure
       (Option.map (fun j => some j.root) st.jointKeys)
 
 /--
@@ -644,10 +666,58 @@ info: 'Protocols.PQXDH.KyberDeltaCorrect' depends on axioms:
 #print axioms Protocols.PQXDH.KyberDeltaCorrect
 
 /--
+info: 'Protocols.PQXDH.kyberKemAfterGenerate' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.KeyPair.generate,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kyberKemAfterGenerate
+
+/--
+info: 'Protocols.PQXDH.KyberDeltaCorrectAfterGenerate' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.KeyPair.generate,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.KyberDeltaCorrectAfterGenerate
+
+/-- info: 'Protocols.PQXDH.KyberPrekeyKind' does not depend on any axioms -/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.KyberPrekeyKind
+
+/--
+info: 'Protocols.PQXDH.GenerateTotal' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.KeyPair.generate,
+ curve.PrivateKey.public_key]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.GenerateTotal
+
+/--
 info: 'Protocols.PQXDH.uakeInitiator' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
@@ -662,6 +732,7 @@ info: 'Protocols.PQXDH.uakeRecipient' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
@@ -676,6 +747,7 @@ info: 'Protocols.PQXDH.fullPartnering' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
@@ -695,6 +767,7 @@ info: 'Protocols.PQXDH.fullExp' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.is_torsion_free,
@@ -716,6 +789,7 @@ info: 'Protocols.PQXDH.fullAdvantage' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.is_torsion_free,

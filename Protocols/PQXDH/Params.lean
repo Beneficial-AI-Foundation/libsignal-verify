@@ -67,14 +67,17 @@ structure Params (Rand Msg C IdC IdK : Type) where
   (modelling choice). Production's generator is long-lived, and the model does not relate its
   sessions. -/
   coins : ProbComp Rand
-  /-- The ideal curve25519 key generator (modelling choice). Every curve25519 key pair, Alice's
-  ephemeral key included, comes from it, while production calls `KeyPair::generate` on the
-  caller's generator (`rust/protocol/src/session.rs:239`). Its law is related neither to
+  /-- The ideal curve25519 key generator (modelling choice). Every curve25519 key pair comes from
+  it, except Alice's ephemeral key in the wrapper (`initiate`), which comes from Core's
+  `KeyPair::generate` on her generator state, as in production
+  (`rust/protocol/src/session.rs:237`). The core statements and the premise games still draw her
+  ephemeral key from it. Its law is related neither to
   production's clamped generation (`rust/core/src/curve/curve25519.rs:27-37`) nor to the abstract
   model's uniform exponent. -/
   ecKeygen : ProbComp ECKeyPair
   /-- The ideal Kyber key generator (modelling choice), in place of production's
-  `KeyPair::generate` on the caller's generator. -/
+  `KeyPair::generate` on the caller's generator. Bob's one-time and last-resort Kyber prekeys come
+  from it. -/
   pqKeygen : ProbComp PQKeyPair
   /-- The synthetic AEAD of the UAKE wrapper, with associated data `(IK_A, IK_B, PQPK_B)`.
   Production has no counterpart. -/

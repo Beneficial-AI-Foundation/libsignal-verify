@@ -23,9 +23,15 @@ conditioning on success. Rejections, protocol errors, panics and divergence coun
 Faults contribute only missing probability mass.
 
 The agreement statements hold with probability at least `1 - δ`, where `δ` bounds the
-correctness error of the extracted Kyber operations (`KyberDeltaCorrect`). For `δ = 0` they
-become probability-one statements. For `δ > 0`, the parties can hold different keys after a Kyber
-mismatch, and a party can then reject the other's synthetic ciphertext.
+correctness error of the extracted Kyber operations. The core statement uses `KyberDeltaCorrect`,
+with encapsulation on a state from `P.coins`. The wrapper statements use
+`KyberDeltaCorrectAfterGenerate`, with encapsulation on the state that Alice's key generation
+returns, because the wrapper draws her ephemeral key with Core's `generate` and passes the
+returned state on. The core statements keep the ideal draw of her ephemeral key. The wrapper
+statements hold for Bob's sessions with one-time Kyber prekeys and with the last-resort prekey.
+For `δ = 0` the agreement statements become probability-one statements. For `δ > 0`, the parties
+can hold different keys after a Kyber mismatch, and a party can then reject the other's synthetic
+ciphertext.
 
 The fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean` show that the success events
 are not vacuous: entry points that always panic, always return an error or never terminate fail
@@ -139,40 +145,46 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
   sorry
 
 /-- Wrapper agreement with Bob authenticated: in an honest run of `uakeInitiator` on the extracted
-entry points, both parties output a key and the two keys are equal, with probability at least
-`1 - δ`. The hypotheses are those of `jointKeyAgreement_extracted`, the signature contracts,
-totality of the generator's `rand::Rng` view on `Dom` (signing uses it), and perfect correctness
-of the synthetic AEAD. The proof is a temporary stub. -/
+entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties output a key
+and the two keys are equal, with probability at least `1 - δ`. The hypotheses are those of
+`jointKeyAgreement_extracted`, with `KyberDeltaCorrectAfterGenerate P δ` in place of the Kyber
+bound. In addition, the statement assumes the signature contracts, the contract `GenerateTotal` on
+Alice's key generation, totality of the generator's `rand::Rng` view on `Dom` (signing and key
+generation use it), and perfect correctness of the synthetic AEAD. The Kyber bound concerns the
+state on which Alice encapsulates, which is the state that her key generation returns. It also
+counts faults of that call. The statement holds for both kinds of Kyber prekey. The proof is a
+temporary stub. -/
 theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hC : CoreContracts) (hS : SignatureContracts)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
     (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
-    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
+    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK)) {true} := by
+      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} := by
   sorry
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
-extracted entry points, both parties output a key and the two keys are equal, with probability at
-least `1 - δ`. The hypotheses are those of `wrapperAgreement_uakeInitiator`. This direction is
-correctness-only. The proof is a temporary stub. -/
+extracted entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties
+output a key and the two keys are equal, with probability at least `1 - δ`. The hypotheses are
+those of `wrapperAgreement_uakeInitiator`. This direction is correctness-only. The proof is a
+temporary stub. -/
 theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hC : CoreContracts) (hS : SignatureContracts)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
     (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
-    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
+    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK)) {true} := by
+      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} := by
   sorry
 
 end
