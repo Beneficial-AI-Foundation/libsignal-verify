@@ -83,7 +83,9 @@ theorem accept_noncanonical_eq (rp : pqxdh.RecipientParameters)
       let s ← Str.Insts.AllocBorrowToOwnedString.to_owned
         (toStr "incoming base key is invalid")
       .ok (.Err (.InvalidMessage protocol.CiphertextMessageType.PreKey s))) := by
-  sorry
+  simp only [acceptCanonical] at hc
+  unfold pqxdh.pqxdh_accept
+  simp [hc]
 
 /-- Branch 2, DH1: when the check passes and DH1 returns the error `e`, the call returns the
 conversion of `e` into a protocol error. -/
@@ -92,7 +94,15 @@ theorem accept_dh1_err_eq (rp : pqxdh.RecipientParameters) (e : libsignal_core.c
     pqxdh.pqxdh_accept rp = (do
       let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
       .ok (.Err v)) := by
-  sorry
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at h1
+  obtain ⟨i, s0, sec, hi, hs, hsec, -⟩ := kdf_start
+  unfold pqxdh.pqxdh_accept
+  simp [hc, hi, hs, hsec, h1, identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
+  rfl
 
 /-- Branch 3, DH2: DH1 returns `d1`, the bytes so far fit in a vector, and DH2 returns the error
 `e`. -/
@@ -103,7 +113,17 @@ theorem accept_dh2_err_eq (rp : pqxdh.RecipientParameters) (d1 : Slice U8)
     pqxdh.pqxdh_accept rp = (do
       let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
       .ok (.Err v)) := by
-  sorry
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at h1
+  simp only [acceptDh2] at h2
+  obtain ⟨i, s0, sec, hi, hs, hsec, hval⟩ := kdf_start
+  obtain ⟨sec2, hsec2, -⟩ := extend_prefix d1 hval hl
+  unfold pqxdh.pqxdh_accept
+  simp [hc, hi, hs, hsec, h1, hsec2, h2, identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
+  rfl
 
 /-- Branch 4, DH3: DH1 and DH2 return `d1` and `d2`, the bytes so far fit in a vector, and DH3
 returns the error `e`. -/
@@ -115,7 +135,18 @@ theorem accept_dh3_err_eq (rp : pqxdh.RecipientParameters) (d1 d2 : Slice U8)
     pqxdh.pqxdh_accept rp = (do
       let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
       .ok (.Err v)) := by
-  sorry
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at h1
+  simp only [acceptDh2] at h2
+  simp only [acceptDh3] at h3
+  obtain ⟨i, s0, sec, hi, hs, hsec, hval⟩ := kdf_start
+  obtain ⟨sec2, sec3, hsec2, hsec3, -⟩ := extend_prefix_two d1 d2 hval hl
+  unfold pqxdh.pqxdh_accept
+  simp [hc, hi, hs, hsec, h1, hsec2, h2, hsec3, h3, identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
+  rfl
 
 /-- Branch 5, DH4: Bob has the one-time prekey `opk`, DH1 to DH3 return `d1`, `d2` and `d3`, the
 bytes so far fit in a vector, and DH4 returns the error `e`. -/
@@ -128,7 +159,20 @@ theorem accept_dh4_err_eq (rp : pqxdh.RecipientParameters) (opk : libsignal_core
     pqxdh.pqxdh_accept rp = (do
       let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
       .ok (.Err v)) := by
-  sorry
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at h1
+  simp only [acceptDh2] at h2
+  simp only [acceptDh3] at h3
+  simp only [acceptDh4] at h4
+  obtain ⟨i, s0, sec, hi, hs, hsec, hval⟩ := kdf_start
+  obtain ⟨sec2, sec3, sec4, hsec2, hsec3, hsec4, -⟩ := extend_prefix_three d1 d2 d3 hval hl
+  unfold pqxdh.pqxdh_accept
+  simp [hc, hi, hs, hsec, h1, hsec2, h2, hsec3, h3, hsec4, hopk, h4,
+    identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
+  rfl
 
 /-- Branch 6, decapsulation: the agreements return `d1`, `d2`, `d3` and `d4`, the bytes so far fit
 in a vector, and the decapsulation returns the error `e`. The call returns `e` itself. -/
@@ -138,7 +182,34 @@ theorem accept_decaps_err_eq (rp : pqxdh.RecipientParameters) (d1 d2 d3 : Slice 
     (hl : (kdfPrefixBytes (d1 :: d2 :: d3 :: d4.toList)).length ≤ Usize.max)
     (hd : acceptDecaps rp = .ok (.Err e)) :
     pqxdh.pqxdh_accept rp = .ok (.Err e) := by
-  sorry
+  obtain ⟨hd1, hd2, hd3, hd4⟩ := hag
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at hd1
+  simp only [acceptDh2] at hd2
+  simp only [acceptDh3] at hd3
+  simp only [acceptDecaps] at hd
+  obtain ⟨i, s0, sec, hi, hs, hsec, hval⟩ := kdf_start
+  unfold pqxdh.pqxdh_accept
+  rcases hopk : rp.our_one_time_pre_key_pair with _ | opk
+  · simp only [hopk] at hd4
+    subst hd4
+    obtain ⟨sec2, sec3, sec4, hsec2, hsec3, hsec4, -⟩ := extend_prefix_three d1 d2 d3 hval hl
+    simp [hc, hi, hs, hsec, hd1, hsec2, hd2, hsec3, hd3, hsec4, hd,
+    identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
+  · simp only [hopk] at hd4
+    obtain ⟨d, hd4', rfl⟩ := hd4
+    simp only [acceptDh4] at hd4'
+    obtain ⟨sec2, sec3, sec4, hsec2, hsec3, hsec4, hval4⟩ := extend_prefix_three d1 d2 d3 hval
+      (le_trans (kdfPrefixBytes_length_le_append [d1, d2, d3] d) hl)
+    obtain ⟨sec5, hsec5, -⟩ := extend_prefix d hval4 hl
+    simp [hc, hi, hs, hsec, hd1, hsec2, hd2, hsec3, hd3, hsec4, hd4', hsec5, hd,
+    identity_key.IdentityKey.impl.public_key,
+    identity_key.IdentityKeyPair.impl.private_key,
+    core.result.Result.Insts.CoreOpsTry.branch,
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual]
 
 /-- Branch 7, success: the agreements return `d1`, `d2`, `d3` and `d4`, the decapsulation returns
 the secret `ss`, `kdfInput` assembles `km` from them, and the key derivation returns `hk` on `km`.
@@ -149,7 +220,30 @@ theorem accept_ok_eq (rp : pqxdh.RecipientParameters) (d1 d2 d3 ss km : Slice U8
     (hd : acceptDecaps rp = .ok (.Ok ss)) (hkm : kdfInput d1 d2 d3 d4 ss = .ok km)
     (hder : pqxdh.HandshakeKeys.derive km = .ok hk) :
     pqxdh.pqxdh_accept rp = .ok (.Ok hk) := by
-  sorry
+  obtain ⟨hd1, hd2, hd3, hd4⟩ := hag
+  simp only [acceptCanonical] at hc
+  simp only [acceptDh1] at hd1
+  simp only [acceptDh2] at hd2
+  simp only [acceptDh3] at hd3
+  simp only [acceptDecaps] at hd
+  obtain ⟨i, s, sec1, sec2, sec3, sec4, sec5, sec6, hi, hs, h1, h2, h3, h4, h5, h6, rfl⟩ :=
+    kdfInput_inv hkm
+  unfold pqxdh.pqxdh_accept
+  rcases hopk : rp.our_one_time_pre_key_pair with _ | opk
+  · simp only [hopk] at hd4
+    subst hd4
+    simp only at h5
+    subst h5
+    simp [hc, hi, hs, h1, hd1, h2, hd2, h3, hd3, h4, hd, h6, hder,
+      identity_key.IdentityKey.impl.public_key, identity_key.IdentityKeyPair.impl.private_key,
+      core.result.Result.Insts.CoreOpsTry.branch]
+  · simp only [hopk] at hd4
+    obtain ⟨d, hd4', rfl⟩ := hd4
+    simp only [acceptDh4] at hd4'
+    simp only at h5
+    simp [hc, hi, hs, h1, hd1, h2, hd2, h3, hd3, h4, hd4', h5, hd, h6, hder,
+      identity_key.IdentityKey.impl.public_key, identity_key.IdentityKeyPair.impl.private_key,
+      core.result.Result.Insts.CoreOpsTry.branch]
 
 /-- The summary: if `pqxdh_accept` returns a value, one of the seven branches above happened, in
 the order of the code. A branch lists the values of the earlier steps and the bytes so far, which
@@ -190,6 +284,116 @@ theorem accept_cases (rp : pqxdh.RecipientParameters)
       ∃ d1 d2 d3 d4 ss km hk, AcceptAgreements rp d1 d2 d3 d4 ∧
         acceptDecaps rp = .ok (.Ok ss) ∧ kdfInput d1 d2 d3 d4 ss = .ok km ∧
         pqxdh.HandshakeKeys.derive km = .ok hk ∧ res = .Ok hk) := by
-  sorry
+  unfold pqxdh.pqxdh_accept at h
+  simp only [bind_eq_ok_iff] at h
+  obtain ⟨b, hb, h⟩ := h
+  cases b
+  · simp only [Bool.false_eq_true, ↓reduceIte, bind_eq_ok_iff, Result.ok.injEq] at h
+    obtain ⟨s, hs, h⟩ := h
+    exact Or.inl ⟨hb, s, hs, h.symm⟩
+  · simp only [↓reduceIte, bind_eq_ok_iff] at h
+    obtain ⟨i, hi, s, hs, sec1, hsec1, pk, hpk, r, hr, cf, hcf, h⟩ := h
+    have hv1 := kdf_start_of_ok hi hs hsec1
+    simp only [identity_key.IdentityKey.impl.public_key, Result.ok.injEq] at hpk
+    subst hpk
+    rcases r with d1 | e1
+    · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf
+      subst hcf
+      simp only [bind_eq_ok_iff] at h
+      obtain ⟨sec2, hsec2, pk1, hpk1, r1, hr1, cf1, hcf1, h⟩ := h
+      obtain ⟨hf1, hv2⟩ := extend_prefix_of_ok hv1 hsec2
+      simp only [identity_key.IdentityKeyPair.impl.private_key, Result.ok.injEq] at hpk1
+      subst hpk1
+      rcases r1 with d2 | e2
+      · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf1
+        subst hcf1
+        simp only [bind_eq_ok_iff] at h
+        obtain ⟨sec3, hsec3, r2, hr2, cf2, hcf2, h⟩ := h
+        obtain ⟨hf2, hv3⟩ := extend_prefix_of_ok hv2 hsec3
+        rcases r2 with d3 | e3
+        · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf2
+          subst hcf2
+          simp only [bind_eq_ok_iff] at h
+          obtain ⟨sec4, hsec4, h⟩ := h
+          obtain ⟨hf3, hv4⟩ := extend_prefix_of_ok hv3 hsec4
+          rcases hopk : rp.our_one_time_pre_key_pair with _ | opk
+          · simp only [hopk] at h
+            simp only [bind_eq_ok_iff] at h
+            obtain ⟨r3, hr3, cf3, hcf3, h⟩ := h
+            rcases r3 with ss | e4
+            · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf3
+              subst hcf3
+              simp only [bind_eq_ok_iff, Result.ok.injEq] at h
+              obtain ⟨sec5, hsec5, hk', hder, h⟩ := h
+              refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨hb, d1, d2, d3, none, ss,
+                alloc.vec.Vec.deref sec5, hk', ⟨hr, hr1, hr2, by simp [hopk]⟩, hr3, ?_, hder,
+                h.symm⟩)))))
+              simp [kdfInput, pure_tc_eq, hi, hs, hsec1, hsec2, hsec3, hsec4, hsec5]
+            · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf3
+              subst hcf3
+              simp only [core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+                bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+              obtain ⟨v, hv, h⟩ := h
+              have hve : v = e4 := by simpa using hv.symm
+              subst hve
+              exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨hb, d1, d2, d3, none, v,
+                ⟨hr, hr1, hr2, by simp [hopk]⟩, hf3, hr3, h.symm⟩)))))
+          · simp only [hopk] at h
+            simp only [bind_eq_ok_iff] at h
+            obtain ⟨r3, hr3, cf3, hcf3, h⟩ := h
+            rcases r3 with d4 | e4
+            · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf3
+              subst hcf3
+              simp only [bind_eq_ok_iff] at h
+              obtain ⟨sec5, hsec5, r4, hr4, cf4, hcf4, h⟩ := h
+              obtain ⟨hf4, hv5⟩ := extend_prefix_of_ok hv4 hsec5
+              rcases r4 with ss | e5
+              · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf4
+                subst hcf4
+                simp only [bind_eq_ok_iff, Result.ok.injEq] at h
+                obtain ⟨sec6, hsec6, hk', hder, h⟩ := h
+                refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨hb, d1, d2, d3, some d4, ss,
+                  alloc.vec.Vec.deref sec6, hk', ⟨hr, hr1, hr2, ?_⟩, hr4, ?_, hder, h.symm⟩)))))
+                · simp only [hopk]
+                  exact ⟨d4, hr3, rfl⟩
+                · simp [kdfInput, pure_tc_eq, hi, hs, hsec1, hsec2, hsec3, hsec4, hsec5, hsec6]
+              · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf4
+                subst hcf4
+                simp only [
+                  core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+                  bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+                obtain ⟨v, hv, h⟩ := h
+                have hve : v = e5 := by simpa using hv.symm
+                subst hve
+                refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨hb, d1, d2, d3, some d4, v,
+                  ⟨hr, hr1, hr2, ?_⟩, hf4, hr4, h.symm⟩)))))
+                simp only [hopk]
+                exact ⟨d4, hr3, rfl⟩
+            · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf3
+              subst hcf3
+              simp only [core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+                bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+              obtain ⟨v, hv, h⟩ := h
+              exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨hb, opk, d1, d2, d3, e4, v, rfl, hr,
+                hr1, hr2, hf3, hr3, hv, h.symm⟩))))
+        · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf2
+          subst hcf2
+          simp only [core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+            bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+          obtain ⟨v, hv, h⟩ := h
+          exact Or.inr (Or.inr (Or.inr (Or.inl ⟨hb, d1, d2, e3, v, hr, hr1, hf2, hr2, hv,
+            h.symm⟩)))
+      · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf1
+        subst hcf1
+        simp only [core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+          bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+        obtain ⟨v, hv, h⟩ := h
+        exact Or.inr (Or.inr (Or.inl ⟨hb, d1, e2, v, hr, hf1, hr1, hv, h.symm⟩))
+    · simp only [core.result.Result.Insts.CoreOpsTry.branch, Result.ok.injEq] at hcf
+      subst hcf
+      simp only [core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual,
+        bind_tc_eq, bind_eq_ok_iff, Result.ok.injEq] at h
+      obtain ⟨v, hv, h⟩ := h
+      exact Or.inr (Or.inl ⟨hb, e1, v, hr, hv, h.symm⟩)
 
 end Protocols.PQXDH

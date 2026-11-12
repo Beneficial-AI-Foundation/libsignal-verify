@@ -6,6 +6,8 @@ Authors: Ben Hamlin, Alessandro D'Angelo
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
+import Protocols.PQXDH.AcceptBranches
+import Protocols.PQXDH.InitiateBranches
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Scheme
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
@@ -23,9 +25,10 @@ The extracted entry points return the derived keys but not `km`. So each complet
 the exact inputs of its entry-point call, and `InitiateKdfInput` and `AcceptKdfInput` specify the
 `km` of that call. The leaf functions are deterministic, so the inputs of a call determine its
 `km`. `initiate_kdfInput_witness` and `accept_kdfInput_witness` state that a successful call
-derives its keys from that `km`, and their proofs are stubs. `fullPartnering` is the resulting
-partnering relation of `uakeInitiator`. The session identifier `(ad, km)` exists only for
-completed states, so it is fixed when a session accepts.
+derives its keys from that `km`; they follow from the branch summaries `initiate_cases` and
+`accept_cases`. `fullPartnering` is the resulting partnering relation of `uakeInitiator`. The
+session identifier `(ad, km)` exists only for completed states, so it is fixed when a session
+accepts.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -80,19 +83,42 @@ def AcceptKdfInput (rp : pqxdh.RecipientParameters) (km : Slice U8) : Prop :=
       kdfInput d1 d2 d3 d4 ss = .ok km
 
 /-- If `pqxdh_initiate` succeeds on `ip` and `r`, its keys are derived from the original key
-material of that call. The proof is a stub. -/
+material of that call. -/
 theorem initiate_kdfInput_witness (crng : rand_core_1.CryptoRng Rand)
     (rng : rand.rng.Rng Rand) (ip : pqxdh.InitiatorParameters) (r r' : Rand)
     (ag : InitiatorAgreement) (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (.Ok ag, r')) :
     ∃ km, InitiateKdfInput crng ip r km ∧ pqxdh.HandshakeKeys.derive km = .ok ag.keys := by
-  sorry
+  rcases initiate_cases crng rng ip r r' _ h with
+    ⟨_, _, _, _, hres, _⟩ | ⟨_, _, _, _, _, _, _, hres, _⟩ |
+    ⟨_, _, _, _, _, _, _, _, _, hres, _⟩ |
+    ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, hres, _⟩ | ⟨_, _, _, _, _, _, _, _, hres⟩ |
+    ⟨d1, d2, d3, d4, ss, ct, km, hk, ⟨hd1, hd2, hd3, hd4⟩, he, hkm, hder, hres⟩
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+    exact ⟨km, ⟨d1, d2, d3, d4, ss, ct, r', hd1, hd2, hd3, hd4, he, hkm⟩, hder⟩
 
 /-- If `pqxdh_accept` succeeds on `rp`, its keys are derived from the original key material of
-that call. The proof is a stub. -/
+that call. -/
 theorem accept_kdfInput_witness (rp : pqxdh.RecipientParameters) (hk : HandshakeKeys)
     (h : pqxdh.pqxdh_accept rp = .ok (.Ok hk)) :
     ∃ km, AcceptKdfInput rp km ∧ pqxdh.HandshakeKeys.derive km = .ok hk := by
-  sorry
+  rcases accept_cases rp _ h with
+    ⟨_, _, _, hres⟩ | ⟨_, _, _, _, _, hres⟩ | ⟨_, _, _, _, _, _, _, _, hres⟩ |
+    ⟨_, _, _, _, _, _, _, _, _, _, hres⟩ |
+    ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, hres⟩ | ⟨_, _, _, _, _, _, _, _, _, hres⟩ |
+    ⟨-, d1, d2, d3, d4, ss, km, hk', ⟨hd1, hd2, hd3, hd4⟩, hdec, hkm, hder, hres⟩
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+  · cases hres
+    exact ⟨km, ⟨d1, d2, d3, d4, ss, hd1, hd2, hd3, hd4, hdec, hkm⟩, hder⟩
 
 /-- The session identifier of a completed Alice state: its associated data and the original key
 material of its entry-point call. States before completion have none. -/

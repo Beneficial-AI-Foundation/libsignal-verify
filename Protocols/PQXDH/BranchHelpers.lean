@@ -70,6 +70,11 @@ theorem kdfPrefixBytes_append_single (parts : List (Slice U8)) (d : Slice U8) :
     kdfPrefixBytes (parts ++ [d]) = kdfPrefixBytes parts ++ d.val := by
   simp [kdfPrefixBytes]
 
+theorem kdfPrefixBytes_length_le_append (parts : List (Slice U8)) (d : Slice U8) :
+    (kdfPrefixBytes parts).length ≤ (kdfPrefixBytes (parts ++ [d])).length := by
+  rw [kdfPrefixBytes_append_single, List.length_append]
+  omega
+
 /-- The 32 discontinuity bytes are appended to an empty vector: the start of every chain. -/
 theorem kdf_start :
     ∃ (i : Usize) (s : Slice U8) (sec : alloc.vec.Vec U8),
@@ -109,6 +114,71 @@ theorem extend_prefix {sec : alloc.vec.Vec U8} {parts : List (Slice U8)} (d : Sl
   obtain ⟨sec', h, hval, -⟩ := exists_ok_of_spec
     (alloc.vec.Vec.extend_from_slice_spec core.clone.CloneU8 sec d h_clone hlen)
   exact ⟨sec', h, by rw [kdfPrefixBytes_append_single, ← hsec]; exact hval⟩
+
+/-- An append that returns a value fits in a vector, because `extend_from_slice` panics on
+overflow, and the vector then holds the bytes of the longer prefix. -/
+theorem extend_prefix_of_ok {sec sec' : alloc.vec.Vec U8} {parts : List (Slice U8)}
+    {d : Slice U8} (hsec : sec.val = kdfPrefixBytes parts)
+    (h : alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec d = ok sec') :
+    (kdfPrefixBytes (parts ++ [d])).length ≤ Usize.max ∧
+      sec'.val = kdfPrefixBytes (parts ++ [d]) := by
+  have hfits : (kdfPrefixBytes (parts ++ [d])).length ≤ Usize.max := by
+    by_contra hnot
+    have hlt : Usize.max < sec.length + d.length := by
+      rw [kdfPrefixBytes_append_single, List.length_append, ← hsec] at hnot
+      simpa [alloc.vec.Vec.length, Slice.length] using hnot
+    rw [alloc.vec.Vec.extend_from_slice_overflow core.clone.CloneU8 sec d hlt] at h
+    exact absurd h (by simp)
+  obtain ⟨sec'', h'', hval⟩ := extend_prefix d hsec hfits
+  rw [h''] at h
+  simp only [Result.ok.injEq] at h
+  subst h
+  exact ⟨hfits, hval⟩
+
+/-- The start of a chain, as an inversion: the vector after the 32 discontinuity bytes holds
+those bytes. -/
+theorem kdf_start_of_ok {i : Usize} {s : Slice U8} {sec : alloc.vec.Vec U8}
+    (hi : 32#usize * 6#usize = ok i)
+    (hs : lift (Array.repeat 32#usize 255#u8).to_slice = ok s)
+    (hsec : alloc.vec.Vec.extend_from_slice core.clone.CloneU8 (alloc.vec.Vec.with_capacity U8 i)
+      s = ok sec) :
+    sec.val = kdfPrefixBytes [] := by
+  obtain ⟨i0, s0, sec0, hi0, hs0, hsec0, hval0⟩ := kdf_start
+  rw [hi0] at hi
+  rw [hs0] at hs
+  simp only [Result.ok.injEq] at hi hs
+  subst hi hs
+  rw [hsec0] at hsec
+  simp only [Result.ok.injEq] at hsec
+  subst hsec
+  exact hval0
+
+/-- The appends of the first two agreements succeed when the bytes fit in a vector. -/
+theorem extend_prefix_two {sec : alloc.vec.Vec U8} (d1 d2 : Slice U8)
+    (hsec : sec.val = kdfPrefixBytes [])
+    (hl : (kdfPrefixBytes [d1, d2]).length ≤ Usize.max) :
+    ∃ sec2 sec3 : alloc.vec.Vec U8,
+      alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec d1 = ok sec2 ∧
+      alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec2 d2 = ok sec3 ∧
+      sec3.val = kdfPrefixBytes [d1, d2] := by
+  obtain ⟨sec2, h2, hv2⟩ :=
+    extend_prefix d1 hsec (le_trans (kdfPrefixBytes_length_le_append [d1] d2) hl)
+  obtain ⟨sec3, h3, hv3⟩ := extend_prefix d2 hv2 hl
+  exact ⟨sec2, sec3, h2, h3, hv3⟩
+
+/-- The appends of the first three agreements succeed when the bytes fit in a vector. -/
+theorem extend_prefix_three {sec : alloc.vec.Vec U8} (d1 d2 d3 : Slice U8)
+    (hsec : sec.val = kdfPrefixBytes [])
+    (hl : (kdfPrefixBytes [d1, d2, d3]).length ≤ Usize.max) :
+    ∃ sec2 sec3 sec4 : alloc.vec.Vec U8,
+      alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec d1 = ok sec2 ∧
+      alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec2 d2 = ok sec3 ∧
+      alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec3 d3 = ok sec4 ∧
+      sec4.val = kdfPrefixBytes [d1, d2, d3] := by
+  obtain ⟨sec2, sec3, h2, h3, hv3⟩ :=
+    extend_prefix_two d1 d2 hsec (le_trans (kdfPrefixBytes_length_le_append [d1, d2] d3) hl)
+  obtain ⟨sec4, h4, hv4⟩ := extend_prefix d3 hv3 hl
+  exact ⟨sec2, sec3, sec4, h2, h3, h4, hv4⟩
 
 /-- A successful `kdfInput` is the chain of appends that the two entry points inline: the 32
 bytes of `0xFF`, the three agreements, the fourth when there is one, and the KEM secret. -/
