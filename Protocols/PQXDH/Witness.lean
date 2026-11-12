@@ -95,7 +95,8 @@ theorem accept_kdfInput_witness (rp : pqxdh.RecipientParameters) (hk : Handshake
   sorry
 
 /-- The session identifier of a completed Alice state: its associated data and the original key
-material of its entry-point call. States before completion have none. -/
+material of its entry-point call. The generator state of the call is the state that Alice's key
+generation returned, which `initiate` records. States before completion have none. -/
 def InitiatorState.Sid (crng : rand_core_1.CryptoRng Rand) :
     InitiatorState Rand Msg → (ECPub × ECPub × PQPub) → Slice U8 → Prop
   | .done s, ad, km => s.ad = ad ∧ InitiateKdfInput crng s.inputs s.coins km
@@ -110,8 +111,9 @@ def RecipientState.Sid : RecipientState Msg → (ECPub × ECPub × PQPub) → Sl
 /-- Original-key partnering for `uakeInitiator`: Alice's state and Bob's state are partners
 when both are completed with the same associated data and the same original key material. -/
 def fullPartnering [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool) :
-    Partnering (uakeInitiator P E msg hasOPK) where
+    (P : Params Rand Msg C IdC IdK) (E : EntryPoints Rand) (msg : Msg) (hasOPK : Bool)
+    (kind : KyberPrekeyKind) :
+    Partnering (uakeInitiator P E msg hasOPK kind) where
   partner sa sb := ∃ ad km,
     InitiatorState.Sid (Msg := Msg) P.cryptoRngInst sa ad km ∧ RecipientState.Sid sb ad km
 

@@ -29,6 +29,34 @@ faults. A fault that no contract excludes only enlarges `Pr[⊥]`, so the premis
 fault-or-value contracts (`PartialContracts`). `fullExp_noLostMass` states that `Pr[⊥] = 0` under
 the total contracts, and the two `_total` corollaries drop the term.
 
+## Pending restatement
+
+These statements are placeholders that await a restatement. They cover Bob's sessions with
+one-time Kyber prekeys only (`KyberPrekeyKind.oneTime`). The restatement will:
+
+* move the statements to an experiment of the Full realization in which Bob's sessions share a
+  store, and the store rejects a repeated combination of Kyber prekey identifier, signed prekey
+  identifier and base key for the last-resort prekey;
+* let a rejected step of Alice keep the generator state that her entry point returned;
+* add a joint law of `generate` on `P.coins` as a premise;
+* cover both kinds of Kyber prekey;
+* relate the new experiment to the shared UAKE experiment by a proved bridge.
+
+Until then, the statements differ from production in three ways:
+
+* A retry reuses the ephemeral key. A bundle can pass the identity pin and both signature checks
+  and still make the entry point return an error. For example, the adversary can choose an
+  unsigned one-time prekey of small order, for which the agreement in DH4 returns
+  `InvalidKeyAgreement`. Then the step rejects and carries no state, so Alice keeps `R`. The next
+  bundle runs `generate` on `R` and draws the same ephemeral key. Production has advanced its
+  generator and draws a fresh key.
+* The premises do not describe Alice's ephemeral draw. `hEC` and the key `a` of `pqxdhODHExp` are
+  stated for `P.ecKeygen`. `KyberBridge` ties her encapsulation to a state drawn from `P.coins`.
+  The wrapper draws her key with `generate` and encapsulates on the state that `generate` returns,
+  and the statements assume no law that relates the two.
+* `PartialContracts` has no fault-or-value form of `generate`. `fullExp_noLostMass` and the two
+  `_total` corollaries take the total form, `GenerateTotal`.
+
 ## Limits
 
 * The premises range over all adversaries, with no resource bound (#41). Unbounded adversaries
@@ -66,16 +94,21 @@ variable {Rand Msg C IdC IdK : Type}
   [DecidableEq Msg] [DecidableEq C] [DecidableEq IdC] [DecidableEq IdK]
 
 /-- The Full experiment against the adversary `A`: the partnered UAKE experiment of
-`uakeInitiator` on the extracted entry points, under the runtime of `RustOracleComp`. -/
+`uakeInitiator` on the extracted entry points, with Bob's sessions using Kyber prekeys of the kind
+`kind`, under the runtime of `RustOracleComp`. -/
 abbrev fullExp (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) :
+    (kind : KyberPrekeyKind)
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) :
     RustOracleComp unifSpec Bool :=
-  PartneredExp rustRuntime.toProbCompLift (fullPartnering P EntryPoints.extracted msg hasOPK) A
+  PartneredExp rustRuntime.toProbCompLift
+    (fullPartnering P EntryPoints.extracted msg hasOPK kind) A
 
-/-- The advantage of `A` against the Full realization. -/
+/-- The advantage of `A` against the Full realization, with Bob's sessions using Kyber prekeys of
+the kind `kind`. -/
 abbrev fullAdvantage (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) : ℝ :=
-  partneredAdvantage rustRuntime (fullPartnering P EntryPoints.extracted msg hasOPK) A
+    (kind : KyberPrekeyKind)
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) : ℝ :=
+  partneredAdvantage rustRuntime (fullPartnering P EntryPoints.extracted msg hasOPK kind) A
 
 /-- Security of the Full realization in the classical setting: for every adversary that opens at
 most `q` sessions of Bob in each stage, its advantage is at most
@@ -90,12 +123,13 @@ The oracle Diffie-Hellman premise adapts the mmPRF-ODH notion of Brendel, Fischl
 Janson, and the statement assumes it separately. Their random-oracle proof under ClawStDH and
 GapDH does not cover this adaptation, and no reduction for it is established here (see
 `pqxdhODHAdvantage`). Like every premise here, the oracle Diffie-Hellman premise ranges over
-adversaries without a resource bound (#41). The proof is a stub. -/
+adversaries without a resource bound (#41). The statement covers one-time Kyber prekeys only and
+is pending restatement (see the module docstring). The proof is a stub. -/
 theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime)) (q : ℕ)
     (hq : A.OpensAtMostPerPhase q)
     (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
@@ -103,9 +137,9 @@ theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hpk : ∀ pk : PQPub,
       (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
-    fullAdvantage P msg hasOPK A ≤
+    fullAdvantage P msg hasOPK .oneTime A ≤
       εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk +
-        (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal := by
+        (rustRuntime.prFail (fullExp P msg hasOPK .oneTime A)).toReal := by
   sorry
 
 /-- Security of the Full realization in the post-quantum setting: for every adversary that opens
@@ -117,14 +151,15 @@ together with IND-CCA security of an abstract KEM `K` (`εkem`) that the Kyber b
 ties to the extracted Kyber calls, and the key derivation as a pseudorandom function keyed by the
 Kyber secret (`εkdf`). The premises say nothing about Kyber's correctness. They also leave
 unbounded the runs in which Alice accepts without an original-key partner after a Kyber mismatch,
-and the proof must bound these runs (see the limits in the module docstring). The proof is a
-stub. -/
+and the proof must bound these runs (see the limits in the module docstring). The statement
+covers one-time Kyber prekeys only and is pending restatement (see the module docstring). The
+proof is a stub. -/
 theorem uakeInitiator_secure_pq (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (K : KEMScheme ProbComp Key PQPub PQPriv (Slice U8)) (hK : KyberBridge P K)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK)) (q : ℕ)
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime)) (q : ℕ)
     (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
@@ -134,40 +169,43 @@ theorem uakeInitiator_secure_pq (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
     (hkdf : ∀ D, ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ pk : PQPub,
       (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
-    fullAdvantage P msg hasOPK A ≤
+    fullAdvantage P msg hasOPK .oneTime A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk +
-        (rustRuntime.prFail (fullExp P msg hasOPK A)).toReal := by
+        (rustRuntime.prFail (fullExp P msg hasOPK .oneTime A)).toReal := by
   sorry
 
 omit [DecidableEq C] in
 /-- The Full experiment loses no mass. Under the total contracts on every opaque leaf
-(`CoreContracts`, `SignatureContracts`, `HkdfSha256Contract H`), with Kyber1024-shaped pairs from
-`P.pqKeygen` (Bob serializes his own Kyber keys), with both views of the generator total on a
-domain that contains every state drawn from `P.coins`, and against an adversary that sends only
-messages fitting in memory, the experiment faults with probability `0`. The proof is a stub. -/
+(`CoreContracts`, `SignatureContracts`, `GenerateTotal`, `HkdfSha256Contract H`), with
+Kyber1024-shaped pairs from `P.pqKeygen` (Bob serializes his own Kyber keys), with both views of
+the generator total on a domain that contains every state drawn from `P.coins`, and against an
+adversary that sends only messages fitting in memory, the experiment faults with probability `0`.
+The statement covers one-time Kyber prekeys only and is pending restatement (see the module
+docstring). The proof is a stub. -/
 theorem fullExp_noLostMass (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hC : CoreContracts) (hS : SignatureContracts)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
     (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime))
     (hA : Adversary.SendsFittingMessages A) :
-    rustRuntime.prFail (fullExp P msg hasOPK A) = 0 := by
+    rustRuntime.prFail (fullExp P msg hasOPK .oneTime A) = 0 := by
   sorry
 
 /-- Classical security without the fault term: the bound of `uakeInitiator_secure_dh` holds
 without `Pr[⊥]` when the premises of `fullExp_noLostMass` also hold. -/
 theorem uakeInitiator_secure_dh_total (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
-    (hCt : CoreContracts) (hS : SignatureContracts) (hH : crypto.HkdfSha256Contract H)
+    (hCt : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εodh εaead εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
@@ -175,25 +213,26 @@ theorem uakeInitiator_secure_dh_total (P : Params Rand Msg C IdC IdK) (msg : Msg
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead, AEAD.INT_CTXT_D_Advantage P.aead B ≤ εaead)
     (hpk : ∀ pk : PQPub,
       (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
-    fullAdvantage P msg hasOPK A ≤
+    fullAdvantage P msg hasOPK .oneTime A ≤
       εsig + 2 * q * (εodh + 2 * εaead) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h := uakeInitiator_secure_dh P msg hasOPK H hC hEC hPQ A q hq εsig εodh εaead εpk
     hsig hodh haead hpk
-  rwa [fullExp_noLostMass P msg hasOPK hCt hS H hH hPQ Dom hRng hSigRng hCoins A hA,
+  rwa [fullExp_noLostMass P msg hasOPK hCt hS hG H hH hPQ Dom hRng hSigRng hCoins A hA,
     ENNReal.toReal_zero, add_zero] at h
 
 /-- Post-quantum security without the fault term: the bound of `uakeInitiator_secure_pq` holds
 without `Pr[⊥]` when the premises of `fullExp_noLostMass` also hold. -/
 theorem uakeInitiator_secure_pq_total (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
-    (hCt : CoreContracts) (hS : SignatureContracts) (hH : crypto.HkdfSha256Contract H)
+    (hCt : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r)
     (K : KEMScheme ProbComp Key PQPub PQPriv (Slice U8)) (hK : KyberBridge P K)
-    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK))
+    (A : UAKE.Adversary (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime))
     (hA : Adversary.SendsFittingMessages A) (q : ℕ) (hq : A.OpensAtMostPerPhase q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hsig : ∀ B : JointSigAdversary, (jointSigAdvantage P B).toReal ≤ εsig)
@@ -203,11 +242,11 @@ theorem uakeInitiator_secure_pq_total (P : Params Rand Msg C IdC IdK) (msg : Msg
     (hkdf : ∀ D, ((kdfPRF H).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ pk : PQPub,
       (Pr{let y ← (·.public_key) <$> P.pqKeygen}[y = pk]).toReal ≤ εpk) :
-    fullAdvantage P msg hasOPK A ≤
+    fullAdvantage P msg hasOPK .oneTime A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h := uakeInitiator_secure_pq P msg hasOPK H hC hEC hPQ K hK A q hq εsig εkem εaead εkdf
     εpk hsig hkem haead hkdf hpk
-  rwa [fullExp_noLostMass P msg hasOPK hCt hS H hH hPQ Dom hRng hSigRng hCoins A hA,
+  rwa [fullExp_noLostMass P msg hasOPK hCt hS hG H hH hPQ Dom hRng hSigRng hCoins A hA,
     ENNReal.toReal_zero, add_zero] at h
 
 end
