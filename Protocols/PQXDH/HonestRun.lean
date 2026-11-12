@@ -12,10 +12,10 @@ import Protocols.PQXDH.Scheme
 /-!
 # One honest run of the extracted entry points
 
-On honestly generated keys, both extracted entry points of the handshake return their keys, and
-the keys agree when the Kyber secrets agree. `honest_run_ok` states this for one run, with the
-parameter records that `coreHonestRun` builds. The correctness proofs in `Correctness.lean` apply
-it to every possible draw of the honest run.
+On valid key pairs, both extracted entry points of the handshake return their keys, and the keys
+agree when the Kyber secrets agree. `honest_run_ok` states this for one run, with the parameter
+records that `coreHonestRun` builds. The correctness proofs in `Correctness.lean` apply it to
+every possible draw of the honest run.
 
 The Kyber contracts describe the libcrux backend, and the entry points call the wrappers around
 it. `encapsulate_ok` and `decapsulate_serialized_ok` state what the wrappers return under the
