@@ -63,9 +63,7 @@ def challengeBundle (cr : ChallengeResult (uakeInitiator P msg hasOPK)) :
 /-- True if every key that the initiator verifies a signature on in the bundle `b` was
   signed by the challenger: the signed pre-key is the one `setup` signed, and the KEM key
   was published by some T-oracle session. Signatures are not compared, so a different valid
-  signature on a signed key does not make a bundle dishonest. A completed challenge session
-  whose accepted bundle fails this predicate yields a signature on a message that the
-  challenger never signed, which is a forgery in the joint unforgeability game. -/
+  signature on a signed key does not make a bundle dishonest. -/
 def honestBundle (tk : RecipientIdentity F G S)
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (b : PreKeyBundle G PQPK S IdC IdK) : Bool :=
@@ -113,7 +111,7 @@ def forgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal
 
 /-- Signature-forgery experiment: the challenge session completed, and some
-  key that the bundle it accepted carries a signature on was never signed by the
+  key with a signature in the accepted bundle was never signed by the
   challenger. -/
 def sigForgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
   let (cr, st) ← challengePhase P msg hasOPK A

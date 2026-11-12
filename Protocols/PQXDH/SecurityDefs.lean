@@ -75,8 +75,7 @@ The adversary wins when the signature verifies and the message was never signed.
 
 Strong unforgeability is false of production, because production verification accepts
 `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`
-(`rust/core/src/curve/curve25519.rs:134-155`). VCVio's unforgeability games are typed over
-`OracleComp` only, so this file defines its own. -/
+(`rust/core/src/curve/curve25519.rs:134-155`). -/
 def jointSigForgeExp (P : Params Rand Msg C IdC IdK) (A : JointSigAdversary) :
     RustOracleComp unifSpec Bool := do
   let kp ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)

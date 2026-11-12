@@ -191,18 +191,11 @@ omit [DecidableEq CT] [DecidableEq S] [DecidableEq C] [SampleableType K] in
 /-- Hop 3 (joint unforgeability): a signature forgery in the challenge phase yields a forgery
 against `P.sig` in the joint unforgeability game of the identity key.
 
-One identity key signs and does Diffie-Hellman. The adversary of the joint game gets signing
-queries and agreement queries `Y ↦ DH x Y` on the one key pair, and wins with a valid signature
-on a message that it never had signed. The reduction `SigReduction.sigAdversary` runs the UAKE
-challenge phase against copies of Bob that never read the identity secret. It answers the
-signature in `setup` and the KEM-key signature in each `publish` with a signing query, and the
-value `DH p.ikB.2 msg.ekA` in each `accept` with an agreement query, and it samples everything else
-itself. When the challenge session accepts a bundle that `honestBundle` rejects, one signed key of
-that bundle was never signed. The reduction outputs that key with its signature. Determinism of
-verification (`hverifyDet`) transfers the initiator's successful verification of that signature to
-the final check of the game. The signature forgery event compares signed keys and not signature
-bytes, because XEdDSA signatures are malleable: a different valid signature on a signed key is no
-forgery here.
+The joint game gives the adversary signing and agreement queries `Y ↦ DH x Y` on one identity
+key pair. It wins with a valid signature on a message that it never had signed. With deterministic
+verification (`hverifyDet`), the advantage of `SigReduction.sigAdversary` is at least
+`sigForgeProb`, the probability of the signature forgery event. That event compares signed keys,
+so a different valid signature on a signed key is not a forgery.
 
 The premise `hsig` bounds adversaries without a resource limit (#41), so the statement does not
 yet say anything about efficient adversaries. The reduction makes one signing query for `setup` and

@@ -47,7 +47,7 @@ Model simplifications
   compares signed keys and not signature bytes. A run in which the adversary only
   changes a signature on an honestly signed key is no signature forgery. Under transcript
   matching such a run still counts as a forgery. It belongs to the residual event of
-  hop 5, which original-key partnering is to cover. See Li & Schäge, "No-Match Attacks
+  hop 5. See Li & Schäge, "No-Match Attacks
   and Robust Partnering Definitions" (ACM CCS 2017) for attacks of this kind.
 * **PQ-secure signature scheme:** In order to re-use our AKE definition in the
   post-quantum case, we assume here that the signature scheme is *still
@@ -112,8 +112,7 @@ theorem uakeInitiator_secure_dh
     /- Bound on an adversary's advantage in forging a signature, in the game with the
       one identity key that signs and does Diffie-Hellman: the adversary has signing
       queries and agreement queries on the same key pair, and wins with a valid
-      signature on a message that it never had signed. Strong unforgeability is false
-      of production XEdDSA; see the module note. -/
+      signature on a message that it never had signed. -/
     (hsig : ∀ B : P.sig.JointAdversary (DH : F → G → G), B.advantage.toReal ≤ εsig)
     /- Bound on an adversary's advantage in the DH security game. -/
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
@@ -196,8 +195,7 @@ theorem uakeInitiator_secure_pq
     /- Bound on an adversary's advantage in forging a signature, in the game with the
       one identity key that signs and does Diffie-Hellman: the adversary has signing
       queries and agreement queries on the same key pair, and wins with a valid
-      signature on a message that it never had signed. Strong unforgeability is false
-      of production XEdDSA; see the module note.
+      signature on a message that it never had signed.
       * MODEL SIMPLIFICATION: In order to re-use our AKE definition, we assume
         here that the signature scheme is *still secure*, even in the
         post-quantum setting. In reality, PQXDH uses an EC-based signature

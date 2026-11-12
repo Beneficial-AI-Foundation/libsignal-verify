@@ -8,10 +8,9 @@ import VCVio.CryptoFoundations.SignatureAlg
 /-!
 # Joint unforgeability of a signature key that is also used for agreement
 
-Sometimes one key pair signs and also takes part in a second computation, for example the
-Diffie-Hellman agreement of an identity key. The key then has two uses, and an adversary against
-the signature scheme must be allowed to see the second one. This file defines existential
-unforgeability under chosen messages with a second oracle on the secret key.
+This file defines existential unforgeability under chosen messages for a key pair that also
+takes part in a second computation, such as Diffie-Hellman agreement. The adversary has an
+oracle on the secret key for that computation.
 
 `SignatureAlg.jointUnforgeableExp` draws one key pair from `sigAlg.keygen` and runs the adversary
 with three oracles: uniform sampling, signing, and the second use `agree sk`. The game records the
@@ -40,8 +39,7 @@ abbrev JointSpec (M S X Y : Type) :=
   unifSpec + ((M →ₒ S) + (X →ₒ Y))
 
 /-- An adversary in the joint game for `sigAlg` and the second use `agree`: from the public key,
-with the oracles of `JointSpec`, it outputs a message and a signature. The scheme and `agree`
-index the adversary by their types and are not stored. -/
+with the oracles of `JointSpec`, it outputs a message and a signature. -/
 structure JointAdversary (_sigAlg : SignatureAlg ProbComp M PK SK S) (_agree : SK → X → Y) where
   /-- The adversary's computation. -/
   main : PK → OracleComp (JointSpec M S X Y) (M × S)

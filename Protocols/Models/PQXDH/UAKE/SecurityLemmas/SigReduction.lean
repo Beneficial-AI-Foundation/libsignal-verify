@@ -423,8 +423,7 @@ lemma run_recipientSim_output [Inhabited F] (pk : G) (x : F)
 /-! ## The same statements for the parties of the two schemes
 
 The environments of the two runs mention the parties through `(uakeInitiator …).T` and
-`(uakeInitiatorSim …).T`. These restatements keep the parties in that form, which the proofs of
-the single-query equations need. -/
+`(uakeInitiatorSim …).T`. -/
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S)
@@ -892,9 +891,9 @@ theorem simInv_step [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G
           exact hI
 
 omit [DecidableEq PQPK] [SampleableType K] in
-/-- The simulation equation, from its single-query form. Simulating the reduction's oracle with
-the joint oracles gives the real run with the environment scrubbed and the signing log read off
-from the environment. -/
+/-- If every query preserves `SimInv` and satisfies the single-query simulation equation, then
+simulating the reduction's oracle with the joint oracles gives the real run, with the
+environment scrubbed and the signing log read off from it, from every environment with `SimInv`. -/
 theorem sim_run_eq [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Msg)
     (tk : RecipientIdentity F G S)
     (hstep : ∀ (t) (env : Env (uakeInitiator P msg hasOPK)),
