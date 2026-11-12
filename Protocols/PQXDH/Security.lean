@@ -45,11 +45,11 @@ one-time Kyber prekeys only (`KyberPrekeyKind.oneTime`). The restatement will:
 Until then, the statements differ from production in three ways:
 
 * A retry reuses the ephemeral key. A bundle can pass the identity pin and both signature checks
-  and still make the entry point return an error. For example, the adversary can choose an
-  unsigned one-time prekey of small order, for which the agreement in DH4 returns
-  `InvalidKeyAgreement`. Then the step rejects and carries no state, so Alice keeps `R`. The next
-  bundle runs `generate` on `R` and draws the same ephemeral key. Production has advanced its
-  generator and draws a fresh key.
+  and still make the entry point return an error. On a reading of the Rust code that no proof
+  checks, the adversary can choose an unsigned one-time prekey of small order, for which the
+  agreement in DH4 returns `InvalidKeyAgreement`. Then the step rejects and carries no state, so
+  Alice keeps `R`. The next bundle runs `generate` on `R` and draws the same ephemeral key.
+  Production has advanced its generator and draws a fresh key.
 * The premises do not describe Alice's ephemeral draw. `hEC` and the key `a` of `pqxdhODHExp` are
   stated for `P.ecKeygen`. `KyberBridge` ties her encapsulation to a state drawn from `P.coins`.
   The wrapper draws her key with `generate` and encapsulates on the state that `generate` returns,

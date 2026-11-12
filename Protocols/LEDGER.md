@@ -87,8 +87,8 @@ Until the restatement, these statements differ from production in three ways.
 
 - A retry reuses the ephemeral key. A rejected step of Alice keeps her generator state `R`, so the next
   bundle runs `generate` on the same `R` and draws the same ephemeral key. Production has advanced its generator
-  and draws a fresh key. The experiment shows the adversary the rejection, so the adversary sees that the key
-  is reused.
+  and draws a fresh key. A rejected attempt is visible to the adversary and sends no message, and a later
+  accepted attempt uses a key that a rejected attempt already drew.
 - The premises do not describe Alice's ephemeral draw. `ECKeyPairValid` on `P.ecKeygen` and the key `a` of
   `pqxdhODHExp` are stated for `P.ecKeygen`. `KyberBridge` is stated for a state drawn from `P.coins`. The
   wrapper draws her key with `generate` and encapsulates on the state that `generate` returns, and no premise
@@ -133,9 +133,9 @@ choice describes something outside the extracted code. The contracts are in
 | `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | none needed |
 | `P.coins` | modelling choice | one ideal draw of the generator state per session | a correspondence with production's generator |
 | `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent (see "Full EC key generation and abstract-generator relation" below). Alice's ephemeral key in `initiate` is the exception: it comes from Core's `generate` on her generator state, and the core statements still draw it from `P.ecKeygen` | a correspondence with production key generation |
-| Last-resort Kyber prekey, `RecipientIdentity.lrpqpkB` | modelling choice | Bob draws one last-resort Kyber prekey from `P.pqKeygen` and signs it once in `setup`; sessions of the last-resort kind use it. The specification has Bob change this key periodically (Spec p. 6); the model never changes it. The store's replay check for it (`rust/protocol/src/storage/traits.rs:129-133`) is not modelled | a correspondence with production's prekey store |
+| Last-resort Kyber prekey, `RecipientIdentity.lrpqpkB` | modelling choice | Bob draws one last-resort Kyber prekey from `P.pqKeygen` and signs it once in `setup`; sessions of the last-resort kind use it. The PQXDH specification (Kret and Schmidt, "The PQXDH Key Agreement Protocol", revision of 23 January 2024, §2.5) has Bob change this key periodically; the model never changes it. The store's replay check for it (`rust/protocol/src/storage/traits.rs:129-133`) is not modelled | a correspondence with production's prekey store |
 | Kind of Kyber prekey, `KyberPrekeyKind` | modelling choice | a statement parameter chosen once for all of Bob's sessions: one-time or last-resort. Runs in which some sessions use one kind and others the other kind are not covered | a restatement over mixed runs |
-| No corruption oracle for long-term or prekey secrets | limit | the UAKE game has no oracle that exposes a long-term or prekey secret (`UAKE/Defs.lean`, the `Op` type). So no statement can show the weaker forward secrecy of runs without one-time prekeys (Spec §4.6 and §4.7, pp. 13-14). The model of Fiedler and Günther has such an oracle, `CorruptSSKey` (p. 17) | a game with a corruption oracle |
+| No corruption oracle for long-term or prekey secrets | limit | the UAKE game has no oracle that exposes a long-term or prekey secret (`UAKE/Defs.lean`, the `Op` type). So no statement can show the weaker forward secrecy of runs without one-time prekeys (the specification, §4.6 and §4.7). The model of Fiedler and Günther ("Security Analysis of Signal's PQXDH Handshake", PKC 2025, §4.2) has such an oracle, `CorruptSSKey` | a game with a corruption oracle |
 | `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
 
 ## Modelling choices of the abstract model
