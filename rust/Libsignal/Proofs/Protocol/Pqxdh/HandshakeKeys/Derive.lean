@@ -51,10 +51,9 @@ natural language specs:
   PQR key is `okm[64..96)`.
 -/
 
-/-- **Spec and proof concerning `pqxdh.HandshakeKeys.derive`**:
-for any MAC interface `H` and under `HkdfSha256Contract H`, the function succeeds and splits the
-96-byte RFC 5869 output computed from `H` for the PQXDH label into root key, chain key with
-index `0`, and PQR key. -/
+/-- For any MAC interface `H` and under `HkdfSha256Contract H`, `pqxdh.HandshakeKeys.derive`
+succeeds and splits the 96-byte RFC 5869 output computed from `H` for the PQXDH label into root
+key, chain key with index `0`, and PQR key. -/
 @[step]
 theorem derive_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
     (secret_input : Slice Std.U8) :

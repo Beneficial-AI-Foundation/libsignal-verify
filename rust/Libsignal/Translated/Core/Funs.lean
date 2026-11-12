@@ -505,7 +505,7 @@ def curve.PublicKey.serialize
   let result1 ← alloc.vec.Vec.push result i1
   let s1 ← lift (Array.to_slice v)
   let result2 ← alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 s1
-  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result2
+  alloc.vec.FromBoxSliceVec.from result2
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature]:
     Source: 'rust/core/src/curve.rs', lines 134:4-136:5
@@ -539,8 +539,10 @@ def curve.PublicKey.scalar_is_in_range
             (core.slice.index.SliceIndexRangeUsizeSlice Std.U8)) k
             { start := 1#usize, «end» := 31#usize }
         let a := Array.repeat 30#usize 255#u8
-        let b1 ←
-          Slice.Insts.CoreCmpPartialEqArray.eq core.cmp.PartialEqU8 s a
+        let s1 ←
+          core.array.Array.index (core.ops.index.IndexSlice
+            (core.slice.index.SliceIndexRangeFullSlice Std.U8)) a ()
+        let b1 ← core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 s s1
         if b1
         then ok (i = 127#u8)
         else ok false

@@ -16,16 +16,6 @@ set_option maxRecDepth 2048
 set_option linter.style.whitespace false
 open libsignal_core
 
-/-- [core::array::equality::{impl core::cmp::PartialEq<[U; N]> for [T]}::eq]:
-    Source: '/rustc/library/core/src/array/equality.rs', lines 48:4-48:40
-    Name pattern: [core::array::equality::{core::cmp::PartialEq<[@T], [@U; @N]>}::eq]
-    Visibility: public -/
-@[rust_fun "core::array::equality::{core::cmp::PartialEq<[@T], [@U; @N]>}::eq"]
-axiom Slice.Insts.CoreCmpPartialEqArray.eq
-  {T : Type} {U : Type} {N : Std.Usize} (cmpPartialEqInst : core.cmp.PartialEq
-  T U) :
-  Slice T → Array U N → Result Bool
-
 /-- [core::num::niche_types::{impl core::clone::Clone for core::num::niche_types::NonZeroU64Inner}::clone]:
     Source: '/rustc/library/core/src/num/niche_types.rs', lines 17:17-17:22
     Name pattern: [core::num::niche_types::{core::clone::Clone<core::num::niche_types::NonZeroU64Inner>}::clone]

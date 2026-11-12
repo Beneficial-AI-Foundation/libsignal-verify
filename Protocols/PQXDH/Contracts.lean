@@ -14,9 +14,9 @@ import Protocols.PQXDH.Defs
 # Contracts for the opaque leaves of the PQXDH entry points
 
 The extraction leaves opaque the primitives that `pqxdh_initiate` and `pqxdh_accept` call:
-curve25519 agreement and signatures, the Kyber1024 backend, the random-number generator and a few
-conversions of the Rust standard library. The hand-maintained external files declare them without
-a body, so Lean knows only their types.
+curve25519 agreement and signatures, the Kyber1024 backend, the random-number generator and the
+allocation of a string. The hand-maintained external files declare them without a body, so Lean
+knows only their types.
 
 A contract states what such a leaf does on an explicit domain: which values or errors it returns,
 and that it terminates without panicking. Each contract is a proposition that a theorem takes as a
@@ -170,30 +170,22 @@ end Kyber
 
 section Std
 
-/-- `Vec::into_boxed_slice` keeps the elements of the vector. -/
-def VecIntoBoxedSlice : Prop :=
-  ∀ {T : Type} (A : Type) (v : alloc.vec.Vec T),
-    _root_.alloc.vec.Vec.into_boxed_slice A v = .ok (alloc.vec.Vec.deref v)
-
-/-- `Box::<[u8]>::from(&[u8])` copies the bytes of the slice. -/
-def BoxSliceFromU8 : Prop :=
-  ∀ s : Slice U8, BoxSlice.Insts.CoreConvertFromShared0Slice.from core.clone.CloneU8 s = .ok s
-
-/-- Comparing a byte slice with a byte array returns whether they have the same bytes. -/
-def SliceEqArrayU8 : Prop :=
-  ∀ {N : Usize} (s : Slice U8) (a : Array U8 N),
-    Slice.Insts.CoreCmpPartialEqArray.eq core.cmp.PartialEqU8 s a = .ok (decide (s.val = a.val))
-
 /-- Allocating an owned string from a string literal terminates. `pqxdh_accept` does this only
 to build the message of its error for a non-canonical ephemeral key (`rust/protocol/src/pqxdh.rs:
-339-344`). -/
+339-344`).
+
+The Aeneas standard library models no way to build a `String` from a `str`,
+and `String::from`, `to_string` and `format!` are not modelled either, so no translation patch can
+route this call through a modelled one. The other standard-library conversions that the two entry
+points use are modelled: the extraction calls `alloc.vec.FromBoxSliceVec.from`,
+`alloc.slice.Slice.to_vec` and `core.slice.cmp.PartialEqSlice.eq` instead of axioms. -/
 def ToOwnedTotal : Prop :=
   ∀ s : Str, ∃ t, Str.Insts.AllocBorrowToOwnedString.to_owned s = .ok t
 
 end Std
 
 /-- The contracts on the opaque leaves that the two entry points and the KEM experiment call:
-curve25519 agreement and checks, the Kyber1024 backend and the standard-library conversions. -/
+curve25519 agreement and checks, the Kyber1024 backend and the allocation of a string. -/
 structure CoreContracts : Prop where
   /-- Agreement on derived keys; see `AgreementDerived`. -/
   agreementDerived : AgreementDerived
@@ -209,12 +201,6 @@ structure CoreContracts : Prop where
   kyberEncapsBackend : KyberEncapsBackend
   /-- Decapsulation; see `KyberDecaps`. -/
   kyberDecaps : KyberDecaps
-  /-- See `VecIntoBoxedSlice`. -/
-  vecIntoBoxedSlice : VecIntoBoxedSlice
-  /-- See `BoxSliceFromU8`. -/
-  boxSliceFromU8 : BoxSliceFromU8
-  /-- See `SliceEqArrayU8`. -/
-  sliceEqArrayU8 : SliceEqArrayU8
   /-- See `ToOwnedTotal`. -/
   toOwnedTotal : ToOwnedTotal
 
@@ -278,19 +264,6 @@ def KyberPartial : Prop :=
       (sk.data.length = 3168 → ct.length ≠ 1568 → res = .Err .BadCiphertext) ∧
       (sk.data.length = 3168 → ct.length = 1568 → ∃ ss, res = .Ok ss ∧ ss.length = 32)
 
-/-- The fault-or-value form of the standard-library contracts. When they return,
-`Vec::into_boxed_slice`
-keeps the elements, `Box::<[u8]>::from` copies the bytes, and slice equality returns whether the
-bytes are equal. -/
-def StdPartial : Prop :=
-  (∀ {T : Type} (A : Type) (v : alloc.vec.Vec T) s,
-    _root_.alloc.vec.Vec.into_boxed_slice A v = .ok s → s = alloc.vec.Vec.deref v) ∧
-  (∀ (s t : Slice U8),
-    BoxSlice.Insts.CoreConvertFromShared0Slice.from core.clone.CloneU8 s = .ok t → t = s) ∧
-  ∀ {N : Usize} (s : Slice U8) (a : Array U8 N) b,
-    Slice.Insts.CoreCmpPartialEqArray.eq core.cmp.PartialEqU8 s a = .ok b →
-      b = decide (s.val = a.val)
-
 /-- The fault-or-value form of `HkdfSha256Contract H`. When the helper returns on a 96-byte buffer
 and no salt, it returns `Ok(())` and the RFC 5869 output computed from the MAC interface `H`. -/
 def HkdfSha256Partial (H : crypto.HmacSha256) : Prop :=
@@ -313,8 +286,6 @@ structure PartialContracts (H : crypto.HmacSha256) : Prop where
   signature : SignaturePartial
   /-- See `KyberPartial`. -/
   kyber : KyberPartial
-  /-- See `StdPartial`. -/
-  std : StdPartial
   /-- See `HkdfSha256Partial`. -/
   hkdf : HkdfSha256Partial H
 

@@ -27,8 +27,8 @@ open Aeneas Aeneas.Std Result
 
 namespace libsignal_protocol.Box.Insts.CoreConvertAsRef
 
-/-- **Spec and proof concerning `Box.Insts.CoreConvertAsRef.as_ref`**: for every value type `T`,
-allocator type `A` and value `x`, the call succeeds and returns `x`. -/
+/-- For every value type `T`, allocator type `A` and value `x`,
+`Box.Insts.CoreConvertAsRef.as_ref` succeeds and returns `x`. -/
 @[step]
 theorem as_ref_spec {T : Type} (A : Type) (x : T) :
     Box.Insts.CoreConvertAsRef.as_ref A x ⦃ y => y = x ⦄ := by

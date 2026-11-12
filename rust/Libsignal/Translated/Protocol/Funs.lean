@@ -2769,7 +2769,7 @@ def identity_key.IdentityKeyPair.serialize
     prost.message.Message.encode_to_vec.default
       proto.storage.IdentityKeyPairStructure.Insts.ProstMessageMessage
       { public_key := v, private_key := v2 }
-  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result
+  alloc.vec.FromBoxSliceVec.from result
 
 /-- [libsignal_protocol::identity_key::{libsignal_protocol::identity_key::IdentityKeyPair}::sign_alternate_identity]:
     Source: 'rust/protocol/src/identity_key.rs', lines 165:4-178:5
@@ -3106,9 +3106,8 @@ def kem.Key.deserialize
           core.slice.index.Slice.index
             (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8) value
             { start := 1#usize }
-        let s1 ←
-          core.convert.IntoFrom.into
-            (BoxSlice.Insts.CoreConvertFromShared0Slice core.clone.CloneU8) s
+        let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s
+        let s1 ← alloc.vec.FromBoxSliceVec.from v
         let km ← kem.KeyMaterial.new KeyKindInst s1
         ok (core.result.Result.Ok { key_type := val, key_data := km })
     | core.ops.control_flow.ControlFlow.Break residual =>
@@ -3131,7 +3130,7 @@ def kem.Key.serialize
   let i2 ← kem.KeyType.value self.key_type
   let result1 ← alloc.vec.Vec.push result i2
   let result2 ← alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 s
-  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result2
+  alloc.vec.FromBoxSliceVec.from result2
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Ciphertext}::serialize]:
     Source: 'rust/protocol/src/kem.rs', lines 543:4-548:5
@@ -3145,7 +3144,7 @@ def kem.Ciphertext.serialize
   let result1 ← alloc.vec.Vec.push result i2
   let result2 ←
     alloc.vec.Vec.extend_from_slice core.clone.CloneU8 result1 self.data
-  alloc.vec.Vec.into_boxed_slice alloc.alloc.Global result2
+  alloc.vec.FromBoxSliceVec.from result2
 
 /-- [libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>}::encapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::BadKEMKeyLength,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{libsignal_protocol::kem::Key<libsignal_protocol::kem::Public>[libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}]}::encapsulate::{closure}<'_0, R>}::call_once]:
     Source: 'rust/protocol/src/kem.rs', lines 373:21-375:13 -/
@@ -3237,9 +3236,8 @@ def kem.Ciphertext.deserialize
           core.slice.index.Slice.index
             (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8) value
             { start := 1#usize }
-        let s1 ←
-          core.convert.IntoFrom.into
-            (BoxSlice.Insts.CoreConvertFromShared0Slice core.clone.CloneU8) s
+        let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s
+        let s1 ← alloc.vec.FromBoxSliceVec.from v
         ok (core.result.Result.Ok { key_type := val, data := s1 })
     | core.ops.control_flow.ControlFlow.Break residual =>
       core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual

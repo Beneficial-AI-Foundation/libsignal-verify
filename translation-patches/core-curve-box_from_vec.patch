@@ -1,0 +1,18 @@
+Translation patch: libsignal_core::curve::PublicKey::serialize
+
+Change: the function returns `Box::from(result)` instead of `result.into_boxed_slice()`.
+Why: Aeneas's Lean standard library models `From<Vec<T>> for Box<[T]>` (`alloc.vec.FromBoxSliceVec.from`), but not `Vec::into_boxed_slice`. The extraction therefore declares `alloc.vec.Vec.into_boxed_slice` as an axiom.
+Behaviour: same values. At the pinned rustc, `impl From<Vec<T, A>> for Box<[T], A>` is `fn from(v) -> Self { v.into_boxed_slice() }` (library/alloc/src/vec/mod.rs).
+
+diff --git a/rust/core/src/curve.rs b/rust/core/src/curve.rs
+--- a/rust/core/src/curve.rs
++++ b/rust/core/src/curve.rs
+@@ -128,7 +128,7 @@ impl PublicKey {
+         match &self.key {
+             PublicKeyData::DjbPublicKey(v) => result.extend_from_slice(v),
+         }
+-        result.into_boxed_slice()
++        Box::from(result)
+     }
+
+     pub fn verify_signature(&self, message: &[u8], signature: &[u8]) -> bool {
