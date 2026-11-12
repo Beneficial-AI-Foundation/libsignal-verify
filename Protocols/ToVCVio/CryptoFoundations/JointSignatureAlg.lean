@@ -19,10 +19,13 @@ condition. The adversary wins when its signature verifies and it never sent its 
 signing oracle.
 
 VCVio's `SignatureAlg.unforgeableExperiment` is EUF-CMA with the signing oracle only. The strong
-notion SUF-CMA (`strongUnforgeableExperiment`) also counts a new signature on a signed message as
-a win. SUF-CMA is false for XEdDSA: its verification reduces `s` modulo the group order `ℓ`, so it
-accepts `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`. The joint game therefore
-uses the EUF-CMA winning condition.
+notion SUF-CMA (`strongUnforgeableExperiment`) also counts a new signature on a signed message.
+XEdDSA lacks SUF-CMA because its signature encoding is not unique: libsignal's verifier reduces
+`s` modulo the group order `ℓ`, so `(R, s + ℓ)` also verifies when `s + ℓ < 2^253`
+(`rust/core/src/curve/curve25519.rs:134-155`). Authentication needs only that no one signs a new
+message without the key, which is EUF-CMA. The joint form adds the oracle for the second use.
+Bao, Pan and Zeng analyse XEdDSA under a related notion with a Diffie-Hellman decision oracle
+(Section 5.1, Theorem 5 of "Better Security Proofs for X3DH and XHMQV").
 
 The definitions in this file are AI-written.
 -/

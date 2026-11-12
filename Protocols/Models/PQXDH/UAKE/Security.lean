@@ -40,16 +40,20 @@ Model simplifications
   Diffie-Hellman. The premise `hsig` is joint EUF-CMA: it bounds an adversary in the game of
   `SignatureAlg.jointUnforgeableExp`, which is EUF-CMA with an extra oracle on the same secret
   key. The adversary has signing queries and agreement queries `Y ↦ DH x Y` on the same key
-  pair, and it wins with a valid signature on a message that it never had signed. The model
-  does not assume the strong notion SUF-CMA, which also counts a new signature on a signed
-  message. SUF-CMA is false of production XEdDSA: its verification reduces `s` modulo the
-  group order `ℓ`, so it accepts `(R, s + ℓ)` whenever it accepts `(R, s)` and `s + ℓ < 2^253`
-  (`rust/core/src/curve/curve25519.rs:134-155`). The signature forgery event therefore
-  compares signed keys and not signature bytes. A run in which the adversary only
-  changes a signature on an honestly signed key is no signature forgery. Under transcript
-  matching such a run still counts as a forgery. It belongs to the residual event of
-  hop 5. See Li & Schäge, "No-Match Attacks
-  and Robust Partnering Definitions" (ACM CCS 2017) for attacks of this kind.
+  pair, and it wins with a valid signature on a message that it never had signed. The security
+  statements assume this and not SUF-CMA, the strong notion that also counts a new signature on
+  a signed message. XEdDSA lacks SUF-CMA because its signature encoding is not unique:
+  libsignal's verifier reduces `s` modulo the group order `ℓ`, so `(R, s + ℓ)` also verifies
+  when `s + ℓ < 2^253` (`rust/core/src/curve/curve25519.rs:134-155`). The authentication
+  argument needs only that no one signs a new message without the key, which is EUF-CMA. The
+  joint form adds the Diffie-Hellman oracle because the identity key also does agreement. Bao,
+  Pan and Zeng analyse XEdDSA under a related notion with a Diffie-Hellman decision oracle
+  (Section 5.1, Theorem 5 of "Better Security Proofs for X3DH and XHMQV"). The signature
+  forgery event therefore compares signed keys and not signature bytes. A run in which the
+  adversary only changes a signature on an honestly signed key is no signature forgery. Under
+  transcript matching such a run still counts as a forgery. It belongs to the residual event of
+  hop 5. See Li & Schäge, "No-Match Attacks and Robust Partnering Definitions" (ACM CCS 2017)
+  for attacks of this kind.
 * **PQ-secure signature scheme:** In order to re-use our AKE definition in the
   post-quantum case, we assume here that the signature scheme is *still
   secure*, even in the post-quantum setting. In reality, PQXDH uses an EC-based
