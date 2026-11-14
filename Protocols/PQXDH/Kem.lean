@@ -30,10 +30,11 @@ a secret and decapsulation of that ciphertext returned the same secret
 fault in either call is missing mass, which `KEMScheme.correctnessError` counts as error.
 
 `KyberDeltaCorrect P δ` states that this experiment has correctness error at most `δ`. It is a
-named hypothesis of the correctness statements, not proved here, and `δ` stays symbolic. The
-wrapper encapsulates on the state that Alice's key generation returns, not on a state from
-`P.coins`. `kyberKemAfterGenerate P` is the KEM for that run, and `KyberDeltaCorrectAfterGenerate`
-is its `δ`. The wrapper statements take it in place of `KyberDeltaCorrect`.
+hypothesis of the correctness statements, not proved here, with `δ` left symbolic. In the wrapper,
+encapsulation uses the state that Alice's key generation returns, and that key generation runs on a
+state from `P.coins`. `kyberKemAfterGenerate P` is the KEM for this run. The wrapper statements
+assume `KyberDeltaCorrectAfterGenerate`, a bound `δ` on the correctness error of that KEM, in place
+of `KyberDeltaCorrect`.
 Production calls libcrux's pre-standard Kyber-1024 (`libcrux_ml_kem::kyber1024`,
 `rust/protocol/src/kem/kyber1024.rs:6-7`), not ML-KEM-1024, and this repository has no model of
 that backend.

@@ -31,16 +31,8 @@ the total contracts, and the two `_total` corollaries drop the term.
 
 ## Pending restatement
 
-These statements are placeholders that await a restatement. They cover Bob's sessions with
-one-time Kyber prekeys only (`KyberPrekeyKind.oneTime`). The restatement will:
-
-* move the statements to an experiment of the Full realization in which Bob's sessions share a
-  store, and the store rejects a repeated combination of Kyber prekey identifier, signed prekey
-  identifier and base key for the last-resort prekey;
-* let a rejected step of Alice keep the generator state that her entry point returned;
-* add a joint law of `generate` on `P.coins` as a premise;
-* cover both kinds of Kyber prekey;
-* relate the new experiment to the shared UAKE experiment by a proved bridge.
+These statements are placeholders pending restatement. They cover Bob's sessions with one-time Kyber
+prekeys only (`KyberPrekeyKind.oneTime`).
 
 Until then, the statements differ from production in three ways:
 

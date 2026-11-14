@@ -133,12 +133,10 @@ end Signature
 
 section KeyGen
 
-/-- When both views of the generator are total on `Dom` and the state is in `Dom`, Core's
-`KeyPair::generate` returns a valid curve25519 key pair and a state in `Dom`. It reads 32 bytes
-through `fill_bytes`, clamps them and derives the public key
-(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). So it terminates
-and returns a pair that `ECKeyPairValid` accepts whenever the generator terminates. The extracted
-call is Core's opaque leaf `curve.KeyPair.generate`. -/
+/-- On a state in `Dom`, Core's opaque `KeyPair::generate` (`curve.KeyPair.generate`) returns a
+curve25519 pair satisfying `ECKeyPairValid` and a state in `Dom`, provided both generator views
+are total on `Dom`. It reads 32 bytes through `fill_bytes`, clamps them and derives the public key
+(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). -/
 def GenerateTotal : Prop :=
   ∀ {R : Type} (rng : rand.rng.Rng R) (crng : rand_core_1.CryptoRng R) (Dom : R → Prop),
     RngTotal crng.RngCoreInst Dom → RngTotal rng.rand_core_1RngCoreInst Dom →
@@ -294,8 +292,7 @@ end Partial
 
 /-- The fault-or-value contracts on the opaque leaves that the Full realization calls, for the
 MAC interface `H`, except Core's `generate`, which has only the total form `GenerateTotal`. They
-are the premises of the security statements, which count faults separately. The security
-statements are placeholders that are to be restated with a fault-or-value form of `generate`. -/
+are the premises of the security statements, which count faults separately. -/
 structure PartialContracts (H : crypto.HmacSha256) : Prop where
   /-- See `AgreementPartial`. -/
   agreement : AgreementPartial

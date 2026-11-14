@@ -203,10 +203,7 @@ and the two keys are equal, with probability at least `1 - δ`. The hypotheses a
 `jointKeyAgreement_extracted`, with `KyberDeltaCorrectAfterGenerate P δ` in place of the Kyber
 bound. In addition, the statement assumes the signature contracts, the contract `GenerateTotal` on
 Alice's key generation, totality of the generator's `rand::Rng` view on `Dom` (signing and key
-generation use it), and perfect correctness of the synthetic AEAD. The Kyber bound concerns the
-state on which Alice encapsulates, which is the state that her key generation returns. It also
-counts faults of that call. The statement holds for both kinds of Kyber prekey. The proof is a
-temporary stub. -/
+generation use it), and perfect correctness of the synthetic AEAD. The proof is a temporary stub. -/
 theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
     (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)

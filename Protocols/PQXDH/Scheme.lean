@@ -102,9 +102,7 @@ structure InitiatorParameters (Msg : Type) where
   /-- The message of the synthetic initial ciphertext. -/
   msg : Msg
 
-/-- The kind of Kyber prekey that Bob uses in his sessions. A one-time prekey is drawn and signed
-afresh in each session. The last-resort prekey is the one that `setup` drew and signed, and every
-session of that kind uses it. -/
+/-- The kind of Kyber prekey that Bob uses in all of his sessions: one-time or last-resort. -/
 inductive KyberPrekeyKind where
   /-- A fresh one-time Kyber prekey in each session. -/
   | oneTime
