@@ -23,10 +23,13 @@ charon:
     - "libsignal_protocol::protocol" 
     - "libsignal_protocol::double_ratchet" 
     - "libsignal_protocol::triple_ratchet" 
-    # group_cipher + session are SOURCE-GATED out under `feature="extraction"` 
+    # group_cipher + session are SOURCE-GATED out under `feature="extraction"`
     # - "libsignal_protocol::group_cipher"
     # - "libsignal_protocol::session"
-    - "libsignal_protocol::session_management" 
+    # session_core holds the synchronous steps of process_prekey and
+    # process_prekey_bundle, which the gated `session` module calls.
+    - "libsignal_protocol::session_core"
+    - "libsignal_protocol::session_management"
     # DEFERRED: `sealed_sender` causes Charon to be very slow
     # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
@@ -103,23 +106,15 @@ charon:
     # ...::protocol` (module-rooting); its sole callers are tests + the bridge layer
     # (external), so nothing in scope references it.
     - "libsignal_protocol::protocol::should_use_nonpq_session"
-    # Iterator-adaptor users: build `Map`/`position` iterators, but Aeneas's base
+    # Iterator-adaptor user: builds a `Map` iterator, but Aeneas's base
     # `core.iter.traits.iterator.Iterator` (Aeneas/Std/Core/Iter.lean) only models
     # {next, step_by, enumerate, take} — NOT `map`/`position` — so the generated
     # `Map` Iterator instance has fields the base struct lacks ("not a field" / "fields
-    # missing"). Both are `pub(crate)` and their ONLY callers live in source-gated-out
-    # modules (chain_ids_for_logging ← group_cipher; promote_matching_session ←
-    # session), so they're module-rooted dead weight — exclude (nothing in scope
-    # references them). chain_ids_for_logging also returns `impl ExactSizeIterator`
-    # (RPIT), which opaque can't represent anyway.
+    # missing"). It is `pub(crate)` and its only caller lives in a source-gated-out
+    # module (group_cipher), so module rooting alone reaches it: exclude it (nothing in
+    # scope references it). It also returns `impl ExactSizeIterator` (RPIT), which
+    # opaque cannot represent.
     - "libsignal_protocol::sender_keys::_::chain_ids_for_logging"
-    - "libsignal_protocol::state::session::_::promote_matching_session"
-    # set_unacknowledged_kyber_pre_key_id: `pub(crate)`, only caller is
-    # session::process_prekey_bundle (in the source-gated-out `session` module), so
-    # module-rooted dead weight. Its body destructures `Option::as_mut(...).expect(...)`
-    # as an `&mut` writeback pair on a proto type, which Aeneas mis-models ("expected
-    # a product type, got PendingKyberPreKey"). Nothing in scope references it → exclude.
-    - "libsignal_protocol::state::session::_::set_unacknowledged_kyber_pre_key_id"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
     # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never

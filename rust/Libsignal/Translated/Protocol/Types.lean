@@ -974,7 +974,7 @@ def ratchet.initialize_initiator_session.closure (R : Type _) := Unit
 def ratchet.initialize_recipient_session.closure := Unit
 
 /-- [libsignal_protocol::state::session::SessionRecord]
-    Source: 'rust/protocol/src/state/session.rs', lines 733:0-736:1
+    Source: 'rust/protocol/src/state/session.rs', lines 734:0-737:1
     Visibility: public -/
 structure state.session.SessionRecord where
   current_session : Option state.session.SessionState
@@ -1021,12 +1021,12 @@ structure sender_keys.SenderKeyRecord where
 @[reducible]
 def sender_keys.SenderKeyRecord.deserialize.closure := Unit
 
-/-- [libsignal_protocol::session_management::CurrentOrPrevious]
-    Source: 'rust/protocol/src/session_management.rs', lines 712:0-717:1 -/
-@[discriminant isize]
-inductive session_management.CurrentOrPrevious where
-| Current : session_management.CurrentOrPrevious
-| Previous : session_management.CurrentOrPrevious
+/-- [libsignal_protocol::state::bundle::KyberPreKey]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 29:0-33:1 -/
+structure state.bundle.KyberPreKey where
+  id : state.kyber_prekey.KyberPreKeyId
+  public_key : kem.Key kem.Public
+  signature : alloc.vec.Vec Std.U8
 
 /-- [libsignal_protocol::state::bundle::SignedPreKey]
     Source: 'rust/protocol/src/state/bundle.rs', lines 12:0-16:1 -/
@@ -1035,12 +1035,29 @@ structure state.bundle.SignedPreKey where
   public_key : libsignal_core.curve.PublicKey
   signature : alloc.vec.Vec Std.U8
 
-/-- [libsignal_protocol::state::bundle::KyberPreKey]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 29:0-33:1 -/
-structure state.bundle.KyberPreKey where
-  id : state.kyber_prekey.KyberPreKeyId
-  public_key : kem.Key kem.Public
-  signature : alloc.vec.Vec Std.U8
+/-- [libsignal_protocol::state::bundle::PreKeyBundle]
+    Source: 'rust/protocol/src/state/bundle.rs', lines 125:0-133:1
+    Visibility: public -/
+structure state.bundle.PreKeyBundle where
+  registration_id : Std.U32
+  device_id : libsignal_core.address.DeviceId
+  pre_key_id : Option state.prekey.PreKeyId
+  pre_key_public : Option libsignal_core.curve.PublicKey
+  ec_signed_pre_key : state.bundle.SignedPreKey
+  identity_key : identity_key.IdentityKey
+  kyber_pre_key : state.bundle.KyberPreKey
+
+/-- [libsignal_protocol::session_core::reuse_matching_session::{closure}]
+    Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
+@[reducible]
+def session_core.reuse_matching_session.closure := protocol.PreKeySignalMessage
+
+/-- [libsignal_protocol::session_management::CurrentOrPrevious]
+    Source: 'rust/protocol/src/session_management.rs', lines 712:0-717:1 -/
+@[discriminant isize]
+inductive session_management.CurrentOrPrevious where
+| Current : session_management.CurrentOrPrevious
+| Previous : session_management.CurrentOrPrevious
 
 /-- [libsignal_protocol::state::bundle::PreKeyBundleContent]
     Source: 'rust/protocol/src/state/bundle.rs', lines 49:0-61:1
@@ -1057,18 +1074,6 @@ structure state.bundle.PreKeyBundleContent where
   kyber_pre_key_id : Option state.kyber_prekey.KyberPreKeyId
   kyber_pre_key_public : Option (kem.Key kem.Public)
   kyber_pre_key_signature : Option (alloc.vec.Vec Std.U8)
-
-/-- [libsignal_protocol::state::bundle::PreKeyBundle]
-    Source: 'rust/protocol/src/state/bundle.rs', lines 125:0-133:1
-    Visibility: public -/
-structure state.bundle.PreKeyBundle where
-  registration_id : Std.U32
-  device_id : libsignal_core.address.DeviceId
-  pre_key_id : Option state.prekey.PreKeyId
-  pre_key_public : Option libsignal_core.curve.PublicKey
-  ec_signed_pre_key : state.bundle.SignedPreKey
-  identity_key : identity_key.IdentityKey
-  kyber_pre_key : state.bundle.KyberPreKey
 
 /-- [libsignal_protocol::state::bundle::{impl core::convert::TryFrom<libsignal_protocol::state::bundle::PreKeyBundleContent, libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::bundle::PreKeyBundle}::try_from::{closure#8}]
     Source: 'rust/protocol/src/state/bundle.rs', lines 117:44-119:13 -/
@@ -1221,7 +1226,7 @@ def state.session.SessionUsabilityRequirements := Std.U32
 def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 865:63-865:75 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 884:63-884:75 -/
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
 
