@@ -30,7 +30,7 @@ namespace Protocols.PQXDH
 universe u
 
 /-- A bind returns a value exactly when its first operand returns a value and the continuation
-returns the same value on it. The proofs of the branch equations rewrite with this lemma. -/
+returns the same value on it. -/
 theorem bind_eq_ok_iff {α β : Type u} (x : Result α) (f : α → Result β) (b : β) :
     Std.bind x f = .ok b ↔ ∃ a, x = .ok a ∧ f a = .ok b := by
   constructor
@@ -115,8 +115,8 @@ theorem extend_prefix {sec : alloc.vec.Vec U8} {parts : List (Slice U8)} (d : Sl
     (alloc.vec.Vec.extend_from_slice_spec core.clone.CloneU8 sec d h_clone hlen)
   exact ⟨sec', h, by rw [kdfPrefixBytes_append_single, ← hsec]; exact hval⟩
 
-/-- An append that returns a value fits in a vector, because `extend_from_slice` panics on
-overflow, and the vector then holds the bytes of the longer prefix. -/
+/-- If `extend_from_slice` returns a value, the longer prefix fits in a vector and the returned
+vector holds the bytes of that prefix. -/
 theorem extend_prefix_of_ok {sec sec' : alloc.vec.Vec U8} {parts : List (Slice U8)}
     {d : Slice U8} (hsec : sec.val = kdfPrefixBytes parts)
     (h : alloc.vec.Vec.extend_from_slice core.clone.CloneU8 sec d = ok sec') :
