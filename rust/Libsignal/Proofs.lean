@@ -5,6 +5,7 @@ import Libsignal.Proofs.Core.Address.ServiceIdBinary
 import Libsignal.Proofs.Core.Address.ServiceIdFixedWidthBinary
 import Libsignal.Proofs.Core.SharedTypes
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
+import Libsignal.Proofs.Protocol.Kem.Ciphertext
 import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.Derive
 import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.DeriveWithLabel
 import Libsignal.Proofs.Std.Alloc.Boxed.AsRef

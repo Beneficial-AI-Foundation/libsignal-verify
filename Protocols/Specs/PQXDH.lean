@@ -21,8 +21,8 @@ The dependencies of a statement are the opaque leaves of the extracted code that
 mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision constant that
 the extraction of `pqxdh_accept` introduces, and the stub marker when the proof, or a proof it
 uses, is a stub. `Protocols/LEDGER.md` lists the stubs apart from the admitted hops of the
-abstract model, in two groups: temporary stubs of the correctness statements and their supporting
-lemmas, and security placeholders for the security statements and `fullExp_noLostMass`.
+abstract model, in two groups: temporary stubs of the two wrapper agreement statements, and
+security placeholders for the security statements and `fullExp_noLostMass`.
 
 The fault fixtures, which show that the correctness statements are not vacuous, are in
 `ProtocolsTest/PQXDH/FaultFixtures.lean` and carry their own dependency checks.
@@ -258,7 +258,6 @@ recall Protocols.PQXDH.coreCompletion_extracted
 /--
 info: 'Protocols.PQXDH.coreCompletion_extracted' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
@@ -288,7 +287,6 @@ recall Protocols.PQXDH.jointKeyAgreement_extracted
 /--
 info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
@@ -1061,6 +1059,149 @@ info: 'Protocols.PQXDH.accept_kdfInput_witness' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.accept_kdfInput_witness
+
+/-! ## Honest run
+
+What the wrappers around the Kyber backend return under the backend contracts, the agreement of
+valid key pairs, the key derivation on 32-byte inputs, and one honest run of the two entry points.
+The correctness proofs of the Full realization use them. -/
+
+section HonestRun
+
+open Aeneas Aeneas.Std Result
+open libsignal_protocol
+
+recall Protocols.PQXDH.encapsulate_ok
+    (hE : KyberEncapsBackend) {R : Type} (crng : rand_core_1.CryptoRng R)
+    (Dom : R → Prop) (hRng : RngTotal crng.RngCoreInst Dom) (pk : PQPub) (r : R)
+    (hpk : pk.key_data.data.length = 1568) (hr : Dom r) :
+    ∃ (ss ct0 ct : Slice U8) (r' : R),
+      kem.KeyPublic.encapsulate crng pk r = .ok (.Ok (ss, ct), r') ∧ ss.length = 32 ∧
+        ct0.length = 1568 ∧ ct.val = 8#u8 :: ct0.val
+
+/--
+info: 'Protocols.PQXDH.encapsulate_ok' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.encapsulate_ok
+
+recall Protocols.PQXDH.decapsulate_serialized_ok
+    (hD : KyberDecaps) (sk : PQPriv) (ct ct0 : Slice U8)
+    (hsk : sk.key_data.data.length = 3168) (hct : ct.val = 8#u8 :: ct0.val)
+    (hct0 : ct0.length = 1568) :
+    ∃ ss : Slice U8, kem.KeySecret.decapsulate sk ct = .ok (.Ok ss) ∧ ss.length = 32
+
+/--
+info: 'Protocols.PQXDH.decapsulate_serialized_ok' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.decapsulate_serialized_ok
+
+recall Protocols.PQXDH.agreement_of_valid
+    (hA : AgreementDerived) {kp₁ kp₂ : ECKeyPair}
+    (h₁ : ECKeyPairValid kp₁) (h₂ : ECKeyPairValid kp₂) :
+    ∃ s : Slice U8, s.length = 32 ∧
+      curve.PrivateKey.calculate_agreement kp₁.private_key kp₂.public_key = .ok (.Ok s) ∧
+      curve.PrivateKey.calculate_agreement kp₂.private_key kp₁.public_key = .ok (.Ok s)
+
+/--
+info: 'Protocols.PQXDH.agreement_of_valid' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement,
+ curve.PrivateKey.public_key]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.agreement_of_valid
+
+recall Protocols.PQXDH.kdfInput_derive_ok
+    (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
+    (d1 d2 d3 ss : Slice U8) (d4 : Option (Slice U8)) (h1 : d1.length = 32)
+    (h2 : d2.length = 32) (h3 : d3.length = 32) (h4 : ∀ d ∈ d4, d.length = 32)
+    (hss : ss.length = 32) :
+    ∃ (km : Slice U8) (hk : HandshakeKeys), kdfInput d1 d2 d3 d4 ss = .ok km ∧
+      pqxdh.HandshakeKeys.derive km = .ok hk ∧ hk.chain_key.index = 0#u32
+
+/--
+info: 'Protocols.PQXDH.kdfInput_derive_ok' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfInput_derive_ok
+
+recall Protocols.PQXDH.honest_run_ok
+    (hC : CoreContracts) (H : crypto.HmacSha256)
+    (hH : crypto.HkdfSha256Contract H) {Rand : Type} (rng : rand.rng.Rng Rand)
+    (crng : rand_core_1.CryptoRng Rand) (Dom : Rand → Prop)
+    (hRng : RngTotal crng.RngCoreInst Dom) (ikA ikB spkB ekA : ECKeyPair)
+    (opkB : Option ECKeyPair) (pqpkB : PQKeyPair) (r : Rand)
+    (hikA : ECKeyPairValid ikA) (hikB : ECKeyPairValid ikB) (hspkB : ECKeyPairValid spkB)
+    (hekA : ECKeyPairValid ekA) (hopkB : ∀ kp ∈ opkB, ECKeyPairValid kp)
+    (hpq : PQKeyPairShape pqpkB) (hr : Dom r) :
+    ∃ (ss ct ss' : Slice U8) (r' : Rand) (hkA hkB : HandshakeKeys),
+      kem.KeyPublic.encapsulate crng pqpkB.public_key r = .ok (.Ok (ss, ct), r') ∧
+      kem.KeySecret.decapsulate pqpkB.secret_key ct = .ok (.Ok ss') ∧
+      pqxdh.pqxdh_initiate rng crng
+          { our_identity_key_pair := identityKeyPairOf ikA
+            our_ephemeral_key_pair := ekA
+            their_identity_key := identityKeyOf ikB
+            their_signed_pre_key := spkB.public_key
+            their_one_time_pre_key := opkB.map (·.public_key)
+            their_ratchet_key := spkB.public_key
+            their_kyber_pre_key := pqpkB.public_key
+            self_session := false } r =
+        .ok (.Ok { keys := hkA, kyber_ciphertext := ct }, r') ∧
+      pqxdh.pqxdh_accept
+          { our_identity_key_pair := identityKeyPairOf ikB
+            our_signed_pre_key_pair := spkB
+            our_one_time_pre_key_pair := opkB
+            our_kyber_pre_key_pair := pqpkB
+            their_identity_key := identityKeyOf ikA
+            their_ephemeral_key := ekA.public_key
+            their_kyber_ciphertext := ct
+            self_session := false } = .ok (.Ok hkB) ∧
+      hkB.chain_key.index = 0#u32 ∧ (ss' = ss → hkA = hkB)
+
+/--
+info: 'Protocols.PQXDH.honest_run_ok' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PrivateKey.public_key,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.honest_run_ok
+
+
+end HonestRun
 
 /-! ## Runtime and KEM correctness -/
 
