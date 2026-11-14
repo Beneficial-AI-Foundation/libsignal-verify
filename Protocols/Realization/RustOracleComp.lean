@@ -255,7 +255,7 @@ theorem probOutput_rustRuntime_eq_zero_iff [MeasurableSpace α] [MeasurableSingl
   simp
 
 /-- The runtime's probability of the output `true` is the event probability of `b = true` under
-the native output measure. The bind lemmas of VCVio are stated in this form. -/
+the native output measure. -/
 theorem rustRuntime_evalDist_true (mx : RustOracleComp unifSpec Bool) :
     rustRuntime.evalDist mx {true} = Pr{let b ← mx}[b = true] := by
   rw [rustRuntime_coherent.evalDist_eq, prEvent_eq_evalDist_of_discrete]

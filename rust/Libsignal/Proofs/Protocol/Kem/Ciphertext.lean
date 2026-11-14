@@ -35,9 +35,8 @@ natural language specs:
   followed by the bytes of the ciphertext.
 -/
 
-/-- **Spec theorem for `kem.Ciphertext.serialize`**: serialization of a ciphertext returns the
-key-type byte `8` followed by the bytes of the ciphertext. The bound on the length of the
-ciphertext keeps the length `1 + n` and the appends within `usize`. -/
+/-- **Spec theorem for `kem.Ciphertext.serialize`**: serialization of a ciphertext with fewer than
+`Usize.max` bytes returns the key-type byte `8` followed by the bytes of the ciphertext. -/
 @[step]
 theorem serialize_spec (ct : kem.Ciphertext) (h : ct.data.length < Usize.max) :
     kem.Ciphertext.serialize ct ⦃ s => s.val = 8#u8 :: ct.data.val ⦄ := by

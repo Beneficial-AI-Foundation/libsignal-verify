@@ -12,17 +12,9 @@ import Protocols.PQXDH.Scheme
 /-!
 # One honest run of the extracted entry points
 
-On valid key pairs, both extracted entry points of the handshake return their keys, and the keys
-agree when the Kyber secrets agree. `honest_run_ok` states this for one run, with the parameter
-records that `coreHonestRun` builds. The correctness proofs in `Correctness.lean` apply it to
-every possible draw of the honest run.
-
-The Kyber contracts describe the libcrux backend, and the entry points call the wrappers around
-it. `encapsulate_ok` and `decapsulate_serialized_ok` state what the wrappers return under the
-backend contracts. They use the ciphertext round trip of
-`Libsignal.Proofs.Protocol.Kem.Ciphertext`. `agreement_of_valid` restates `AgreementDerived` on
-key pairs, and `kdfInput_derive_ok` combines the input assembly with the key derivation.
-`genOPK_valid` carries the validity of honest key pairs to the optional one-time prekey.
+In one honest run on valid key pairs, both extracted entry points of the handshake return their
+keys, and the keys agree when the Kyber secrets agree. `honest_run_ok` states this with the
+parameter records that `coreHonestRun` builds.
 -/
 
 open OracleSpec OracleComp
