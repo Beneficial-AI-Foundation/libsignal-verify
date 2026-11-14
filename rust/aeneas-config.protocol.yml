@@ -110,10 +110,10 @@ charon:
     # `core.iter.traits.iterator.Iterator` (Aeneas/Std/Core/Iter.lean) only models
     # {next, step_by, enumerate, take} — NOT `map`/`position` — so the generated
     # `Map` Iterator instance has fields the base struct lacks ("not a field" / "fields
-    # missing"). It is `pub(crate)` and its ONLY caller lives in a source-gated-out
-    # module (group_cipher), so it's module-rooted dead weight — exclude (nothing in
+    # missing"). It is `pub(crate)` and its only caller lives in a source-gated-out
+    # module (group_cipher), so module rooting alone reaches it: exclude it (nothing in
     # scope references it). It also returns `impl ExactSizeIterator` (RPIT), which
-    # opaque can't represent anyway.
+    # opaque cannot represent.
     - "libsignal_protocol::sender_keys::_::chain_ids_for_logging"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
