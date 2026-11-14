@@ -7,7 +7,7 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-11 |
+| Date | 2026-11-14 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
@@ -53,9 +53,9 @@ closures.
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
+| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling |
 | `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
-| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked, this repository for the statement repair |
+| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked |
 | `Protocols.Models.PQXDH.indistAdvantage_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 6 | discharge untracked |
 
 The issue trackers of Beneficial-AI-Foundation/PQXDH-model and of this repository hold the items. The gaps
@@ -122,6 +122,8 @@ an admission.
 | --- | --- | --- | --- |
 | Single identity key, `Parameters.sig` | modelling choice | Bob's identity key pair signs his pre-keys and takes part in Diffie-Hellman, as in production; the signature scheme `Parameters.sig` draws its keys with `dhKeygen`, so completeness and unforgeability of `P.sig` refer to Diffie-Hellman identity keys | matches production's key use |
 | Joint EUF-CMA of the identity key (hop 3) | premise | the premise `hsig` of both security theorems bounds every adversary in `SignatureAlg.jointUnforgeableExp` for `P.sig`: signing queries and agreement queries `Y ↦ DH x Y` on the one key pair, with no freshness condition on agreement queries, and a win by a valid signature on a message that was never signed. The signature forgery event compares signed keys and not signature bytes, because XEdDSA signatures are malleable. The bound has no resource limit (#41) | assumed; the Full realization states the same premise as `jointSigForgeExp` |
+| Original-key partnering, `originalKeyPartnering` | modelling choice | the experiment of both security theorems is `PartneredExp`: Alice's challenge session and a session of Bob are partners when both accepted with the same associated data and the same key material `km`, the input of `P.kdf`, which each session context stores; an authentication partner must have accepted no later than Alice; the key identifiers, the signatures and the bytes of an unsigned one-time pre-key are not authenticated | the same relation as the Full realization's `fullPartnering`, which takes `km` from the entry-point call |
+| `hkemCorrect` in the PQ hops 5 and 6 | idealization | perfect correctness of the abstract KEM, false for production Kyber, which decapsulates wrongly with a small probability; no theorem instantiates these hops at production Kyber | assumed; the proofs of the two hops replace it, with a mismatch event that has its own proved bound or with a proof that a mismatch forces a forgery of Bob's confirmation |
 | Full EC key generation and abstract-generator relation | open bridge obligation | the abstract model draws identity, signed and one-time keys with `dhKeygen`, a uniform exponent; the Full realization draws with `P.ecKeygen`, whose law, public/private relation (`ECKeyPairValid`), clamping and generator assumption are separate. The relation between the two generators is not established, and results proved on the uniform exponent are not transferred to production | open |
 
 ## How to check

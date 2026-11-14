@@ -15,8 +15,12 @@ Hops 5 and 6 of the PQ security theorem `Protocols.Models.PQXDH.uakeInitiator_se
 KEM's IND-CCA security, the KDF, and the AEAD. See `SecurityLemmas.lean`
 for the overall map.
 
-The hop lemmas assume `hkemCorrect`, an idealization, and `hidKEM`, which fails for
-production. The module note of `Security.lean` gives the reasons.
+Both hops are stated over original-key partnering (`originalKeyPartnering`). The forgery event
+of hop 5 is "Alice accepted and no session of Bob is her original-key partner", and `indistExp`
+flips a coin on that event and when a revealed session is a partner.
+
+The hop lemmas assume `hkemCorrect`, an idealization. The module note of `Security.lean` gives
+the reason.
 
 Unlike the GapDH cores, these reductions are expressible in the current
 model: the KDF's PRF key slot is an abstract bitstring (the KEM shared
@@ -40,48 +44,55 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [SampleableType K]
   (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
-/-- Hop 5 (forgery core, IND-CCA): with an honest bundle and separated KEM
-  keys, a forgery requires breaking the KEM, the KDF, or the AEAD.
+/-- Hop 5 (forgery core, IND-CCA): with an honest bundle and separated KEM keys, if Alice accepts
+  and no session of Bob is her original-key partner, the adversary has broken the KEM, the KDF,
+  or the AEAD.
+
+  A session of Bob that completed with a key, holds Alice's associated data and key material
+  `(ad, km)`, and accepted no later than Alice is her original-key partner
+  (`originalKeyPartnering`). A run that changes the key identifiers, a signature on an honestly
+  signed key, or the bytes of the one-time pre-key, and leaves `km` unchanged, keeps that partner,
+  so it is not in the event. These fields are not authenticated.
 
   Intended proof, as further hops:
-  1. Identify the unique T-oracle session that can share the challenge
-     session's key material, as in the GapDH core: the accepted bundle pins
-     `ikB`, `spkB`, and `pqpkB`, the latter published by exactly one
-     session by `hidKEM` and the excluded collision event.
-  2. Guess that session among the at most `q` opened (the factor `q`) and
-     embed the IND-CCA challenge: its public key becomes the session's
-     `pqpkB`, the challenge ciphertext and real-or-random secret stand in
-     for the challenge session's encapsulation, the decapsulation oracle
-     serves the session's other ciphertexts, and perfect correctness
-     (`hkemCorrect`) identifies the session's decapsulation of the
-     challenge ciphertext with the encapsulated secret. This replaces the
-     challenge session's KEM shared secret with a uniform one (`εkem`).
-  3. With the KEM secret uniform, `kdfPRF` is a PRF under a hidden uniform
-     key: routing the challenge session's KDF call, and the paired
-     session's KDF calls on the challenge ciphertext, through the PRF
-     oracle replaces their output triples with a shared random function of
-     the DH tuple (`εkdf`).
-  4. The AEAD endgame is as in the GapDH core: a tampered initial message
-     accepted by the paired session forges against `KA`, and an accepted
-     confirmation not produced by the paired session forges against `KB`
-     (the two `εaead`); a verbatim relay of honestly produced messages
-     forces the global-clock interleaving of `Matching`, so the transcripts
-     match, contradicting the forgery event.
+  1. Identify the session of Bob that can share Alice's key material, as in the GapDH core: the
+     accepted bundle pins `ikB`, `spkB` and `pqpkB`, and exactly one session published that KEM
+     key, because the excluded collision event makes the published KEM keys distinct. The key
+     identifiers play no part.
+  2. Guess that session among the at most `q` sessions open when the challenge stage ends
+     (`AKE.UAKE.Adversary.OpensAtMost.challengeSession_openCount_le`, the factor `q`) and embed
+     the IND-CCA challenge: its public key becomes the session's `pqpkB`, the challenge ciphertext
+     and real-or-random secret stand in for Alice's encapsulation, the decapsulation oracle serves
+     the session's other ciphertexts, and perfect correctness (`hkemCorrect`) identifies the
+     session's decapsulation of the challenge ciphertext with the encapsulated secret. This
+     replaces Alice's KEM shared secret with a uniform one (`εkem`).
+  3. With the KEM secret uniform, `kdfPRF` is a PRF under a hidden uniform key: routing Alice's KDF
+     call, and the guessed session's KDF calls on the challenge ciphertext, through the PRF oracle
+     replaces their output triples with a shared random function of the DH tuple (`εkdf`).
+  4. The AEAD endgame is as in the GapDH core: a session of Bob that accepts, under Alice's key
+     material, a pair of ciphertext and associated data that Alice did not produce forges against
+     `KA`, and a confirmation that Alice accepts and that no partner produced forges against `KB`
+     (the two `εaead`).
 
-  The factor `q` on `εaead` and `εkdf` is generous (only the session guess
-  needs it), but stating the bound with it makes the composed bound
-  collapse to the signature term when the adversary opens no sessions.
+  Steps 3 and 4 must count exposure under `KB` and not deny KDF evaluations. A failed decryption
+  may still evaluate the KDF at Alice's key material, distinct inputs need not give distinct KDF
+  outputs, and rejection under a wrong key is a security property of the AEAD. These are
+  obligations of the proof.
 
-  Used by `uakeInitiator_secure_pq` as hop 5. A proof would follow the steps above in the current
-  model, but the last step does not hold as stated, since unsigned bundle fields (the key
-  identifiers and the one-time pre-key) and, because hop 3 compares signed keys, the
-  signatures on honestly signed keys can change without changing the derived keys, so the
-  transcripts differ with no forgery. Assumes `hidKEM` and `hkemCorrect`; see the module
-  note. -/
+  `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
+  probability, so the premise is false for production, and no theorem of this repository
+  instantiates this hop at production Kyber. Its replacement in both PQ hops is left to their
+  proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
+  decapsulation mismatch forces a forgery of Bob's confirmation.
+
+  The factor `q` on `εaead` and `εkdf` is generous (only the session guess needs it), but stating
+  the bound with it makes the composed bound collapse to the signature term when the adversary
+  opens no sessions.
+
+  Used by `uakeInitiator_secure_pq` as hop 5. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
-    (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
@@ -92,45 +103,52 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
     forgeHonestGoodProb P msg hasOPK A ≤ q * (εkem + 2 * εaead + εkdf) := by
   sorry
 
-/-- Hop 6 (indistinguishability core, IND-CCA): in `indistExp`, the
-  adversary's guess is better than a fair coin only by breaking the KEM or
-  the KDF, or by a KEM public-key collision.
+/-- Hop 6 (indistinguishability core, IND-CCA): in `indistExp`, the adversary's guess is better
+  than a fair coin only by breaking the KEM or the KDF, or by a KEM public-key collision.
+
+  `indistExp` is the partnered experiment over `originalKeyPartnering`, with the outright win on
+  the forgery event replaced by a fair coin.
 
   Intended proof, as further hops:
-  1. If the challenge session outputs no key, both finalizations hand the
-     adversary `none` and the guess is independent of the challenge bit, so
-     it wins with probability exactly `1 / 2`; the coined forgery branch
-     likewise. Only the ping-pong branch remains.
-  2. In the ping-pong branch, the accepted bundle equals a T-oracle
-     session's published bundle, so it is honest without a signature
-     hypothesis, and the matching session is the paired one.
-  3. Replace the challenge session's KEM shared secret with a uniform one
-     by the IND-CCA embedding of the forgery core (`q`, `εkem`). By perfect
-     correctness the matching session decapsulates the relayed challenge
-     ciphertext to the same secret, so, unlike the GapDH core, no
-     decapsulation-mismatch AEAD term arises.
-  4. Replace the KDF output triple on the challenge session's key material
-     with a shared random function of the DH tuple (`εkdf`), as in the
-     forgery core.
-  5. A reveal query returns the challenge key only for a session with
-     identical key material. For a session whose transcript matches the
-     challenge, `fullPingPong` flips a fair coin instead; any other such
-     session requires two T-oracle sessions sharing a KEM public key.
-     Both adversary stages together open at most `2 * q` sessions, giving
-     at most `2 * q ^ 2` pairs and the `2 * q ^ 2 * εpk` term by the
-     guessing bound (this term also absorbs prediction events in the post
-     phase, as in Hop 4).
-  6. Otherwise the challenge key is uniform, independent of the adversary's
-     view, and unrevealed, so the real and random finalizations are
-     identically distributed and the guess wins with probability exactly
-     `1 / 2`.
+  1. If Alice outputs no key, both finalizations hand the adversary `none` and the guess is
+     independent of the challenge bit, so it wins with probability exactly `1 / 2`; the coined
+     forgery branch likewise. Only the partnered branch remains.
+  2. In the partnered branch, a session of Bob that accepted no later than Alice holds her
+     associated data and key material. This does not make the accepted bundle honest, because
+     partnering compares `(ad, km)` and not the bundle. Equal key material with a signed pre-key
+     other than the one `setup` signed needs degenerate exponents: Alice's identity exponent is
+     `0`, and Bob's identity exponent or Alice's ephemeral exponent is `0`. That event has
+     probability about `2 / |F| ^ 2` per challenge. The bound has no term for it, and absorbing
+     it is an obligation of the proof.
+  3. Replace Alice's KEM shared secret with a uniform one by the IND-CCA embedding of the forgery
+     core (`q`, `εkem`). The embedding uses perfect correctness (`hkemCorrect`) to answer the
+     embedded session's decapsulation of the challenge ciphertext. The partner holds Alice's key
+     material, which contains the shared secret, so no decapsulation-mismatch term arises.
+  4. Replace the KDF output triple on Alice's key material with a shared random function of the
+     DH tuple (`εkdf`), as in the forgery core.
+  5. A revealed partner makes `finalizePartnered` flip a fair coin. That includes a second session
+     of Bob that published the same KEM key and derives Alice's `(ad, km)` from a replay of her
+     initial message. A revealed session that is not a partner returns the challenge key only if
+     it derived the same keys from other associated data or other key material, and bounding that
+     is an obligation of the proof. The bound keeps the `2 * q ^ 2 * εpk` term, as ported: both
+     stages together open at most `2 * q` sessions
+     (`AKE.UAKE.Adversary.OpensAtMost.openCount_le_two_mul`), so at most `2 * q ^ 2` pairs of
+     sessions can share a KEM public key.
+  6. Otherwise the challenge key is uniform, independent of the adversary's view, and unrevealed,
+     so the real and random finalizations are identically distributed and the guess wins with
+     probability exactly `1 / 2`.
 
-  Used by `uakeInitiator_secure_pq` as hop 6. A proof would follow the steps above in the current
-  model. Assumes `hidKEM` and `hkemCorrect`; see the module note. -/
+  `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
+  probability, so the premise is false for production, and no theorem of this repository
+  instantiates this hop at production Kyber. Its replacement in both PQ hops is left to their
+  proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
+  decapsulation mismatch forces a forgery of Bob's confirmation.
+
+  The premises and the bound are those of the ported statement. Used by `uakeInitiator_secure_pq`
+  as hop 6. -/
 lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εkdf εpk : ℝ)
-    (hidKEM : Function.Injective P.idKEM)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)

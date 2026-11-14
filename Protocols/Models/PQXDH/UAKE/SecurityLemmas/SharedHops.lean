@@ -56,12 +56,13 @@ omit [SampleableType K] in
   the KEM-key bad event occurred, or the run is a residual forgery with an
   honest bundle and separated KEM keys. -/
 private lemma forge_or_cases (tk : RecipientIdentity F G S)
+    (env : Env (uakeInitiator P msg hasOPK))
     (cr : ChallengeResult (uakeInitiator P msg hasOPK))
-    (h : (cr.K0.isSome && !isPingPong cr) = true) :
+    (h : (cr.K0.isSome && !challengePartnered P msg hasOPK cr env) = true) :
     ((cr.K0.isSome && (challengeBundle P msg hasOPK cr).any fun b =>
         !honestBundle P msg hasOPK tk cr b) ||
       (pqpkGuessed P msg hasOPK cr ||
-        (cr.K0.isSome && !isPingPong cr &&
+        (cr.K0.isSome && !challengePartnered P msg hasOPK cr env &&
           ((challengeBundle P msg hasOPK cr).all fun b =>
             honestBundle P msg hasOPK tk cr b) &&
           !pqpkGuessed P msg hasOPK cr))) = true := by
@@ -71,31 +72,33 @@ private lemma forge_or_cases (tk : RecipientIdentity F G S)
     · cases hh : honestBundle P msg hasOPK tk cr b <;> simp_all
   · simp
 
-/-- Hop 1: `UAKE.Exp` and `indistExp` agree except on the forgery branch,
-  where the former returns `true` and the latter flips a fair coin. After
-  commuting the challenge bit ahead of the challenge phase, the two
-  experiments share their sampling prefix, so `UAKE.Exp`'s success
-  probability lies between `indistExp`'s and `indistExp`'s plus the forgery
-  probability, and the triangle inequality bounds the UAKE advantage by
-  `forgeProb` plus `indistAdvantage`. Purely probabilistic; uses no
-  cryptographic hypotheses. -/
+/-- Hop 1: the partnered experiment `PartneredExp` over `originalKeyPartnering` and `indistExp`
+  agree except on the forgery branch, where Alice accepts with no original-key partner: the
+  former returns `true` and the latter flips a fair coin. After commuting the challenge bit ahead
+  of the challenge phase, the two experiments share their sampling prefix, so `PartneredExp`'s
+  success probability lies between `indistExp`'s and `indistExp`'s plus the forgery probability,
+  and the triangle inequality bounds the partnered advantage by `forgeProb` plus
+  `indistAdvantage`. Purely probabilistic; uses no cryptographic hypotheses. -/
 lemma advantage_le_forgeProb_add_indistAdvantage
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
-    UAKE.advantage ProbCompRuntime.probComp A ≤
+    partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤
       forgeProb P msg hasOPK A + indistAdvantage P msg hasOPK A := by
-  have hswapE : Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] =
+  have hswapE : Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+        (originalKeyPartnering P msg hasOPK) A)}[y = true] =
       Pr{let y ← (do
         let b ← ($ᵗ Bool : ProbComp Bool)
         let (cr, st) ← challengePhase P msg hasOPK A
         if cr.K0.isNone then
-          finalize ProbCompRuntime.probComp.toProbCompLift A st cr b none
-        else if !isPingPong cr then
+          finalizePartnered ProbCompRuntime.probComp.toProbCompLift
+            (originalKeyPartnering P msg hasOPK) A st cr b none
+        else if !challengePartnered P msg hasOPK cr st.2.1 then
           return true
         else do
           let K1 ← some <$> ($ᵗ K)
-          finalize ProbCompRuntime.probComp.toProbCompLift A st cr b K1 :
+          finalizePartnered ProbCompRuntime.probComp.toProbCompLift
+            (originalKeyPartnering P msg hasOPK) A st cr b K1 :
         ProbComp Bool)}[y = true] := by
-    rw [UAKE.Exp, challengePhase]
+    rw [PartneredExp, challengePhase]
     simp only [bind_assoc, map_bind]
     exact prEvent_bind_bind_swap_of_uniform _ _ _
   have hswapI : Pr{let y ← (indistExp P msg hasOPK A)}[y = true] =
@@ -103,27 +106,33 @@ lemma advantage_le_forgeProb_add_indistAdvantage
         let b ← ($ᵗ Bool : ProbComp Bool)
         let (cr, st) ← challengePhase P msg hasOPK A
         if cr.K0.isNone then
-          finalize ProbCompRuntime.probComp.toProbCompLift A st cr b none
-        else if !isPingPong cr then
+          finalizePartnered ProbCompRuntime.probComp.toProbCompLift
+            (originalKeyPartnering P msg hasOPK) A st cr b none
+        else if !challengePartnered P msg hasOPK cr st.2.1 then
           $ᵗ Bool
         else do
           let K1 ← some <$> ($ᵗ K)
-          finalize ProbCompRuntime.probComp.toProbCompLift A st cr b K1 :
+          finalizePartnered ProbCompRuntime.probComp.toProbCompLift
+            (originalKeyPartnering P msg hasOPK) A st cr b K1 :
         ProbComp Bool)}[y = true] := by
     rw [indistExp, challengePhase]
     simp only [bind_assoc, map_bind]
     exact prEvent_bind_bind_swap_of_uniform _ _ _
   have hEI : Pr{let y ← (indistExp P msg hasOPK A)}[y = true] ≤
-      Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] := by
+      Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+        (originalKeyPartnering P msg hasOPK) A)}[y = true] := by
     rw [hswapI, hswapE]
     refine prEvent_bind_mono_of_forall_le _ _ _ _ _ fun b => ?_
     refine prEvent_bind_mono_of_forall_le _ _ _ _ _ fun x => ?_
     obtain ⟨cr, st⟩ := x
     rcases hk : cr.K0 with _ | k
     · simp [hk]
-    · cases hp : isPingPong cr <;> simp [hk, hp, Finset.filter_insert, Finset.filter_singleton]
-  have hIE : Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true] ≤
-      Pr{let y ← (indistExp P msg hasOPK A)}[y = true] + Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] := by
+    · cases hp : challengePartnered P msg hasOPK cr st.2.1 <;>
+        simp [hk, hp, Finset.filter_insert, Finset.filter_singleton]
+  have hIE : Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+        (originalKeyPartnering P msg hasOPK) A)}[y = true] ≤
+      Pr{let y ← (indistExp P msg hasOPK A)}[y = true] +
+        Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] := by
     have hcoin : Pr{let y ← (forgeExp P msg hasOPK A)}[y = true] =
         Pr{let y ← (($ᵗ Bool : ProbComp Bool) >>= fun _ => forgeExp P msg hasOPK A)}[y = true] := by
       simp only [map_bind]
@@ -135,20 +144,24 @@ lemma advantage_le_forgeProb_add_indistAdvantage
     obtain ⟨cr, st⟩ := x
     rcases _hk : cr.K0 with _ | k
     · simp
-    · cases _hp : isPingPong cr <;> simp
+    · cases _hp : challengePartnered P msg hasOPK cr st.2.1 <;> simp
   have h1 : (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal ≤
-      (Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal :=
+      (Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+        (originalKeyPartnering P msg hasOPK) A)}[y = true]).toReal :=
     ENNReal.toReal_mono (prEvent_ne_top _) hEI
-  have h2 : (Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal ≤
+  have h2 : (Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+        (originalKeyPartnering P msg hasOPK) A)}[y = true]).toReal ≤
       (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal +
         (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal := by
     have h := ENNReal.toReal_mono
       (ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩) hIE
     rwa [ENNReal.toReal_add (prEvent_ne_top _) (prEvent_ne_top _)] at h
-  rw [UAKE.advantage, probOutput_probComp_evalDist, forgeProb, indistAdvantage,
+  rw [partneredAdvantage, probOutput_probComp_evalDist, forgeProb, indistAdvantage,
     ← prEvent_eq_evalDist_singleton]
-  calc |(Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal - 1 / 2|
-      ≤ |(Pr{let y ← (UAKE.Exp ProbCompRuntime.probComp.toProbCompLift A)}[y = true]).toReal -
+  calc |(Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+          (originalKeyPartnering P msg hasOPK) A)}[y = true]).toReal - 1 / 2|
+      ≤ |(Pr{let y ← (PartneredExp ProbCompRuntime.probComp.toProbCompLift
+            (originalKeyPartnering P msg hasOPK) A)}[y = true]).toReal -
           (Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal| +
         |(Pr{let y ← (indistExp P msg hasOPK A)}[y = true]).toReal - 1 / 2| := abs_sub_le _ _ _
     _ ≤ (Pr{let y ← (forgeExp P msg hasOPK A)}[y = true]).toReal +
@@ -157,8 +170,8 @@ lemma advantage_le_forgeProb_add_indistAdvantage
       linarith
 
 omit [SampleableType K] in
-/-- Hop 2 (union bound): on any completed challenge run, either some signed
-  key of the accepted bundle was never signed by the challenger
+/-- Hop 2 (union bound): on any completed challenge run without an original-key partner,
+  either some signed key of the accepted bundle was never signed by the challenger
   (`sigForgeExp`), or the KEM-key bad event occurred (`pqpkGuessedExp`), or
   the forgery happened with an honest bundle and separated KEM keys
   (`forgeHonestGoodExp`). Purely probabilistic; uses no cryptographic
@@ -179,7 +192,7 @@ lemma forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood
       ← MeasureTheory.lintegral_add_left Measurable.of_discrete]
     refine MeasureTheory.lintegral_mono fun x => ?_
     obtain ⟨cr, st⟩ := x
-    exact probOutput_pure_le_add3 (forge_or_cases P msg hasOPK st.2.2 cr)
+    exact probOutput_pure_le_add3 (forge_or_cases P msg hasOPK st.2.2 st.2.1 cr)
   have h2 : Pr{let y ← (sigForgeExp P msg hasOPK A)}[y = true] +
       Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true] ≠ ⊤ :=
     ENNReal.add_ne_top.mpr ⟨prEvent_ne_top _, prEvent_ne_top _⟩

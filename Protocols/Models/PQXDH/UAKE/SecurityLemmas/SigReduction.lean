@@ -80,7 +80,7 @@ def publishSim (p : RecipientParameters F G PQPK PQSK S) :
 /-- `accept` with the value `DH2` taken from the agreement oracle. -/
 def acceptSim (p : RecipientParameters F G PQPK PQSK S)
     (msg : InitialMessage G CT C IdC IdK) :
-    OracleComp (Spec G PQPK S) (Option (SessionContext G PQPK Msg K)) := do
+    OracleComp (Spec G PQPK S) (Option (SessionContext G PQPK Msg K SS)) := do
   if msg.idSPK ≠ P.idEC p.spkB.1 ∨ msg.idPQPK ≠ P.idKEM p.pqpkB.1 ∨
       msg.idOPK ≠ p.opkB.map (fun opk => P.idEC opk.1) then return none
   let some SS ← up (P.pqkem.decaps p.pqpkB.2 msg.ct) | return none
@@ -91,7 +91,8 @@ def acceptSim (p : RecipientParameters F G PQPK PQSK S)
   let (SK, KA, KB) := P.kdf (DH1, DH2, DH3, DH4, SS)
   let AD := (msg.ikA, p.ikB.1, p.pqpkB.1)
   match P.aead.decrypt KA AD msg.ctxt with
-  | some m => return some { sk := SK, kb := KB, ad := AD, msg := m }
+  | some m =>
+      return some { sk := SK, kb := KB, ad := AD, msg := m, km := (DH1, DH2, DH3, DH4, SS) }
   | none => return none
 
 /-- Bob's party of the reduction: `recipient` with `publishSim` and `acceptSim`. Its state type is
@@ -99,7 +100,7 @@ that of `recipient`, and it never reads the secret half of the identity key. -/
 def recipientSim :
     Party (OracleComp (Spec G PQPK S)) (RecipientIdentity F G S)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := RecipientParameters F G PQPK PQSK S ⊕ K
+  State := RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS
   init := fun idn => do
     let opkB ← up (genOPK P.gen hasOPK)
     let pqpkB ← up P.pqkem.keygen
@@ -113,19 +114,20 @@ def recipientSim :
         match ← acceptSim P p im with
         | some ctx => do
             let conf ← up (P.aead.encrypt ctx.kb ctx.ad ctx.msg)
-            pure (.acceptAndSend (.inr ctx.sk) (.confirmation conf) true)
+            pure (.acceptAndSend (.inr ctx) (.confirmation conf) true)
         | none => pure .reject
     | _, _ => pure .reject
   output := fun st => match st with
     | .inl _ => pure none
-    | .inr SK => pure (some (some SK))
+    | .inr ctx => pure (some (some ctx.sk))
 
 /-- Alice's party of the reduction: `initiator` with its computations lifted to the oracles of the
 reduction. -/
 def initiatorSim :
     Party (OracleComp (Spec G PQPK S)) (InitiatorParameters F G Msg)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K
+  State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+    SessionContext G PQPK Msg K SS
   init := fun p => pure (.waitForMsg (.inl p))
   step := fun st w => match st, w with
     | .inl p, .bundle b => do
@@ -134,11 +136,11 @@ def initiatorSim :
         | none => pure .reject
     | .inr (.inl ctx), .confirmation conf =>
         match confirm P ctx conf with
-        | some SK => pure (.complete (.inr (.inr SK)))
+        | some _ => pure (.complete (.inr (.inr ctx)))
         | none => pure .reject
     | _, _ => pure .reject
   output := fun st => match st with
-    | .inr (.inr SK) => pure (some (some SK))
+    | .inr (.inr ctx) => pure (some (some ctx.sk))
     | _ => pure none
 
 /-- The long-term state of the reduction. Bob's identity public key `pk` comes from the signing
@@ -209,9 +211,10 @@ abbrev jointOr [Inhabited F] (pk : G) (x : F) :=
 
 /-- A session state of Bob with the secret half of the identity key replaced by a placeholder. -/
 def scrubState [Inhabited F] :
-    RecipientParameters F G PQPK PQSK S ⊕ K → RecipientParameters F G PQPK PQSK S ⊕ K
+    RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS →
+      RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS
   | .inl p => .inl { p with ikB := (p.ikB.1, default) }
-  | .inr k => .inr k
+  | .inr ctx => .inr ctx
 
 /-- The environment of the real run, as the reduction sees it. -/
 def scrubEnv [Inhabited F] (pk : G) (env : Env (uakeInitiator P msg hasOPK)) :
@@ -246,10 +249,12 @@ structure SimInv [Inhabited F] (pk : G) (x : F) (uk : InitiatorParameters F G Ms
   sessions : ∀ t ∈ env.tSessions,
     (∃ b c es, t.transcript.entries = (Message.bundle b, c) :: es) ∧
       ∀ p : RecipientParameters F G PQPK PQSK S,
-        t.state = (Sum.inl p : RecipientParameters F G PQPK PQSK S ⊕ K) → p.ikB = (pk, x)
+        t.state = (Sum.inl p : RecipientParameters F G PQPK PQSK S ⊕
+          SessionContext G PQPK Msg K SS) → p.ikB = (pk, x)
   challenge :
     (env.challenge.state =
-          (Sum.inl uk : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K) ∧
+          (Sum.inl uk : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+            SessionContext G PQPK Msg K SS) ∧
         env.challenge.transcript.entries = []) ∨
       ∃ b c es, env.challenge.transcript.entries = (Message.bundle b, c) :: es ∧
         Verified P pk b
@@ -337,7 +342,8 @@ lemma run_acceptSim [Inhabited F] (pk : G) (x : F)
 
 /-- The message that an initial result signs: the KEM key of the bundle that it opens with. -/
 def initLog :
-    Party.InitResult (RecipientParameters F G PQPK PQSK S ⊕ K) (Message G PQPK CT S C IdC IdK) →
+    Party.InitResult (RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
+      (Message G PQPK CT S C IdC IdK) →
       List (SignatureInput G PQPK)
   | .speakFirst _ (.bundle b) => [EncodeKEM b.pqpkB.1]
   | _ => []
@@ -361,7 +367,7 @@ lemma run_recipientSim_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdenti
 
 omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_step [Inhabited F] (pk : G) (x : F)
-    (st : RecipientParameters F G PQPK PQSK S ⊕ K)
+    (st : RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
     (hst : ∀ p, st = Sum.inl p → p.ikB = (pk, x))
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((recipientSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
@@ -383,7 +389,8 @@ lemma run_recipientSim_step [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_step [Inhabited F] (pk : G) (x : F)
-    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
+    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+      SessionContext G PQPK Msg K SS)
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((initiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
       (K := K) P).step st w)).run log =
@@ -405,7 +412,8 @@ lemma run_initiatorSim_step [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq PQPK] [DecidableEq IdC] [DecidableEq IdK] [SampleableType K] in
 lemma run_initiatorSim_output [Inhabited F] (pk : G) (x : F)
-    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
+    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+      SessionContext G PQPK Msg K SS)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((initiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
       (K := K) P).output st)).run log =
@@ -414,7 +422,8 @@ lemma run_initiatorSim_output [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 lemma run_recipientSim_output [Inhabited F] (pk : G) (x : F)
-    (st : RecipientParameters F G PQPK PQSK S ⊕ K) (log : List (SignatureInput G PQPK)) :
+    (st : RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
+    (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x) ((recipientSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK)
       (K := K) P hasOPK).output st)).run log =
       (fun r => (r, log)) <$> (recipient P hasOPK).output st := by
@@ -437,7 +446,7 @@ lemma simT_run_init [Inhabited F] (pk : G) (x : F) (tk : RecipientIdentity F G S
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_step [Inhabited F] (pk : G) (x : F)
-    (st : RecipientParameters F G PQPK PQSK S ⊕ K)
+    (st : RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
     (hst : ∀ p, st = Sum.inl p → p.ikB = (pk, x))
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
@@ -448,7 +457,8 @@ lemma simT_run_step [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simT_run_output [Inhabited F] (pk : G) (x : F)
-    (st : RecipientParameters F G PQPK PQSK S ⊕ K) (log : List (SignatureInput G PQPK)) :
+    (st : RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
+    (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
       ((uakeInitiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK) (K := K) P msg hasOPK
         pk).T.output st)).run log =
@@ -457,7 +467,8 @@ lemma simT_run_output [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_step [Inhabited F] (pk : G) (x : F)
-    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
+    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+      SessionContext G PQPK Msg K SS)
     (w : Message G PQPK CT S C IdC IdK) (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
       ((uakeInitiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK) (K := K) P msg hasOPK
@@ -467,7 +478,8 @@ lemma simU_run_step [Inhabited F] (pk : G) (x : F)
 
 omit [DecidableEq PQPK] [SampleableType K] in
 lemma simU_run_output [Inhabited F] (pk : G) (x : F)
-    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K)
+    (st : InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+      SessionContext G PQPK Msg K SS)
     (log : List (SignatureInput G PQPK)) :
     (simulateQ (jointOr P pk x)
       ((uakeInitiatorSim (CT := CT) (C := C) (IdC := IdC) (IdK := IdK) (K := K) P msg hasOPK
@@ -507,7 +519,8 @@ lemma signedLog_set [Inhabited F] (tk : RecipientIdentity F G S)
 omit [DecidableEq G] [DecidableEq PQPK] [DecidableEq Msg] [SampleableType K] in
 /-- A step of Bob's party never leaves a state that holds the identity secret, and never ends
 with `complete`. -/
-lemma recipient_step_state (st : RecipientParameters F G PQPK PQSK S ⊕ K)
+lemma recipient_step_state
+    (st : RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS)
     (w : Message G PQPK CT S C IdC IdK) :
     ∀ r ∈ support ((recipient P hasOPK).step st w),
       (∀ st' w' d, r = .acceptAndSend st' w' d → ∃ k, st' = Sum.inr k) ∧
@@ -723,7 +736,8 @@ lemma simInv_set_session [Inhabited F] {pk : G} {x : F} {uk : InitiatorParameter
     (ext : List (Message G PQPK CT S C IdC IdK × ℕ))
     (hext : t'.transcript.entries = t.transcript.entries ++ ext)
     (hst : ∀ p : RecipientParameters F G PQPK PQSK S,
-      t'.state = (Sum.inl p : RecipientParameters F G PQPK PQSK S ⊕ K) → p.ikB = (pk, x))
+      t'.state = (Sum.inl p : RecipientParameters F G PQPK PQSK S ⊕
+        SessionContext G PQPK Msg K SS) → p.ikB = (pk, x))
     (c : ℕ) (d : Bool) :
     SimInv P msg hasOPK pk x uk ⟨c, env.challenge, d, env.tSessions.set sid t'⟩ := by
   refine ⟨hI.pinned, ?_, hI.challenge⟩

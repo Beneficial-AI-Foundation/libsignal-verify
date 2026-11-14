@@ -7,6 +7,7 @@ Protocols/ATTRIBUTION.md.
 -/
 import Protocols.Models.PQXDH.Basic
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Defs
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OpeningBudget
 import Protocols.ToMathlib
 import VCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
 import VCVio.CryptoFoundations.PRF
@@ -82,13 +83,15 @@ inductive Message (G PQPK CT S C IdC IdK : Type) where
 
 /-- Alice's Party state machine, which internally uses the `initiate` function,
   traceable to the PQXDH spec, followed by the `confirm` function, which checks
-  Bob's AEAD ciphertext (not in the spec). -/
+  Bob's AEAD ciphertext (not in the spec). Alice keeps her session context after `confirm`
+  accepts Bob's confirmation, and `output` reads the key from it. -/
 def initiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq G] [DecidableEq Msg]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) :
     Party ProbComp (InitiatorParameters F G Msg)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K ⊕ K
+  State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕
+    SessionContext G PQPK Msg K SS
   init := fun p => pure (.waitForMsg (.inl p))
   step := fun st w => match st, w with
     | .inl p, .bundle b => do
@@ -97,22 +100,23 @@ def initiator [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
         | none => pure .reject
     | .inr (.inl ctx), .confirmation conf =>
         match confirm P ctx conf with
-        | some SK => pure (.complete (.inr (.inr SK)))
+        | some _ => pure (.complete (.inr (.inr ctx)))
         | none => pure .reject
     | _, _ => pure .reject
   output := fun st => match st with
-    | .inr (.inr SK) => pure (some (some SK))
+    | .inr (.inr ctx) => pure (some (some ctx.sk))
     | _ => pure none
 
 /-- Bob's Party state machine, which internally uses the `accept` and `publish`
   functions, traceable to the PQXDH spec, as well as sending a final AEAD
-  message (not in the spec). -/
+  message (not in the spec). Bob keeps the session context that `accept` returns, and
+  `output` reads the key from it. -/
 def recipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (hasOPK : Bool) :
     Party ProbComp (RecipientIdentity F G S)
       (Message G PQPK CT S C IdC IdK) (Option K) where
-  State := RecipientParameters F G PQPK PQSK S ⊕ K
+  State := RecipientParameters F G PQPK PQSK S ⊕ SessionContext G PQPK Msg K SS
   init := fun idn => do
     let opkB ← genOPK P.gen hasOPK
     let pqpkB ← P.pqkem.keygen
@@ -133,12 +137,12 @@ def recipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
               satisfy this, whereas the spec stops at Bob receiving the
               message. -/
             let conf ← P.aead.encrypt ctx.kb ctx.ad ctx.msg
-            pure (.acceptAndSend (.inr ctx.sk) (.confirmation conf) true)
+            pure (.acceptAndSend (.inr ctx) (.confirmation conf) true)
         | none => pure .reject
     | _, _ => pure .reject
   output := fun st => match st with
     | .inl _ => pure none
-    | .inr SK => pure (some (some SK))
+    | .inr ctx => pure (some (some ctx.sk))
 
 /-- UAKE scheme in which Bob plays the part of the authenticated party T and
   sends a final AEAD ciphertext to match the "T speaks last" convention from
@@ -220,14 +224,6 @@ def uakeRecipient [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
   U := recipientNoConfirm P hasOPK
   /- Alice is authenticated party -/
   T := initiatorNoConfirm P
-
-/-- Bounds the number of sessions started by the adversary with its T oracle by
-  bounding the number of openT queries. -/
-def _root_.AKE.UAKE.Adversary.OpensAtMost {K UK TK W : Type}
-    {proto : UAKE.Scheme ProbComp K UK TK W}
-    (A : UAKE.Adversary proto) (q : ℕ) : Prop :=
-  (∀ uk w, (A.challenge uk w).IsQueryBoundP (· matches Sum.inr .openT) q) ∧
-    (∀ st k, (A.post st k).IsQueryBoundP (· matches Sum.inr .openT) q)
 
 /-- KDF modeled as a PRF keyed by a bitstring (e.g., the output of the KEM). -/
 def kdfPRF [SampleableType SS]

@@ -8,6 +8,8 @@ import Protocols.Models.PQXDH.Basic
 import Protocols.Models.PQXDH.UAKE.Correctness
 import Protocols.Models.PQXDH.UAKE.CorrectnessLemmas
 import Protocols.Models.PQXDH.UAKE.Defs
+import Protocols.Models.PQXDH.UAKE.Partnering
+import Protocols.Models.PQXDH.UAKE.Projection
 import Protocols.Models.PQXDH.UAKE.Security
 import Protocols.Models.PQXDH.UAKE.SecurityLemmas
 import Protocols.Models.PQXDH.UAKE.WellFormed
@@ -19,6 +21,7 @@ Paper-level model of PQXDH over abstract primitives, ported from PQXDH-model at 
 the namespace `PQXDH` renamed `Protocols.Models.PQXDH`: the protocol procedures and their parameters
 in `Basic`, the two UAKE schemes `uakeInitiator` and `uakeRecipient` in `UAKE.Defs`, their
 perfect correctness in `UAKE.Correctness` and their well-formedness in `UAKE.WellFormed`, with
-the supporting lemmas in `UAKE.CorrectnessLemmas` and `UAKE.WellFormedLemmas`, the game hops
-in `UAKE.SecurityLemmas`, five of them admitted, and the two security theorems
+the supporting lemmas in `UAKE.CorrectnessLemmas` and `UAKE.WellFormedLemmas`, original-key
+partnering in `UAKE.Partnering`, the projection onto key-only parties in `UAKE.Projection`, the
+game hops in `UAKE.SecurityLemmas`, four of them admitted, and the two security theorems
 `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` in `UAKE.Security`. -/

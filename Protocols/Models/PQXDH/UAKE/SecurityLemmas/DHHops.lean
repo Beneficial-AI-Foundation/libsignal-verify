@@ -15,8 +15,9 @@ Hops 5 and 6 of the DH security theorem `Protocols.Models.PQXDH.uakeInitiator_se
 `Security.lean`: the forgery and indistinguishability cores, against GapDH,
 the KDF, and the AEAD. See `SecurityLemmas.lean` for the overall map.
 
-The hop lemmas assume `hidKEM`, which fails for production. The module note of
-`Security.lean` gives the reason.
+Both hops are stated over original-key partnering (`originalKeyPartnering`). The forgery event
+of hop 5 is "Alice accepted and no session of Bob is her original-key partner", and `indistExp`
+flips a coin on that event and when a revealed session is a partner.
 
 These statements are believed true in the current model (the KDF as a plain
 parameter function, plus a PRF hypothesis), but the standard reductions
@@ -39,50 +40,53 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [SampleableType K]
   (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
-/-- Hop 5 (forgery core, GapDH): with an honest bundle and separated KEM
-  keys, a forgery requires breaking GapDH, the KDF, or the AEAD.
+/-- Hop 5 (forgery core, GapDH): with an honest bundle and separated KEM keys, if Alice accepts
+  and no session of Bob is her original-key partner, the adversary has broken GapDH, the KDF, or
+  the AEAD.
 
-  Intended proof, as further hops once the KDF is modeled as a random oracle
-  (see the module comment):
-  1. Identify the unique T-oracle session that can share the challenge
-     session's key material: the accepted bundle pins `ikB` (checked by the
-     initiator), `spkB` (the only EC key `setup` signs), and `pqpkB`
-     (published by exactly one session, by `hidKEM` and the excluded
-     collision event).
-  2. Replace the KDF output triple `(SK, KA, KB)` on the challenge session's
-     key material with a fresh uniform triple, shared with any T-oracle
-     session that derives identical key material. A distinguisher must query
-     the KDF on the challenge key material, whose third DH component is
-     `DH ekA.2 spkB.1` for the challenge session's fresh ephemeral `ekA`;
-     embedding the GapDH challenge in `ekA` and `spkB`, recognizing the
-     query with the DDH oracle, and answering the T oracle's other KDF
-     queries consistently (again via the DDH oracle) yields a GapDH
-     adversary. This step consumes `εgap` and, under the current PRF
-     modeling of the KDF, `εkdf`.
-  3. With `KA` uniform, an initial message accepted by the paired session
-     with a modified AEAD ciphertext is a forgery against `KA` (first
-     `εaead`, via the INT-CTXT-D game whose encryption oracle produces the
-     challenge session's ciphertext).
-  4. With `KB` uniform, the confirmation the initiator accepts must have
-     been produced under `KB` by the paired session (second `εaead`); a
-     verbatim relay of honestly produced messages forces the global-clock
-     interleaving of `Matching`, so the transcripts match, contradicting
-     the forgery event.
+  A session of Bob that completed with a key, holds Alice's associated data and key material
+  `(ad, km)`, and accepted no later than Alice is her original-key partner
+  (`originalKeyPartnering`). A run that changes the key identifiers, a signature on an honestly
+  signed key, or the bytes of the one-time pre-key, and leaves `km` unchanged, keeps that partner,
+  so it is not in the event. These fields are not authenticated.
 
-  The factor `q` is generous (the reduction handles all sessions at once),
-  but stating the bound with it makes the composed bound collapse to `εsig`
-  when the adversary opens no sessions, in which case completing the
-  challenge session already requires a signature forgery.
+  Intended proof, as further hops once the KDF is modeled as a random oracle (see the module
+  comment):
+  1. Identify the session of Bob that can share Alice's key material: the accepted bundle pins
+     `ikB` (checked by Alice), `spkB` (the only EC key `setup` signs) and `pqpkB`. Exactly one
+     session published that KEM key, because the excluded collision event makes the published
+     KEM keys distinct. The key identifiers play no part.
+  2. Replace the KDF output triple `(SK, KA, KB)` on Alice's key material with a fresh uniform
+     triple, shared with any session of Bob that derives the same key material. A distinguisher
+     must query the KDF on Alice's key material, whose third DH component is `DH ekA.2 spkB.1`
+     for her fresh ephemeral `ekA`; embedding the GapDH challenge in `ekA` and `spkB`,
+     recognizing the query with the DDH oracle, and answering the T oracle's other KDF queries
+     consistently (again via the DDH oracle) yields a GapDH adversary. This step consumes `εgap`
+     and, under the current PRF modeling of the KDF, `εkdf`.
+  3. With `KA` uniform, a session of Bob that accepts, under Alice's key material, a pair of
+     ciphertext and associated data that Alice did not produce forges against `KA` (first
+     `εaead`, via the INT-CTXT-D game whose encryption oracle produces Alice's ciphertext).
+  4. With `KB` uniform, Alice accepts a confirmation only if it decrypts under `KB` with her
+     associated data, and after step 2 only a session of Bob with her key material encrypts
+     under `KB`. If such a session produced her confirmation under her associated data, it
+     accepted when it sent that confirmation, so no later than Alice, and it is her partner: the
+     run is not in the event. Otherwise Alice's acceptance forges against `KB` (second `εaead`).
+     This covers a confirmation forged before any session of Bob accepted and relayed to Bob
+     afterwards.
 
-  Used by `uakeInitiator_secure_dh` as hop 5. A proof would follow the steps above once the KDF
-  model is ruled, but the last step does not hold as stated, since unsigned bundle fields (the
-  key identifiers and the one-time pre-key) and, because hop 3 compares signed keys, the
-  signatures on honestly signed keys can change without changing the derived keys, so the
-  transcripts differ with no forgery. Assumes `hidKEM`; see the module note. -/
+  Steps 3 and 4 must count exposure under `KB` and not deny KDF evaluations. A failed decryption
+  may still evaluate the KDF at Alice's key material, distinct inputs need not give distinct KDF
+  outputs, and rejection under a wrong key is a security property of the AEAD. These are
+  obligations of the proof.
+
+  The factor `q` is generous (the reduction handles all sessions at once), but stating the bound
+  with it makes the composed bound collapse to `εsig` when the adversary opens no sessions, in
+  which case completing the challenge session already requires a signature forgery.
+
+  Used by `uakeInitiator_secure_dh` as hop 5. -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)
-    (hidKEM : Function.Injective P.idKEM)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
@@ -92,45 +96,45 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     forgeHonestGoodProb P msg hasOPK A ≤ q * (εgap + 2 * εaead + εkdf) := by
   sorry
 
-/-- Hop 6 (indistinguishability core, GapDH): in `indistExp`, the
-  adversary's guess is better than a fair coin only by breaking GapDH, the
-  KDF, or the AEAD, or by a KEM public-key collision.
+/-- Hop 6 (indistinguishability core, GapDH): in `indistExp`, the adversary's guess is better than
+  a fair coin only by breaking GapDH, the KDF, or the AEAD, or by a KEM public-key collision.
 
-  Intended proof, as further hops once the KDF is modeled as a random oracle
-  (see the module comment):
-  1. If the challenge session outputs no key, both finalizations hand the
-     adversary `none` and the guess is independent of the challenge bit, so
-     it wins with probability exactly `1 / 2`; the coined forgery branch
-     likewise. Only the ping-pong branch remains.
-  2. In the ping-pong branch, the accepted bundle equals a T-oracle
-     session's published bundle (their transcripts match message by
-     message), so the bundle is honest without a signature hypothesis.
-  3. Replace the KDF output triple on the challenge session's key material
-     with a fresh uniform triple, as in the forgery core (`εgap` plus, under
-     the current PRF modeling, `εkdf`).
-  4. If the matching session derived different key material (a KEM
-     decapsulation mismatch), the confirmation the initiator accepted
-     decrypts under the now-uniform `KB` without having been produced under
-     it: an AEAD forgery (`εaead`).
-  5. A reveal query returns the challenge key only for a session with
-     identical key material. For a session whose transcript matches the
-     challenge, `fullPingPong` flips a fair coin instead; any other such
-     session requires two T-oracle sessions sharing a KEM public key.
-     Both adversary stages together open at most `2 * q` sessions, giving
-     at most `2 * q ^ 2` pairs and the `2 * q ^ 2 * εpk` term by the
-     guessing bound (this term also absorbs prediction events in the post
-     phase, as in Hop 4).
-  6. Otherwise the challenge key is uniform, independent of the adversary's
-     view, and unrevealed, so the real and random finalizations are
-     identically distributed and the guess wins with probability exactly
-     `1 / 2`.
+  `indistExp` is the partnered experiment over `originalKeyPartnering`, with the outright win on
+  the forgery event replaced by a fair coin.
 
-  Used by `uakeInitiator_secure_dh` as hop 6. A proof would follow the steps above once the KDF
-  model is ruled. Assumes `hidKEM`; see the module note. -/
+  Intended proof, as further hops once the KDF is modeled as a random oracle (see the module
+  comment):
+  1. If Alice outputs no key, both finalizations hand the adversary `none` and the guess is
+     independent of the challenge bit, so it wins with probability exactly `1 / 2`; the coined
+     forgery branch likewise. Only the partnered branch remains.
+  2. In the partnered branch, a session of Bob that accepted no later than Alice holds her
+     associated data and key material. This does not make the accepted bundle honest, because
+     partnering compares `(ad, km)` and not the bundle. Equal key material with a signed pre-key
+     other than the one `setup` signed needs degenerate exponents: Alice's identity exponent is
+     `0`, and Bob's identity exponent or Alice's ephemeral exponent is `0`. That event has
+     probability about `2 / |F| ^ 2` per challenge. The bound has no term for it, and absorbing
+     it is an obligation of the proof.
+  3. Replace the KDF output triple on Alice's key material with a fresh uniform triple, as in the
+     forgery core (`εgap` plus, under the current PRF modeling, `εkdf`).
+  4. The partner holds Alice's key material, so the decapsulation mismatch of the ported plan does
+     not occur in this branch. The bound keeps its `εaead` term, as ported.
+  5. A revealed partner makes `finalizePartnered` flip a fair coin. That includes a second session
+     of Bob that published the same KEM key and derives Alice's `(ad, km)` from a replay of her
+     initial message. A revealed session that is not a partner returns the challenge key only if
+     it derived the same keys from other associated data or other key material, and bounding that
+     is an obligation of the proof. The bound keeps the `2 * q ^ 2 * εpk` term, as ported: both
+     stages together open at most `2 * q` sessions
+     (`AKE.UAKE.Adversary.OpensAtMost.openCount_le_two_mul`), so at most `2 * q ^ 2` pairs of
+     sessions can share a KEM public key.
+  6. Otherwise the challenge key is uniform, independent of the adversary's view, and unrevealed,
+     so the real and random finalizations are identically distributed and the guess wins with
+     probability exactly `1 / 2`.
+
+  The premises and the bound are those of the ported statement. Used by `uakeInitiator_secure_dh`
+  as hop 6. -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)
-    (hidKEM : Function.Injective P.idKEM)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
