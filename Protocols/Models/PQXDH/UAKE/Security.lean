@@ -21,11 +21,20 @@ Scope of the two theorems
   its game. The theorems are true implications that do not yet express computational
   security. That needs the resource model of #41.
 * `hkemCorrect` (perfect KEM correctness) is an idealization, because production Kyber
-  decapsulates wrongly with a small probability.
-* `hidKEM` does not hold for production, because key identifiers there are 32-bit prekey
-  ids and no map from 1568-byte KEM public keys to them is injective. The premise stays
-  until hop 5 is restated. Issue #35 reports the underlying problem: unsigned key
-  identifiers break transcript matching.
+  decapsulates wrongly with a small probability. Only the PQ hops 5 and 6 use it, and their
+  proofs must replace it (see their docstrings).
+* The experiment is the partnered experiment `PartneredExp` over original-key partnering
+  (`originalKeyPartnering`). Alice's challenge session and a session of Bob are partners when both
+  have accepted with the same associated data and the same key material `km`, the input of the
+  KDF. Alice wins outright when she accepts and no session of Bob that accepted no later than she
+  did is her partner. The key identifiers, the signatures and the bytes of an unsigned one-time
+  pre-key are not authenticated: changing them without changing `km` keeps the partner. These
+  theorems do not use the transcript matching of `UAKE.Exp`, because under transcript matching a
+  run that changes only unsigned key identifiers counts as a forgery (#35).
+  `uakeInitiator_advantage_eq_keyOnly` shows that keeping the session contexts leaves the
+  advantage in `UAKE.Exp` unchanged. Transcript matching and original-key partnering are two
+  instances of the session-level experiment `SessionExp`: `sessionAdvantage_transcript` gives
+  `UAKE.advantage`, and `sessionAdvantage_toSession` gives `partneredAdvantage`.
 
 Model simplifications
 * **Unilateral authentication:** UAKE is unilaterally authenticated. In
@@ -50,9 +59,9 @@ Model simplifications
   Pan and Zeng analyse XEdDSA under a related notion with a Diffie-Hellman decision oracle
   (Section 5.1, Theorem 5 of "Better Security Proofs for X3DH and XHMQV"). The signature
   forgery event therefore compares signed keys and not signature bytes. A run in which the
-  adversary only changes a signature on an honestly signed key is no signature forgery. Under
-  transcript matching such a run still counts as a forgery. It belongs to the residual event of
-  hop 5. See Li & Schäge, "No-Match Attacks and Robust Partnering Definitions" (ACM CCS 2017)
+  adversary only changes a signature on an honestly signed key is no signature forgery. Such a
+  run keeps `ad` and `km`, so Alice keeps her original-key partner, and the run is in no forgery
+  event. See Li & Schäge, "No-Match Attacks and Robust Partnering Definitions" (ACM CCS 2017)
   for attacks of this kind.
 * **PQ-secure signature scheme:** In order to re-use our AKE definition in the
   post-quantum case, we assume here that the signature scheme is *still
@@ -62,11 +71,6 @@ Model simplifications
   HNDL attacks, which requires only secrecy, not integrity. However, UAKE
   cannot capture secrecy alone. A better way to model this kind of security
   would be to use a secrecy-only definition.
-* **Injective key→ID maps:** We assume that the function mapping KEM keys to
-  identifiers is injective. Section 4.13 of the spec contains the weaker
-  requirement that "collisions are unlikely". Modeling the maps as collision
-  resistant would be an improvement, since it would allow a hash of the key to
-  be used, but we leave that as a future improvement.
 * **PQ security as UAKE with PQ signature:** We model PQ security as "UAKE
   security with compromised DH key exchange." This allows us to reuse our UAKE
   notion, but it's not quite the desired statement of security. In a PQ
@@ -93,18 +97,17 @@ namespace Protocols.Models.PQXDH
 variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
 /-- Top-level UAKE security theorem for the PQXDH model, assuming the
-  underlying DH key exchange is hard to break. This models UAKE security in the
-  non-PQ setting. The module note describes the scope of its premises. -/
+  underlying DH key exchange is hard to break. The advantage is that of the partnered
+  experiment over original-key partnering (`originalKeyPartnering`). This models UAKE
+  security in the non-PQ setting. The module note describes the scope of its premises. -/
 theorem uakeInitiator_secure_dh
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F]
     [SampleableType K] [Fintype K] [Inhabited K] [Inhabited S] [Inhabited F]
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq SS] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    /- We assume the function mapping KEM keys to key identifiers is injective. This fails
-      for production; see the module note. -/
-    (hidKEM : Function.Injective P.idKEM)
-    /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
+    /- Any UAKE adversary that opens at most q sessions with its T oracle in each of its two
+      stages, so at most 2 * q in all. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     /- Probabilities bounding the adversary's advantage w/r/t PQXDH's component
       primitives. -/
@@ -143,24 +146,23 @@ theorem uakeInitiator_secure_dh
       is bounded as a polynomial over the adversary bounds of the underlying
       schemes, where the coefficients are small constants and the number q of
       sessions started with its T oracle. -/
-    UAKE.advantage ProbCompRuntime.probComp A ≤
+    partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤
       εsig + 2 * q * (εgap + 2 * εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h₀ := advantage_le_forgeProb_add_indistAdvantage P msg hasOPK A
   have h₁ := forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood P msg hasOPK A
   have h₂ := sigForgeProb_le_sig P msg hasOPK A εsig hverifyDet hsig
   have h₃ := pqpkGuessedProb_le P msg hasOPK A q hq εpk hpk
-  have h₄ := forgeHonestGoodProb_le_gap P msg hasOPK A q hq εgap εaead εkdf hidKEM hgap
-    haead hkdf
-  have h₅ := indistAdvantage_le_gap P msg hasOPK A q hq εgap εaead εkdf εpk hidKEM hgap
-    haead hkdf hpk
+  have h₄ := forgeHonestGoodProb_le_gap P msg hasOPK A q hq εgap εaead εkdf hgap haead hkdf
+  have h₅ := indistAdvantage_le_gap P msg hasOPK A q hq εgap εaead εkdf εpk hgap haead hkdf hpk
   have hεaead : (0 : ℝ) ≤ εaead :=
     le_trans ENNReal.toReal_nonneg (haead ⟨pure ()⟩)
   have hqa : (0 : ℝ) ≤ (q : ℝ) * εaead := mul_nonneg (Nat.cast_nonneg q) hεaead
   nlinarith [h₀, h₁, h₂, h₃, h₄, h₅, hqa]
 
 /-- Top-level UAKE security theorem for the PQXDH model, making no assumptions
-  about the underlying DH key exchange, but assuming the KEM is secure. This
-  models UAKE security in the PQ setting.
+  about the underlying DH key exchange, but assuming the KEM is secure. The advantage is
+  that of the partnered experiment over original-key partnering (`originalKeyPartnering`).
+  This models UAKE security in the PQ setting.
   * MODEL GAP: We model PQ security here as "UAKE security with compromised DH
     key exchange." This allows us to reuse our UAKE notion, but it's not quite
     the desired statement of security. In a PQ setting, PQXDH is intended to be
@@ -182,10 +184,8 @@ theorem uakeInitiator_secure_pq
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    /- We assume the function mapping KEM keys to key identifiers is injective. This fails
-      for production; see the module note. -/
-    (hidKEM : Function.Injective P.idKEM)
-    /- Any UAKE adversary who starts at most q sessions with its T oracle. -/
+    /- Any UAKE adversary that opens at most q sessions with its T oracle in each of its two
+      stages, so at most 2 * q in all. -/
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     /- Probabilities bounding the adversary's advantage w/r/t PQXDH's component
       primitives. -/
@@ -230,16 +230,15 @@ theorem uakeInitiator_secure_pq
       is bounded as a polynomial over the adversary bounds of the underlying
       schemes, where the coefficients are small constants and the number q of
       sessions started with its T oracle. -/
-    UAKE.advantage ProbCompRuntime.probComp A ≤
+    partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk := by
   have h₀ := advantage_le_forgeProb_add_indistAdvantage P msg hasOPK A
   have h₁ := forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood P msg hasOPK A
   have h₂ := sigForgeProb_le_sig P msg hasOPK A εsig hverifyDet hsig
   have h₃ := pqpkGuessedProb_le P msg hasOPK A q hq εpk hpk
-  have h₄ := forgeHonestGoodProb_le_pq P msg hasOPK A q hq εkem εaead εkdf hidKEM
-    hkemCorrect hkem haead hkdf
-  have h₅ := indistAdvantage_le_pq P msg hasOPK A q hq εkem εkdf εpk hidKEM hkemCorrect
-    hkem hkdf hpk
+  have h₄ := forgeHonestGoodProb_le_pq P msg hasOPK A q hq εkem εaead εkdf hkemCorrect hkem
+    haead hkdf
+  have h₅ := indistAdvantage_le_pq P msg hasOPK A q hq εkem εkdf εpk hkemCorrect hkem hkdf hpk
   nlinarith [h₀, h₁, h₂, h₃, h₄, h₅]
 
 end Protocols.Models.PQXDH

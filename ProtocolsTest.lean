@@ -4,9 +4,11 @@ Released under the terms of the LICENSE file in the project root.
 Authors: Jin Xing Lim
 -/
 
+import ProtocolsTest.Models.PQXDH.PartneringFixtures
 import ProtocolsTest.PQXDH.FaultFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AEADAxioms
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.ExperimentFixtures
+import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.OpeningBudgetFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TranscriptFixtures
 import ProtocolsTest.ToVCVio.CryptoFoundations.AKE.UAKE.TransportFixtures
 

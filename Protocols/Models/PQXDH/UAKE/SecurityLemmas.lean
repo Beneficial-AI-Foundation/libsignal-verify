@@ -15,9 +15,10 @@ import Protocols.Models.PQXDH.UAKE.SecurityLemmas.PQHops
 
 Game hops scaffolding the proofs of the top-level security theorems
 `Protocols.Models.PQXDH.uakeInitiator_secure_dh` and
-`Protocols.Models.PQXDH.uakeInitiator_secure_pq` in `Security.lean`. Both proofs split the UAKE
-experiment into a forgery branch (the challenge session completes on a transcript that matches no
-T-oracle session) and an indistinguishability branch (the adversary
+`Protocols.Models.PQXDH.uakeInitiator_secure_pq` in `Security.lean`. Both proofs split the
+partnered UAKE experiment over original-key partnering into a forgery branch (Alice's challenge
+session completes and no session of Bob is her original-key partner) and an indistinguishability
+branch (the adversary
 distinguishes the accepted session key from random). They share Hops 1
 through 4 and differ only in the core hops, which bound the two branches
 against GapDH (the DH theorem) or the KEM's IND-CCA security (the PQ
@@ -25,7 +26,7 @@ theorem):
 
 * Hop 1 (`advantage_le_forgeProb_add_indistAdvantage`, `SharedHops.lean`):
   replace the outright win awarded for a forgery with a fair coin flip; the
-  UAKE advantage is bounded by the forgery probability plus the modified
+  partnered advantage is bounded by the forgery probability plus the modified
   experiment's advantage.
 * Hop 2 (`forgeProb_le_sigForge_add_pqpkGuessed_add_forgeHonestGood`,
   `SharedHops.lean`): a forgery is a signature forgery, a KEM public-key
@@ -52,10 +53,8 @@ session's key material, which requires the KDF to be a programmable random
 oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
 are expressible in the current model (the KDF's PRF key slot is the KEM
 shared secret, which the IND-CCA hop makes uniform) and are deferred as
-future reduction work. Both forgery cores also face the transcript-binding
-gap recorded in their docstrings: the last step of their proof plans infers
-matching transcripts from a verbatim relay, but unsigned bundle fields can
-change without changing the derived keys. The well-formedness lemmas in
+future reduction work. Original-key partnering ignores the unsigned bundle fields, so a run that
+changes only them keeps Alice's partner and is no forgery. The well-formedness lemmas in
 `WellFormedLemmas.lean` (parties output exactly at completion, honest runs
 transfer exactly `rounds` messages) are expected to discharge the
 bookkeeping relating `K0` to challenge-session completion.

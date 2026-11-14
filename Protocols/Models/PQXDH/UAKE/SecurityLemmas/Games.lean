@@ -5,6 +5,7 @@ Authors: Ben Hamlin
 Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
 Protocols/ATTRIBUTION.md.
 -/
+import Protocols.Models.PQXDH.UAKE.Partnering
 import Protocols.Models.PQXDH.UAKE.WellFormedLemmas
 
 /-!
@@ -12,8 +13,8 @@ import Protocols.Models.PQXDH.UAKE.WellFormedLemmas
 
 The challenge-phase game shared by the security hops, the derived
 experiments (forgery, signature forgery, KEM-key guessing, and the
-coin-flipped indistinguishability experiment), and the transcript-level
-event predicates they use. The hop lemmas over these games live in the
+coin-flipped indistinguishability experiment), and the event
+predicates they use. The hop lemmas over these games live in the
 sibling files of `SecurityLemmas/`; see `SecurityLemmas.lean` for the
 overall map.
 
@@ -100,11 +101,21 @@ def challengePhase (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
   let (uk, tk) ← setup P msg
   challengeSession ProbCompRuntime.probComp.toProbCompLift A uk tk
 
-/-- Forgery experiment: the challenge session completed, but its transcript
-  matches no T-oracle session, so the adversary spoofed a message from T. -/
+open Classical in
+/-- Alice's challenge session has an original-key partner: a session of Bob that completed with a
+key, holds her associated data and key material, and accepted no later than she did
+(`authPartnered` over `originalKeyPartnering`). It is decided classically, as in
+`PartneredExp`. -/
+def challengePartnered (cr : ChallengeResult (uakeInitiator P msg hasOPK))
+    (env : Env (uakeInitiator P msg hasOPK)) : Bool :=
+  decide (authPartnered (originalKeyPartnering P msg hasOPK) env.challenge.state cr.challengeTr
+    env.tSessions)
+
+/-- Forgery experiment: Alice's challenge session accepted, and no session of Bob is her
+  original-key partner (`challengePartnered`). -/
 def forgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
-  let (cr, _) ← challengePhase P msg hasOPK A
-  return cr.K0.isSome && !isPingPong cr
+  let (cr, st) ← challengePhase P msg hasOPK A
+  return cr.K0.isSome && !challengePartnered P msg hasOPK cr st.2.1
 
 /-- Probability of the forgery event. -/
 def forgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
@@ -132,12 +143,12 @@ def pqpkGuessedExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp 
 def pqpkGuessedProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   (Pr{let y ← (pqpkGuessedExp P msg hasOPK A)}[y = true]).toReal
 
-/-- Residual forgery experiment: a forgery on an honest bundle, whose keys are
-  the signed keys as published, with pairwise-distinct and unpredicted KEM keys.
-  This is the event bounded by the forgery cores (Hop 5). -/
+/-- Residual forgery experiment: a forgery, in the sense of `forgeExp`, on an honest bundle, whose
+  keys are the signed keys as published, with pairwise-distinct and unpredicted KEM keys. This is
+  the event bounded by the forgery cores (Hop 5). -/
 def forgeHonestGoodExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
   let (cr, st) ← challengePhase P msg hasOPK A
-  return cr.K0.isSome && !isPingPong cr &&
+  return cr.K0.isSome && !challengePartnered P msg hasOPK cr st.2.1 &&
     ((challengeBundle P msg hasOPK cr).all fun b => honestBundle P msg hasOPK st.2.2 cr b) &&
     !pqpkGuessed P msg hasOPK cr
 
@@ -145,19 +156,22 @@ def forgeHonestGoodExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbC
 def forgeHonestGoodProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   (Pr{let y ← (forgeHonestGoodExp P msg hasOPK A)}[y = true]).toReal
 
-/-- The UAKE experiment with the forgery branch's outright win replaced by a
-  fair coin flip. Identical to `UAKE.Exp` on the other two branches. -/
+/-- The partnered experiment `PartneredExp` over `originalKeyPartnering`, with the outright win
+  on the forgery branch replaced by a fair coin flip. Identical to `PartneredExp` on the other two
+  branches. -/
 def indistExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
   let (uk, tk) ← setup P msg
   let b ← $ᵗ Bool
   let (cr, st) ← challengeSession ProbCompRuntime.probComp.toProbCompLift A uk tk
   if cr.K0.isNone then
-    finalize ProbCompRuntime.probComp.toProbCompLift A st cr b none
-  else if !isPingPong cr then
+    finalizePartnered ProbCompRuntime.probComp.toProbCompLift (originalKeyPartnering P msg hasOPK)
+      A st cr b none
+  else if !challengePartnered P msg hasOPK cr st.2.1 then
     $ᵗ Bool
   else do
     let K1 ← some <$> ($ᵗ K)
-    finalize ProbCompRuntime.probComp.toProbCompLift A st cr b K1
+    finalizePartnered ProbCompRuntime.probComp.toProbCompLift (originalKeyPartnering P msg hasOPK)
+      A st cr b K1
 
 /-- The adversary's advantage over a fair coin in `indistExp`. -/
 def indistAdvantage (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
