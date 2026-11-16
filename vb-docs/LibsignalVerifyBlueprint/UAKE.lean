@@ -204,8 +204,9 @@ the correctness of the production PQXDH handshake, which this notion does not co
 
 ## Admissible schemes
 
-Three further conditions restrict the schemes that the PQXDH theorems consider. DF have
-none of them as a separate definition.
+Three further conditions describe a scheme that runs as intended. DF have none of them as
+a separate definition. The security theorems for PQXDH take none of them as a hypothesis.
+The next chapter proves the first condition, and perfect correctness, for the PQXDH model.
 
 We call a scheme _well formed_ if both parties output only at completion and have pure
 output, and if every honest run from setup sends exactly $`r` messages.
@@ -687,8 +688,9 @@ chapter explains
 
 # The oracle Diffie-Hellman premise
 
-The classical-security theorem for PQXDH uses one more premise, about the key derivation
-of PQXDH. It adapts the PRF-ODH assumptions of Brendel, Fischlin, Günther and Janson. In
+The classical-security statement for the production handshake uses one more premise, about
+the key derivation of PQXDH. The model theorem of the next chapter assumes instead that the
+key derivation is a PRF. The premise adapts the PRF-ODH assumptions of Brendel, Fischlin, Günther and Janson. In
 their lrPRF-ODH game (Definition 2.1), the adversary receives $`g^u` and, at the challenge,
 $`g^v`. It names an input $`x^*` and receives either $`\mathrm{PRF}(g^{uv}, x^*)` or a
 random value. Depending on $`l` and $`r`, it has an oracle that answers $`(S, x)` with
