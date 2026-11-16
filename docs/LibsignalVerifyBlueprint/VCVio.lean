@@ -40,7 +40,8 @@ writes security experiments and advantages with these notions.
 The cards in the first four sections show upstream code at the pinned commits of
 VCV-io and [cslib](https://github.com/leanprover/cslib/tree/5b56df99362532c46e1175381fbbdd755bd56030).
 The book does not track their status. Three cards in the fifth section come from this
-repository. For these, the book reports the status that the repository's ledger gives.
+repository. One of them is a theorem, and the book gives its status from the repository's
+ledger of admitted lemmas.
 
 # Oracle specifications
 
@@ -276,13 +277,15 @@ We call a computation with output in $`\mathrm{Bool}` a _security experiment_. I
 read through the measure $`\mu` that the runtime gives it. VCV-io measures the advantage of
 an adversary by the bias of $`\mu`.
 
+Let $`\mu` be a measure on $`\mathrm{Bool}`. We define the _bias_ of $`\mu` to be
+$$`\mathrm{bias}(\mu) = |\mu\{\mathrm{true}\} - \mu\{\mathrm{false}\}| \in [0, \infty].`
+
 ::::definition "bool_bias" (lean := "MeasureTheory.Measure.boolBias")
 :::LibsignalVerifyBlueprint.pair MeasureTheory.Measure.boolBias -docstrings
 *Origin: VCV-io at the pin.*
 
-Let $`\mu` be a measure on $`\mathrm{Bool}`. We define the _bias_ of $`\mu` to be
-$$`\mathrm{bias}(\mu) = |\mu\{\mathrm{true}\} - \mu\{\mathrm{false}\}| \in [0, \infty].`
-For example, VCV-io's `KEMScheme.IND_CCA_Advantage` is the bias of the IND-CCA game.
+The Lean definition takes the absolute difference of the two masses in the extended
+non-negative reals. For example, VCV-io's `KEMScheme.IND_CCA_Advantage` is the bias of the IND-CCA game.
 That game outputs whether the adversary guessed the challenge bit.
 :::
 ::::
@@ -311,7 +314,8 @@ $$`\mathrm{DistAdv}(\mathcal{A}) = |\mu_{\mathsf{G}_1}\{\mathrm{true}\} - \mu_{\
 *Origin: this repository.*
 
 `FixedBitExp lift A false` is the real game and `FixedBitExp lift A true` the random game.
-The value is the real part of VCV-io's `Measure.boolDist` of their two measures.
+The value is VCV-io's `Measure.boolDist` of their two measures, converted to a real
+number with `toReal`.
 :::
 ::::
 
