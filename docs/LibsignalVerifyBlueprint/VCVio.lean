@@ -39,9 +39,7 @@ writes security experiments and advantages with these notions.
 
 The cards in the first four sections show upstream code at the pinned commits of
 VCV-io and [cslib](https://github.com/leanprover/cslib/tree/5b56df99362532c46e1175381fbbdd755bd56030).
-The book does not track their status. Three cards in the fifth section come from this
-repository. One of them is a theorem, and the book gives its status from the repository's
-ledger of admitted lemmas.
+The three cards in the fifth section come from this repository.
 
 # Oracle specifications
 
@@ -51,8 +49,6 @@ $`R(i)` the type of _answers_ to $`i`.
 
 ::::definition "oracle_spec" (lean := "OracleSpec")
 :::LibsignalVerifyBlueprint.pair OracleSpec -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition is the family itself: `OracleSpec ι` is the type of functions
 `ι → Type v`. For a specification `spec`, VCV-io writes `spec.Domain` for the index type
 and `spec.Range i` for the answer type of the query `i`.
@@ -70,8 +66,6 @@ happens for each possible answer.
 
 ::::definition "oracle_spec_to_pfunctor" (lean := "OracleSpec.toPFunctor") (uses := "oracle_spec")
 :::LibsignalVerifyBlueprint.pair OracleSpec.toPFunctor -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition builds the polynomial functor with positions `ι` and directions
 `spec`. The inverse construction is `OracleSpec.ofPFunctor`, and the lemmas
 `toPFunctor_ofPFunctor` and `ofPFunctor_toPFunctor` show that the two constructions
@@ -101,8 +95,6 @@ interaction.
 
 ::::definition "free_monad" (lean := "PFunctor.FreeM")
 :::LibsignalVerifyBlueprint.pair PFunctor.FreeM -docstrings
-*Origin: cslib at the pin.*
-
 The two constructors of the Lean inductive type are `pure` and `liftBind`, as above.
 VCV-io reaches this type through [PolyFun](https://github.com/Verified-zkEVM/PolyFun/tree/ef4c157b3c6775fb55864303d96f9b400428d5f0),
 which re-exports it.
@@ -114,8 +106,6 @@ $`\mathrm{Free}_P(\alpha)` an _oracle computation_ for $`R` with outputs in $`\a
 
 ::::definition "oracle_comp" (lean := "OracleComp") (uses := "oracle_spec_to_pfunctor, free_monad")
 :::LibsignalVerifyBlueprint.pair OracleComp -docstrings
-*Origin: VCV-io at the pin.*
-
 `OracleComp spec` is by definition the free monad on `spec.toPFunctor`. A single query,
 an element of $`P(X)`, has its own type `OracleQuery spec`.
 :::
@@ -127,8 +117,6 @@ sample.
 
 ::::definition "prob_comp" (lean := "ProbComp") (uses := "oracle_comp")
 :::LibsignalVerifyBlueprint.pair ProbComp -docstrings
-*Origin: VCV-io at the pin.*
-
 `ProbComp` is an abbreviation for `OracleComp unifSpec`. Lean writes a uniform sample
 from a finite type `T` as `$ᵗ T`. It is a `ProbComp` computation.
 :::
@@ -142,8 +130,6 @@ $`\theta_i \in m(R(i))`. Each query thus gets a computation in $`m` that produce
 
 ::::definition "query_impl" (lean := "QueryImpl") (uses := "oracle_spec")
 :::LibsignalVerifyBlueprint.pair QueryImpl -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition is the dependent function type `(x : spec.Domain) → m (spec.Range x)`.
 :::
 ::::
@@ -157,8 +143,6 @@ implementation gives for it.
 
 ::::definition "simulate_q" (lean := "simulateQ") (uses := "query_impl, oracle_comp")
 :::LibsignalVerifyBlueprint.pair simulateQ -docstrings
-*Origin: VCV-io at the pin.*
-
 `simulateQ impl` is cslib's fold `PFunctor.FreeM.liftM impl`, whose two defining
 equations are the two equations above.
 :::
@@ -166,8 +150,6 @@ equations are the two equations above.
 
 ::::theorem "simulate_q_bind" (lean := "simulateQ_bind") (uses := "simulate_q")
 :::LibsignalVerifyBlueprint.pair simulateQ_bind (part := "signature") -docstrings
-*Origin: VCV-io at the pin.*
-
 Let $`m` be a lawful monad. Then
 $`\mathrm{sim}_\theta(t \mathbin{>\!\!>\!\!=} f) = \mathrm{sim}_\theta(t) \mathbin{>\!\!>\!\!=} (\mathrm{sim}_\theta \circ f)`.
 :::
@@ -202,8 +184,6 @@ of the node is the zero measure.
 
 ::::definition "free_denote" (lean := "PFunctor.FreeM.denote") (uses := "free_monad")
 :::LibsignalVerifyBlueprint.pair PFunctor.FreeM.denote -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition has the two cases above. The measurability test is an `if` with
 `else 0`.
 :::
@@ -215,8 +195,6 @@ most $`1`. In Lean this is the class `EvalDistSemantics`.
 
 ::::definition "eval_dist" (lean := "evalDist") (uses := "free_denote")
 :::LibsignalVerifyBlueprint.pair evalDist -docstrings
-*Origin: VCV-io at the pin.*
-
 `evalDist mx` is the measure that the semantics of the monad gives `mx`. VCV-io writes it
 `𝒟[mx]`. For an oracle computation, `𝒟[mx]` is the denotation above, and the lemma
 `PFunctor.FreeM.evalDist_eq_denote` says so.
@@ -229,8 +207,6 @@ $`x` to be $`1 - \mu(\alpha)`. VCV-io denotes the probability of an event by
 
 ::::definition "pr_fail" (lean := "prFail") (uses := "eval_dist")
 :::LibsignalVerifyBlueprint.pair prFail -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition maps every output to `True` and subtracts the probability of `True`
 from $`1`. The lemma `prFail_def` restates this as `prFail mx = 1 - Pr{let _ ← mx}[True]`.
 :::
@@ -242,8 +218,6 @@ that case never occurs, and no mass is lost.
 
 ::::theorem "oracle_comp_lossless" (lean := "OracleComp.prFail_eq_zero") (uses := "pr_fail, oracle_comp")
 :::LibsignalVerifyBlueprint.pair OracleComp.prFail_eq_zero (part := "signature") -docstrings
-*Origin: VCV-io at the pin.*
-
 Let $`R` be an oracle specification with an answer measure. Every oracle computation for
 $`R` has failure probability $`0`.
 :::
@@ -262,8 +236,6 @@ semantics must commute with measurable maps.
 
 ::::definition "prob_comp_runtime" (lean := "ProbCompRuntime") (uses := "eval_dist, prob_comp")
 :::LibsignalVerifyBlueprint.pair ProbCompRuntime -docstrings
-*Origin: VCV-io at the pin.*
-
 The three fields are the semantics, the sampling morphism, and the law for measurable maps.
 The canonical runtime `ProbCompRuntime.probComp` takes $`m = \mathrm{ProbComp}`, the
 identity morphism, and the semantics `𝒟`. The lemma `ProbCompRuntime.probComp_evalDist`
@@ -282,8 +254,6 @@ $$`\mathrm{bias}(\mu) = |\mu\{\mathrm{true}\} - \mu\{\mathrm{false}\}| \in [0, \
 
 ::::definition "bool_bias" (lean := "MeasureTheory.Measure.boolBias")
 :::LibsignalVerifyBlueprint.pair MeasureTheory.Measure.boolBias -docstrings
-*Origin: VCV-io at the pin.*
-
 The Lean definition takes the absolute difference of the two masses in the extended
 non-negative reals. For example, VCV-io's `KEMScheme.IND_CCA_Advantage` is the bias of the IND-CCA game.
 That game outputs whether the adversary guessed the challenge bit.
@@ -297,8 +267,6 @@ $$`\mathrm{Adv}(\mathcal{A}) = |\mu_{\mathsf{G}}\{\mathrm{true}\} - \tfrac{1}{2}
 
 ::::definition "uake_advantage" (lean := "AKE.UAKE.advantage") (uses := "prob_comp_runtime")
 :::LibsignalVerifyBlueprint.pair AKE.UAKE.advantage -docstrings
-*Origin: this repository.*
-
 The value is a real number. The experiment `Exp` draws the challenge bit itself and
 returns whether the adversary won.
 :::
@@ -311,8 +279,6 @@ $$`\mathrm{DistAdv}(\mathcal{A}) = |\mu_{\mathsf{G}_1}\{\mathrm{true}\} - \mu_{\
 
 ::::definition "uake_dist_advantage" (lean := "AKE.UAKE.distAdvantage") (uses := "prob_comp_runtime")
 :::LibsignalVerifyBlueprint.pair AKE.UAKE.distAdvantage -docstrings
-*Origin: this repository.*
-
 `FixedBitExp lift A false` is the real game and `FixedBitExp lift A true` the random game.
 The value is VCV-io's `Measure.boolDist` of their two measures, converted to a real
 number with `toReal`.
@@ -321,11 +287,6 @@ number with `toReal`.
 
 ::::theorem "uake_advantage_eq_dist_advantage_div_two" (lean := "AKE.UAKE.advantage_eq_distAdvantage_div_two") (uses := "uake_advantage, uake_dist_advantage")
 :::LibsignalVerifyBlueprint.pair AKE.UAKE.advantage_eq_distAdvantage_div_two (part := "signature") -docstrings
-*Origin: this repository. Status: proved.*
-
-The ledger lists no admitted lemma in its proof, and its axioms are `propext`,
-`Classical.choice` and `Quot.sound`.
-
 Under the runtime `ProbCompRuntime.probComp`,
 $`\mathrm{Adv}(\mathcal{A}) = \tfrac{1}{2}\,\mathrm{DistAdv}(\mathcal{A})`.
 :::

@@ -405,7 +405,11 @@ private def mathCodeCss : String := r#"
 .content-wrapper p > code:not(.bp_math) { overflow-wrap: anywhere; white-space: normal; }
 .content-wrapper:has(.bp_math_code) { max-width: 90rem; }
 .content-wrapper:has(.bp_math_code) > section { max-width: none; }
-.content-wrapper:has(.bp_math_code) > section > p { max-width: 75ch; }
+.content-wrapper:has(.bp_math_code) > section > :not(.bp_wrapper) {
+  max-width: 75ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 .bp_math_code {
   display: grid;
   grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
