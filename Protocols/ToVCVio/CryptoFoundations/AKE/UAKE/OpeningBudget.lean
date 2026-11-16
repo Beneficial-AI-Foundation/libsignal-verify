@@ -66,25 +66,20 @@ theorem oracleImpl_openCount_of_not_openT (lift : ProbCompLift ProbComp) (tk : T
     | revealT sid =>
       simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind, hs,
-          StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+      · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs] at hz
         subst hz
         rfl
       · rcases hk : t.key with _ | key
-        · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind,
-            hs, hk, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+        · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs, hk] at hz
           subst hz
           rfl
-        · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind,
-            hs, hk, StateT.run_map, StateT.run_set, map_pure, support_pure,
-            Set.mem_singleton_iff] at hz
+        · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs, hk, StateT.run_set] at hz
           subst hz
           simp
     | stepT sid w =>
       simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       rcases hs : env.tSessions[sid]? with _ | t
-      · simp only [bind_pure_comp, pure_bind, StateT.run_bind, StateT.run_get, hs,
-          StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+      · simp only [pure_bind, StateT.run_bind, StateT.run_get, hs] at hz
         subst hz
         rfl
       · rcases hk : t.key with _ | key
@@ -93,39 +88,34 @@ theorem oracleImpl_openCount_of_not_openT (lift : ProbCompLift ProbComp) (tk : T
           obtain ⟨res, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
           cases res with
           | reject =>
-            simp only [StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+            simp only at hz
             subst hz
             rfl
           | acceptAndSend st' w' done =>
             cases done
-            · simp only [Bool.false_eq_true, ↓reduceIte, StateT.run_map, StateT.run_set,
-                map_pure, support_pure, Set.mem_singleton_iff] at hz
+            · simp only [Bool.false_eq_true, ↓reduceIte] at hz
               subst hz
               simp
             · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
-                bind_pure_comp, StateT.run_map, StateT.run_set, map_pure, Functor.map_map,
-                support_map, Set.mem_image] at hz
+                bind_pure_comp, StateT.run_set] at hz
               obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
-              simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+              simp only [pure_bind] at hz
               subst hz
               simp
           | complete st' =>
             simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self, bind_pure_comp,
-              StateT.run_map, StateT.run_set, map_pure, Functor.map_map, support_map,
-              Set.mem_image] at hz
+              StateT.run_set] at hz
             obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
-            simp only [pure_bind, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+            simp only [pure_bind] at hz
             subst hz
             simp
-        · simp only [bind_pure_comp, pure_bind, StateT.run_bind, StateT.run_get,
-            hs, hk, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+        · simp only [pure_bind, StateT.run_bind, StateT.run_get, hs, hk] at hz
           subst hz
           rfl
     | stepChallenge w =>
       simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
       by_cases hd : env.challengeDone = true
-      · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind, hd,
-          ↓reduceIte, StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+      · simp only [StateT.run_bind, StateT.run_get, pure_bind, hd, ↓reduceIte] at hz
         subst hz
         rfl
       · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind, hd,
@@ -134,17 +124,15 @@ theorem oracleImpl_openCount_of_not_openT (lift : ProbCompLift ProbComp) (tk : T
         obtain ⟨res, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
         cases res with
         | reject =>
-          simp only [StateT.run_pure, support_pure, Set.mem_singleton_iff] at hz
+          simp only at hz
           subst hz
           rfl
         | acceptAndSend st' w' done =>
-          simp only [StateT.run_map, StateT.run_set, map_pure, support_pure,
-            Set.mem_singleton_iff] at hz
+          simp only at hz
           subst hz
           rfl
         | complete st' =>
-          simp only [StateT.run_map, StateT.run_set, map_pure, support_pure,
-            Set.mem_singleton_iff] at hz
+          simp only at hz
           subst hz
           rfl
 
