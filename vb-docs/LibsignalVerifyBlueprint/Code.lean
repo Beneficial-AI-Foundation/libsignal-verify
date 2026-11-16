@@ -22,7 +22,7 @@ def cslibSourceUrl : String :=
   "https://github.com/leanprover/cslib/blob/5b56df99362532c46e1175381fbbdd755bd56030/"
 
 /-- Where the source of a module lives: the local file the card is checked against (Lake runs
-the elaborator in `docs/`, whose parent is the repository root) and the public URL it links to.
+the elaborator in `vb-docs/`, whose parent is the repository root) and the public URL it links to.
 Only the packages listed here have source links. -/
 def moduleSource (modName : String) : Option (String × String) :=
   let modulePath := modName.replace "." "/" ++ ".lean"
