@@ -43,8 +43,9 @@ One difference holds for every notion in this chapter. A definition in the liter
 quantifies over efficient adversaries and bounds their running time and number of queries.
 The Lean games quantify over all adversaries and count neither. A hypothesis that bounds the
 advantage of every adversary is therefore much stronger than the assumption in the
-literature. It can hold only with a bound close to $`1`, so the bounds of the theorems that
-assume it are trivial.
+literature. For every correct instantiation, the computational hypotheses of the PQXDH
+theorems hold only with bounds close to $`1`, so the bounds that these theorems state are
+trivial.
 [Issue #41](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/41) tracks this.
 
 # Unilaterally authenticated key exchange
@@ -329,7 +330,7 @@ full-ping-pong with `fullPingPong`, which keeps only the revealed sessions with 
 :::
 ::::
 
-The advantage of this experiment is the card `uake_advantage` of the first chapter. It is
+The advantage of this experiment is the UAKE advantage of the first chapter. It is
 $`|\Pr[\mathsf{Exp} = \mathrm{true}] - \tfrac{1}{2}|` as in DF Definition 8.
 
 The experiment follows DF step by step. The Lean model differs from DF in the following
@@ -461,8 +462,10 @@ decryption returns the message.
 In the ciphertext integrity game, the challenger draws a uniform key $`k`. The adversary
 asks for encryptions of pairs $`(d_i, m_i)` and receives $`c_i`. It outputs a pair
 $`(d, c)` that is not one of the pairs $`(d_i, c_i)`, and it wins if $`D(k, c, d)` is not
-reject. The advantage is the probability that it wins (Boneh and Shoup, Attack Game 9.1,
-pp. 358 and 359, with associated data as in Attack Game 9.3, p. 379).
+reject. The advantage is the probability that it wins. This is Attack Game 9.1 of Boneh and
+Shoup (pp. 358 and 359), with associated data added as in Attack Game 9.3 (p. 379). Attack
+Game 9.3 is for ciphers with nonces, and for ciphers with associated data and no nonces
+Boneh and Shoup define only CCA security (Section 9.6, p. 380). They do not state this game.
 
 ::::definition "aead_int_ctxt_game" (lean := "AEAD.INT_CTXT_Game") (uses := "aead_scheme, simulate_q")
 :::LibsignalVerifyBlueprint.pair AEAD.INT_CTXT_Game -docstrings
@@ -548,7 +551,9 @@ The advantage is a real number.
 
 Boneh and Shoup define the advantage as $`|\Pr[W_0] - \Pr[W_1]|`, where $`W_b` is the event
 that the adversary outputs $`1` in the experiment with bit $`b` (Attack Game 5.2,
-pp. 181 and 182). The bit-guessing form is half of this value (their equation (5.4)). The
+pp. 181 and 182). The bit-guessing form is half of this value (their equation (5.4)).
+Attack Game 5.2 has no associated data. Boneh and Shoup add associated data to CPA security
+only for ciphers with nonces (Definition 9.7, p. 378). The
 production message encryption is deterministic, so it cannot satisfy this notion. No PQXDH
 theorem uses the notion.
 
