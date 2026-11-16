@@ -404,8 +404,10 @@ def declaration : CodeBlockExpanderOf DeclarationConfig
 private def mathCodeCss : String := r#"
 .content-wrapper p > code:not(.bp_math) { overflow-wrap: anywhere; white-space: normal; }
 .content-wrapper:has(.bp_math_code) { max-width: 90rem; }
-.content-wrapper:has(.bp_math_code) > section { max-width: none; }
-.content-wrapper:has(.bp_math_code) > section > :not(.bp_wrapper) {
+/* Apply at every section depth: a `##` subsection is a nested `section`, and capping
+   it would squeeze its math/code pairs into the prose column. */
+.content-wrapper:has(.bp_math_code) section { max-width: none; }
+.content-wrapper:has(.bp_math_code) section > :not(.bp_wrapper):not(section) {
   max-width: 75ch;
   margin-left: auto;
   margin-right: auto;
