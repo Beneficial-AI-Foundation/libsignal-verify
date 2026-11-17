@@ -13,9 +13,32 @@ namespace LibsignalVerifyBlueprint
 def vcvioSourceUrl : String :=
   "https://github.com/Verified-zkEVM/VCV-io/blob/88efe9715a9fa9e7d89635c38cf70259836766c2/"
 
-/-- Source links for this repository's declarations: the commit the book describes. -/
+/-- The commit of this repository that its source links name when `source-revision` does not exist. -/
+def defaultSourceRevision : String := "264b746ee3883a85466b73ffdc6081a005a00794"
+
+/-- Stands for the commit in the stored link to a declaration of this repository. The renderer
+replaces it with `sourceRevision`, so the commit is read when the site is rendered and not when
+the book is compiled: a compiled book never names a stale commit. -/
+def revisionPlaceholder : String := "{revision}"
+
+/-- Source links for this repository's declarations. The commit comes from `sourceRevision`. -/
 def repositorySourceUrl : String :=
-  "https://github.com/Beneficial-AI-Foundation/libsignal-verify/blob/264b746ee3883a85466b73ffdc6081a005a00794/"
+  "https://github.com/Beneficial-AI-Foundation/libsignal-verify/blob/" ++ revisionPlaceholder ++ "/"
+
+/-- The commit that the source links to this repository name: the content of the file
+`source-revision` in the directory where the site is rendered (`vb-docs/`), or
+`defaultSourceRevision` when there is no such file. The build of the published site writes the
+file with the commit that it checked out. The file must hold one 40-digit lowercase hexadecimal
+hash. -/
+def sourceRevision : IO String := do
+  let path : System.FilePath := "source-revision"
+  unless (← path.pathExists) do
+    return defaultSourceRevision
+  let revision := (← IO.FS.readFile path).trimAscii.toString
+  unless revision.length == 40 && revision.toList.all (fun c => c.isDigit || ('a' ≤ c && c ≤ 'f')) do
+    throw <| IO.userError
+      s!"source-revision must hold one 40-digit lowercase hexadecimal commit hash, found {repr revision}"
+  return revision
 
 /-- Source links for cslib declarations: the commit pinned in the root manifest. -/
 def cslibSourceUrl : String :=
@@ -415,6 +438,7 @@ block_extension Block.declarationCard (name part sourcePath : String) where
       else if (sourcePath.splitOn "/Protocols/Models/").length > 1 then "PQXDH model"
       else "libsignal-verify"
     let code ← blocks.mapM goB
+    let sourceUrl := sourcePath.replace revisionPlaceholder (← sourceRevision)
     pure <| tag "details" #[("class", "bp_declaration_card"), ("open", ""), ("data-provenance", provenance)]
       (.seq #[
         tag "summary" #[("title", name)] (.seq #[
@@ -424,7 +448,7 @@ block_extension Block.declarationCard (name part sourcePath : String) where
             (.text true s!"{view} · hover names for types")
         ]),
         tag "div" #[("class", "bp_declaration_card_body")] (.seq code),
-        tag "a" #[("class", "bp_source_link"), ("href", sourcePath), ("data-declaration", name)]
+        tag "a" #[("class", "bp_source_link"), ("href", sourceUrl), ("data-declaration", name)]
           (.text true "Source file")
       ])
 

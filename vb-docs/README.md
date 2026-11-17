@@ -47,6 +47,34 @@ The first command checks the book and the Lean it refers to. The second writes t
 for example `python3 -m http.server --directory _out/site/html-multi 8000`, and open
 `http://127.0.0.1:8000/`.
 
+## Publishing the book
+
+The book is published on GitHub Pages by the repository
+[libsignal-verify-docs](https://github.com/Beneficial-AI-Foundation/libsignal-verify-docs). That
+repository holds no source of the book. It holds a workflow, run by hand, that checks out one
+commit of this repository, builds the book and deploys it. Two parts of this directory serve that
+workflow:
+
+- **`source-revision`.** The link "Source file" of a code card names a commit of this repository.
+  The renderer reads the commit from the file `source-revision` in this directory when it writes
+  the site, so a compiled book never names a stale commit. The workflow writes the file with the
+  commit that it checked out. The file is not committed. Without it, the links name
+  `defaultSourceRevision` in `LibsignalVerifyBlueprint/Code.lean`. The file must hold one
+  40-digit lowercase hexadecimal hash.
+- **`scripts/export-public.py`.** The build writes the absolute path of the build directory into
+  `xref.json`, `-verso-data/blueprint-manifest.json` and, as embedded data, `find/index.html`.
+  The script copies `_out/site/html-multi` to a publication folder and rewrites each such path to
+  a path relative to the repository root. It fails if a path under `/Users/` or `/home/` remains.
+  It also fails if a source link names a commit other than `source-revision`.
+
+To check what would be published, render the book, export it and serve the copy:
+
+```
+lake exe vbp build
+python3 scripts/export-public.py --destination /tmp/book-site
+python3 -m http.server --directory /tmp/book-site 8000
+```
+
 ## How to read the markers
 
 Each box that refers to a Lean declaration carries the marker of VersoBlueprint: "complete",
@@ -57,10 +85,8 @@ The book is not the proof. The proofs are checked by `lake build` of the Lean de
 
 ## Known items
 
-- **Build path in the generated files.** The build writes the absolute path of the build
-  directory into `blueprint-manifest.json`, `xref.json` and, as embedded data, `find/index.html`
-  under `_out/site/html-multi`. `_out` is not committed. A published site needs an export step
-  that removes or rewrites these paths first.
+- **Build path in the generated files.** `_out/site/html-multi` holds the absolute path of the
+  build directory. Do not publish that folder as it is: use the export script above.
 - **Docstrings in popups.** The popup of a card shows the full docstring of the Lean
   declaration, as written in the source, and VersoBlueprint offers no option to hide it. Some
   docstrings of the PQXDH model mark places where the model departs from the specification.
