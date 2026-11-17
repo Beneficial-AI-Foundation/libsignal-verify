@@ -57,9 +57,10 @@ The book is not the proof. The proofs are checked by `lake build` of the Lean de
 
 ## Known items
 
-- **Build path in the generated files.** The JSON files that the build writes under `_out`
-  contain the absolute path of the build directory. `_out` is not committed. A published site
-  needs an export step that removes or rewrites these paths first.
+- **Build path in the generated files.** The build writes the absolute path of the build
+  directory into `blueprint-manifest.json`, `xref.json` and, as embedded data, `find/index.html`
+  under `_out/site/html-multi`. `_out` is not committed. A published site needs an export step
+  that removes or rewrites these paths first.
 - **Docstrings in popups.** The popup of a card shows the full docstring of the Lean
   declaration, as written in the source, and VersoBlueprint offers no option to hide it. Some
   docstrings of the PQXDH model mark places where the model departs from the specification.

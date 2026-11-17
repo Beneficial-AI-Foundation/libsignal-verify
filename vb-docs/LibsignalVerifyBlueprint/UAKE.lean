@@ -609,7 +609,7 @@ verification is deterministic, as a separate hypothesis.
 Let $`\Sigma = (\mathrm{KeyGen}, \mathrm{Sign}, \mathrm{Verify})` be a signature scheme over
 a monad $`m` with messages in $`M`, and let $`R` be a runtime for $`m`. We call $`\Sigma`
 _perfectly complete_ under $`R` if for every $`\mu \in M`,
-$$`\Pr_R\big[(\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{KeyGen};\ \sigma \leftarrow \mathrm{Sign}(\mathrm{pk}, \mathrm{sk}, \mu) : \mathrm{Verify}(\mathrm{pk}, \mu, \sigma) = 1\big] = 1.`
+$$`\begin{aligned}\Pr_R\big[&(\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{KeyGen};\\ &\sigma \leftarrow \mathrm{Sign}(\mathrm{pk}, \mathrm{sk}, \mu)\\ &: \mathrm{Verify}(\mathrm{pk}, \mu, \sigma) = 1\big] = 1.\end{aligned}`
 :::
 ::::
 
@@ -795,7 +795,7 @@ games below take $`m` to be the monad of probabilistic computations.
 Let $`(E, D)` be an AEAD scheme over probabilistic computations, with $`\mathcal{K}`
 finite and nonempty. We call $`(E, D)` _perfectly correct_ if for every
 $`\mu \in \mathcal{M}` and every $`d \in \mathrm{AD}`,
-$$`\Pr\big[k \leftarrow \mathcal{K};\ c \leftarrow E(k, d, \mu) : D(k, d, c) = \mu\big] = 1,`
+$$`\begin{aligned}\Pr\big[&k \leftarrow \mathcal{K};\ c \leftarrow E(k, d, \mu)\\ &: D(k, d, c) = \mu\big] = 1,\end{aligned}`
 where $`k` is drawn uniformly.
 :::
 ::::
@@ -1087,7 +1087,7 @@ run from the empty cache. The equality test on inputs needs `DecidableEq D`.
 Let $`(\mathrm{KeyGen}, F)` be a PRF scheme whose range is finite and nonempty, and let
 $`\mathcal{A}` be a PRF adversary for its domain and range. The _advantage_ of
 $`\mathcal{A}` is
-$$`\mathrm{Adv}^{\mathrm{prf}}(\mathcal{A}) := \big|\Pr[\mathsf{Real}(\mathcal{A}) = 1] - \Pr[\mathsf{Ideal}(\mathcal{A}) = 1]\big| \in [0, \infty],`
+$$`\begin{aligned}\mathrm{Adv}^{\mathrm{prf}}(\mathcal{A}) := \big|&\Pr[\mathsf{Real}(\mathcal{A}) = 1]\\ &- \Pr[\mathsf{Ideal}(\mathcal{A}) = 1]\big| \in [0, \infty],\end{aligned}`
 where $`|a - b| := (a \mathbin{\dot-} b) + (b \mathbin{\dot-} a)` for
 $`a, b \in [0, \infty]`, with $`\dot-` truncated subtraction.
 :::
@@ -1235,7 +1235,7 @@ Let $`O` be an oracle specification, let $`\Lambda` be a KEM over oracle computa
 $`O` whose key space $`K` is finite and nonempty, let $`R` be a runtime for the monad of
 oracle computations for $`O`, and let $`\mathcal{A}` be an IND-CCA adversary against
 $`\Lambda`. The _advantage_ of $`\mathcal{A}` under $`R` is
-$$`\mathrm{Adv}^{\mathrm{cca}}_R(\mathcal{A}) := \big|\Pr_R[\mathsf{CCA}(\mathcal{A}) = 1] - \Pr_R[\mathsf{CCA}(\mathcal{A}) = 0]\big| \in [0, \infty],`
+$$`\begin{aligned}\mathrm{Adv}^{\mathrm{cca}}_R(\mathcal{A}) := \big|&\Pr_R[\mathsf{CCA}(\mathcal{A}) = 1]\\ &- \Pr_R[\mathsf{CCA}(\mathcal{A}) = 0]\big| \in [0, \infty],\end{aligned}`
 the bias of the output of $`\mathsf{CCA}(\mathcal{A})` under $`R`. Here
 $`|a - b| := (a \mathbin{\dot-} b) + (b \mathbin{\dot-} a)` for $`a, b \in [0, \infty]`,
 with $`\dot-` truncated subtraction.

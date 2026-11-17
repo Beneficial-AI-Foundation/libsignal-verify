@@ -244,7 +244,7 @@ other, we name the components, so that the procedures below can refer to them.
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.InitiatorParameters -docstrings -comments
 Let $`F`, $`G` and $`\mathrm{Msg}` be types. We define the _initiator parameters_ to be the
 triples
-$$`((\mathrm{IK}_A, \mathrm{ik}_A), \mathrm{IK}_B, \mu) \in (G \times F) \times G \times \mathrm{Msg},`
+$$`\begin{aligned}&((\mathrm{IK}_A, \mathrm{ik}_A), \mathrm{IK}_B, \mu)\\ &\in (G \times F) \times G \times \mathrm{Msg},\end{aligned}`
 where $`(\mathrm{IK}_A, \mathrm{ik}_A)` is the identity key pair of Alice, $`\mathrm{IK}_B` is
 the identity public key of Bob, which Alice has pinned, and $`\mu` is the message that Alice
 sends to Bob.
@@ -258,7 +258,7 @@ KS leaves this out of the protocol.
 ::::definition "pqxdh_recipient_identity" (lean := "Protocols.Models.PQXDH.RecipientIdentity")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.RecipientIdentity -docstrings -comments
 Let $`F`, $`G` and $`S` be types. We define the _long-term state of Bob_ to be the triples
-$$`((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}}) \in (G \times F) \times (G \times F) \times S,`
+$$`\begin{aligned}&((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}})\\ &\in (G \times F) \times (G \times F) \times S,\end{aligned}`
 where $`(\mathrm{IK}_B, \mathrm{ik}_B)` is the identity key pair of Bob,
 $`(\mathrm{SPK}_B, \mathrm{spk}_B)` is his signed prekey pair, and $`\sigma_{\mathrm{SPK}}` is
 the signature on the signed prekey.
@@ -269,7 +269,7 @@ the signature on the signed prekey.
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.RecipientParameters -docstrings -comments
 Let $`F`, $`G`, $`\mathrm{PQPK}`, $`\mathrm{PQSK}` and $`S` be types. We define the _session
 parameters of Bob_ to be the tuples
-$$`((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B)),`
+$$`\begin{aligned}(&(\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B),\\ &\sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B)),\end{aligned}`
 in $`(G \times F) \times (G \times F) \times S \times ((G \times F) + \{\ast\}) \times (\mathrm{PQPK} \times \mathrm{PQSK})`.
 The first three components are the long-term state of Bob. The component $`o` is his
 one-time prekey pair, if he has one, and $`(\mathrm{PQPK}_B, \mathrm{pqsk}_B)` is his KEM key
@@ -286,7 +286,7 @@ one-time KEM key.
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.PreKeyBundle -docstrings -comments
 Let $`G`, $`\mathrm{PQPK}`, $`S`, $`\mathrm{Id}_{\mathrm{EC}}` and
 $`\mathrm{Id}_{\mathrm{KEM}}` be types. A _prekey bundle_ is a tuple
-$$`(\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}}, (\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)`
+$$`\begin{aligned}(&\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}},\\ &(\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)\end{aligned}`
 in $`G \times (G \times \mathrm{Id}_{\mathrm{EC}}) \times S \times (\mathrm{PQPK} \times \mathrm{Id}_{\mathrm{KEM}}) \times S \times ((G \times \mathrm{Id}_{\mathrm{EC}}) + \{\ast\})`.
 It has an identity public key, a signed prekey with its identifier and its signature, a KEM
 public key with its identifier and its signature, and an optional one-time prekey with its
@@ -305,7 +305,7 @@ it.
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.InitialMessage -docstrings -comments
 Let $`G`, $`\mathrm{CT}`, $`C`, $`\mathrm{Id}_{\mathrm{EC}}` and $`\mathrm{Id}_{\mathrm{KEM}}`
 be types. An _initial message_ is a tuple
-$$`(\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}}, i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)`
+$$`\begin{aligned}(&\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}},\\ &i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)\end{aligned}`
 in $`G \times G \times \mathrm{CT} \times \mathrm{Id}_{\mathrm{EC}} \times \mathrm{Id}_{\mathrm{KEM}} \times (\mathrm{Id}_{\mathrm{EC}} + \{\ast\}) \times C`.
 It has the identity public key and the ephemeral public key of Alice, a KEM ciphertext, the
 identifiers of the signed prekey, of the KEM prekey and of the one-time prekey, which may be
@@ -319,7 +319,7 @@ KS lists the same items for the initial message (KS, Section 3.3, p. 10).
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.SessionContext -docstrings -comments
 Let $`G`, $`\mathrm{PQPK}`, $`\mathrm{Msg}` and $`K` be types. A _session context_ is a
 tuple
-$$`(\mathrm{sk}, k_B, \mathrm{AD}, \mu) \in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg},`
+$$`\begin{aligned}&(\mathrm{sk}, k_B, \mathrm{AD}, \mu)\\ &\in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg},\end{aligned}`
 with a session key $`\mathrm{sk}`, an AEAD key $`k_B`, associated data $`\mathrm{AD}` and a
 message $`\mu`.
 :::
@@ -362,12 +362,12 @@ signature are created once, here, and they do not change.
 ::::definition "pqxdh_publish" (lean := "Protocols.Models.PQXDH.publish") (uses := "pqxdh_parameters, pqxdh_recipient_parameters, pqxdh_prekey_bundle, pqxdh_signature_input")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.publish -docstrings -comments
 Let $`P` be a set of PQXDH parameters, and let
-$$`p = ((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B))`
+$$`\begin{aligned}p = (&(\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B),\\ &\sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B))\end{aligned}`
 be session parameters of Bob. We define $`\mathrm{Publish}_P(p)` to be the probabilistic
 computation with output in the prekey bundles that draws $`\sigma_{\mathrm{PQPK}}` from
 $`\mathrm{Sign}(\mathrm{IK}_B, \mathrm{ik}_B, \mathrm{Enc}_{\mathrm{KEM}}(\mathrm{PQPK}_B))` and
 outputs the bundle
-$$`(\mathrm{IK}_B, (\mathrm{SPK}_B, \mathrm{id}_{\mathrm{EC}}(\mathrm{SPK}_B)), \sigma_{\mathrm{SPK}}, (\mathrm{PQPK}_B, \mathrm{id}_{\mathrm{KEM}}(\mathrm{PQPK}_B)), \sigma_{\mathrm{PQPK}}, o'),`
+$$`\begin{aligned}(&\mathrm{IK}_B, (\mathrm{SPK}_B, \mathrm{id}_{\mathrm{EC}}(\mathrm{SPK}_B)), \sigma_{\mathrm{SPK}},\\ &(\mathrm{PQPK}_B, \mathrm{id}_{\mathrm{KEM}}(\mathrm{PQPK}_B)), \sigma_{\mathrm{PQPK}}, o'),\end{aligned}`
 where $`o' = (\mathrm{OPK}, \mathrm{id}_{\mathrm{EC}}(\mathrm{OPK}))` if
 $`o = (\mathrm{OPK}, \mathrm{opk})`, and $`o' = \ast` if $`o = \ast`.
 :::
@@ -382,7 +382,7 @@ the KEM key is made here, in each session, as the key is created in each session
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
 and whose type $`G` is a vector space over $`F`. Let
 $`p = ((\mathrm{IK}_A, \mathrm{ik}_A), \mathrm{IK}_B, \mu)` be initiator parameters, and let
-$$`\beta = (\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}}, (\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)`
+$$`\begin{aligned}\beta = (&\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}},\\ &(\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)\end{aligned}`
 be a prekey bundle. We define $`\mathrm{Initiate}_P(p, \beta)` to be the probabilistic
 computation with output in the initial messages paired with the session contexts, or
 $`\bot`, given by the following steps.
@@ -422,9 +422,9 @@ deletion.
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.accept -docstrings -comments
 Let $`P` be a set of PQXDH parameters whose type $`F` is a field and whose type $`G` is a
 vector space over $`F`. Let
-$$`p = ((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B))`
+$$`\begin{aligned}p = (&(\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B),\\ &\sigma_{\mathrm{SPK}}, o, (\mathrm{PQPK}_B, \mathrm{pqsk}_B))\end{aligned}`
 be session parameters of Bob, and let
-$$`m = (\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}}, i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)`
+$$`\begin{aligned}m = (&\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}},\\ &i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)\end{aligned}`
 be an initial message. We define $`\mathrm{Accept}_P(p, m)` to be the probabilistic
 computation with output in the session contexts, or $`\bot`, given by the following steps.
 
@@ -655,7 +655,7 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`. The identity signature scheme $`\Sigma_P` is
 perfectly complete under the runtime of probabilistic computations if and only if for every
 $`\mu \in G + \mathrm{PQPK}`,
-$$`\Pr\big[(X, x) \leftarrow \mathrm{KeyGen}_g;\ \sigma \leftarrow \mathrm{Sign}(X, x, \mu) : \mathrm{Verify}(X, \mu, \sigma) = 1\big] = 1.`
+$$`\begin{aligned}\Pr\big[&(X, x) \leftarrow \mathrm{KeyGen}_g;\ \sigma \leftarrow \mathrm{Sign}(X, x, \mu)\\ &: \mathrm{Verify}(X, \mu, \sigma) = 1\big] = 1.\end{aligned}`
 :::
 ::::
 
@@ -760,7 +760,7 @@ define the PRF scheme $`\mathrm{KDF}_{\mathrm{SS}}(P) = (\mathrm{KeyGen}, F)` wi
 $`\mathrm{SS}`, domain $`G \times G \times G \times (G + \{\ast\})` and range
 $`K \times K \times K` as follows. The computation $`\mathrm{KeyGen}` draws a key uniformly
 from $`\mathrm{SS}`, and
-$$`F(\mathrm{ss}, (X_1, X_2, X_3, X_4)) := \mathrm{KDF}(X_1, X_2, X_3, X_4, \mathrm{ss}).`
+$$`\begin{aligned}&F(\mathrm{ss}, (X_1, X_2, X_3, X_4)) :=\\ &\quad \mathrm{KDF}(X_1, X_2, X_3, X_4, \mathrm{ss}).\end{aligned}`
 :::
 ::::
 
@@ -773,7 +773,7 @@ and whose type $`G` is a vector space over $`F`. We define the PRF scheme
 $`\mathrm{KDF}_{\mathrm{DH}}(P) = (\mathrm{KeyGen}, F')` with key space $`F`, domain
 $`G \times G \times (G + \{\ast\}) \times \mathrm{SS}` and range $`K \times K \times K` as
 follows. The computation $`\mathrm{KeyGen}` draws a key uniformly from $`F`, and
-$$`F'(c, (X_1, X_2, X_4, \mathrm{ss})) := \mathrm{KDF}(X_1, X_2, c \cdot g, X_4, \mathrm{ss}).`
+$$`\begin{aligned}&F'(c, (X_1, X_2, X_4, \mathrm{ss})) :=\\ &\quad \mathrm{KDF}(X_1, X_2, c \cdot g, X_4, \mathrm{ss}).\end{aligned}`
 :::
 ::::
 
@@ -795,7 +795,7 @@ Suppose that
 1. the map $`\mathrm{id}_{\mathrm{KEM}}` is injective;
 2. the verification algorithm is deterministic: for all $`X \in G`,
    $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is $`b` such that
-   $`\mathrm{Verify}(X, \nu, \sigma)` always outputs $`b`;
+   $`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns $`b`;
 3. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
    $`\varepsilon_{\mathrm{sig}}`;
 4. every Gap-DH adversary against $`(F, G, g)` has advantage at most
@@ -808,7 +808,7 @@ Suppose that
    a public key equal to $`Y` is at most $`\varepsilon_{\mathrm{pk}}`.
 
 Then
-$$`\mathrm{Adv}_R(\mathcal{A}) \le \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}}) + 3q^2\,\varepsilon_{\mathrm{pk}}.`
+$$`\begin{aligned}\mathrm{Adv}_R(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
 :::
 ::::
 
@@ -836,7 +836,7 @@ most $`q` sessions. Suppose that
 1. the map $`\mathrm{id}_{\mathrm{KEM}}` is injective;
 2. the verification algorithm is deterministic: for all $`X \in G`,
    $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is $`b` such that
-   $`\mathrm{Verify}(X, \nu, \sigma)` always outputs $`b`;
+   $`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns $`b`;
 3. the KEM $`\Lambda` is perfectly correct under the runtime of probabilistic computations;
 4. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
    $`\varepsilon_{\mathrm{sig}}`;
@@ -850,7 +850,7 @@ most $`q` sessions. Suppose that
    a public key equal to $`Y` is at most $`\varepsilon_{\mathrm{pk}}`.
 
 Then
-$$`\mathrm{Adv}_R(\mathcal{A}) \le \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}}) + 3q^2\,\varepsilon_{\mathrm{pk}}.`
+$$`\begin{aligned}\mathrm{Adv}_R(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
 :::
 ::::
 
@@ -919,22 +919,30 @@ the timestamp of the first entry of $`\tau`, and $`\ast` if $`\tau` is empty.
 
 ::::definition "pqxdh_bundles" (lean := "Protocols.Models.PQXDH.oracleBundles, Protocols.Models.PQXDH.challengeBundle") (uses := "pqxdh_challenge_result, pqxdh_transcript_bundle, pqxdh_uake_initiator")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.oracleBundles -docstrings -comments
-Let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a challenge result. We define
-the list $`\mathrm{Bun}_T(\mathrm{cr})` of the _bundles of $`T`_ to be the list of those
-$`\mathrm{bun}(\tau_i)` that differ from $`\ast`, in the order of $`i`.
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, and let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a
+challenge result of $`\Pi_B(P, \mu, h)`. We define the list $`\mathrm{Bun}_T(\mathrm{cr})` of
+the _bundles of $`T`_ to be the list of those $`\mathrm{bun}(\tau_i)` that differ from
+$`\ast`, in the order of $`i`.
 :::
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.challengeBundle -docstrings -comments
-Let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a challenge result. We define
-the _bundle of $`U`_ to be $`\mathrm{Bun}_U(\mathrm{cr}) := \mathrm{bun}(\tau^*)`, which is
-$`\ast` if the challenge session has accepted no bundle.
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, and let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a
+challenge result of $`\Pi_B(P, \mu, h)`. We define the _bundle of $`U`_ to be
+$`\mathrm{Bun}_U(\mathrm{cr}) := \mathrm{bun}(\tau^*)`, which is $`\ast` if the challenge
+session has accepted no bundle.
 :::
 ::::
 
 ::::definition "pqxdh_honest_bundle" (lean := "Protocols.Models.PQXDH.honestBundle") (uses := "pqxdh_bundles, pqxdh_prekey_bundle, pqxdh_recipient_identity")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.honestBundle -docstrings -comments
-Let $`\mathrm{tk}` be the long-term state of Bob, with signed prekey $`\mathrm{SPK}_B`, let
-$`\mathrm{cr}` be a challenge result, and let
-$$`\beta = (\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}}, (\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)`
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, let $`\mathrm{tk}` be the long-term state of Bob, with signed prekey
+$`\mathrm{SPK}_B`, let $`\mathrm{cr}` be a challenge result of $`\Pi_B(P, \mu, h)`, and let
+$$`\begin{aligned}\beta = (&\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}},\\ &(\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o)\end{aligned}`
 be a prekey bundle. We say that $`\beta` is _honest_ for $`\mathrm{tk}` and $`\mathrm{cr}` if
 $`\mathrm{SPK} = \mathrm{SPK}_B`, and if the KEM public key $`\mathrm{PQPK}` of $`\beta` is
 the KEM public key of some bundle in $`\mathrm{Bun}_T(\mathrm{cr})`.
@@ -947,8 +955,11 @@ one-time prekey of the bundle are not compared.
 
 ::::definition "pqxdh_pqpk_guessed" (lean := "Protocols.Models.PQXDH.pqpkGuessed") (uses := "pqxdh_bundles, pqxdh_transcript_bundle")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.pqpkGuessed -docstrings -comments
-Let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a challenge result. We say that
-the _KEM-key event_ $`\mathrm{Guess}(\mathrm{cr})` holds if one of the following holds.
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, and let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a
+challenge result of $`\Pi_B(P, \mu, h)`. We say that the _KEM-key event_
+$`\mathrm{Guess}(\mathrm{cr})` holds if one of the following holds.
 
 1. Two bundles in $`\mathrm{Bun}_T(\mathrm{cr})` have the same KEM public key.
 2. The bundle $`\mathrm{Bun}_U(\mathrm{cr})` and $`\mathrm{bun}(\tau_i)` have the same KEM
@@ -1095,7 +1106,8 @@ matching session, this experiment outputs a uniform bit.
 
 Hops 1 and 2 use no hypothesis on the primitives. Hop 3 uses the joint unforgeability of the
 identity signature scheme, and hop 4 uses the bound on the KEM public keys. Hops 5 and 6 use
-the remaining hypotheses of the theorems.
+the remaining hypotheses of the theorems, and hop 6 also uses the bound on the KEM public
+keys.
 
 ::::theorem "pqxdh_hop1" (lean := "Protocols.Models.PQXDH.advantage_le_forgeProb_add_indistAdvantage") (uses := "pqxdh_forge, pqxdh_indist, uake_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.advantage_le_forgeProb_add_indistAdvantage (part := "signature") -docstrings -comments
@@ -1113,7 +1125,7 @@ $$`\mathrm{Adv}_R(\mathcal{A}) \le \mathrm{forge}(\mathcal{A}) + \mathrm{ind}(\m
 *Hop 2.* Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a
 finite field and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
 $`h \in \{0, 1\}`, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)`. Then
-$$`\mathrm{forge}(\mathcal{A}) \le \mathrm{sigForge}(\mathcal{A}) + \mathrm{guess}(\mathcal{A}) + \mathrm{good}(\mathcal{A}).`
+$$`\begin{aligned}\mathrm{forge}(\mathcal{A}) \le{}& \mathrm{sigForge}(\mathcal{A}) + \mathrm{guess}(\mathcal{A})\\ &+ \mathrm{good}(\mathcal{A}).\end{aligned}`
 :::
 ::::
 
@@ -1134,7 +1146,7 @@ signature $`\sigma_B` on it, and let $`\tau` be a transcript. We define the pair
 $`\mathrm{forgery}(\mathrm{tk}, \tau) \in (G + \mathrm{PQPK}) \times S` as follows. If
 $`\mathrm{bun}(\tau) = \ast`, the pair is $`(\mathrm{Enc}_{\mathrm{EC}}(\mathrm{SPK}_B), \sigma_B)`.
 Otherwise write
-$$`\mathrm{bun}(\tau) = (\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}}, (\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o).`
+$$`\begin{aligned}\mathrm{bun}(\tau) = (&\mathrm{IK}, (\mathrm{SPK}, i_{\mathrm{SPK}}), \sigma_{\mathrm{SPK}},\\ &(\mathrm{PQPK}, i_{\mathrm{PQPK}}), \sigma_{\mathrm{PQPK}}, o).\end{aligned}`
 If $`\mathrm{SPK} = \mathrm{SPK}_B`, the pair is
 $`(\mathrm{Enc}_{\mathrm{KEM}}(\mathrm{PQPK}), \sigma_{\mathrm{PQPK}})`. If
 $`\mathrm{SPK} \neq \mathrm{SPK}_B`, it is $`(\mathrm{Enc}_{\mathrm{EC}}(\mathrm{SPK}), \sigma_{\mathrm{SPK}})`.
@@ -1181,7 +1193,7 @@ and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, le
 $`h \in \{0, 1\}`, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)`. Suppose
 that the verification algorithm is deterministic: for all $`X \in G`,
 $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is $`b` such that
-$`\mathrm{Verify}(X, \nu, \sigma)` always outputs $`b`. Then
+$`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns $`b`. Then
 $$`\mathrm{sigForge}(\mathcal{A}) \le \mathrm{Adv}(B_{\mathcal{A}}),`
 where $`\mathrm{Adv}(B_{\mathcal{A}}) = \Pr[\mathsf{JUF}(B_{\mathcal{A}}) = 1]` is the
 advantage of $`B_{\mathcal{A}}` against $`(\Sigma_P, \mathrm{DH})` in the joint unforgeability
@@ -1199,7 +1211,8 @@ finite field and whose type $`G` is a vector space over $`F`, let $`\mu \in \mat
 $`h \in \{0, 1\}`, let $`\varepsilon_{\mathrm{sig}} \in \mathbb{R}`, and let $`\mathcal{A}` be
 an adversary against $`\Pi_B(P, \mu, h)`. Suppose that the verification algorithm is
 deterministic: for all $`X \in G`, $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is
-$`b` such that $`\mathrm{Verify}(X, \nu, \sigma)` always outputs $`b`. Suppose also that every
+$`b` such that $`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns
+$`b`. Suppose also that every
 joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
 $`\varepsilon_{\mathrm{sig}}`. Then
 $$`\mathrm{sigForge}(\mathcal{A}) \le \varepsilon_{\mathrm{sig}}.`
@@ -1277,7 +1290,7 @@ against $`\mathrm{KDF}_{\mathrm{DH}}(P)` has advantage at most
 $`\varepsilon_{\mathrm{kdf}}`, and that for every $`Y \in \mathrm{PQPK}` the probability that
 $`\mathrm{KeyGen}_\Lambda` outputs a public key equal to $`Y` is at most
 $`\varepsilon_{\mathrm{pk}}`. Then
-$$`\mathrm{ind}(\mathcal{A}) \le q\,(\varepsilon_{\mathrm{gap}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}}) + 2q^2\,\varepsilon_{\mathrm{pk}}.`
+$$`\begin{aligned}\mathrm{ind}(\mathcal{A}) \le{}& q\,(\varepsilon_{\mathrm{gap}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 2q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
 :::
 ::::
 

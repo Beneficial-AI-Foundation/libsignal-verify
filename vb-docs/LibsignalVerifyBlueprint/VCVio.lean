@@ -389,7 +389,7 @@ nonempty, let $`R` be a runtime for $`m` with monad morphism $`\iota`, and let
 $`\mathcal{A}` be an adversary against $`\Pi`. Let $`\mathsf{G}_0(\mathcal{A})` and
 $`\mathsf{G}_1(\mathcal{A})` be the real and the random game, run with $`\iota`. The
 _distinguishing advantage_ of $`\mathcal{A}` under $`R` is the real number
-$$`\mathrm{DistAdv}_R(\mathcal{A}) := \bigl|\Pr_R[\mathsf{G}_1(\mathcal{A}) = 1] - \Pr_R[\mathsf{G}_0(\mathcal{A}) = 1]\bigr|.`
+$$`\begin{aligned}\mathrm{DistAdv}_R(\mathcal{A}) := \bigl|&\Pr_R[\mathsf{G}_1(\mathcal{A}) = 1]\\ &- \Pr_R[\mathsf{G}_0(\mathcal{A}) = 1]\bigr|.\end{aligned}`
 :::
 ::::
 
