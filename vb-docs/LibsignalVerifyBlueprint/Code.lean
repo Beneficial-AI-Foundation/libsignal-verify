@@ -38,11 +38,14 @@ structure DeclarationConfig where
   name : Name
   part : String := "full"
   docstrings : Bool := true
+  /-- With `-comments`, drop every comment inside the shown range, including
+  field and binder docstrings, together with the whitespace after it. -/
+  comments : Bool := true
 
 instance {m : Type → Type} [Monad m] [MonadError m] :
     Verso.ArgParse.FromArgs DeclarationConfig m where
   fromArgs := DeclarationConfig.mk <$> .positional `name .name <*>
-    .namedD `part .string "full" <*> .flag `docstrings true
+    .namedD `part .string "full" <*> .flag `docstrings true <*> .flag `comments true
 
 /-- Keep a source interval while retaining token hovers and tactic-goal data. -/
 private partial def window (hl : Highlighted) (start stop : Nat) : Highlighted :=
@@ -216,8 +219,60 @@ private def boundaryCheck : Bool := Id.run do
 
 #guard boundaryCheck
 
+/-- The intervals of `[first, last)` that lie outside comments. Each block or
+line comment is removed together with the whitespace that follows it, so the
+next source line keeps its own indentation. Strings are skipped. -/
+private def commentFree (source : String) (first last : Nat) : Array (Nat × Nat) := Id.run do
+  let chars := source.toList.toArray
+  let at_ (j : Nat) : Char := if j < last then chars[j]?.getD '\x00' else '\x00'
+  let mut out : Array (Nat × Nat) := #[]
+  let mut keepFrom := first
+  let mut i := first
+  let mut quoted := false
+  let mut escaped := false
+  while i < last do
+    let c := at_ i
+    if quoted then
+      if escaped then escaped := false
+      else if c == '\\' then escaped := true
+      else if c == '"' then quoted := false
+      i := i + 1
+      continue
+    if c == '"' then
+      quoted := true
+      i := i + 1
+      continue
+    let block := c == '/' && at_ (i + 1) == '-'
+    let line := c == '-' && at_ (i + 1) == '-'
+    if !(block || line) then
+      i := i + 1
+      continue
+    let mut j := i + 2
+    if block then
+      let mut depth := 1
+      while j < last && depth > 0 do
+        if at_ j == '/' && at_ (j + 1) == '-' then
+          depth := depth + 1
+          j := j + 2
+        else if at_ j == '-' && at_ (j + 1) == '/' then
+          depth := depth - 1
+          j := j + 2
+        else j := j + 1
+    else
+      while j < last && at_ j != '\n' do j := j + 1
+    while j < last && (at_ j).isWhitespace do j := j + 1
+    if keepFrom < i then out := out.push (keepFrom, i)
+    keepFrom := j
+    i := j
+  if keepFrom < last then out := out.push (keepFrom, last)
+  return out
+
+#guard commentFree "(a : A)\n  /- c\n  d -/\n  (b : B) :\n  /-- e -/\n  T" 0 48 ==
+  #[(0, 10), (24, 36), (47, 48)]
+#guard commentFree "x \"/-\" y -- z\n  w" 0 17 == #[(0, 9), (16, 17)]
+
 private def declarationWindow (env : Environment) (name : Name) (part : String)
-    (docstrings : Bool) (hl : Highlighted) : Except String Highlighted := do
+    (docstrings comments : Bool) (hl : Highlighted) : Except String Highlighted := do
   let source := hl.toString
   let (docEnd, signatureEnd?, bodyStart?) := boundaries source
   let start := if docstrings then 0 else docEnd
@@ -237,6 +292,21 @@ private def declarationWindow (env : Environment) (name : Name) (part : String)
   let trimmed := selected.trimAscii.toString
   if trimmed.isEmpty then throw s!"No {part} source found for {name}"
   let beginAt := first + leftTrim
+  if !comments then
+    let slice (a b : Nat) : String :=
+      SubVerso.Compat.String.take (SubVerso.Compat.String.drop source a) (b - a)
+    let mut kept := commentFree source beginAt (beginAt + trimmed.length)
+    -- A trailing comment leaves the whitespace before it; drop that too.
+    if let some (a, b) := kept.back? then
+      let tail := slice a b
+      let width := (tail.toList.reverse.takeWhile Char.isWhitespace).length
+      kept := if b - width ≤ a then kept.pop else kept.set! (kept.size - 1) (a, b - width)
+    if kept.isEmpty then throw s!"No {part} source outside comments for {name}"
+    let expected := String.join (kept.map (fun (a, b) => slice a b)).toList
+    let result := Highlighted.seq (kept.map (fun (a, b) => window hl a b))
+    unless result.toString == expected do
+      throw s!"Highlighted source range mismatch for {name} ({part}, -comments)"
+    return result
   let result := window hl beginAt (beginAt + trimmed.length)
   unless result.toString == trimmed do
     throw s!"Highlighted source range mismatch for {name} ({part})"
@@ -393,7 +463,7 @@ def declaration : CodeBlockExpanderOf DeclarationConfig
       | .ok code => pure code
       | .error reason => throwError
           "{cfg.name}: {reason}\nOriginal command: {repr source}\nHighlighted command: {repr code.toString}"
-    let hl ← match declarationWindow env cfg.name cfg.part cfg.docstrings code with
+    let hl ← match declarationWindow env cfg.name cfg.part cfg.docstrings cfg.comments code with
       | .ok hl => pure hl
       | .error reason => throwError "{reason}"
     let source ← ``(ExternalCode.leanBlock (genre := Verso.Genre.Manual)
