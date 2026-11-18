@@ -9,8 +9,8 @@ import VCVio.EvalDist.ProbabilityNotation
 
 Examples for the first chapter of the book. Each program draws uniformly from `{0, 1}`, either
 with `uniformFin 1` and a comparison with `1`, or with the sampler `$ᵗ Bool`. The theorems state
-the tree of each program and the probabilities of its outputs. They are checked with the pinned
-version of VCV-io.
+the tree and the shape of each program, the probability of each output, the marginal laws of the
+two programs that return pairs, and that these two programs have different laws as pairs.
 -/
 
 open OracleComp ProbComp

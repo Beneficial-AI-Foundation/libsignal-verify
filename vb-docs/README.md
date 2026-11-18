@@ -49,8 +49,8 @@ for example `python3 -m http.server --directory _out/site/html-multi 8000`, and 
 `http://127.0.0.1:8000/`.
 
 The pictures of the trees are the SVG files in `figures/`. A box of the directive `treePair`
-names one of them, and the renderer reads it from the working directory and writes it into the
-page, so the site needs no other file. Run the renderer from this directory.
+names one of them. The renderer reads the file from the working directory and writes it into
+the page, so the site needs no other file. Run the renderer from this directory.
 
 ## Publishing the book
 

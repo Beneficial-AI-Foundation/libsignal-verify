@@ -43,8 +43,8 @@ The cards in the first four sections, and the first three cards of the fifth sec
 upstream code at the pinned commits of VCV-io and
 [cslib](https://github.com/leanprover/cslib/tree/5b56df99362532c46e1175381fbbdd755bd56030).
 The exceptions are the cards labelled "Book example" in the second and fourth sections. They
-show `ProbTrees.lean`, a small file of this book that works out three programs as trees. The
-last four cards of the fifth section come from this repository.
+show `ProbTrees.lean`, a small file of this book with three programs, their trees and their
+laws. The last four cards of the fifth section come from this repository.
 
 # Oracle specifications
 
@@ -150,20 +150,22 @@ output is uniform on `T` in that semantics.
 
 ## Programs as trees
 
-For `ProbComp`, the tree of a computation is easy to draw. A node carries a query
-$`n \in \mathbb{N}`, which asks for an element of $`\{0, \dots, n\}`, and it has one child for
-each of the $`n + 1` possible answers. A leaf carries an output. A path from the root to a leaf
-lists the answers along the way. Every path is finite because $`\mathrm{Free}_P(\alpha)` is an
-inductive type, and every node has finitely many children, so a computation has finitely many
-nodes. This follows by induction on the tree: a leaf is one node, and a node with $`n + 1`
-children has one node more than its children together.
+A computation in `ProbComp` is a finite tree. We call a vertex that has children a _node_ and a
+vertex without children a _leaf_. A node is a position $`n \in \mathbb{N}` of the polynomial
+functor $`P_{\mathrm{unif}}`. It is the query that asks for an element of $`\{0, \dots, n\}`.
+It has one child for each direction of $`P_{\mathrm{unif}}` at $`n`, that is, for each of the
+$`n + 1` possible answers. A leaf carries an output. A path from the root to a leaf lists the
+answers along the way. The tree is finite because $`\mathrm{Free}_P(\alpha)` is an inductive
+type and every node has finitely many children. Induction on the tree shows that the tree has
+finitely many nodes and leaves. A leaf has no node and exactly one leaf. A tree whose root has
+$`n + 1` subtrees has the nodes of its subtrees and one more, and the leaves of its subtrees.
 
 In a `do` block, a draw such as `x ← uniformFin n` is a node, and `return v` is a leaf. A step
-that asks no query adds no node. By the first equation of bind,
-$`\mathrm{pure}(x) \mathbin{>\!\!>\!\!=} f = f(x)`, so such a step makes no node of its own. The
-child of a node at an answer is the computation that the rest of the program gives for that
-answer, so an `if` on an earlier answer chooses the subtree. The three programs of this section
-draw only from $`\{0, 1\}`, and we write $`\mathrm{node}(k)` for a node of this kind.
+that asks no query adds no node, by the first equation of bind,
+$`\mathrm{pure}(x) \mathbin{>\!\!>\!\!=} f = f(x)`. The child of a node at an answer is the
+computation that the rest of the program gives for that answer, so an `if` on an earlier answer
+chooses the subtree. The three programs of this section draw only from $`\{0, 1\}`. We write
+$`\mathrm{node}(k)` for a node of this kind.
 
 ::::definition "draw_node" (lean := "ProbTrees.node") (uses := "free_monad, prob_comp")
 :::LibsignalVerifyBlueprint.pair ProbTrees.node -docstrings
@@ -175,7 +177,7 @@ $`x \in \{0, 1\}` is $`k(x)`.
 ::::
 
 In the pictures, a node is a rounded box labelled "draw". The semantics of the fourth section
-makes its answer uniform on $`\{0, 1\}`.
+makes the answer at a node uniform on $`\{0, 1\}`.
 
 ::::lemma_ "draw_bind" (lean := "ProbTrees.draw_eq, ProbTrees.node_eq_bind") (uses := "draw_node, free_bind")
 :::LibsignalVerifyBlueprint.pair ProbTrees.draw_eq (part := "signature") -docstrings
@@ -193,7 +195,7 @@ from the equations of bind: $`\mathrm{node}(\mathrm{pure}) \mathbin{>\!\!>\!\!=}
 $`\mathrm{liftBind}(1, x \mapsto \mathrm{pure}(x) \mathbin{>\!\!>\!\!=} k)`, and
 $`\mathrm{pure}(x) \mathbin{>\!\!>\!\!=} k = k(x)`.
 
-The first program draws once and returns the answer twice.
+The first program draws once and returns the truth value of the answer twice.
 
 ::::definition "program_t1" (lean := "ProbTrees.t₁") (uses := "draw_bind")
 :::LibsignalVerifyBlueprint.treePair ProbTrees.t₁ (figure := "t1") -docstrings -comments
@@ -216,8 +218,8 @@ $$`t_2 = \mathrm{draw} \mathbin{>\!\!>\!\!=} \bigl(x \mapsto \mathrm{draw} \math
 ::::
 
 Both programs return a pair of truth values, and they differ in where the second value comes
-from. In $`t_1` it is a copy of the first, so the tree has one node. In $`t_2` it comes from a
-new draw, so each answer to the first draw leads to a second node.
+from. In $`t_1` the second value is a copy of the first, so the tree has one node. In $`t_2` the
+second value comes from a new draw, so each answer to the first draw leads to a second node.
 
 The third program makes its second draw only after one of the two answers to the first. VCV-io
 writes `$ᵗ Bool` for its sampler of $`\mathrm{Bool}`. The sampler is a draw from $`\{0, 1\}`,
@@ -247,23 +249,29 @@ The next proposition gives the three trees as equations.
 
 ::::proposition "program_trees" (lean := "ProbTrees.t₁_eq, ProbTrees.t₂_eq, ProbTrees.t₃_eq") (uses := "program_t1, program_t2, program_t3, uniform_bool")
 :::LibsignalVerifyBlueprint.pair ProbTrees.t₁_eq (part := "signature") -docstrings
+The tree of $`t_1` is
 $$`t_1 = \mathrm{node}(x \mapsto \mathrm{pure}(x = 1,\, x = 1)).`
 :::
 :::LibsignalVerifyBlueprint.pair ProbTrees.t₂_eq (part := "signature") -docstrings
+The tree of $`t_2` is
 $$`\begin{aligned} t_2 = \mathrm{node}\bigl(x \mapsto{} & \mathrm{node}(y \mapsto \\ & \mathrm{pure}(x = 1,\, y = 1))\bigr). \end{aligned}`
 :::
 :::LibsignalVerifyBlueprint.pair ProbTrees.t₃_eq (part := "signature") -docstrings
-$$`\begin{aligned} t_3 &= \mathrm{node}(i \mapsto k_3(i)),\\ k_3(0) &= \mathrm{node}(j \mapsto \mathrm{pure}(j = 0)),\\ k_3(1) &= \mathrm{pure}(\mathrm{true}). \end{aligned}`
+Let $`k_3 : \{0, 1\} \to \mathrm{ProbComp}(\mathrm{Bool})` be given by
+$`k_3(0) = \mathrm{node}(j \mapsto \mathrm{pure}(j = 0))` and
+$`k_3(1) = \mathrm{pure}(\mathrm{true})`. The tree of $`t_3` is
+$$`t_3 = \mathrm{node}(k_3).`
 :::
 ::::
 
-The first two equations hold by the equations of bind and the lemma above, and in Lean they
-are `rfl`. For $`t_3`, the proof rewrites both samplers with the lemma on
+The first two equations hold by the equations of bind and the lemma that identifies a draw with
+a node. In Lean they are `rfl`. For $`t_3`, the proof rewrites both samplers with the lemma on
 $`\mathrm{sample}_{\mathrm{Bool}}` and simplifies the `if`. The pictures draw these three
 trees. An edge carries the answer, and a leaf carries the output. In the picture of $`t_3`, the
 answers are labelled by truth values, with $`0` standing for $`\mathrm{true}`.
 
-The leaves of a tree carry labels, and the nodes do not. We separate the two.
+Leaves carry outputs and nodes carry none. The shape of a tree keeps the nodes and forgets the
+outputs.
 
 ::::definition "tree_shape" (lean := "ProbTrees.shape") (uses := "free_bind")
 :::LibsignalVerifyBlueprint.pair ProbTrees.shape -docstrings
@@ -287,18 +295,24 @@ $`\mathrm{shape}(\mathrm{map}(f, t)) = \mathrm{shape}(t)`.
 So a map changes the labels of the leaves and keeps the shape. Conversely, a tree is
 determined by its shape together with a labelling of the leaves of the shape. A leaf of
 $`\mathrm{shape}(t)` is a path of answers from the root, and the label of this leaf is the
-output of $`t` along the path. This holds by induction on $`t`. We do not formalise it, and
-the pictures use it: each draws the shape and writes the label into each leaf.
+output of $`t` along the path. The statement that a tree is determined by its shape and a
+labelling holds by induction on $`t`, and we do not formalise it. Each picture draws the shape
+and writes the label into each leaf.
 
 ::::proposition "program_shapes" (lean := "ProbTrees.shape_t₁, ProbTrees.shape_t₂, ProbTrees.shape_t₃") (uses := "tree_shape, program_trees")
 :::LibsignalVerifyBlueprint.pair ProbTrees.shape_t₁ (part := "signature") -docstrings
+The shape of $`t_1` is
 $$`\mathrm{shape}(t_1) = \mathrm{node}(x \mapsto \mathrm{pure}(())).`
 :::
 :::LibsignalVerifyBlueprint.pair ProbTrees.shape_t₂ (part := "signature") -docstrings
+The shape of $`t_2` is
 $$`\begin{aligned} \mathrm{shape}(t_2) = \mathrm{node}\bigl(x \mapsto{} & \mathrm{node}(y \mapsto \\ & \mathrm{pure}(()))\bigr). \end{aligned}`
 :::
 :::LibsignalVerifyBlueprint.pair ProbTrees.shape_t₃ (part := "signature") -docstrings
-$$`\begin{aligned} \mathrm{shape}(t_3) &= \mathrm{node}(i \mapsto k_3'(i)),\\ k_3'(0) &= \mathrm{node}(j \mapsto \mathrm{pure}(())),\\ k_3'(1) &= \mathrm{pure}(()). \end{aligned}`
+Let $`k_3' : \{0, 1\} \to \mathrm{ProbComp}(\mathrm{Unit})` be given by
+$`k_3'(0) = \mathrm{node}(j \mapsto \mathrm{pure}(()))` and $`k_3'(1) = \mathrm{pure}(())`.
+The shape of $`t_3` is
+$$`\mathrm{shape}(t_3) = \mathrm{node}(k_3').`
 :::
 ::::
 
@@ -439,17 +453,18 @@ The semantics turns the trees of the second section into probabilities. At a nod
 query $`n`, the answer measure of $`\mathrm{unif}` is uniform on $`\{0, \dots, n\}`. By the
 equation for $`\mathrm{liftBind}` in the denotation, each of the $`n + 1` subtrees has weight
 $`1/(n+1)`. A leaf has the Dirac measure at its output. So in a tree whose nodes all ask the
-query $`1`, a path through $`d` nodes has probability $`2^{-d}`, and an output $`v` has the sum
-of the probabilities of the paths to the leaves labelled $`v`. This follows by induction on the
+query $`1`, a path through $`d` nodes has probability $`2^{-d}`, and the probability of an output
+$`v` is the sum of the probabilities of the paths to the leaves labelled $`v`. This follows by induction on the
 tree. The Lean proofs below do not use this rule. They compute each probability with two lemmas
 of VCV-io: the formula `prEvent_bind_eq_sum_fintype` for the probability of an event after a
 bind, and the formula `ProbComp.prEvent_uniformFin` for one draw.
 
-In the proposition, $`\Pr[s = v]` is $`\mathcal{D}(s)(\{v\})`, as for the canonical runtime. In
-Lean it is `Pr{let q ← s}[q = v]`, and `prEvent_eq_evalDist_of_discrete` identifies this
-with the mass of the singleton.
+For a computation $`s` with outputs in a discrete space and a value $`v`, we write
+$`\Pr[s = v] := \mathcal{D}(s)(\{v\})`. The fifth section uses the same notation for the
+canonical runtime. In Lean, $`\Pr[s = v]` is `Pr{let q ← s}[q = v]`, and the lemma
+`prEvent_eq_evalDist_singleton` identifies it with the mass of the singleton.
 
-::::theorem "program_laws" (lean := "ProbTrees.t₁_pr, ProbTrees.t₂_pr, ProbTrees.t₃_pr") (uses := "program_trees, prob_comp_runtime_canonical")
+::::theorem "program_laws" (lean := "ProbTrees.t₁_pr, ProbTrees.t₂_pr, ProbTrees.t₃_pr") (uses := "program_trees, eval_dist")
 :::LibsignalVerifyBlueprint.pair ProbTrees.t₁_pr (part := "signature") -docstrings
 For all $`b, c \in \mathrm{Bool}`,
 $$`\Pr[t_1 = (b, c)] = \begin{cases} 1/2 & \text{if } b = c,\\ 0 & \text{if } b \ne c. \end{cases}`
@@ -463,16 +478,16 @@ $$`\Pr[t_3 = b] = \begin{cases} 3/4 & \text{if } b = \mathrm{true},\\ 1/4 & \tex
 :::
 ::::
 
-The pictures show why. In the tree of $`t_1`, each of the two leaves has probability $`1/2`,
-and the pairs $`(\mathrm{false}, \mathrm{true})` and $`(\mathrm{true}, \mathrm{false})` do not
-occur. In the tree of $`t_2`, each of the four leaves has probability $`1/4`. In the tree of
+Each node splits the probability of its path evenly between its two children. In the tree of
+$`t_1`, each of the two leaves has probability $`1/2`, and the pairs
+$`(\mathrm{false}, \mathrm{true})` and $`(\mathrm{true}, \mathrm{false})` do not occur. In the tree of $`t_2`, each of the four leaves has probability $`1/4`. In the tree of
 $`t_3`, the leaf under $`x = \mathrm{false}` is labelled $`\mathrm{true}` and has probability
 $`1/2`. The two leaves under $`x = \mathrm{true}` have probability $`1/4` each, and they are
 labelled $`\mathrm{true}` and $`\mathrm{false}`. So the output $`\mathrm{true}` has probability
 $`1/2 + 1/4`.
 
-The programs $`t_1` and $`t_2` return their two truth values in different ways, and the laws
-show a difference between them. Each coordinate has the same law under both programs.
+The programs $`t_1` and $`t_2` differ in the law of the pair but not in the law of either
+coordinate.
 
 ::::theorem "program_marginals" (lean := "ProbTrees.marginal_pr") (uses := "program_laws")
 :::LibsignalVerifyBlueprint.pair ProbTrees.marginal_pr (part := "signature") -docstrings
@@ -481,12 +496,14 @@ $$`\begin{aligned} \mathcal{D}(s)(\{q \mid q_1 = b\}) &= 1/2,\\ \mathcal{D}(s)(\
 :::
 ::::
 
-In Lean, the four statements are conjuncts. Each is
-`Pr{let q ← s}[q.1 = b] = 2⁻¹` or the same with `q.2`, by `prEvent_eq_evalDist_of_discrete`.
-The joint laws differ.
+In Lean, the four statements form one conjunction. The statement for the first coordinate is
+`Pr{let q ← s}[q.1 = b] = 2⁻¹`, and the lemma `prEvent_eq_evalDist_of_discrete` identifies its
+left side with $`\mathcal{D}(s)(\{q \mid q_1 = b\})`. The statement for the second coordinate is
+the same with `q.2`. The joint laws differ.
 
 ::::theorem "program_joint" (lean := "ProbTrees.evalDist_ne") (uses := "program_laws")
 :::LibsignalVerifyBlueprint.pair ProbTrees.evalDist_ne (part := "signature") -docstrings
+The pairs of outputs of $`t_1` and $`t_2` have different laws:
 $$`\mathcal{D}(t_1) \ne \mathcal{D}(t_2).`
 :::
 ::::
