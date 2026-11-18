@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="probtree" viewBox="0 0 420 270" role="img" aria-labelledby="t3-title t3-desc" style="width:100%;max-width:420px">
+  <title id="t3-title">The tree of t₃</title>
+  <desc id="t3-desc">A draw node for x with two outcomes, which stand for true and false. If x is true, a draw node for y follows, with the leaves true and false. If x is false, the computation ends at the leaf true.</desc>
+  <style>
+    svg.probtree .edge { stroke: var(--bp-color-border-strong, #94a3b8); stroke-width: 2; fill: none; }
+    svg.probtree .draw { fill: var(--bp-color-surface-muted, #f8fafc); stroke: var(--bp-color-accent-info, #7c3aed); stroke-width: 2; }
+    svg.probtree .leaf { fill: var(--bp-color-surface, #ffffff); stroke: var(--bp-color-accent-success, #16a34a); stroke-width: 2; }
+    svg.probtree text { font-family: inherit; fill: var(--bp-color-text-strong, #0f172a); }
+    svg.probtree .name { font-size: 15px; text-anchor: middle; }
+    svg.probtree .value { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; text-anchor: middle; }
+    svg.probtree .outcome { font-size: 13px; fill: var(--bp-color-text-subtle, #475569); }
+  </style>
+  <g class="edge">
+    <line x1="240" y1="58" x2="130" y2="124"/>
+    <line x1="240" y1="58" x2="350" y2="125"/>
+    <line x1="130" y1="158" x2="70" y2="230"/>
+    <line x1="130" y1="158" x2="190" y2="230"/>
+  </g>
+  <text class="outcome" x="180" y="88" text-anchor="end">x = true</text>
+  <text class="outcome" x="300" y="88" text-anchor="start">x = false</text>
+  <text class="outcome" x="94" y="192" text-anchor="end">y = true</text>
+  <text class="outcome" x="166" y="192" text-anchor="start">y = false</text>
+  <rect class="draw" x="195" y="24" width="90" height="34" rx="10"/>
+  <text class="name" x="240" y="46">draw x</text>
+  <rect class="draw" x="85" y="124" width="90" height="34" rx="10"/>
+  <text class="name" x="130" y="146">draw y</text>
+  <rect class="leaf" x="315" y="125" width="70" height="32"/>
+  <text class="value" x="350" y="146">true</text>
+  <rect class="leaf" x="35" y="230" width="70" height="32"/>
+  <text class="value" x="70" y="251">true</text>
+  <rect class="leaf" x="155" y="230" width="70" height="32"/>
+  <text class="value" x="190" y="251">false</text>
+</svg>
