@@ -14,7 +14,8 @@ after the box says how.
 
 1. **VCV-io, a quick introduction.** The part of the [VCV-io](https://github.com/Verified-zkEVM/VCV-io)
    library that the statements use: oracle computations, probabilities, runtimes, and the
-   advantage of a UAKE adversary.
+   advantage of a UAKE adversary. Three small programs, drawn as trees, serve as worked
+   examples. Their Lean code is `LibsignalVerifyBlueprint/ProbTrees.lean`.
 2. **UAKE and the primitives.** Unilaterally authenticated key exchange, as Dodis and Fiore
    define it, and the cryptographic notions that the PQXDH theorems assume: signatures with a
    joint unforgeability game, Gap Diffie-Hellman, AEAD, PRFs and KEMs.
@@ -46,6 +47,10 @@ The first command checks the book and the Lean it refers to. The second writes t
 `_out/site/html-multi`, which is not committed. Serve that folder with any static file server,
 for example `python3 -m http.server --directory _out/site/html-multi 8000`, and open
 `http://127.0.0.1:8000/`.
+
+The pictures of the trees are the SVG files in `figures/`. A box of the directive `treePair`
+names one of them. The renderer reads the file from the working directory and writes it into
+the page, so the site needs no other file. Run the renderer from this directory.
 
 ## Publishing the book
 
@@ -91,6 +96,11 @@ The book is not the proof. The proofs are checked by `lake build` of the Lean de
   declaration, as written in the source, and VersoBlueprint offers no option to hide it. Some
   docstrings of the PQXDH model mark places where the model departs from the specification.
   The section "Modelling choices" of chapter 3 states each departure in mathematical prose.
+- **Source links of the book's own code.** The cards labelled "Book example" show
+  `LibsignalVerifyBlueprint/ProbTrees.lean`. Their "Source file" links work once
+  `source-revision` names a commit that contains this file. Their "defined in" lines link to the
+  commit that is checked out when the renderer runs. The export script accepts the book only if
+  that commit is the one in `source-revision`, as it is in the publishing workflow.
 - **Upstream docstring.** One popup shows a docstring from VCV-io that starts with a note
   about an upstream design choice. It is upstream text and is left as it is.
 - **Open statements.** The book describes the code as it stands. Pull request #71 changes the

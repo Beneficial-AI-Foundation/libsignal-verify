@@ -55,6 +55,8 @@ def moduleSource (modName : String) : Option (String × String) :=
     some (".lake/packages/cslib/" ++ modulePath, cslibSourceUrl ++ modulePath)
   else if modName.startsWith "Protocols." then
     some ("../" ++ modulePath, repositorySourceUrl ++ modulePath)
+  else if modName.startsWith "LibsignalVerifyBlueprint." then
+    some (modulePath, repositorySourceUrl ++ "vb-docs/" ++ modulePath)
   else none
 
 structure DeclarationConfig where
@@ -413,6 +415,9 @@ private def declarationCardCss : String := r#"
 .bp_declaration_card[data-provenance="PQXDH model"] .bp_declaration_card_pill {
   background: #fef3c7; color: #92400e;
 }
+.bp_declaration_card[data-provenance="Book example"] .bp_declaration_card_pill {
+  background: #e0f2fe; color: #075985;
+}
 /* Keep Blueprint's heading status but hide its duplicate signature panel. */
 .bp_wrapper:has(> .bp_content .bp_declaration_card) + .bp_code_panel_wrapper {
   display: none;
@@ -436,6 +441,7 @@ block_extension Block.declarationCard (name part sourcePath : String) where
       else if (sourcePath.splitOn "/cslib/").length > 1 then "cslib"
       else if (sourcePath.splitOn "/Protocols/ToVCVio/").length > 1 then "UAKE framework"
       else if (sourcePath.splitOn "/Protocols/Models/").length > 1 then "PQXDH model"
+      else if (sourcePath.splitOn "/vb-docs/").length > 1 then "Book example"
       else "libsignal-verify"
     let code ← blocks.mapM goB
     let sourceUrl := sourcePath.replace revisionPlaceholder (← sourceRevision)
@@ -469,7 +475,7 @@ def declaration : CodeBlockExpanderOf DeclarationConfig
     unless hits.size == 1 do
       throwError "Expected one highlighted command for {cfg.name} in {modName}, found {hits.size}"
     let some (originalPath, sourcePath) := moduleSource modName.toString
-      | throwError "{cfg.name}: only VCVio, cslib and Protocols declarations have source links"
+      | throwError "{cfg.name}: only VCVio, cslib, Protocols and book declarations have source links"
     let original ← IO.FS.readFile (System.FilePath.mk originalPath)
     let normalized := hits[0]!.code.toString
     let code ← if (original.splitOn normalized.trimAscii.toString).length > 1 then
@@ -551,5 +557,96 @@ def pair : DirectiveExpanderOf DeclarationConfig
     let source ← declaration cfg (Syntax.mkStrLit "")
     let prose ← contents.mapM elabBlock
     ``(Verso.Doc.Block.other Block.mathCode #[ $source, $[$prose],* ])
+
+private def treePairCss : String := r#"
+.content-wrapper:has(.bp_tree_pair) { max-width: 90rem; }
+.content-wrapper:has(.bp_tree_pair) section { max-width: none; }
+.content-wrapper:has(.bp_tree_pair) section > :not(.bp_wrapper):not(section) {
+  max-width: 75ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* The statement spans the box. Below it the code stands beside its picture. */
+.bp_tree_pair {
+  display: grid;
+  grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+.bp_tree_pair > div { min-width: 0; }
+.bp_tree_pair > .bp_pair_prose { grid-column: 1 / -1; }
+.bp_tree_pair .bp_declaration_card { margin-top: 0; }
+.bp_tree_pair .bp_pair_prose,
+.bp_tree_pair .bp_pair_prose p,
+.bp_tree_pair .bp_pair_prose li {
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.7;
+}
+.bp_tree_pair .bp_declaration_card_body > code.hl.lean.block {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bp_tree_pair .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.2rem 0; }
+.bp_tree_figure {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--bp-color-border);
+  border-radius: 0.7rem;
+  background: var(--bp-color-surface);
+}
+.bp_tree_figure svg { display: block; height: auto; margin: 0 auto; }
+@media (max-width: 1050px) {
+  .bp_tree_pair { grid-template-columns: minmax(0, 1fr); }
+}
+"#
+
+/- A picture of a computation as a tree, set beside the card of the declaration that it
+illustrates. The statement comes first, then the card and the picture side by side. The picture is
+the file `figures/<name>.svg`, which the renderer reads and writes into the page, so the colours
+of the book apply to it and the site needs no other file. -/
+block_extension Block.treePair (figure : String) where
+  data := toJson figure
+  traverse _ _ _ := pure none
+  extraCss := [treePairCss]
+  toTeX := none
+  toHtml := some <| fun _ goB _ data blocks => do
+    let figure := (fromJson? (α := String) data).toOption.getD ""
+    let some source := blocks[0]?
+      | Verso.reportError "A tree figure requires a source block" *> pure .empty
+    let code ← goB source
+    let prose ← (blocks.drop 1).mapM goB
+    let path : System.FilePath := System.FilePath.mk "figures" / s!"{figure}.svg"
+    unless (← path.pathExists) do
+      throw <| IO.userError s!"{path} does not exist: render the book from the directory vb-docs"
+    let svg ← IO.FS.readFile path
+    pure <| tag "div" #[("class", "bp_tree_pair")] (.seq #[
+      tag "div" #[("class", "bp_pair_prose")] (.seq prose),
+      tag "div" #[("class", "bp_source")] code,
+      tag "figure" #[("class", "bp_tree_figure")] (.text false svg)])
+
+structure TreePairConfig where
+  name : Name
+  figure : String := ""
+  part : String := "full"
+  docstrings : Bool := true
+  comments : Bool := true
+
+instance {m : Type → Type} [Monad m] [MonadError m] :
+    Verso.ArgParse.FromArgs TreePairConfig m where
+  fromArgs := TreePairConfig.mk <$> .positional `name .name <*> .namedD `figure .string "" <*>
+    .namedD `part .string "full" <*> .flag `docstrings true <*> .flag `comments true
+
+/-- Pair a statement with the source of an imported declaration and with the picture of its
+tree: `:::LibsignalVerifyBlueprint.treePair Name (figure := "file") -docstrings -comments`. -/
+@[directive]
+def treePair : DirectiveExpanderOf TreePairConfig
+  | cfg, contents => do
+    if cfg.figure.isEmpty then
+      throwError "A tree figure needs the argument (figure := \"name\"), the name of a file in figures/"
+    let source ← declaration
+      { name := cfg.name, part := cfg.part, docstrings := cfg.docstrings, comments := cfg.comments }
+      (Syntax.mkStrLit "")
+    let prose ← contents.mapM elabBlock
+    ``(Verso.Doc.Block.other (Block.treePair $(quote cfg.figure)) #[ $source, $[$prose],* ])
 
 end LibsignalVerifyBlueprint
