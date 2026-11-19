@@ -303,11 +303,12 @@ def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableE
   let DH2 := DH p.ikB.2 msg.ekA
   let DH3 := DH p.spkB.2 msg.ekA
   let DH4 := p.opkB.map fun opk => DH opk.2 msg.ekA
-  let (SK, KA, KB) := P.kdf (DH1, DH2, DH3, DH4, SS)
+  let km := (DH1, DH2, DH3, DH4, SS)
+  let (SK, KA, KB) := P.kdf km
   let AD := (msg.ikA, p.ikB.1, p.pqpkB.1)
   match P.aead.decrypt KA AD msg.ctxt with
   | some m =>
-      return some { sk := SK, kb := KB, ad := AD, msg := m, km := (DH1, DH2, DH3, DH4, SS) }
+      return some { sk := SK, kb := KB, ad := AD, msg := m, km }
   | none => return none
 
 /-- Alice's confirmation procedure: Check if Bob's AEAD ciphertext decrypts
