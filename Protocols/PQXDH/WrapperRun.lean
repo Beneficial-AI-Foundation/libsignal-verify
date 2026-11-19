@@ -139,8 +139,9 @@ private theorem uakeRecipient_lastResort_le :
         {true} := by
   rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
   simp only [UAKE.agreementExp, uakeRecipient, setup, recipientNoConfirm, initiatorNoConfirm,
-    recipientInit, sessionKyberPrekey, KEMScheme.correctnessExperiment, kyberKemAfterGenerate,
-    kyberKem, Party.runHonest,bind_assoc, pure_bind, bind_map_left, Prod.swap_prod_mk]
+    recipientInit, sessionKyberPrekey, signedKyberPrekey, KEMScheme.correctnessExperiment,
+    kyberKemAfterGenerate, kyberEncapsOn, kyberKem, Party.runHonest,bind_assoc, pure_bind,
+    bind_map_left, Prod.swap_prod_mk]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikA hikA => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
@@ -196,8 +197,9 @@ private theorem uakeRecipient_oneTime_le :
         (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK .oneTime)) {true} := by
   rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
   simp only [UAKE.agreementExp, uakeRecipient, setup, recipientNoConfirm, initiatorNoConfirm,
-    recipientInit, sessionKyberPrekey, KEMScheme.correctnessExperiment, kyberKemAfterGenerate,
-    kyberKem, Party.runHonest,bind_assoc, pure_bind, bind_map_left, Prod.swap_prod_mk]
+    recipientInit, sessionKyberPrekey, signedKyberPrekey, KEMScheme.correctnessExperiment,
+    kyberKemAfterGenerate, kyberEncapsOn, kyberKem, Party.runHonest,bind_assoc, pure_bind,
+    bind_map_left, Prod.swap_prod_mk]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikA hikA => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
@@ -261,8 +263,8 @@ private theorem uakeInitiator_lastResort_le :
         {true} := by
   rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
   simp only [UAKE.agreementExp, uakeInitiator, setup, recipient, initiator,
-    recipientInit, sessionKyberPrekey, KEMScheme.correctnessExperiment, kyberKemAfterGenerate,
-    kyberKem, Party.runHonest,bind_assoc, pure_bind]
+    recipientInit, sessionKyberPrekey, signedKyberPrekey, KEMScheme.correctnessExperiment,
+    kyberKemAfterGenerate, kyberEncapsOn, kyberKem, Party.runHonest,bind_assoc, pure_bind]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikA hikA => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
@@ -324,8 +326,8 @@ private theorem uakeInitiator_oneTime_le :
         (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK .oneTime)) {true} := by
   rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
   simp only [UAKE.agreementExp, uakeInitiator, setup, recipient, initiator,
-    recipientInit, sessionKyberPrekey, KEMScheme.correctnessExperiment, kyberKemAfterGenerate,
-    kyberKem, Party.runHonest,bind_assoc, pure_bind]
+    recipientInit, sessionKyberPrekey, signedKyberPrekey, KEMScheme.correctnessExperiment,
+    kyberKemAfterGenerate, kyberEncapsOn, kyberKem, Party.runHonest,bind_assoc, pure_bind]
   rw [prEvent_liftM_bind_liftM_swap]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikA hikA => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
