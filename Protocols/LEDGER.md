@@ -12,7 +12,7 @@ the admission counts of the State table. The command is at the end.
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
-| `sorry` or `sorryAx` under `Protocols/` | 11 |
+| `sorry` or `sorryAx` under `Protocols/` | 9 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -24,7 +24,9 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
 - `Protocols/Specs/PQXDH.lean`: the key-derivation mirror, the branch equations of the two entry
-  points and the statements of the Full realization;
+  points, the lemmas of one honest run and the statements of the Full realization;
+- `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization and deserialization of a Kyber
+  ciphertext;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
 - `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
   `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end;
@@ -82,8 +84,6 @@ The stubs of these statements are temporary, unlike the security placeholders ab
 
 | Statement | File | Content | Status |
 | --- | --- | --- | --- |
-| `Protocols.PQXDH.coreCompletion_extracted` | `Correctness.lean` | both extracted entry points return their keys with probability 1 | stub |
-| `Protocols.PQXDH.jointKeyAgreement_extracted` | `Correctness.lean` | equal joint key records, chain index 0, with probability ≥ 1 − δ | stub |
 | `Protocols.PQXDH.wrapperAgreement_uakeInitiator` | `Correctness.lean` | both parties output equal keys, with probability ≥ 1 − δ | stub |
 | `Protocols.PQXDH.wrapperAgreement_uakeRecipient` | `Correctness.lean` | the same, in the correctness-only direction | stub |
 
