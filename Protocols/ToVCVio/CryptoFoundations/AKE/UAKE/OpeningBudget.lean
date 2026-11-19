@@ -13,17 +13,10 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 # The opening budget of a UAKE adversary
 
 `Adversary.OpensAtMost q` bounds the `openT` queries of each stage of the adversary by `q`: at
-most `q` in the challenge stage and at most `q` in the key-distinguishing stage. It is the budget
-of PQXDH-model and has the same body as `Adversary.OpensAtMostPerPhase` (`Partnering.lean`).
+most `q` in the challenge stage and at most `q` in the key-distinguishing stage.
 
-The budget is per stage, so the two stages together may open `2 * q` sessions. This file proves
-that the experiment allows no more. At most `q` sessions are open when the challenge stage ends
-(`Adversary.OpensAtMost.challengeSession_openCount_le`). At most `2 * q` are open when the
-key-distinguishing stage ends, which `finalize` and `finalizePartnered` run from the environment
-of the challenge stage (`Adversary.OpensAtMost.openCount_le_two_mul`). `Exp` and `PartneredExp`
-return early, with no key-distinguishing stage, when the challenge accepts without a partner, and
-the first bound covers that branch. The fixtures in `ProtocolsTest` show that `2 * q` is reached
-at `q = 1`.
+The budget is per stage, so the two stages together may open `2 * q` sessions: at most `2 * q` are
+open when the key-distinguishing stage ends (`Adversary.OpensAtMost.openCount_le_two_mul`).
 
 The budget counts `openT` queries only. It is no resource bound on the adversary (#41).
 -/

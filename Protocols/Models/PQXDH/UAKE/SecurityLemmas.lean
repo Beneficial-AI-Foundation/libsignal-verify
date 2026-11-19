@@ -53,8 +53,7 @@ session's key material, which requires the KDF to be a programmable random
 oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
 are expressible in the current model (the KDF's PRF key slot is the KEM
 shared secret, which the IND-CCA hop makes uniform) and are deferred as
-future reduction work. Original-key partnering ignores the unsigned bundle fields, so a run that
-changes only them keeps Alice's partner and is no forgery. The well-formedness lemmas in
+future reduction work. The well-formedness lemmas in
 `WellFormedLemmas.lean` (parties output exactly at completion, honest runs
 transfer exactly `rounds` messages) are expected to discharge the
 bookkeeping relating `K0` to challenge-session completion.

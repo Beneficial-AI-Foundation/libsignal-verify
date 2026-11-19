@@ -72,13 +72,8 @@ private lemma forge_or_cases (tk : RecipientIdentity F G S)
     · cases hh : honestBundle P msg hasOPK tk cr b <;> simp_all
   · simp
 
-/-- Hop 1: the partnered experiment `PartneredExp` over `originalKeyPartnering` and `indistExp`
-  agree except on the forgery branch, where Alice accepts with no original-key partner: the
-  former returns `true` and the latter flips a fair coin. After commuting the challenge bit ahead
-  of the challenge phase, the two experiments share their sampling prefix, so `PartneredExp`'s
-  success probability lies between `indistExp`'s and `indistExp`'s plus the forgery probability,
-  and the triangle inequality bounds the partnered advantage by `forgeProb` plus
-  `indistAdvantage`. Purely probabilistic; uses no cryptographic hypotheses. -/
+/-- Hop 1: the partnered advantage is bounded by `forgeProb` plus `indistAdvantage`. Purely
+  probabilistic; uses no cryptographic hypotheses. -/
 lemma advantage_le_forgeProb_add_indistAdvantage
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
     partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤

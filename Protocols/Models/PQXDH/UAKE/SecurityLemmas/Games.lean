@@ -103,9 +103,7 @@ def challengePhase (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
 
 open Classical in
 /-- Alice's challenge session has an original-key partner: a session of Bob that completed with a
-key, holds her associated data and key material, and accepted no later than she did
-(`authPartnered` over `originalKeyPartnering`). It is decided classically, as in
-`PartneredExp`. -/
+key, holds her associated data and key material, and accepted no later than she did. -/
 def challengePartnered (cr : ChallengeResult (uakeInitiator P msg hasOPK))
     (env : Env (uakeInitiator P msg hasOPK)) : Bool :=
   decide (authPartnered (originalKeyPartnering P msg hasOPK) env.challenge.state cr.challengeTr

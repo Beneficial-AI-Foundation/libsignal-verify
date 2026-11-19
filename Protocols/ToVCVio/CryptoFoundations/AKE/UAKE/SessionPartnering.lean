@@ -18,7 +18,7 @@ instances of it. `Partnering.toSession` embeds a state-level partnering, with th
 the acceptance order of `authPartnered`, and `SessionExp_toSession` shows that the experiment is
 then `PartneredExp`. `transcriptPartnering` is the transcript matching of DF'17, and
 `SessionExp_transcript` shows that the experiment is then `Exp`. Each test reads its inputs where
-the landed experiments read them: the authentication test at the end of the challenge stage, the
+`Exp` and `PartneredExp` read them: the authentication test at the end of the challenge stage, the
 freshness test after the key-distinguishing stage with the challenge transcript of the challenge
 stage.
 

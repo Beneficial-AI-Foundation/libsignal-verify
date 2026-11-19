@@ -15,9 +15,7 @@ session context, which stores `km`, once it accepts, so the session identifier `
 exactly on the accepted states. Equal inputs give equal keys, since `P.kdf` is a function, but
 distinct inputs that give equal keys do not make partners. The key identifiers, the signatures and
 the bytes of an unsigned one-time pre-key are not part of the identifier, so they are not
-authenticated. `originalKeyPartnering` is the partnering of `uakeInitiator` that the security
-theorems use with `PartneredExp`. `initiate_km_spec` and `accept_km_spec` show that the stored
-`km` is the input of the KDF call that derives the session's keys.
+authenticated.
 
 The definitions and proofs in this file are AI-written.
 -/

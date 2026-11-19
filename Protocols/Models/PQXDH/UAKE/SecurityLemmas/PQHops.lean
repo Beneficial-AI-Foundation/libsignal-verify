@@ -87,9 +87,7 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
   The factor `q` on `εaead` and `εkdf` is generous (only the session guess needs it), but stating
   the bound with it makes the composed bound collapse to the signature term when the adversary
-  opens no sessions.
-
-  Used by `uakeInitiator_secure_pq` as hop 5. -/
+  opens no sessions. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
@@ -106,12 +104,9 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
 /-- Hop 6 (indistinguishability core, IND-CCA): in `indistExp`, the adversary's guess is better
   than a fair coin only by breaking the KEM or the KDF, or by a KEM public-key collision.
 
-  `indistExp` is the partnered experiment over `originalKeyPartnering`, with the outright win on
-  the forgery event replaced by a fair coin.
-
   Intended proof, as further hops:
   1. If Alice outputs no key, both finalizations hand the adversary `none` and the guess is
-     independent of the challenge bit, so it wins with probability exactly `1 / 2`; the coined
+     independent of the challenge bit, so it wins with probability exactly `1 / 2`; the fair-coin
      forgery branch likewise. Only the partnered branch remains.
   2. In the partnered branch, a session of Bob that accepted no later than Alice holds her
      associated data and key material. This does not make the accepted bundle honest, because

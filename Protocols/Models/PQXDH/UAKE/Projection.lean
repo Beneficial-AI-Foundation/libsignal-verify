@@ -14,17 +14,12 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 
 `initiator` and `recipient` keep their session context once they accept, so that original-key
 partnering can read the key material `km`. `initiatorKeyOnly` and `recipientKeyOnly` are the
-parties as they were before that change: once a party accepts, it keeps only its key. They are a
-reference for this file, and no security theorem uses them.
+parties that keep only their key once they accept. They are a reference for this file, and no
+security theorem uses them.
 
 `initiator_sim` and `recipient_sim` show that the parties of `uakeInitiator` simulate the key-only
-parties when each retained context is replaced by its key. The transport theorems of
-`Transport.lean` then give the projection. On every adversary, the challenge stage of
-`uakeInitiatorKeyOnly` is that of `uakeInitiator` with each retained context replaced by its key:
-the same challenge key, transcripts, clock, session keys, reveal flags and adversary state
-(`challengeSession_projection`). The DF'17 experiment and its advantage are equal for the two
-schemes (`uakeInitiator_Exp_projection`, `uakeInitiator_advantage_projection`), and every
-adversary of `uakeInitiator` has the same advantage against both
+parties when each retained context is replaced by its key. By the transport theorems of
+`Transport.lean`, every adversary of `uakeInitiator` has the same DF'17 advantage against both
 (`uakeInitiator_advantage_eq_keyOnly`).
 
 Both kinds of parties call the same `initiate` and `accept`, which store `km` in the context, so
@@ -47,9 +42,9 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   [SampleableType K]
   (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
 
-/-- Alice's party as it was before she kept her session context: once `confirm` accepts Bob's
-  confirmation, she keeps only the key that `confirm` returns. A reference for the projection
-  lemmas; no security theorem uses it. -/
+/-- Alice's party with key-only state: once `confirm` accepts Bob's confirmation, she keeps only
+  the key that `confirm` returns. A reference for the projection lemmas; no security theorem uses
+  it. -/
 def initiatorKeyOnly :
     Party ProbComp (InitiatorParameters F G Msg) (Message G PQPK CT S C IdC IdK) (Option K) where
   State := InitiatorParameters F G Msg ⊕ SessionContext G PQPK Msg K SS ⊕ K
@@ -68,8 +63,8 @@ def initiatorKeyOnly :
     | .inr (.inr SK) => pure (some (some SK))
     | _ => pure none
 
-/-- Bob's party as it was before he kept his session context: once `accept` succeeds, he keeps only
-  the key `ctx.sk`. A reference for the projection lemmas; no security theorem uses it. -/
+/-- Bob's party with key-only state: once `accept` succeeds, he keeps only the key `ctx.sk`. A
+  reference for the projection lemmas; no security theorem uses it. -/
 def recipientKeyOnly :
     Party ProbComp (RecipientIdentity F G S) (Message G PQPK CT S C IdC IdK) (Option K) where
   State := RecipientParameters F G PQPK PQSK S ⊕ K
