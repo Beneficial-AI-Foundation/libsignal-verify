@@ -33,10 +33,6 @@ def Adversary.OpensAtMost {proto : Scheme ProbComp K UK TK W} (A : Adversary pro
   (∀ uk w, (A.challenge uk w).IsQueryBoundP (· matches Sum.inr .openT) q) ∧
     (∀ st k, (A.post st k).IsQueryBoundP (· matches Sum.inr .openT) q)
 
-/-- `OpensAtMost` and `OpensAtMostPerPhase` are the same budget. -/
-theorem Adversary.opensAtMost_iff_opensAtMostPerPhase {proto : Scheme ProbComp K UK TK W}
-    (A : Adversary proto) (q : ℕ) : A.OpensAtMost q ↔ A.OpensAtMostPerPhase q := Iff.rfl
-
 variable {proto : Scheme ProbComp K UK TK W}
 
 /-- A query other than `openT` leaves the number of T sessions unchanged. -/
