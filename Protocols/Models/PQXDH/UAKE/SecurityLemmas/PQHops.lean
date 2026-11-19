@@ -86,8 +86,7 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
   proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
   decapsulation mismatch forces a forgery of Bob's confirmation.
 
-  The premises and the bound are those of the ported statement. Used by `uakeInitiator_secure_pq`
-  as hop 6. -/
+  Used by `uakeInitiator_secure_pq` as hop 6. -/
 lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εkdf εpk : ℝ)

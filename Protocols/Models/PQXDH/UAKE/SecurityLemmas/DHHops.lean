@@ -69,8 +69,7 @@ lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
   identity exponent or Alice's ephemeral exponent is `0`. That event has probability about
   `2 / |F| ^ 2` per challenge, and the bound has no term for it.
 
-  The premises and the bound are those of the ported statement. Used by `uakeInitiator_secure_dh`
-  as hop 6. -/
+  Used by `uakeInitiator_secure_dh` as hop 6. -/
 lemma indistAdvantage_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf εpk : ℝ)
