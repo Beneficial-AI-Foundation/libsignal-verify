@@ -51,9 +51,9 @@ explicit reduction, built and compared with the real challenge phase in
 `SecurityLemmas/SigReduction.lean`. The GapDH cores idealize the KDF outputs on the challenge
 session's key material, which requires the KDF to be a programmable random
 oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
-are expressible in the current model (the KDF's PRF key slot is the KEM
-shared secret, which the IND-CCA hop makes uniform) and are deferred as
-future reduction work. The well-formedness lemmas in
+take PRF security of `kdfPRF`, which keys the KDF with the KEM shared secret; the games also
+compare that secret, as the last component of `km`, in the partnering tests. Their proofs are
+deferred as future reduction work. The well-formedness lemmas in
 `WellFormedLemmas.lean` (parties output exactly at completion, honest runs
 transfer exactly `rounds` messages) are expected to discharge the
 bookkeeping relating `K0` to challenge-session completion.

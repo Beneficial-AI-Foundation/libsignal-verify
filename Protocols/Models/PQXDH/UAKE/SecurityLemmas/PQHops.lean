@@ -19,11 +19,9 @@ Both hops are stated over original-key partnering (`originalKeyPartnering`). The
 of hop 5 is "Alice accepted and no session of Bob is her original-key partner", and `indistExp`
 flips a coin on that event and when a revealed session is a partner.
 
-Unlike the GapDH cores, these reductions are expressible in the current
-model: the KDF's PRF key slot is an abstract bitstring (the KEM shared
-secret) that the game uses only as a KDF key, so once the IND-CCA hop makes
-it uniform, the PRF hypothesis applies directly. The proofs are deferred as
-future reduction work.
+The premise `hkdf` is PRF security of `kdfPRF`, which keys the KDF with the KEM shared secret.
+The games also compare that secret, as the last component of the key material `km`, in the
+partnering tests. The proofs are deferred as future reduction work.
 
 The lemma statements and proofs in this file are AI-written.
 -/
