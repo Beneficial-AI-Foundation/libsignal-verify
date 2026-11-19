@@ -219,8 +219,8 @@ theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [Deci
     1 - δ ≤ rustRuntime.evalDist
       (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} :=
   (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
-    (uakeInitiator_agreement_le P msg hasOPK kind hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins
-      hAead)
+    (uakeInitiator_agreement_le P msg hasOPK kind hC hS.signTotal hS.signVerify hG H hH hEC hPQ Dom
+      hRng hSigRng hCoins hAead)
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
 extracted entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties
@@ -239,8 +239,8 @@ theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [Deci
     1 - δ ≤ rustRuntime.evalDist
       (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} :=
   (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
-    (uakeRecipient_agreement_le P msg hasOPK kind hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins
-      hAead)
+    (uakeRecipient_agreement_le P msg hasOPK kind hC hS.signTotal hS.signVerify hG H hH hEC hPQ Dom
+      hRng hSigRng hCoins hAead)
 
 end
 

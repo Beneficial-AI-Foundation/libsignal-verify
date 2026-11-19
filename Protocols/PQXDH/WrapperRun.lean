@@ -13,7 +13,10 @@ import Protocols.PQXDH.Scheme
 
 In an honest run of either scheme on the extracted entry points, both parties output equal keys
 at least as often as the Kyber correctness experiment succeeds, when encapsulation runs on the
-state that `generate` returns (`uakeInitiator_agreement_le`, `uakeRecipient_agreement_le`).
+state that `generate` returns (`uakeInitiator_agreement_le`, `uakeRecipient_agreement_le`). Both
+lemmas need the hypotheses that the docstring of `wrapperAgreement_uakeInitiator` in
+`Correctness.lean` lists: honest keys, the core, HKDF, signature and generator contracts, and
+perfect correctness of the synthetic AEAD.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal
@@ -55,7 +58,7 @@ private theorem kyber_length_lt {kp : PQKeyPair} (h : PQKeyPairShape kp) :
 `calculate_signature` on a state of `Dom`. If a bound `ε` holds after every such signature, it
 holds after `signBytes`. -/
 private theorem le_prEvent_signBytes_bind {γ : Type} (P : Params Rand Msg C IdC IdK)
-    (hS : SignatureContracts) (Dom : Rand → Prop)
+    (hST : SignTotal) (Dom : Rand → Prop)
     (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (sk : ECPriv) (m : Slice U8)
@@ -71,7 +74,7 @@ private theorem le_prEvent_signBytes_bind {γ : Type} (P : Params Rand Msg C IdC
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun r hr => ?_
   rw [ExceptT.support_liftM] at hr
   obtain ⟨⟨res, r'⟩, hsig, hpost⟩ := exists_ok_of_spec
-    (hS.signTotal P.cryptoRngInst P.rngInst Dom hRng hSigRng sk m r (hCoins r hr))
+    (hST P.cryptoRngInst P.rngInst Dom hRng hSigRng sk m r (hCoins r hr))
   simp only [WP.uncurry'] at hpost
   obtain ⟨⟨σ, rfl, -⟩, -⟩ := hpost
   simp only [hsig, liftResult_ok, pure_bind]
@@ -89,7 +92,7 @@ section Cases
 
 variable [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
-  (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+  (hC : CoreContracts) (hST : SignTotal) (hSV : SignVerify) (hG : GenerateTotal)
   (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
   (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
   (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
@@ -97,7 +100,7 @@ variable [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
   (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
   (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
 
-include hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
+include hC hST hSV hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
 
 /-- The case of `uakeRecipient_agreement_le` for the last-resort Kyber prekey. -/
 private theorem uakeRecipient_lastResort_le :
@@ -115,13 +118,13 @@ private theorem uakeRecipient_lastResort_le :
   rw [ExceptT.support_liftM] at hikA hikB hspkB
   obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
   obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
   simp only [bind_assoc, pure_bind]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun opkB hopkB => ?_
@@ -136,10 +139,10 @@ private theorem uakeRecipient_lastResort_le :
       (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) hekA (genOPK_valid P hasOPK hEC _ hopkB)
       (hPQ _ hkp) hr₁
   have hv1 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
       (hEC _ hikB) hsig1
   have hv2 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
   by_cases hss : ss' = ss
   swap
@@ -183,13 +186,13 @@ private theorem uakeRecipient_oneTime_le :
   rw [ExceptT.support_liftM] at hikA hikB hspkB
   obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun lr hlr => ?_
   rw [ExceptT.support_liftM] at hlr
   obtain ⟨bl, -, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
   rw [hel, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σl rl rl' hrl hsigl => ?_
   simp only [bind_assoc]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun opkB hopkB => ?_
@@ -197,7 +200,7 @@ private theorem uakeRecipient_oneTime_le :
   rw [ExceptT.support_liftM] at hkp
   obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
   simp only [pure_bind]
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun r hr => ?_
@@ -211,10 +214,10 @@ private theorem uakeRecipient_oneTime_le :
       (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) hekA (genOPK_valid P hasOPK hEC _ hopkB)
       (hPQ _ hkp) hr₁
   have hv1 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
       (hEC _ hikB) hsig1
   have hv2 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
   by_cases hss : ss' = ss
   swap
@@ -259,13 +262,13 @@ private theorem uakeInitiator_lastResort_le :
   rw [ExceptT.support_liftM] at hikA hikB hspkB
   obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
   obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
   simp only [bind_assoc, pure_bind]
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun r hr => ?_
@@ -280,10 +283,10 @@ private theorem uakeInitiator_lastResort_le :
       (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) hekA (genOPK_valid P hasOPK hEC _ hopkB)
       (hPQ _ hkp) hr₁
   have hv1 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
       (hEC _ hikB) hsig1
   have hv2 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
   by_cases hss : ss' = ss
   swap
@@ -334,13 +337,13 @@ private theorem uakeInitiator_oneTime_le :
   rw [ExceptT.support_liftM] at hikA hikB hspkB
   obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun lr hlr => ?_
   rw [ExceptT.support_liftM] at hlr
   obtain ⟨bl, -, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
   rw [hel, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σl rl rl' hrl hsigl => ?_
   simp only [bind_assoc]
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun r hr => ?_
@@ -351,7 +354,7 @@ private theorem uakeInitiator_oneTime_le :
   rw [ExceptT.support_liftM] at hkp
   obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
-  refine le_prEvent_signBytes_bind P hS Dom hRng hSigRng hCoins _ _ _ _ _
+  refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
   simp only [pure_bind]
   obtain ⟨⟨ekA, r₁⟩, hgen, hgpost⟩ := exists_ok_of_spec
@@ -363,10 +366,10 @@ private theorem uakeInitiator_oneTime_le :
       (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) hekA (genOPK_valid P hasOPK hEC _ hopkB)
       (hPQ _ hkp) hr₁
   have hv1 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b1 σ1 r1 r1'
       (hEC _ hikB) hsig1
   have hv2 :=
-    hS.signVerify P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
+    hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
   by_cases hss : ss' = ss
   swap
@@ -407,9 +410,8 @@ theorem uakeInitiator_agreement_le :
       rustRuntime.evalDist
         (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} := by
   cases kind
-  · exact uakeInitiator_oneTime_le P msg hasOPK hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
-  · exact
-      uakeInitiator_lastResort_le P msg hasOPK hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
+  · apply uakeInitiator_oneTime_le <;> assumption
+  · apply uakeInitiator_lastResort_le <;> assumption
 
 /-- In an honest run of `uakeRecipient` on the extracted entry points, with Bob's sessions using
 Kyber prekeys of the kind `kind`, both parties output equal keys at least as often as the Kyber
@@ -419,9 +421,8 @@ theorem uakeRecipient_agreement_le :
       rustRuntime.evalDist
         (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} := by
   cases kind
-  · exact uakeRecipient_oneTime_le P msg hasOPK hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
-  · exact
-      uakeRecipient_lastResort_le P msg hasOPK hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins hAead
+  · apply uakeRecipient_oneTime_le <;> assumption
+  · apply uakeRecipient_lastResort_le <;> assumption
 
 end Cases
 

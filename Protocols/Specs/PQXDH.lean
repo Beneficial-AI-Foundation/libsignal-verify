@@ -323,7 +323,7 @@ info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
 recall Protocols.PQXDH.uakeInitiator_agreement_le
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
-    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (hC : CoreContracts) (hST : SignTotal) (hSV : SignVerify) (hG : GenerateTotal)
     (H : libsignal_protocol.crypto.HmacSha256)
     (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -361,7 +361,7 @@ info: 'Protocols.PQXDH.uakeInitiator_agreement_le' depends on axioms:
 recall Protocols.PQXDH.uakeRecipient_agreement_le
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
-    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
+    (hC : CoreContracts) (hST : SignTotal) (hSV : SignVerify) (hG : GenerateTotal)
     (H : libsignal_protocol.crypto.HmacSha256)
     (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
