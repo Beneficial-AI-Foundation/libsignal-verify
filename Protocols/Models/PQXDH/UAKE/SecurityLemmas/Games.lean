@@ -112,8 +112,8 @@ def challengePartnered (cr : ChallengeResult (uakeInitiator P msg hasOPK))
 /-- Forgery experiment: Alice's challenge session accepted, and no session of Bob is her
   original-key partner (`challengePartnered`). -/
 def forgeExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
-  let (cr, st) ← challengePhase P msg hasOPK A
-  return cr.K0.isSome && !challengePartnered P msg hasOPK cr st.2.1
+  let (cr, _, env, _) ← challengePhase P msg hasOPK A
+  return cr.K0.isSome && !challengePartnered P msg hasOPK cr env
 
 /-- Probability of the forgery event. -/
 def forgeProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
