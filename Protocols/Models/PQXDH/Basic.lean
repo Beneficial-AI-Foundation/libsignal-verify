@@ -272,7 +272,8 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
   let DH2 := DH ekA.2 bundle.ikB
   let DH3 := DH ekA.2 bundle.spkB.1
   let DH4 := bundle.opkB.map fun opk => DH ekA.2 opk.1
-  let (SK, KA, KB) := P.kdf (DH1, DH2, DH3, DH4, SS)
+  let km := (DH1, DH2, DH3, DH4, SS)
+  let (SK, KA, KB) := P.kdf km
   let AD := (p.ikA.1, bundle.ikB, bundle.pqpkB.1)
   let ctxt ← P.aead.encrypt KA AD p.msg
   return some ({ ikA := p.ikA.1
@@ -282,7 +283,7 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
                  idPQPK := bundle.pqpkB.2
                  idOPK := bundle.opkB.map Prod.snd
                  ctxt := ctxt },
-    { sk := SK, kb := KB, ad := AD, msg := p.msg, km := (DH1, DH2, DH3, DH4, SS) })
+    { sk := SK, kb := KB, ad := AD, msg := p.msg, km })
 
 /-- Bob's confirmation procedure. Check if Alice's AEAD ciphertext decrypts with
   the correct AD and KDF-derived key. Return sk, if so. Also return the key,
