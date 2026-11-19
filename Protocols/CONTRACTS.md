@@ -51,11 +51,17 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 2. **Kyber termination is a claim about SHAKE128 on every seed.** `KyberEncapsBackend` and
    `KyberDecaps` state termination for every key of the right length. libcrux samples the public matrix
    in a loop with no bound, and its seed comes from the key, which the adversary chooses. We know of no
-   proof that this loop ends on every seed. libcrux marks the sampling function
-   `verification_status(lax)`. See section 4.
-3. **A published δ reaches `KyberDeltaCorrect` only through #75.** The published failure bound is for
-   Kyber's own key generation and uniform coins. The contract ranges over the ideal draws `P.pqKeygen`
-   and `P.coins`. See section 6.
+   published proof that this loop ends on every seed. libcrux marks the sampling function
+   `verification_status(lax)`. Section 4 gives a deterministic argument from the fact that
+   Keccak-f[1600] is a permutation. It is a possible discharge route, not a proof: this review checked
+   its steps only for libcrux's portable backend, and not that libcrux's permutation is Keccak-f[1600].
+   The contracts still trust termination. See section 4.
+3. **No published δ reaches `KyberDeltaCorrect` yet.** The published failure bound is for Kyber's own
+   key generation and uniform coins. The contract bounds the failure mass over the ideal draws
+   `P.pqKeygen` and `P.coins`, counting faults, protocol errors and mismatched secrets. Reusing a
+   published δ needs a proof that this mass is at most δ, and no such proof is done. The contract does
+   not need the draws to be production's (#75), nor termination on every key (section 4): only the
+   failure mass on the ideal draws counts. See section 6.
 4. **The HKDF contract describes a patched helper.** `crypto::hkdf_sha256` exists only in the patched
    copy. Its link to production is the two translation patches, which we checked. See section 1.
 5. **Stale citation.** The docstring of `RngTotal` cites `rand_core` 0.9.3. `Cargo.lock` pins 0.9.5.
@@ -68,9 +74,9 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | `HkdfSha256Contract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0 | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | #75; an OS entropy failure stays outside any proof |
-| `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; termination may stay an assumption on SHAKE128 |
+| `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
 | `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #75 for the coins |
-| `KyberDeltaCorrect` | the decryption-failure probability of Kyber-1024 | the published analysis, a model of libcrux and #75 |
+| `KyberDeltaCorrect` | the decryption-failure probability of Kyber-1024 | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
 
 ## 1. `HkdfSha256Contract`
@@ -98,8 +104,10 @@ helper on a 96-byte buffer, split into three 32-byte arrays.
 - `expand_multi_info` (`src/lib.rs:130-166`) computes `T(i) = HMAC(PRK, T(i-1) | info | i)` with a
   one-byte counter `i` from 1. This is `hkdfExpandBlock`. It returns an error only when the output is
   longer than 255 · 32 bytes, so 96 bytes give `Ok(())`. The loop runs three times.
-- The two `expect` calls on this path cannot fail. HMAC accepts a key of any length
+- The three `expect` calls on this path cannot fail. HMAC accepts a key of any length
   (`src/hmac_impl.rs`), and the PRK has 32 bytes, at least `HashLen` (`src/lib.rs:60-64`, `from_prk`).
+  The counter `u8::try_from(block_n).expect(..) + 1` (`src/lib.rs:155`) sees the block indices 0, 1
+  and 2, so the conversion succeeds and the sum is at most 3.
 - `derive_arrays` (`rust/core/src/lib.rs:40-66`) fills a `#[repr(C)]` struct of three `[u8; 32]`
   arrays and returns them in order. So the patched split `[..32]`, `[32..64]`, `[64..]` gives the same
   three arrays.
@@ -111,6 +119,18 @@ helper on a 96-byte buffer, split into three 32-byte arrays.
 we read. `H` is a parameter: a theorem that assumes `HkdfSha256Contract H` holds for every `H` that the
 helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The contract covers
 only the call that PQXDH makes: no salt and 96 bytes of output.
+
+The contract allows `ikm` and `info` of any length, and the argument above bounds only the output.
+HMAC's inner SHA-256 hash receives one 64-byte pad block before the message (`hmac` 0.13.0,
+`src/block_api.rs:53-63`). `sha2` 0.11.0 computes the message length in bits as `8 * (…)` in `u64`
+(`src/block_api.rs:66`), so the product overflows once a hash has received 2^61 bytes or more. The
+workspace builds `sha2` without overflow checks in release (`Cargo.toml`,
+`[profile.release.package.sha2]`), so the product wraps there, and a build with overflow checks
+panics. With overflow checks, the contract is therefore stronger than the Rust code on inputs this
+long. In the release profile the call returns, but SHA-256 (FIPS 180-4) is defined only for messages
+shorter than 2^64 bits, so there the reading of `H` as HMAC-SHA256 fails. The PQXDH call is far below this limit: its input
+key material has at most 192 bytes (`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info`
+is the fixed label `WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`.
 
 **If false.** `derive_spec` and `derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis
 `h_hkdf`. If the contract fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems
@@ -144,11 +164,16 @@ canonical (`rust/protocol/src/pqxdh.rs:328-333`; patched 339-344).
 string library.
 
 **From the source.** `to_owned` copies the bytes of an existing `str` into a new `String`. Its only
-failure is allocation failure, which aborts the process. Like the rest of the extraction, the contract
-does not model running out of memory.
+failure is allocation failure. Then `handle_alloc_error` does not return normally. With `std`, the
+default prints a message and aborts the process, and the global configuration can make it panic
+instead (Rust 1.98.1, `library/alloc/src/alloc.rs:519-532`). Like the rest of the extraction, the
+contract does not model running out of memory.
 
-**Gaps.** The statement is for every `Str`, not only the literal. This matches the Rust function, which
-behaves the same on every string that exists in memory.
+**Gaps.** The statement is for every `Str`, not only the literal. On every Rust `str` that exists in
+memory, the Rust function behaves the same, so the contract matches it there. At the Aeneas pin, `Str`
+is `Slice U8` with no UTF-8 invariant (`Aeneas/Std/StringDef.lean:8`), while a Rust `str` must be
+valid UTF-8. So the contract also covers byte slices that no Rust `str` represents. The one call on
+this path passes an ASCII literal, which is valid UTF-8.
 
 **If false.** `pqxdh_accept` could fault on the rejection branch. Honest keys pass `is_canonical`
 (`DerivedCanonical`), so honest runs do not take this branch. The adversary can send a non-canonical
@@ -179,17 +204,22 @@ it (`rand_core` 0.9.5, `src/lib.rs:300-315`). So `UnwrapErr<OsRng>` panics exact
 system's entropy source returns an error. `fill_bytes` writes into the caller's slice in place, and a
 Rust slice cannot change its length, so the length condition holds.
 
-**Gaps.** For production, totality rests on the OS entropy source not failing. That is outside any
-proof. The extraction declares the methods of `UnwrapErr` as axioms
+**Gaps.** For production, totality rests on two properties of the OS entropy source: each request
+returns no error, and each request returns at all. `OsRng` documents that its first call may block
+until the system's RNG is initialised (`rand_core` 0.9.5, `src/os.rs:24-34`). Both properties are
+outside any proof. The extraction declares the methods of `UnwrapErr` as axioms
 (`rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.*`), but no statement uses that instance. The
 statements hold for every generator that satisfies `RngTotal`.
 
 **If false.** Signing and Kyber encapsulation could fault, because `SignTotal` and
 `KyberEncapsBackend` take `RngTotal` as a premise. The completion and agreement statements and
-`fullExp_noLostMass` depend on it. The security statements do not take it: they count faults in
-`Pr[⊥]`.
+`fullExp_noLostMass` depend on it. The two fault-counting security statements,
+`uakeInitiator_secure_dh` and `uakeInitiator_secure_pq`, do not take it: they count faults in `Pr[⊥]`.
+The two `_total` corollaries take `RngTotal` for both views of the generator, on a domain that
+contains the states from `P.coins` (`Protocols/PQXDH/Security.lean`), so they depend on it.
 
-**Discharge.** #75 relates the generator to production. For a deterministic generator, such as the
+**Discharge.** #75 (step 3) decides whether the per-session draw `P.coins` needs a correspondence with
+production's generator. For a deterministic generator, such as the
 ChaCha generator of the tests, `RngTotal` could be proved from a body.
 
 ## 4. Kyber1024 backend: `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps`
@@ -237,15 +267,45 @@ decapsulate}` from `libcrux-ml-kem` 0.0.10. That module is "Kyber 1024 (NIST PQC
 
 **Gaps.** Termination on every key is a claim about SHAKE128 on every seed, and the adversary chooses
 the seed. Under a random-oracle view of SHAKE128 the loop ends with probability 1. For a fixed seed,
-we know of no proof. libsignal does not call libcrux's `validate_public_key`, so encapsulation accepts
-any 1568 bytes. The contract matches this.
+we know of no published proof. The route below may give one, but this review did not check all its
+steps. libsignal does not call libcrux's `validate_public_key`, so encapsulation accepts any 1568
+bytes. The contract matches this.
+
+**A possible discharge route for termination (not fully checked).** For a fixed seed, the sampling
+loop may end for a deterministic reason. We checked the first three steps below in `libcrux-sha3`
+0.0.10 and in the portable backend of `libcrux-ml-kem` 0.0.10, both pinned in `Cargo.lock`.
+
+1. Each matrix entry absorbs a 34-byte seed into a zero state with rate 168 bytes
+   (`libcrux-ml-kem` `src/hash_functions.rs:133-172`; `libcrux-sha3`
+   `src/portable/incremental.rs:246-290`, `src/generic_keccak.rs:44-48`). Padding
+   writes the delimiter at byte 34 and `0x80` at byte 167 (`src/simd/portable.rs:91-106`). So the
+   state `S` before the first permutation has zero bytes at offsets 36, 37 and 38.
+2. `absorb_final` applies the permutation `f` after padding (`src/generic_keccak.rs:282-298`). The
+   first three blocks are the rate parts of `f(S)`, `f²(S)` and `f³(S)`, and each later block applies
+   `f` once more (`src/generic_keccak/portable.rs:14-43`). Load and squeeze use the same
+   little-endian lane order (`src/simd/portable.rs:56-83`, `:115-140`). So block `k` is the first 168
+   bytes of `fᵏ(S)`.
+3. The sampler reads each block in 24-byte chunks and each chunk in 3-byte groups
+   (`libcrux-ml-kem` `src/sampling.rs:45-71`, `src/vector/portable/sampling.rs:8-32`). 168 is a
+   multiple of 24, so the group at bytes 36 to 38 of a block is aligned. A zero group gives two
+   values 0 < q, and the sampler accepts both while the entry is not yet full. The count of accepted
+   coefficients never decreases.
+4. Not checked: that libcrux's `keccakf1600` is a permutation of the 1600-bit state, for example
+   because it computes Keccak-f[1600]. If it is, `S` lies on a cycle of `f`, so `fᵖ(S) = S` for some
+   `p ≥ 1`. Then blocks `p`, `2p`, … contain the zero group, and each entry fills after at most 128
+   such blocks.
+5. Not checked: the neon and avx2 backends, which libcrux can use in place of the portable one, and
+   the path by which decapsulation reaches the sampler.
+
+The argument gives no useful time bound, because `p` can be as large as 2^1600.
 
 **If false.** Alice's encapsulation or Bob's decapsulation could fault on honest runs. All completion
 and agreement statements and `fullExp_noLostMass` depend on these contracts. The security statements
 use the fault-or-value form `KyberPartial`, which claims no termination.
 
-**Discharge.** A model of libcrux's Kyber-1024. Termination needs either a bound on the sampling loop
-in libcrux or an explicit assumption on SHAKE128.
+**Discharge.** A model of libcrux's Kyber-1024. Termination needs a bound on the sampling loop in
+libcrux, an explicit assumption on SHAKE128, or the route above once all its steps are checked for
+every backend.
 
 **Fault-or-value form.** `KyberPartial`. Its decapsulation part and its bad-length part follow from
 `KyberDecaps` and `KyberEncapsBadLength`. Its 1568-byte encapsulation part says, for every generator,
@@ -268,14 +328,33 @@ Rust code, because array types fix both sizes.
 **Stands for.** The claim that libcrux's Kyber-1024, with coins drawn from the caller's generator, is
 the KEM whose IND-CCA security the PQ statement assumes.
 
-**Checked here.** We read the statement. Given `KyberPartial`, one can take `encDet` and `decDet` from
-the extracted operations themselves, because a Lean function is deterministic. So the bridge adds
-little beyond fixing `K`. Its content is that the IND-CCA premise is about this `K`: libcrux's
-Kyber-1024 run on generator states from `P.coins`. We did not write this construction in Lean.
+**Checked here.** We read the statement and the two extracted wrappers it names in
+`rust/Libsignal/Translated/Protocol/Funs.lean`: `kem.KeyPublic.encapsulate`, which also serializes the
+ciphertext, and `kem.KeySecret.decapsulate`, which first deserializes the ciphertext and checks the
+key type. The bridge's clauses on the extracted calls constrain only calls that return: encapsulation
+on a 1568-byte public key, for every generator state, including states outside the support of
+`P.coins`, and decapsulation on secret keys from `P.pqKeygen`. Its clauses on `K` are three
+equations: `P.pqKeygen` is `K`'s key generation, `K`'s encapsulation is `encDet` applied to a state
+from `P.coins`, and `K`'s decapsulation is `decDet`. Given `KyberPartial`, a returning encapsulation on
+a 1568-byte key gives a 32-byte secret, and a returning decapsulation gives an error or a 32-byte
+secret. A Lean function is deterministic, so one can then define `encDet` and `decDet` from the
+extracted calls, and a `K` from them, so that the bridge holds by construction. This construction
+needs arbitrary defaults in three cases: a call that faults, a public key of another length, and a
+secret key outside the support of `P.pqKeygen`. Two such `K` can agree on every call that returns and
+differ on these inputs, and the IND-CCA premise is about the chosen `K`, defaults included. For a `K`
+given in advance the bridge is not automatic: its three equations and its two clauses on returning
+calls must be checked. We did not write this construction in Lean.
 
 **Gaps.** IND-CCA of Kyber-1024 is a hardness assumption, out of scope for the correctness work (#72).
 libsignal draws the 32 encapsulation bytes with `csprng.random()`. The premise is the standard Kyber
-assumption only if these bytes are uniform when the state comes from `P.coins`. That is #75.
+assumption only if these bytes are uniform when the state comes from `P.coins`. #75 includes the
+`P.coins` draw (its step 3). Two more
+differences separate the Lean premise from the usual computational assumption. The premise `hkem` of
+`uakeInitiator_secure_pq` bounds the advantage of every `K.IND_CCA_Adversary`, with no resource bound
+(#41; see the limits in the module docstring of `Protocols/PQXDH/Security.lean`). And `K`'s key
+generation is the law of `P.pqKeygen`, so the premise is about Kyber's own key generation only if
+`P.pqKeygen` draws keys as Kyber does. #75 lists `P.pqKeygen` among the ideal draws that nothing
+relates yet, but none of its proposed steps relates it to Kyber's key generation.
 
 **If false.** `uakeInitiator_secure_pq` and `uakeInitiator_secure_pq_total` take `KyberBridge P K` as a
 hypothesis, next to the IND-CCA premise on `K`. If the bridge fails for a `K`, the statements say
@@ -305,20 +384,30 @@ question for libcrux (#72 puts it out of scope).
 
 - The published bound is over Kyber's own key generation from uniform seeds and uniform 32-byte
   encapsulation coins. The contract is over `P.pqKeygen`, which only `PQKeyPairShape` constrains, and
-  over the generator states of `P.coins`. A published δ applies only after #75 relates `P.pqKeygen`
-  to `kyber1024::generate_key_pair` on uniform seeds and `P.coins` to uniform 32-byte draws.
-- The contract averages over key pairs and coins, as VCVio's `deltaCorrect` does. Fiedler and Günther
+  over the generator states of `P.coins`. Reusing a published δ needs a proof that the failure mass
+  on these draws, counting faults, protocol errors and mismatched secrets, is at most δ. Such a proof
+  would also need libcrux to implement the specification and the wrappers not to fault. It does not
+  need the draws to be production's. #75 lists `P.pqKeygen` and `P.coins` among the ideal draws that
+  nothing relates yet, but none of its proposed steps relates `P.pqKeygen` to Kyber's key generation.
+  No route to the proof is done.
+- The contract averages over key pairs and coins, as `KEMScheme.deltaCorrect` does. VCVio supplies the
+  experiment `KEMScheme.correctnessExperiment`. This project defines `correctnessError` and
+  `deltaCorrect` in `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean`, after secure-messaging.
+  VCVio's own `deltaCorrect` is a different predicate, for public-key encryption. Fiedler and Günther
   phrase δ-correctness "for every key pair (pk, sk) ←$ KGen(), and every encapsulation
   (ct, ss) ←$ Enc(pk)" (*Security Analysis of Signal's PQXDH Handshake*, PKC 2025, Section 3). A
   reader who carries their δ_corr over should check that it is the same averaged quantity.
-- Faults count as failures, so the bound also needs the termination of section 4.
+- Faults and protocol errors count as failures. The bound concerns only the faults, protocol errors
+  and mismatches on the ideal draws, so termination on every key, as section 4 states it, is not
+  necessary for it.
 
 **If false.** `jointKeyAgreement_extracted` and both `wrapperAgreement_*` take `KyberDeltaCorrect P δ`
 as a hypothesis and conclude that the two parties agree with probability at least `1 − δ`. If the
 correctness error is above the chosen `δ`, the hypothesis fails, and these statements give no
 agreement bound for that `δ`.
 
-**Discharge.** The published analysis, a model of libcrux and #75.
+**Discharge.** A proof that the failure mass on the ideal draws is at most δ, from the published
+analysis and a model of libcrux. #75 has no step yet for `P.pqKeygen`.
 
 ## 7. Curve25519 and XEdDSA contracts
 
@@ -332,13 +421,13 @@ curve25519-dalek specifications. This review stands until then.
 
 | Contract | Statement | Checked here | From the source |
 | --- | --- | --- | --- |
-| `AgreementTotal` | agreement returns 32 bytes or `InvalidKeyAgreement` | `calculate_agreement` (`curve.rs:296-309`) runs X25519 and rejects only the all-zero value | X25519 itself does not panic |
+| `AgreementTotal` | agreement returns 32 bytes or `InvalidKeyAgreement` | `calculate_agreement` (`curve.rs:296-309`) runs X25519 and rejects only the all-zero value | assumed: X25519 itself does not panic |
 | `AgreementDerived` | on keys with derived public halves, both agreements return the same 32 bytes | `public_key` (`curve.rs:259-267`) and agreement both use the clamped scalar (`curve25519.rs:170-174`); argument 1 below the table | both values are the u-coordinate of the product of the two clamped scalars with the base point, and that u-coordinate is 0 only for the identity and the point of order 2 |
-| `TorsionFreeTotal` | the torsion check returns a Boolean | `is_torsion_free` (`curve.rs:165-174`) has no panic path of its own | `to_edwards` and `is_torsion_free` of curve25519-dalek do not panic |
+| `TorsionFreeTotal` | the torsion check returns a Boolean | `is_torsion_free` (`curve.rs:165-174`) has no panic path of its own | assumed: `to_edwards` and `is_torsion_free` of curve25519-dalek do not panic |
 | `DerivedCanonical` | a derived public key passes `is_canonical` | `is_canonical` is `is_torsion_free && scalar_is_in_range` (`curve.rs:165-190`) | a derived key lies in the prime-order subgroup, and its u-coordinate is encoded below `2^255 - 19` |
-| `SignTotal` | on a total generator, signing returns 64 bytes and a state in `Dom` | signing (`curve.rs:275-294`, `curve25519.rs:66-117`) draws 64 bytes with `fill_bytes` and always returns `Ok` of a 64-byte array | SHA-512 and scalar arithmetic do not panic |
+| `SignTotal` | when both views of the generator, `crng.RngCoreInst` and `rng.rand_core_1RngCoreInst`, are total on the same `Dom` and the starting state is in `Dom`, signing returns 64 bytes and a state in `Dom` | signing (`curve.rs:275-294`, `curve25519.rs:66-117`) draws 64 bytes with `fill_bytes` and always returns `Ok` of a 64-byte array | assumed: SHA-512 and scalar arithmetic do not panic |
 | `SignVerify` | a signature by `sk` verifies under the public key derived from `sk` | argument 2 below the table | `to_edwards` on `A`'s u-coordinate and sign bit returns `A` |
-| `VerifyTotal` | verification returns a Boolean | `verify_signature_for_multipart_message` (`curve.rs:138-151`) returns `false` on a wrong signature length or a failed `to_edwards`, with no panic path | curve25519-dalek's double-scalar multiplication does not panic |
+| `VerifyTotal` | verification returns a Boolean | `verify_signature_for_multipart_message` (`curve.rs:138-151`) returns `false` on a wrong signature length and otherwise calls `verify_signature`. That function returns `false` on a failed `to_edwards` or when bit 253 or 254 of `s` is set (`curve25519.rs:125-139`), and otherwise compares the recomputed `R` with the signature bytes (`:142-158`). The libsignal code has no panic path of its own | assumed: curve25519-dalek's double-scalar multiplication does not panic |
 
 **Checked here, argument 1 (`AgreementDerived`).** A clamped scalar is a multiple of 8 in
 `[2^254, 2^255)`. If it were a multiple `kℓ` of the group order, then `k < 8`, and `8 ∣ kℓ` with `ℓ`
@@ -346,7 +435,19 @@ odd forces `8 ∣ k`, a contradiction.
 
 **Checked here, argument 2 (`SignVerify`).** The signer uses `A = aB` with `a` the clamped scalar and
 puts `A`'s sign bit in the top bit of the signature. `s = ha + r` is reduced, so `s < 2^253` and the
-high-bit check passes (`curve25519.rs:119-159`).
+high-bit check passes (`curve25519.rs:119-159`). The verifier hashes `R`, the compressed `A` and the
+message, the same inputs as the signer, so it gets the same `h` (`:101-108`, `:142-149`), given that
+`to_edwards` returns `A` (last column of the table). It then computes `sB − hA` (`:151-155`;
+`curve25519-dalek` 5.0.0 documents this function as computing `aA + bB`, `src/edwards.rs:1079`).
+Since `A = aB` with `a` reduced modulo the order of `B`, `sB − hA = (ha + r)B − haB = rB`. The
+compression of `rB` is the first 32 bytes of the signature (`:99`, `:112`), so the final comparison
+succeeds (`:156-158`).
+
+The cells marked "assumed" are not checked. The `curve25519-dalek` 5.0.0 doc comments that we read
+(`src/montgomery.rs:227-239` for `to_edwards`, `src/edwards.rs:1079` for the double-scalar
+multiplication) say what these functions compute but state no guarantee that they do not panic. We
+did not look for such a guarantee for X25519 or SHA-512, and we did not read any of this code for
+panics.
 
 **Gaps.** The docstring of `VerifyTotal` also says that verification returns `false` on a malformed
 signature or key. The statement does not include this: it states only that a Boolean is returned.
@@ -362,11 +463,17 @@ that satisfy `RngTotal`, so this part is a separate claim. It holds for the Rust
 
 ## 8. Opaque declarations reached by the PQXDH statements
 
-The axioms below, besides `propext`, `Classical.choice` and `Quot.sound`, are all the axioms that the
-frozen closures of `pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. A closure is
-frozen when a `#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails
-when it changes. The checks are those of the two spec summaries named under "Scope and conventions".
-No other axiom of the extraction is reached.
+The declarations below are all the axioms of the extraction that the frozen closures of
+`pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. A closure is frozen when a
+`#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails when it
+changes. The checks are those of the two spec summaries named under "Scope and conventions". No other
+axiom of the extraction is reached. Besides these declarations, the closures contain `propext`,
+`Classical.choice` and `Quot.sound`. Eleven closures in `Protocols/Specs/PQXDH.lean` also contain
+`sorryAx`: those of `uakeInitiator_secure_dh`, `uakeInitiator_secure_pq`, their two `_total`
+corollaries, `fullExp_noLostMass`, `coreCompletion_extracted`, `jointKeyAgreement_extracted`, both
+`wrapperAgreement_*`, `initiate_kdfInput_witness` and `accept_kdfInput_witness`. This `sorryAx` comes
+from the admitted statements that `Protocols/LEDGER.md` lists under "Security placeholders" and
+"Temporary stubs", not from the extraction.
 
 | Declaration | Covered by |
 | --- | --- |
