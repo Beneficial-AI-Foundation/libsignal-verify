@@ -49,9 +49,7 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
   A session of Bob that completed with a key, holds Alice's associated data and key material
   `(ad, km)`, and accepted no later than Alice is her original-key partner
-  (`originalKeyPartnering`). A run that changes the key identifiers, a signature on an honestly
-  signed key, or the bytes of the one-time pre-key, and leaves `km` unchanged, keeps that partner,
-  so it is not in the event. These fields are not authenticated.
+  (`originalKeyPartnering`).
 
   `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
   probability, so the premise is false for production, and no theorem of this repository
