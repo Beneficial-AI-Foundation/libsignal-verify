@@ -16,7 +16,8 @@ at least as often as the Kyber correctness experiment succeeds, when encapsulati
 state that `generate` returns (`uakeInitiator_agreement_le`, `uakeRecipient_agreement_le`). Both
 lemmas need the hypotheses that the docstring of `wrapperAgreement_uakeInitiator` in
 `Correctness.lean` lists: honest keys, the core, HKDF, signature and generator contracts, and
-perfect correctness of the synthetic AEAD.
+perfect correctness of the synthetic AEAD. Of the signature contracts they take only `SignTotal`
+and `SignVerify`.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE ENNReal
