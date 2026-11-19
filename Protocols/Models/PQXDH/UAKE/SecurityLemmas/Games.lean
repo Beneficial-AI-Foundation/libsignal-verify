@@ -145,9 +145,9 @@ def pqpkGuessedProb (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ℝ :=
   keys are the signed keys as published, with pairwise-distinct and unpredicted KEM keys. This is
   the event bounded by the forgery cores (Hop 5). -/
 def forgeHonestGoodExp (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) : ProbComp Bool := do
-  let (cr, st) ← challengePhase P msg hasOPK A
-  return cr.K0.isSome && !challengePartnered P msg hasOPK cr st.2.1 &&
-    ((challengeBundle P msg hasOPK cr).all fun b => honestBundle P msg hasOPK st.2.2 cr b) &&
+  let (cr, _, env, tk) ← challengePhase P msg hasOPK A
+  return cr.K0.isSome && !challengePartnered P msg hasOPK cr env &&
+    ((challengeBundle P msg hasOPK cr).all fun b => honestBundle P msg hasOPK tk cr b) &&
     !pqpkGuessed P msg hasOPK cr
 
 /-- Probability of the residual forgery event. -/
