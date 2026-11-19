@@ -21,8 +21,8 @@ Scope of the two theorems
   its game. The theorems are true implications that do not yet express computational
   security. That needs the resource model of #41.
 * `hkemCorrect` (perfect KEM correctness) is an idealization, because production Kyber
-  decapsulates wrongly with a small probability. Only the PQ hops 5 and 6 use it, and their
-  proofs must replace it (see their docstrings).
+  decapsulates wrongly with a small probability. Only the PQ hops 5 and 6 use it, and no theorem
+  of this repository instantiates them at production Kyber.
 * The experiment is the partnered experiment `PartneredExp` over original-key partnering
   (`originalKeyPartnering`). Alice's challenge session and a session of Bob are partners when both
   have accepted with the same associated data and the same key material `km`, the input of the

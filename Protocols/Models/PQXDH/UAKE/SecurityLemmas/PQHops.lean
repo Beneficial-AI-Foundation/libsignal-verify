@@ -19,9 +19,6 @@ Both hops are stated over original-key partnering (`originalKeyPartnering`). The
 of hop 5 is "Alice accepted and no session of Bob is her original-key partner", and `indistExp`
 flips a coin on that event and when a revealed session is a partner.
 
-The hop lemmas assume `hkemCorrect`, an idealization. The module note of `Security.lean` gives
-the reason.
-
 Unlike the GapDH cores, these reductions are expressible in the current
 model: the KDF's PRF key slot is an abstract bitstring (the KEM shared
 secret) that the game uses only as a KDF key, so once the IND-CCA hop makes
@@ -49,13 +46,7 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
 
   A session of Bob that completed with a key, holds Alice's associated data and key material
   `(ad, km)`, and accepted no later than Alice is her original-key partner
-  (`originalKeyPartnering`).
-
-  `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
-  probability, so the premise is false for production, and no theorem of this repository
-  instantiates this hop at production Kyber. Its replacement in both PQ hops is left to their
-  proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
-  decapsulation mismatch forces a forgery of Bob's confirmation. -/
+  (`originalKeyPartnering`). -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
@@ -77,12 +68,6 @@ lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K]
   one `setup` signed needs degenerate exponents: Alice's identity exponent is `0`, and Bob's
   identity exponent or Alice's ephemeral exponent is `0`. That event has probability about
   `2 / |F| ^ 2` per challenge, and the bound has no term for it.
-
-  `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
-  probability, so the premise is false for production, and no theorem of this repository
-  instantiates this hop at production Kyber. Its replacement in both PQ hops is left to their
-  proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
-  decapsulation mismatch forces a forgery of Bob's confirmation.
 
   Used by `uakeInitiator_secure_pq` as hop 6. -/
 lemma indistAdvantage_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
