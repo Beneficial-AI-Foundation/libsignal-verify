@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
 import Libsignal.Proofs.Protocol.Kem.Ciphertext
+import Libsignal.Proofs.Protocol.Kem.Key
 
 /-!
 # Spec summary: `rust/protocol/src/kem.rs`
@@ -11,10 +12,11 @@ import Libsignal.Proofs.Protocol.Kem.Ciphertext
 This file freezes the specifications of the items of `rust/protocol/src/kem.rs`. Each theorem is
 restated with `recall` and has a `#guard_msgs` check on the axioms it depends on.
 
-The two theorems cover the serialization and the deserialization of a Kyber1024 ciphertext.
-The closure of `deserialize_spec` has two axioms of the extraction besides the logical axioms of
-Lean, `core.num.niche_types.NonZeroU8Inner` and `core.num.nonzero.NonZero`. Both are also in the
-closures of the two entry points.
+The two theorems about `Ciphertext` cover the serialization and the deserialization of a Kyber1024
+ciphertext. The closure of `deserialize_spec` has two axioms of the extraction besides the logical
+axioms of Lean, `core.num.niche_types.NonZeroU8Inner` and `core.num.nonzero.NonZero`. Both are also
+in the closures of the two entry points. The theorem about `Key` covers the serialization of a
+Kyber1024 public key.
 -/
 
 /-! ## `Ciphertext::serialize` and `Ciphertext::deserialize` -/
@@ -49,3 +51,19 @@ info: 'libsignal_protocol.kem.Ciphertext.deserialize_spec' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.kem.Ciphertext.deserialize_spec
+
+/-! ## `Key::serialize` -/
+
+open Aeneas Aeneas.Std Result libsignal_protocol in
+recall libsignal_protocol.kem.Key.serialize_spec {T : Type} (inst : kem.KeyKind T) (k : kem.Key T)
+    (h : (k.key_data.data).length < Usize.max) :
+    kem.Key.serialize inst k ⦃ s => s.val = 8#u8 :: (k.key_data.data).val ⦄
+
+/--
+info: 'libsignal_protocol.kem.Key.serialize_spec' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.kem.Key.serialize_spec

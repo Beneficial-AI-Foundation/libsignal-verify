@@ -7,12 +7,12 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-12 |
+| Date | 2026-11-19 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
-| `sorry` or `sorryAx` under `Protocols/` | 9 |
+| `sorry` or `sorryAx` under `Protocols/` | 7 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -24,9 +24,11 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
 - `Protocols/Specs/PQXDH.lean`: the key-derivation mirror, the branch equations of the two entry
-  points, the lemmas of one honest run and the statements of the Full realization;
-- `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization and deserialization of a Kyber
-  ciphertext;
+  points, the lemmas of one honest run, the two wrapper agreement lemmas and the statements of the
+  Full realization;
+- `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key;
+- `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization of a Kyber key and the serialization
+  and deserialization of a Kyber ciphertext;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
 - `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
   `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end;
@@ -36,7 +38,7 @@ closure, and `lake build` fails when one changes. The checks are in:
 The `sorryAx` in the closures of the two security theorems of the abstract model comes from the four
 admitted hops below, which are the only admitted declarations these theorems depend on. The four AEAD
 lemmas that their imports reach are proved; see "AEAD lemmas" below. The `sorryAx` in the closures of the
-Full realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
+Full realization statements comes from the stubs under "Security placeholders".
 
 ## AEAD lemmas
 
@@ -100,12 +102,8 @@ Until the restatement, these statements differ from production in three ways.
 
 ## Temporary stubs
 
-The stubs of these statements are temporary, unlike the security placeholders above.
-
-| Statement | File | Content | Status |
-| --- | --- | --- | --- |
-| `Protocols.PQXDH.wrapperAgreement_uakeInitiator` | `Correctness.lean` | both parties output equal keys, with probability ≥ 1 − δ, for each kind of Kyber prekey, under `GenerateTotal` and with δ on the state that Alice's `generate` returns | stub |
-| `Protocols.PQXDH.wrapperAgreement_uakeRecipient` | `Correctness.lean` | the same, in the correctness-only direction | stub |
+None remain. The two wrapper agreement statements, `Protocols.PQXDH.wrapperAgreement_uakeInitiator`
+and `Protocols.PQXDH.wrapperAgreement_uakeRecipient`, are proved in `Correctness.lean`.
 
 ## Contracts, policies and modelling choices of the Full realization
 

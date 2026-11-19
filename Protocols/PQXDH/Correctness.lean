@@ -9,6 +9,7 @@ Protocols/ATTRIBUTION.md.
 import Protocols.PQXDH.Contracts
 import Protocols.PQXDH.HonestRun
 import Protocols.PQXDH.Scheme
+import Protocols.PQXDH.WrapperRun
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
 /-!
@@ -38,8 +39,9 @@ The fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean` show that the success e
 are not vacuous: entry points that always panic, always return an error or never terminate fail
 every statement for every `δ < 1`.
 
-The proofs of the two wrapper statements are stubs, which `Protocols/LEDGER.md` lists as temporary
-stubs. The two core statements are proved from the honest run of `HonestRun.lean`.
+The two core statements are proved from the honest run of `HonestRun.lean`. The two wrapper
+statements are proved from `uakeInitiator_agreement_le` and `uakeRecipient_agreement_le` of
+`WrapperRun.lean`, which carry the honest run through the synthetic wrapper.
 -/
 
 open OracleSpec OracleComp AKE ENNReal
@@ -203,7 +205,7 @@ and the two keys are equal, with probability at least `1 - δ`. The hypotheses a
 `jointKeyAgreement_extracted`, with `KyberDeltaCorrectAfterGenerate P δ` in place of the Kyber
 bound. In addition, the statement assumes the signature contracts, the contract `GenerateTotal` on
 Alice's key generation, totality of the generator's `rand::Rng` view on `Dom` (signing and key
-generation use it), and perfect correctness of the synthetic AEAD. The proof is a temporary stub. -/
+generation use it), and perfect correctness of the synthetic AEAD. -/
 theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
     (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
@@ -215,14 +217,15 @@ theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} := by
-  sorry
+      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} :=
+  (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
+    (uakeInitiator_agreement_le P msg hasOPK kind hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins
+      hAead)
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
 extracted entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties
 output a key and the two keys are equal, with probability at least `1 - δ`. The hypotheses are
-those of `wrapperAgreement_uakeInitiator`. This direction is correctness-only. The proof is a
-temporary stub. -/
+those of `wrapperAgreement_uakeInitiator`. This direction is correctness-only. -/
 theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
     (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
@@ -234,8 +237,10 @@ theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [Deci
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
     (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} := by
-  sorry
+      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} :=
+  (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
+    (uakeRecipient_agreement_le P msg hasOPK kind hC hS hG H hH hEC hPQ Dom hRng hSigRng hCoins
+      hAead)
 
 end
 
