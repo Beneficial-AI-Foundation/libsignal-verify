@@ -47,16 +47,7 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   `(ad, km)`, and accepted no later than Alice is her original-key partner
   (`originalKeyPartnering`). A run that changes the key identifiers, a signature on an honestly
   signed key, or the bytes of the one-time pre-key, and leaves `km` unchanged, keeps that partner,
-  so it is not in the event. These fields are not authenticated.
-
-  Steps 3 and 4 must count exposure under `KB` and not deny KDF evaluations. A failed decryption
-  may still evaluate the KDF at Alice's key material, distinct inputs need not give distinct KDF
-  outputs, and rejection under a wrong key is a security property of the AEAD. These are
-  obligations of the proof.
-
-  The factor `q` is generous (the reduction handles all sessions at once), but stating the bound
-  with it makes the composed bound collapse to `εsig` when the adversary opens no sessions, in
-  which case completing the challenge session already requires a signature forgery. -/
+  so it is not in the event. These fields are not authenticated. -/
 lemma forgeHonestGoodProb_le_gap [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εgap εaead εkdf : ℝ)

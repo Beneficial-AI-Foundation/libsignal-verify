@@ -53,20 +53,11 @@ variable {F G SS PQPK PQSK CT S C Msg K IdC IdK : Type}
   signed key, or the bytes of the one-time pre-key, and leaves `km` unchanged, keeps that partner,
   so it is not in the event. These fields are not authenticated.
 
-  Steps 3 and 4 must count exposure under `KB` and not deny KDF evaluations. A failed decryption
-  may still evaluate the KDF at Alice's key material, distinct inputs need not give distinct KDF
-  outputs, and rejection under a wrong key is a security property of the AEAD. These are
-  obligations of the proof.
-
   `hkemCorrect` is an idealization: production Kyber decapsulates wrongly with a small
   probability, so the premise is false for production, and no theorem of this repository
   instantiates this hop at production Kyber. Its replacement in both PQ hops is left to their
   proofs, by one of two routes: a mismatch event with its own proved bound, or a proof that a
-  decapsulation mismatch forces a forgery of Bob's confirmation.
-
-  The factor `q` on `εaead` and `εkdf` is generous (only the session guess needs it), but stating
-  the bound with it makes the composed bound collapse to the signature term when the adversary
-  opens no sessions. -/
+  decapsulation mismatch forces a forgery of Bob's confirmation. -/
 lemma forgeHonestGoodProb_le_pq [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εkem εaead εkdf : ℝ)
