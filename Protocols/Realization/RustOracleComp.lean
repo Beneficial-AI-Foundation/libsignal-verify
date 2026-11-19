@@ -268,8 +268,8 @@ theorem prEvent_true_liftM {α : Type} (mx : ProbComp α) :
   rw [prEvent_true_eq_evalDist_apply_univ, ExceptT.evalDist_liftM,
     ← prEvent_true_eq_evalDist_apply_univ, prEvent_true_eq_one]
 
-/-- Two independent draws of public randomness commute before any event: the probability of an
-event on the result does not depend on which of two lifted `ProbComp` draws comes first. -/
+/-- The probability of an event on the result does not depend on the order of two independent
+draws of public randomness, lifted from `ProbComp`. -/
 theorem prEvent_liftM_bind_liftM_swap {α β γ : Type} (mx : ProbComp α) (my : ProbComp β)
     (f : α → β → RustOracleComp unifSpec γ) (q : γ → Prop) :
     Pr{let y ← ((liftM mx : RustOracleComp unifSpec α) >>= fun a =>

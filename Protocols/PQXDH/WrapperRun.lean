@@ -77,7 +77,7 @@ private theorem le_prEvent_signBytes_bind {γ : Type} (P : Params Rand Msg C IdC
   simp only [hsig, liftResult_ok, pure_bind]
   exact h σ r r' (hCoins r hr) hsig
 
-/-- Bob selects his own one-time prekey when the initial message names the identifier of it. -/
+/-- Bob selects his own one-time prekey when the initial message carries the prekey's identifier. -/
 private theorem selectOPK_publish [DecidableEq IdC] (P : Params Rand Msg C IdC IdK)
     (p : RecipientParameters) (o : Option ECKeyPair) (h : p.opkB = o) :
     selectOPK P p (o.map fun opk => P.idEC opk.public_key) = some o := by
