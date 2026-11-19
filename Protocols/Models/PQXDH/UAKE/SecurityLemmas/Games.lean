@@ -77,11 +77,16 @@ def honestBundle (tk : RecipientIdentity F G S)
   same KEM public key was opened (i.e., the adversary predicted an honest
   KEM key before it was generated). Both are guessing events on
   `P.pqkem.keygen`. No cryptographic hypothesis of the security theorems
-  excludes them, and a KEM with colliding or predictable public keys
-  genuinely breaks UAKE security: a second session holding the same KEM key
-  (and the same one-time key, when one is in use) accepts a replay of the
-  challenge session's initial message, derives the same session key, and can
-  be revealed without matching the challenge transcript. -/
+  excludes them, and the bounds of both theorems carry a term for them (hop 4).
+  In the transcript-matching experiment `UAKE.Exp`, a KEM with colliding or
+  predictable public keys breaks UAKE security: a second session holding the
+  same KEM key (and the same one-time key, when one is in use) accepts a replay
+  of the challenge session's initial message, derives the same session key, and
+  can be revealed without matching the challenge transcript. In the partnered
+  experiment over `originalKeyPartnering`, a session of Bob that holds Alice's
+  associated data and key material is a partner of her state, whatever its
+  transcript and acceptance time, so revealing it makes `finalizePartnered` flip
+  a coin. -/
 def pqpkGuessed (cr : ChallengeResult (uakeInitiator P msg hasOPK)) : Bool :=
   !decide ((oracleBundles P msg hasOPK cr).map (·.pqpkB.1)).Nodup ||
     ((challengeBundle P msg hasOPK cr).any fun b =>
