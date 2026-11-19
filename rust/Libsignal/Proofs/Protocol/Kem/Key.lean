@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
 import Libsignal.Translated.Protocol.Funs
-import Libsignal.Proofs.Std.Alloc.Vec.ExtendFromSlice
-import Libsignal.Proofs.Std.Alloc.Boxed.Convert
+import Libsignal.Proofs.Protocol.Kem.Ciphertext
 
 /-! # Spec theorem for `kem::Key::serialize`
 
@@ -22,7 +21,6 @@ Aeneas reads.
 -/
 
 open Aeneas Aeneas.Std Result
-open alloc.vec
 
 namespace libsignal_protocol.kem.Key
 
@@ -44,14 +42,10 @@ natural language specs:
 theorem serialize_spec {T : Type} (inst : kem.KeyKind T) (k : kem.Key T)
     (h : (k.key_data.data).length < Usize.max) :
     kem.Key.serialize inst k ⦃ s => s.val = 8#u8 :: (k.key_data.data).val ⦄ := by
-  open kem.KeyMaterial.Insts in
-  have hd : CoreOpsDerefDerefSliceU8.deref inst k.key_data = ok k.key_data.data := rfl
-  have hv : kem.KeyType.value k.key_type = ok 8#u8 := rfl
-  have hcap : ∀ j, (Vec.with_capacity U8 j).val = [] := fun _ => rfl
-  open core.clone in
-  have h_clone : ∀ x ∈ (k.key_data.data).val, CloneU8.clone x = ok x := fun _ _ => rfl
-  unfold kem.Key.serialize
-  simp only [hd, hv]
-  step*
+  have e : kem.Key.serialize inst k = kem.Ciphertext.serialize ⟨k.key_type, k.key_data.data⟩ := by
+    open kem.KeyMaterial.Insts in
+    simp [kem.Key.serialize, kem.Ciphertext.serialize, CoreOpsDerefDerefSliceU8.deref]
+  rw [e]
+  exact Ciphertext.serialize_spec _ h
 
 end libsignal_protocol.kem.Key
