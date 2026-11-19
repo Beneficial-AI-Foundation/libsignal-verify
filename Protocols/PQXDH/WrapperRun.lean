@@ -30,22 +30,21 @@ noncomputable section
 
 variable {Rand Msg C IdC IdK : Type}
 
-open libsignal_core.curve in
 /-- The extracted serialization of a curve25519 public key returns some bytes, so `encodeEC` is
 pure on every key. -/
-private theorem encodeEC_eq (pk : ECPub) :
-    ∃ b, PublicKey.serialize pk = .ok b ∧ encodeEC pk = pure b := by
-  obtain ⟨b, hb, -⟩ := exists_ok_of_spec (PublicKey.serialize_spec pk)
-  exact ⟨b, hb, by simp [encodeEC, hb]⟩
+private theorem encodeEC_eq (pk : ECPub) : ∃ b, encodeEC pk = pure b := by
+  open libsignal_core.curve.PublicKey in
+  obtain ⟨b, hb, -⟩ := exists_ok_of_spec (serialize_spec pk)
+  exact ⟨b, by simp [encodeEC, hb]⟩
 
-open kem in
 /-- The extracted serialization of a Kyber public key whose material has fewer than `Usize.max`
 bytes returns some bytes, so `encodeKEM` is pure on it. -/
 private theorem encodeKEM_eq (pk : PQPub) (h : (pk.key_data.data).length < Usize.max) :
-    ∃ b, Key.serialize Public.Insts.Libsignal_protocolKemKeyKind pk = .ok b ∧
-      encodeKEM pk = pure b := by
-  obtain ⟨b, hb, -⟩ := exists_ok_of_spec (Key.serialize_spec _ pk h)
-  exact ⟨b, hb, by simp [encodeKEM, hb]⟩
+    ∃ b, encodeKEM pk = pure b := by
+  open kem in
+  obtain ⟨b, hb, -⟩ :=
+    exists_ok_of_spec (Key.serialize_spec Public.Insts.Libsignal_protocolKemKeyKind pk h)
+  exact ⟨b, by simp [encodeKEM, hb]⟩
 
 /-- A Kyber1024-shaped public key has fewer than `Usize.max` bytes. -/
 private theorem kyber_length_lt {kp : PQKeyPair} (h : PQKeyPairShape kp) :
@@ -116,13 +115,13 @@ private theorem uakeRecipient_lastResort_le :
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
   rw [ExceptT.support_liftM] at hikA hikB hspkB
-  obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
+  obtain ⟨b1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
-  obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
+  obtain ⟨b2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
@@ -184,13 +183,13 @@ private theorem uakeRecipient_oneTime_le :
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
   rw [ExceptT.support_liftM] at hikA hikB hspkB
-  obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
+  obtain ⟨b1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun lr hlr => ?_
   rw [ExceptT.support_liftM] at hlr
-  obtain ⟨bl, -, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
+  obtain ⟨bl, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
   rw [hel, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σl rl rl' hrl hsigl => ?_
@@ -198,7 +197,7 @@ private theorem uakeRecipient_oneTime_le :
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun opkB hopkB => ?_
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
-  obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
+  obtain ⟨b2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
@@ -260,13 +259,13 @@ private theorem uakeInitiator_lastResort_le :
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
   rw [ExceptT.support_liftM] at hikA hikB hspkB
-  obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
+  obtain ⟨b1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
-  obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
+  obtain ⟨b2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
@@ -335,13 +334,13 @@ private theorem uakeInitiator_oneTime_le :
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ikB hikB => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun spkB hspkB => ?_
   rw [ExceptT.support_liftM] at hikA hikB hspkB
-  obtain ⟨b1, hb1, he1⟩ := encodeEC_eq spkB.public_key
+  obtain ⟨b1, he1⟩ := encodeEC_eq spkB.public_key
   rw [he1, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ1 r1 r1' hr1 hsig1 => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun lr hlr => ?_
   rw [ExceptT.support_liftM] at hlr
-  obtain ⟨bl, -, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
+  obtain ⟨bl, hel⟩ := encodeKEM_eq lr.public_key (kyber_length_lt (hPQ _ hlr))
   rw [hel, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σl rl rl' hrl hsigl => ?_
@@ -352,7 +351,7 @@ private theorem uakeInitiator_oneTime_le :
   rw [ExceptT.support_liftM] at hopkB
   refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun kp hkp => ?_
   rw [ExceptT.support_liftM] at hkp
-  obtain ⟨b2, hb2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
+  obtain ⟨b2, he2⟩ := encodeKEM_eq kp.public_key (kyber_length_lt (hPQ _ hkp))
   rw [he2, pure_bind]
   refine le_prEvent_signBytes_bind P hST Dom hRng hSigRng hCoins _ _ _ _ _
     fun σ2 r2 r2' hr2 hsig2 => ?_
