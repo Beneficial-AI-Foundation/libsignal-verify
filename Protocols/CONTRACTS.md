@@ -466,7 +466,7 @@ that satisfy `RngTotal`, so this part is a separate claim. It holds for the Rust
 The declarations below are all the axioms of the extraction that the frozen closures of
 `pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. A closure is frozen when a
 `#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails when it
-changes. The checks are those of the two spec summaries named under "Scope and conventions". No other
+changes. The checks are those of the three spec summaries named under "Scope and conventions". No other
 axiom of the extraction is reached. Besides these declarations, the closures contain `propext`,
 `Classical.choice` and `Quot.sound`. Seven closures in `Protocols/Specs/PQXDH.lean` also contain
 `sorryAx`: those of `uakeInitiator_secure_dh`, `uakeInitiator_secure_pq`, their two `_total`
