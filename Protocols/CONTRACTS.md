@@ -14,7 +14,7 @@ The file covers:
 - `KyberBridge` in `Protocols/PQXDH/SecurityDefs.lean` and `KyberDeltaCorrect` in `Protocols/PQXDH/Kem.lean`;
 - the opaque declarations of the extraction that the PQXDH statements reach. These are the non-logical
   axioms in the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean` and
-  `Protocols/Specs/PQXDH.lean`.
+  `rust/Libsignal/Specs/Protocol/Kem.lean` and `Protocols/Specs/PQXDH.lean`.
 
 The fault-or-value form of a contract says only what a call returns when it returns: each `*Partial`
 definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok r` and constrains `r`,
@@ -468,10 +468,9 @@ The declarations below are all the axioms of the extraction that the frozen clos
 `#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails when it
 changes. The checks are those of the two spec summaries named under "Scope and conventions". No other
 axiom of the extraction is reached. Besides these declarations, the closures contain `propext`,
-`Classical.choice` and `Quot.sound`. Eleven closures in `Protocols/Specs/PQXDH.lean` also contain
+`Classical.choice` and `Quot.sound`. Seven closures in `Protocols/Specs/PQXDH.lean` also contain
 `sorryAx`: those of `uakeInitiator_secure_dh`, `uakeInitiator_secure_pq`, their two `_total`
-corollaries, `fullExp_noLostMass`, `coreCompletion_extracted`, `jointKeyAgreement_extracted`, both
-`wrapperAgreement_*`, `initiate_kdfInput_witness` and `accept_kdfInput_witness`. This `sorryAx` comes
+corollaries, `fullExp_noLostMass` and both `wrapperAgreement_*`. This `sorryAx` comes
 from the admitted statements that `Protocols/LEDGER.md` lists under "Security placeholders" and
 "Temporary stubs", not from the extraction.
 
