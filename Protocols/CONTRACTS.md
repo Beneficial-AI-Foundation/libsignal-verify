@@ -16,6 +16,12 @@ The file covers:
   axioms in the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean` and
   `Protocols/Specs/PQXDH.lean`.
 
+The fault-or-value form of a contract says only what a call returns when it returns: each `*Partial`
+definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok r` and constrains `r`,
+so it allows a panic or non-termination. The total form says that the call returns, and what it
+returns, under its own premises. A fault-or-value form does not always follow from its total form
+(finding 1).
+
 Policies and modelling choices (`ECKeyPairValid`, `PQKeyPairShape`, `Adversary.SendsFittingMessages`,
 `P.coins`, `P.ecKeygen`, `P.pqKeygen`, the synthetic AEAD wrapper) are not contracts. The ledger lists
 them, and this file does not review them.
@@ -32,7 +38,7 @@ The committed `rust/` tree is upstream libsignal. The extraction runs on a copy 
 `translation-patches/` applied. The Lean docstrings and the extracted `Source:` comments cite line
 numbers in that patched copy. This file cites the committed tree unless it says "patched".
 
-## Points for reviewers
+## Findings
 
 1. **Two fault-or-value forms do not follow from their total forms.** The module docstring of
    `Protocols/PQXDH/Contracts.lean` says that the fault-or-value form of a contract follows from its
@@ -106,12 +112,16 @@ we read. `H` is a parameter: a theorem that assumes `HkdfSha256Contract H` holds
 helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The contract covers
 only the call that PQXDH makes: no salt and 96 bytes of output.
 
-**If false.** `derive_spec` and `derive_with_label_spec` lose their key derivation. So do
-`deriveKeysTotal` and every Full statement that takes the contract: `coreCompletion_extracted`,
-`jointKeyAgreement_extracted`, both `wrapperAgreement_*`, `fullExp_noLostMass` and the two `_total`
-corollaries. The security statements take the fault-or-value form `HkdfSha256Partial` through
-`PartialContracts`, so they would lose their link to production's key derivation. If the helper could
-fail, the `expect` in `derive_with_label` would panic.
+**If false.** `derive_spec` and `derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis
+`h_hkdf`. If the contract fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems
+then say nothing about production: neither that the derivation returns, nor that the root key, the
+chain key and the pqr key are bytes 0 to 32, 32 to 64 and 64 to 96 of the HKDF output. The same
+hypothesis fails in `deriveKeysTotal` and in every Full statement that takes the contract:
+`coreCompletion_extracted`, `jointKeyAgreement_extracted`, both `wrapperAgreement_*`,
+`fullExp_noLostMass` and the two `_total` corollaries. The security statements take the fault-or-value
+form `HkdfSha256Partial` through `PartialContracts`. If the helper returns anything else (an error, another length or other bytes), that hypothesis
+fails too, and the security statements say nothing about production's key derivation. If the helper
+could fail, the `expect` in `derive_with_label` would panic.
 
 **Discharge.** A verified HMAC-SHA256 and HKDF that the extraction can call, or an extraction of the
 `hkdf`, `hmac` and `sha2` crates. `derive_spec` already proves the extracted key derivation from this
@@ -153,7 +163,9 @@ would allow a body.
 
 ## 3. `RngTotal`
 
-**Statement.** `RngTotal core Dom` in `Protocols/PQXDH/Contracts.lean`. On every state in `Dom`, the
+**Statement.** `RngTotal core Dom` in `Protocols/PQXDH/Contracts.lean`. Here `core` is a
+`rand_core_1.RngCore R` instance, the generator's methods on states of type `R`. `Dom : R → Prop` is
+the set of states on which the contract holds. On every state in `Dom`, the
 methods `next_u32`, `next_u64` and `fill_bytes` terminate without a panic and return a state in `Dom`.
 `fill_bytes` also keeps the length of the buffer.
 
@@ -244,11 +256,14 @@ Rust code, because array types fix both sizes.
 ## 5. `KyberBridge`
 
 **Statement.** `KyberBridge P K` in `Protocols/PQXDH/SecurityDefs.lean`. For an abstract KEM `K`:
-`P.pqKeygen` is `K`'s key generation; `K`'s encapsulation is a function `encDet` of the public key and
-of a generator state from `P.coins`; its decapsulation is a function `decDet`. When the extracted
-encapsulation returns on a 1568-byte key, it returns `encDet`'s output. When the extracted
-decapsulation returns on a secret key from `P.pqKeygen`, it returns `decDet`'s key, or an error where
-`decDet` gives no key. The bridge claims no termination.
+
+- `P.pqKeygen` is `K`'s key generation.
+- `K`'s encapsulation is a function `encDet` of the public key and of a generator state from
+  `P.coins`; its decapsulation is a function `decDet`.
+- When the extracted encapsulation returns on a 1568-byte key, it returns `encDet`'s output.
+- When the extracted decapsulation returns on a secret key from `P.pqKeygen`, it returns `decDet`'s
+  key, or an error where `decDet` gives no key.
+- The bridge claims no termination.
 
 **Stands for.** The claim that libcrux's Kyber-1024, with coins drawn from the caller's generator, is
 the KEM whose IND-CCA security the PQ statement assumes.
@@ -262,8 +277,9 @@ Kyber-1024 run on generator states from `P.coins`. We did not write this constru
 libsignal draws the 32 encapsulation bytes with `csprng.random()`. The premise is the standard Kyber
 assumption only if these bytes are uniform when the state comes from `P.coins`. That is #75.
 
-**If false.** `uakeInitiator_secure_pq` and `uakeInitiator_secure_pq_total` lose their link to the
-extracted Kyber.
+**If false.** `uakeInitiator_secure_pq` and `uakeInitiator_secure_pq_total` take `KyberBridge P K` as a
+hypothesis, next to the IND-CCA premise on `K`. If the bridge fails for a `K`, the statements say
+nothing for that `K`, so its IND-CCA premise gives no bound on the extracted Kyber.
 
 **Discharge.** A model of libcrux's Kyber-1024, with #75 for the coins.
 
@@ -276,7 +292,9 @@ secret. Faults and protocol errors count as failures. `δ` stays symbolic.
 
 **Stands for.** The decryption-failure probability of Kyber-1024 as libcrux implements it.
 
-**Why believed.** The round-3 Kyber specification analyses the failure probability of Kyber-1024
+**Why believed.** In this paragraph, three facts about libcrux's `kyber1024` are checked here: its
+round-3 label (`src/lib.rs:104-114`), rank 4, and compression 11 and 5. The failure analysis is cited
+from a specification that we did not read. The round-3 Kyber specification analyses the failure probability of Kyber-1024
 (R. Avanzi et al., *CRYSTALS-Kyber: Algorithm Specifications and Supporting Documentation*, version
 3.02, 2021). We did not read it for this review and give no value for δ here. libcrux's `kyber1024`
 is round-3 Kyber with the Kyber-1024 parameters. We checked rank 4 and compression 11 and 5 in
@@ -295,7 +313,10 @@ question for libcrux (#72 puts it out of scope).
   reader who carries their δ_corr over should check that it is the same averaged quantity.
 - Faults count as failures, so the bound also needs the termination of section 4.
 
-**If false.** `jointKeyAgreement_extracted` and both `wrapperAgreement_*` lose their bound `1 − δ`.
+**If false.** `jointKeyAgreement_extracted` and both `wrapperAgreement_*` take `KyberDeltaCorrect P δ`
+as a hypothesis and conclude that the two parties agree with probability at least `1 − δ`. If the
+correctness error is above the chosen `δ`, the hypothesis fails, and these statements give no
+agreement bound for that `δ`.
 
 **Discharge.** The published analysis, a model of libcrux and #75.
 
@@ -312,12 +333,20 @@ curve25519-dalek specifications. This review stands until then.
 | Contract | Statement | Checked here | From the source |
 | --- | --- | --- | --- |
 | `AgreementTotal` | agreement returns 32 bytes or `InvalidKeyAgreement` | `calculate_agreement` (`curve.rs:296-309`) runs X25519 and rejects only the all-zero value | X25519 itself does not panic |
-| `AgreementDerived` | on keys with derived public halves, both agreements return the same 32 bytes | `public_key` (`curve.rs:259-267`) and agreement both use the clamped scalar (`curve25519.rs:170-174`). A clamped scalar is a multiple of 8 in `[2^254, 2^255)`. If it were a multiple `kℓ` of the group order, then `k < 8`, and `8 ∣ kℓ` with `ℓ` odd forces `8 ∣ k`, a contradiction | both values are the u-coordinate of the product of the two clamped scalars with the base point, and that u-coordinate is 0 only for the identity and the point of order 2 |
+| `AgreementDerived` | on keys with derived public halves, both agreements return the same 32 bytes | `public_key` (`curve.rs:259-267`) and agreement both use the clamped scalar (`curve25519.rs:170-174`); argument 1 below the table | both values are the u-coordinate of the product of the two clamped scalars with the base point, and that u-coordinate is 0 only for the identity and the point of order 2 |
 | `TorsionFreeTotal` | the torsion check returns a Boolean | `is_torsion_free` (`curve.rs:165-174`) has no panic path of its own | `to_edwards` and `is_torsion_free` of curve25519-dalek do not panic |
 | `DerivedCanonical` | a derived public key passes `is_canonical` | `is_canonical` is `is_torsion_free && scalar_is_in_range` (`curve.rs:165-190`) | a derived key lies in the prime-order subgroup, and its u-coordinate is encoded below `2^255 - 19` |
 | `SignTotal` | on a total generator, signing returns 64 bytes and a state in `Dom` | signing (`curve.rs:275-294`, `curve25519.rs:66-117`) draws 64 bytes with `fill_bytes` and always returns `Ok` of a 64-byte array | SHA-512 and scalar arithmetic do not panic |
-| `SignVerify` | a signature by `sk` verifies under the public key derived from `sk` | the signer uses `A = aB` with `a` the clamped scalar and puts `A`'s sign bit in the top bit of the signature. `s = ha + r` is reduced, so `s < 2^253` and the high-bit check passes (`curve25519.rs:119-159`) | `to_edwards` on `A`'s u-coordinate and sign bit returns `A` |
+| `SignVerify` | a signature by `sk` verifies under the public key derived from `sk` | argument 2 below the table | `to_edwards` on `A`'s u-coordinate and sign bit returns `A` |
 | `VerifyTotal` | verification returns a Boolean | `verify_signature_for_multipart_message` (`curve.rs:138-151`) returns `false` on a wrong signature length or a failed `to_edwards`, with no panic path | curve25519-dalek's double-scalar multiplication does not panic |
+
+**Checked here, argument 1 (`AgreementDerived`).** A clamped scalar is a multiple of 8 in
+`[2^254, 2^255)`. If it were a multiple `kℓ` of the group order, then `k < 8`, and `8 ∣ kℓ` with `ℓ`
+odd forces `8 ∣ k`, a contradiction.
+
+**Checked here, argument 2 (`SignVerify`).** The signer uses `A = aB` with `a` the clamped scalar and
+puts `A`'s sign bit in the top bit of the signature. `s = ha + r` is reduced, so `s < 2^253` and the
+high-bit check passes (`curve25519.rs:119-159`).
 
 **Gaps.** The docstring of `VerifyTotal` also says that verification returns `false` on a malformed
 signature or key. The statement does not include this: it states only that a Boolean is returned.
@@ -334,8 +363,10 @@ that satisfy `RngTotal`, so this part is a separate claim. It holds for the Rust
 ## 8. Opaque declarations reached by the PQXDH statements
 
 The axioms below, besides `propext`, `Classical.choice` and `Quot.sound`, are all the axioms that the
-frozen closures of `pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. No other axiom of
-the extraction is reached.
+frozen closures of `pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. A closure is
+frozen when a `#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails
+when it changes. The checks are those of the two spec summaries named under "Scope and conventions".
+No other axiom of the extraction is reached.
 
 | Declaration | Covered by |
 | --- | --- |
