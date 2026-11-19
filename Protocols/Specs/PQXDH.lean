@@ -382,6 +382,637 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.wrapperAgreement_uakeRecipient
 
+/-! ## Entry-point branches
+
+The branch equations of the extracted `pqxdh_accept` and `pqxdh_initiate`, one for every way that a
+call can end, and the summaries that follow from them. The equations use no contract, so their
+dependencies are the opaque leaves that the entry points call. `initiate_err_rng_eq` also takes
+`KyberPartial` as a premise. -/
+
+section EntryPointBranches
+
+open Aeneas Aeneas.Std Result
+open libsignal_protocol
+
+recall Protocols.PQXDH.accept_noncanonical_eq
+    (rp : pqxdh.RecipientParameters)
+    (hc : acceptCanonical rp = .ok false) :
+    pqxdh.pqxdh_accept rp = (do
+      let s ← Str.Insts.AllocBorrowToOwnedString.to_owned
+        (toStr "incoming base key is invalid")
+      .ok (.Err (.InvalidMessage protocol.CiphertextMessageType.PreKey s)))
+
+/--
+info: 'Protocols.PQXDH.accept_noncanonical_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_noncanonical_eq
+
+recall Protocols.PQXDH.accept_dh1_err_eq
+    (rp : pqxdh.RecipientParameters) (e : libsignal_core.curve.CurveError)
+    (hc : acceptCanonical rp = .ok true) (h1 : acceptDh1 rp = .ok (.Err e)) :
+    pqxdh.pqxdh_accept rp = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v))
+
+/--
+info: 'Protocols.PQXDH.accept_dh1_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_dh1_err_eq
+
+recall Protocols.PQXDH.accept_dh2_err_eq
+    (rp : pqxdh.RecipientParameters) (d1 : Slice U8)
+    (e : libsignal_core.curve.CurveError)
+    (hc : acceptCanonical rp = .ok true) (h1 : acceptDh1 rp = .ok (.Ok d1))
+    (hl : (kdfPrefixBytes [d1]).length ≤ Usize.max) (h2 : acceptDh2 rp = .ok (.Err e)) :
+    pqxdh.pqxdh_accept rp = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v))
+
+/--
+info: 'Protocols.PQXDH.accept_dh2_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_dh2_err_eq
+
+recall Protocols.PQXDH.accept_dh3_err_eq
+    (rp : pqxdh.RecipientParameters) (d1 d2 : Slice U8)
+    (e : libsignal_core.curve.CurveError)
+    (hc : acceptCanonical rp = .ok true) (h1 : acceptDh1 rp = .ok (.Ok d1))
+    (h2 : acceptDh2 rp = .ok (.Ok d2)) (hl : (kdfPrefixBytes [d1, d2]).length ≤ Usize.max)
+    (h3 : acceptDh3 rp = .ok (.Err e)) :
+    pqxdh.pqxdh_accept rp = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v))
+
+/--
+info: 'Protocols.PQXDH.accept_dh3_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_dh3_err_eq
+
+recall Protocols.PQXDH.accept_dh4_err_eq
+    (rp : pqxdh.RecipientParameters) (opk : libsignal_core.curve.KeyPair)
+    (d1 d2 d3 : Slice U8) (e : libsignal_core.curve.CurveError)
+    (hc : acceptCanonical rp = .ok true) (hopk : rp.our_one_time_pre_key_pair = some opk)
+    (h1 : acceptDh1 rp = .ok (.Ok d1)) (h2 : acceptDh2 rp = .ok (.Ok d2))
+    (h3 : acceptDh3 rp = .ok (.Ok d3)) (hl : (kdfPrefixBytes [d1, d2, d3]).length ≤ Usize.max)
+    (h4 : acceptDh4 rp opk = .ok (.Err e)) :
+    pqxdh.pqxdh_accept rp = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v))
+
+/--
+info: 'Protocols.PQXDH.accept_dh4_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_dh4_err_eq
+
+recall Protocols.PQXDH.accept_decaps_err_eq
+    (rp : pqxdh.RecipientParameters) (d1 d2 d3 : Slice U8)
+    (d4 : Option (Slice U8)) (e : error.SignalProtocolError)
+    (hc : acceptCanonical rp = .ok true) (hag : AcceptAgreements rp d1 d2 d3 d4)
+    (hl : (kdfPrefixBytes (d1 :: d2 :: d3 :: d4.toList)).length ≤ Usize.max)
+    (hd : acceptDecaps rp = .ok (.Err e)) :
+    pqxdh.pqxdh_accept rp = .ok (.Err e)
+
+/--
+info: 'Protocols.PQXDH.accept_decaps_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_decaps_err_eq
+
+recall Protocols.PQXDH.accept_ok_eq
+    (rp : pqxdh.RecipientParameters) (d1 d2 d3 ss km : Slice U8)
+    (d4 : Option (Slice U8)) (hk : pqxdh.HandshakeKeys)
+    (hc : acceptCanonical rp = .ok true) (hag : AcceptAgreements rp d1 d2 d3 d4)
+    (hd : acceptDecaps rp = .ok (.Ok ss)) (hkm : kdfInput d1 d2 d3 d4 ss = .ok km)
+    (hder : pqxdh.HandshakeKeys.derive km = .ok hk) :
+    pqxdh.pqxdh_accept rp = .ok (.Ok hk)
+
+/--
+info: 'Protocols.PQXDH.accept_ok_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_ok_eq
+
+recall Protocols.PQXDH.accept_cases
+    (rp : pqxdh.RecipientParameters)
+    (res : core.result.Result pqxdh.HandshakeKeys error.SignalProtocolError)
+    (h : pqxdh.pqxdh_accept rp = .ok res) :
+    (acceptCanonical rp = .ok false ∧
+      ∃ s, Str.Insts.AllocBorrowToOwnedString.to_owned
+          (toStr "incoming base key is invalid") = .ok s ∧
+        res = .Err (.InvalidMessage protocol.CiphertextMessageType.PreKey s)) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ e v, acceptDh1 rp = .ok (.Err e) ∧
+        error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+        res = .Err v) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ d1 e v, acceptDh1 rp = .ok (.Ok d1) ∧ (kdfPrefixBytes [d1]).length ≤ Usize.max ∧
+        acceptDh2 rp = .ok (.Err e) ∧
+        error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+        res = .Err v) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ d1 d2 e v, acceptDh1 rp = .ok (.Ok d1) ∧ acceptDh2 rp = .ok (.Ok d2) ∧
+        (kdfPrefixBytes [d1, d2]).length ≤ Usize.max ∧ acceptDh3 rp = .ok (.Err e) ∧
+        error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+        res = .Err v) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ opk d1 d2 d3 e v, rp.our_one_time_pre_key_pair = some opk ∧
+        acceptDh1 rp = .ok (.Ok d1) ∧ acceptDh2 rp = .ok (.Ok d2) ∧
+        acceptDh3 rp = .ok (.Ok d3) ∧ (kdfPrefixBytes [d1, d2, d3]).length ≤ Usize.max ∧
+        acceptDh4 rp opk = .ok (.Err e) ∧
+        error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+        res = .Err v) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ d1 d2 d3 d4 e, AcceptAgreements rp d1 d2 d3 d4 ∧
+        (kdfPrefixBytes (d1 :: d2 :: d3 :: d4.toList)).length ≤ Usize.max ∧
+        acceptDecaps rp = .ok (.Err e) ∧ res = .Err e) ∨
+    (acceptCanonical rp = .ok true ∧
+      ∃ d1 d2 d3 d4 ss km hk, AcceptAgreements rp d1 d2 d3 d4 ∧
+        acceptDecaps rp = .ok (.Ok ss) ∧ kdfInput d1 d2 d3 d4 ss = .ok km ∧
+        pqxdh.HandshakeKeys.derive km = .ok hk ∧ res = .Ok hk)
+
+/--
+info: 'Protocols.PQXDH.accept_cases' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.accept_cases
+
+recall Protocols.PQXDH.initiate_dh1_err_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r : Rand) (e : libsignal_core.curve.CurveError)
+    (h1 : initiateDh1 ip = .ok (.Err e)) :
+    pqxdh.pqxdh_initiate rng crng ip r = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v, r))
+
+/--
+info: 'Protocols.PQXDH.initiate_dh1_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_dh1_err_eq
+
+recall Protocols.PQXDH.initiate_dh2_err_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r : Rand) (d1 : Slice U8)
+    (e : libsignal_core.curve.CurveError) (h1 : initiateDh1 ip = .ok (.Ok d1))
+    (hl : (kdfPrefixBytes [d1]).length ≤ Usize.max) (h2 : initiateDh2 ip = .ok (.Err e)) :
+    pqxdh.pqxdh_initiate rng crng ip r = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v, r))
+
+/--
+info: 'Protocols.PQXDH.initiate_dh2_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_dh2_err_eq
+
+recall Protocols.PQXDH.initiate_dh3_err_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r : Rand) (d1 d2 : Slice U8)
+    (e : libsignal_core.curve.CurveError) (h1 : initiateDh1 ip = .ok (.Ok d1))
+    (h2 : initiateDh2 ip = .ok (.Ok d2)) (hl : (kdfPrefixBytes [d1, d2]).length ≤ Usize.max)
+    (h3 : initiateDh3 ip = .ok (.Err e)) :
+    pqxdh.pqxdh_initiate rng crng ip r = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v, r))
+
+/--
+info: 'Protocols.PQXDH.initiate_dh3_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_dh3_err_eq
+
+recall Protocols.PQXDH.initiate_dh4_err_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r : Rand) (opk : libsignal_core.curve.PublicKey)
+    (d1 d2 d3 : Slice U8) (e : libsignal_core.curve.CurveError)
+    (hopk : ip.their_one_time_pre_key = some opk) (h1 : initiateDh1 ip = .ok (.Ok d1))
+    (h2 : initiateDh2 ip = .ok (.Ok d2)) (h3 : initiateDh3 ip = .ok (.Ok d3))
+    (hl : (kdfPrefixBytes [d1, d2, d3]).length ≤ Usize.max)
+    (h4 : initiateDh4 ip opk = .ok (.Err e)) :
+    pqxdh.pqxdh_initiate rng crng ip r = (do
+      let v ← error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e
+      .ok (.Err v, r))
+
+/--
+info: 'Protocols.PQXDH.initiate_dh4_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_dh4_err_eq
+
+recall Protocols.PQXDH.initiate_encaps_err_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r r' : Rand) (d1 d2 d3 : Slice U8)
+    (d4 : Option (Slice U8)) (e : error.SignalProtocolError)
+    (hag : InitiateAgreements ip d1 d2 d3 d4)
+    (hl : (kdfPrefixBytes (d1 :: d2 :: d3 :: d4.toList)).length ≤ Usize.max)
+    (he : initiateEncaps crng ip r = .ok (.Err e, r')) :
+    pqxdh.pqxdh_initiate rng crng ip r = .ok (.Err e, r')
+
+/--
+info: 'Protocols.PQXDH.initiate_encaps_err_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_encaps_err_eq
+
+recall Protocols.PQXDH.initiate_ok_eq
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r r' : Rand) (d1 d2 d3 ss ct km : Slice U8)
+    (d4 : Option (Slice U8)) (hk : pqxdh.HandshakeKeys)
+    (hag : InitiateAgreements ip d1 d2 d3 d4)
+    (he : initiateEncaps crng ip r = .ok (.Ok (ss, ct), r'))
+    (hkm : kdfInput d1 d2 d3 d4 ss = .ok km) (hder : pqxdh.HandshakeKeys.derive km = .ok hk) :
+    pqxdh.pqxdh_initiate rng crng ip r =
+      .ok (.Ok { keys := hk, kyber_ciphertext := ct }, r')
+
+/--
+info: 'Protocols.PQXDH.initiate_ok_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_ok_eq
+
+recall Protocols.PQXDH.initiate_cases
+    {Rand : Type} (crng : rand_core_1.CryptoRng Rand) (rng : rand.rng.Rng Rand)
+    (ip : pqxdh.InitiatorParameters) (r r' : Rand)
+    (res : core.result.Result pqxdh.InitiatorAgreement error.SignalProtocolError)
+    (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (res, r')) :
+    (∃ e v, initiateDh1 ip = .ok (.Err e) ∧
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+      res = .Err v ∧ r' = r) ∨
+    (∃ d1 e v, initiateDh1 ip = .ok (.Ok d1) ∧ (kdfPrefixBytes [d1]).length ≤ Usize.max ∧
+      initiateDh2 ip = .ok (.Err e) ∧
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+      res = .Err v ∧ r' = r) ∨
+    (∃ d1 d2 e v, initiateDh1 ip = .ok (.Ok d1) ∧ initiateDh2 ip = .ok (.Ok d2) ∧
+      (kdfPrefixBytes [d1, d2]).length ≤ Usize.max ∧ initiateDh3 ip = .ok (.Err e) ∧
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+      res = .Err v ∧ r' = r) ∨
+    (∃ opk d1 d2 d3 e v, ip.their_one_time_pre_key = some opk ∧
+      initiateDh1 ip = .ok (.Ok d1) ∧ initiateDh2 ip = .ok (.Ok d2) ∧
+      initiateDh3 ip = .ok (.Ok d3) ∧ (kdfPrefixBytes [d1, d2, d3]).length ≤ Usize.max ∧
+      initiateDh4 ip opk = .ok (.Err e) ∧
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError.from e = .ok v ∧
+      res = .Err v ∧ r' = r) ∨
+    (∃ d1 d2 d3 d4 e, InitiateAgreements ip d1 d2 d3 d4 ∧
+      (kdfPrefixBytes (d1 :: d2 :: d3 :: d4.toList)).length ≤ Usize.max ∧
+      initiateEncaps crng ip r = .ok (.Err e, r') ∧ res = .Err e) ∨
+    (∃ d1 d2 d3 d4 ss ct km hk, InitiateAgreements ip d1 d2 d3 d4 ∧
+      initiateEncaps crng ip r = .ok (.Ok (ss, ct), r') ∧ kdfInput d1 d2 d3 d4 ss = .ok km ∧
+      pqxdh.HandshakeKeys.derive km = .ok hk ∧
+      res = .Ok { keys := hk, kyber_ciphertext := ct })
+
+/--
+info: 'Protocols.PQXDH.initiate_cases' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_cases
+
+recall Protocols.PQXDH.encaps_err_state
+    {Rand : Type} (hK : KyberPartial) (crng : rand_core_1.CryptoRng Rand)
+    (key : kem.Key kem.Public) (r r' : Rand) (e : error.SignalProtocolError)
+    (h : kem.KeyPublic.encapsulate crng key r = .ok (.Err e, r')) : r' = r
+
+/--
+info: 'Protocols.PQXDH.encaps_err_state' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.encaps_err_state
+
+recall Protocols.PQXDH.initiate_err_rng_eq
+    {Rand : Type} (hK : KyberPartial) (crng : rand_core_1.CryptoRng Rand)
+    (rng : rand.rng.Rng Rand) (ip : pqxdh.InitiatorParameters) (r r' : Rand)
+    (e : error.SignalProtocolError)
+    (h : pqxdh.pqxdh_initiate rng crng ip r = .ok (.Err e, r')) : r' = r
+
+/--
+info: 'Protocols.PQXDH.initiate_err_rng_eq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiate_err_rng_eq
+
+
+end EntryPointBranches
+
+/-! ## Entry-point definitions -/
+
+/--
+info: 'Protocols.PQXDH.kdfPrefixBytes' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.kdfPrefixBytes
+
+/--
+info: 'Protocols.PQXDH.acceptCanonical' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PublicKey.is_torsion_free]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptCanonical
+
+/--
+info: 'Protocols.PQXDH.acceptDh1' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptDh1
+
+/--
+info: 'Protocols.PQXDH.acceptDh2' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptDh2
+
+/--
+info: 'Protocols.PQXDH.acceptDh3' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptDh3
+
+/--
+info: 'Protocols.PQXDH.acceptDh4' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptDh4
+
+/--
+info: 'Protocols.PQXDH.acceptDecaps' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.acceptDecaps
+
+/--
+info: 'Protocols.PQXDH.AcceptAgreements' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.AcceptAgreements
+
+/--
+info: 'Protocols.PQXDH.initiateDh1' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiateDh1
+
+/--
+info: 'Protocols.PQXDH.initiateDh2' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiateDh2
+
+/--
+info: 'Protocols.PQXDH.initiateDh3' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiateDh3
+
+/--
+info: 'Protocols.PQXDH.initiateDh4' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiateDh4
+
+/--
+info: 'Protocols.PQXDH.initiateEncaps' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.initiateEncaps
+
+/--
+info: 'Protocols.PQXDH.InitiateAgreements' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve.PrivateKey.calculate_agreement]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.InitiateAgreements
+
 /-! ## Witness -/
 
 recall Protocols.PQXDH.initiate_kdfInput_witness
@@ -395,7 +1026,6 @@ recall Protocols.PQXDH.initiate_kdfInput_witness
 /--
 info: 'Protocols.PQXDH.initiate_kdfInput_witness' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
@@ -418,7 +1048,6 @@ recall Protocols.PQXDH.accept_kdfInput_witness
 /--
 info: 'Protocols.PQXDH.accept_kdfInput_witness' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,

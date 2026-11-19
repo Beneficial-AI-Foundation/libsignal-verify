@@ -7,12 +7,12 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-11 |
+| Date | 2026-11-12 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
-| `sorry` or `sorryAx` under `Protocols/` | 13 |
+| `sorry` or `sorryAx` under `Protocols/` | 11 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -23,7 +23,8 @@ closure, and `lake build` fails when one changes. The checks are in:
 
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
-- `Protocols/Specs/PQXDH.lean`: the key-derivation mirror and the statements of the Full realization;
+- `Protocols/Specs/PQXDH.lean`: the key-derivation mirror, the branch equations of the two entry
+  points and the statements of the Full realization;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
 - `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
   `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end;
@@ -85,8 +86,6 @@ The stubs of these statements are temporary, unlike the security placeholders ab
 | `Protocols.PQXDH.jointKeyAgreement_extracted` | `Correctness.lean` | equal joint key records, chain index 0, with probability ≥ 1 − δ | stub |
 | `Protocols.PQXDH.wrapperAgreement_uakeInitiator` | `Correctness.lean` | both parties output equal keys, with probability ≥ 1 − δ | stub |
 | `Protocols.PQXDH.wrapperAgreement_uakeRecipient` | `Correctness.lean` | the same, in the correctness-only direction | stub |
-| `Protocols.PQXDH.initiate_kdfInput_witness` | `Witness.lean` | a successful `pqxdh_initiate` derives its keys from its own key material | stub |
-| `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | the same for `pqxdh_accept` | stub |
 
 ## Contracts, policies and modelling choices of the Full realization
 
