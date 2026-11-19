@@ -169,8 +169,8 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
     1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK) {true} := by
   refine (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans ?_
   rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
-  simp only [jointKeyExp, coreHonestRun, KEMScheme.correctnessExperiment, kyberKem, bind_assoc,
-    pure_bind]
+  simp only [jointKeyExp, coreHonestRun, KEMScheme.correctnessExperiment, kyberKem, kyberEncapsOn,
+    bind_assoc, pure_bind]
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
     fun ikA hikA => ?_
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
