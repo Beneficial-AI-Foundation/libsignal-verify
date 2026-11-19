@@ -87,6 +87,35 @@ private theorem selectOPK_publish [DecidableEq IdC] (P : Params Rand Msg C IdC I
   unfold selectOPK
   rcases h : p.opkB with _ | opk <;> simp
 
+open core.result in
+/-- The Kyber correctness experiment with encapsulation after `generate`, from the draw of its
+generator state `r` on. If `generate` on `r` returns the state `r₁`, encapsulation on `r₁` returns
+the secret `ss` and decapsulation of its ciphertext returns `ss'`, the experiment returns `true`
+with probability `1` when `ss' = ss` and `0` otherwise. So any `x` that is at least `1` when
+`ss' = ss` bounds it. -/
+private theorem correctnessTail_le (P : Params Rand Msg C IdC IdK) (kp : PQKeyPair)
+    (r r₁ r' : Rand) (ekA : ECKeyPair) (ss ct ss' : Slice U8) (x : ℝ≥0∞)
+    (hgen : curve.KeyPair.generate P.rngInst P.cryptoRngInst r = .ok (ekA, r₁))
+    (henc : kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key r₁ = .ok (.Ok (ss, ct), r'))
+    (hdec : kem.KeySecret.decapsulate kp.secret_key ct = .ok (.Ok ss')) (h : ss' = ss → 1 ≤ x) :
+    Pr{let b ← (do
+          let g ← liftResult (curve.KeyPair.generate P.rngInst P.cryptoRngInst r)
+          let e ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key g.2)
+          let p ← (match e.1 with
+            | Result.Ok (s, c) => pure (Result.Ok c, Result.Ok s)
+            | Result.Err f => pure (Result.Err f, Result.Err f))
+          let k' ← (match p.1 with
+            | Result.Ok c => do
+              let res ← liftResult (kem.KeySecret.decapsulate kp.secret_key c)
+              pure (some res)
+            | Result.Err _ => pure none)
+          pure (decide (k' = some p.2)) : RustOracleComp unifSpec Bool)}[b = true] ≤ x := by
+  simp only [hgen, henc, hdec, liftResult_ok, pure_bind]
+  rw [prEvent_pure]
+  by_cases hss : ss' = ss
+  · simpa [hss] using h hss
+  · simp [hss]
+
 section Cases
 
 variable [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
@@ -143,25 +172,14 @@ private theorem uakeRecipient_lastResort_le :
   have hv2 :=
     hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
-  by_cases hss : ss' = ss
-  swap
-  · refine le_trans (le_of_eq ?_) zero_le
-    simp only [hgen, henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp [hss]
-  subst hss
-  have hk := hagree rfl
-  subst hk
+  refine correctnessTail_le P kp r r₁ r' ekA ss ct ss' _ hgen henc hdec fun hss => ?_
+  obtain rfl := hagree hss
   simp only [Party.runHonestStart, Party.InitResult.opening, Party.InitResult.state,
     Party.runHonestLoop]
   simp only [identityKeyOf, identityKeyPairOf] at hinit hacc
   simp only [initiate, publish, identityKeyOf, identityKeyPairOf, he1, he2, verifyBytes, hv1, hv2,
     hgen, EntryPoints.extracted, Option.map_map, Function.comp_def, liftResult_ok, pure_bind,
     bind_assoc, ne_eq, not_true_eq_false, ↓reduceIte, Bool.not_true, Bool.false_eq_true, hinit]
-  refine le_trans (le_of_eq (?_ : _ = (1 : ℝ≥0∞))) ?_
-  · simp only [henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ctxt hctxt => ?_
   rw [ExceptT.support_liftM] at hctxt
   have hd := AEAD.decrypt_eq_of_mem_support_encrypt hAead _ _ _ hctxt
@@ -218,25 +236,14 @@ private theorem uakeRecipient_oneTime_le :
   have hv2 :=
     hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
-  by_cases hss : ss' = ss
-  swap
-  · refine le_trans (le_of_eq ?_) zero_le
-    simp only [hgen, henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp [hss]
-  subst hss
-  have hk := hagree rfl
-  subst hk
+  refine correctnessTail_le P kp r r₁ r' ekA ss ct ss' _ hgen henc hdec fun hss => ?_
+  obtain rfl := hagree hss
   simp only [Party.runHonestStart, Party.InitResult.opening, Party.InitResult.state,
     Party.runHonestLoop]
   simp only [identityKeyOf, identityKeyPairOf] at hinit hacc
   simp only [initiate, publish, identityKeyOf, identityKeyPairOf, he1, he2, verifyBytes, hv1, hv2,
     hgen, EntryPoints.extracted, Option.map_map, Function.comp_def, liftResult_ok, pure_bind,
     bind_assoc, ne_eq, not_true_eq_false, ↓reduceIte, Bool.not_true, Bool.false_eq_true, hinit]
-  refine le_trans (le_of_eq (?_ : _ = (1 : ℝ≥0∞))) ?_
-  · simp only [henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ctxt hctxt => ?_
   rw [ExceptT.support_liftM] at hctxt
   have hd := AEAD.decrypt_eq_of_mem_support_encrypt hAead _ _ _ hctxt
@@ -287,25 +294,14 @@ private theorem uakeInitiator_lastResort_le :
   have hv2 :=
     hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
-  by_cases hss : ss' = ss
-  swap
-  · refine le_trans (le_of_eq ?_) zero_le
-    simp only [hgen, henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp [hss]
-  subst hss
-  have hk := hagree rfl
-  subst hk
+  refine correctnessTail_le P kp r r₁ r' ekA ss ct ss' _ hgen henc hdec fun hss => ?_
+  obtain rfl := hagree hss
   simp only [Party.runHonestStart, Party.InitResult.opening, Party.InitResult.state,
     Party.runHonestLoop]
   simp only [identityKeyOf, identityKeyPairOf] at hinit hacc
   simp only [initiate, publish, identityKeyOf, identityKeyPairOf, he1, he2, verifyBytes, hv1, hv2,
     hgen, EntryPoints.extracted, Option.map_map, Function.comp_def, liftResult_ok, pure_bind,
     bind_assoc, ne_eq, not_true_eq_false, ↓reduceIte, Bool.not_true, Bool.false_eq_true, hinit]
-  refine le_trans (le_of_eq (?_ : _ = (1 : ℝ≥0∞))) ?_
-  · simp only [henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ctxt hctxt => ?_
   rw [ExceptT.support_liftM] at hctxt
   have hd := AEAD.decrypt_eq_of_mem_support_encrypt hAead _ _ _ hctxt
@@ -370,25 +366,14 @@ private theorem uakeInitiator_oneTime_le :
   have hv2 :=
     hSV P.cryptoRngInst P.rngInst ikB.private_key ikB.public_key b2 σ2 r2 r2'
       (hEC _ hikB) hsig2
-  by_cases hss : ss' = ss
-  swap
-  · refine le_trans (le_of_eq ?_) zero_le
-    simp only [hgen, henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp [hss]
-  subst hss
-  have hk := hagree rfl
-  subst hk
+  refine correctnessTail_le P kp r r₁ r' ekA ss ct ss' _ hgen henc hdec fun hss => ?_
+  obtain rfl := hagree hss
   simp only [Party.runHonestStart, Party.InitResult.opening, Party.InitResult.state,
     Party.runHonestLoop]
   simp only [identityKeyOf, identityKeyPairOf] at hinit hacc
   simp only [initiate, publish, identityKeyOf, identityKeyPairOf, he1, he2, verifyBytes, hv1, hv2,
     hgen, EntryPoints.extracted, Option.map_map, Function.comp_def, liftResult_ok, pure_bind,
     bind_assoc, ne_eq, not_true_eq_false, ↓reduceIte, Bool.not_true, Bool.false_eq_true, hinit]
-  refine le_trans (le_of_eq (?_ : _ = (1 : ℝ≥0∞))) ?_
-  · simp only [henc, hdec, liftResult_ok, pure_bind]
-    rw [prEvent_pure]
-    simp
   refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _ fun ctxt hctxt => ?_
   rw [ExceptT.support_liftM] at hctxt
   have hd := AEAD.decrypt_eq_of_mem_support_encrypt hAead _ _ _ hctxt
