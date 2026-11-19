@@ -254,4 +254,18 @@ theorem probOutput_rustRuntime_eq_zero_iff [MeasurableSpace α] [MeasurableSingl
   rw [MeasureTheory.Measure.dirac_apply' _ hr]
   simp
 
+/-- The runtime's probability of the output `true` is the event probability of `b = true` under
+the native output measure. -/
+theorem rustRuntime_evalDist_true (mx : RustOracleComp unifSpec Bool) :
+    rustRuntime.evalDist mx {true} = Pr{let b ← mx}[b = true] := by
+  rw [rustRuntime_coherent.evalDist_eq, prEvent_eq_evalDist_of_discrete]
+  rfl
+
+/-- A draw lifted from `ProbComp` into `RustOracleComp unifSpec` loses no mass. -/
+theorem prEvent_true_liftM {α : Type} (mx : ProbComp α) :
+    Pr{let _ ← (liftM mx : RustOracleComp unifSpec α)}[True] = 1 := by
+  let : MeasurableSpace α := ⊤
+  rw [prEvent_true_eq_evalDist_apply_univ, ExceptT.evalDist_liftM,
+    ← prEvent_true_eq_evalDist_apply_univ, prEvent_true_eq_one]
+
 end Protocols.Realization
