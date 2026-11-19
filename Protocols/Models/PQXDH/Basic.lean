@@ -216,9 +216,7 @@ structure SessionContext (G PQPK Msg K SS : Type) where
   ad : G × G × PQPK
   /-- Message encrypted in the AEAD ciphertexts. -/
   msg : Msg
-  /-- The key material `(DH1, DH2, DH3, DH4, SS)` that the session passed to `P.kdf`. The model
-    keeps it so that the security experiment can compare the original key material of two
-    sessions (`originalKeyPartnering`). Production keeps no such value. -/
+  /-- The key material `(DH1, DH2, DH3, DH4, SS)` that the session passed to `P.kdf`. -/
   km : KeyMaterial G SS
 
 /-- Create the long-term state used by Alice and Bob respectively for all

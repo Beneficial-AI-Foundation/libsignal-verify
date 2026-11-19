@@ -28,13 +28,7 @@ Scope of the two theorems
   have accepted with the same associated data and the same key material `km`, the input of the
   KDF. Alice wins outright when she accepts and no session of Bob that accepted no later than she
   did is her partner. The key identifiers, the signatures and the bytes of an unsigned one-time
-  pre-key are not authenticated: changing them without changing `km` keeps the partner. These
-  theorems do not use the transcript matching of `UAKE.Exp`, because under transcript matching a
-  run that changes only unsigned key identifiers counts as a forgery (#35).
-  `uakeInitiator_advantage_eq_keyOnly` shows that keeping the session contexts leaves the
-  advantage in `UAKE.Exp` unchanged. Transcript matching and original-key partnering are two
-  instances of the session-level experiment `SessionExp`: `sessionAdvantage_transcript` gives
-  `UAKE.advantage`, and `sessionAdvantage_toSession` gives `partneredAdvantage`.
+  pre-key are not authenticated: changing them without changing `km` keeps the partner.
 
 Model simplifications
 * **Unilateral authentication:** UAKE is unilaterally authenticated. In

@@ -17,10 +17,7 @@ their transcripts. `SessionExp` takes a partnering relation that sees whole sess
 instances of it. `Partnering.toSession` embeds a state-level partnering, with the completed key and
 the acceptance order of `authPartnered`, and `SessionExp_toSession` shows that the experiment is
 then `PartneredExp`. `transcriptPartnering` is the transcript matching of DF'17, and
-`SessionExp_transcript` shows that the experiment is then `Exp`. Each test reads its inputs where
-`Exp` and `PartneredExp` read them: the authentication test at the end of the challenge stage, the
-freshness test after the key-distinguishing stage with the challenge transcript of the challenge
-stage.
+`SessionExp_transcript` shows that the experiment is then `Exp`.
 
 The definitions and proofs in this file are AI-written.
 -/

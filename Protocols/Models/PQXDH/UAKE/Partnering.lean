@@ -12,8 +12,7 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 Alice's challenge session and a session of Bob are partners when both have accepted with the same
 associated data `ad` and the same key material `km`, the input of `P.kdf`. Each party keeps its
 session context, which stores `km`, once it accepts, so the session identifier `(ad, km)` exists
-exactly on the accepted states. Equal inputs give equal keys, since `P.kdf` is a function, but
-distinct inputs that give equal keys do not make partners. The key identifiers, the signatures and
+exactly on the accepted states. The key identifiers, the signatures and
 the bytes of an unsigned one-time pre-key are not part of the identifier, so they are not
 authenticated.
 

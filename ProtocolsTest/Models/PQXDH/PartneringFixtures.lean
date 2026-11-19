@@ -26,11 +26,6 @@ freshness test of `finalizePartnered`) and the transcript matching `isPingPong` 
 3. Forge then relay: Alice accepts a forged confirmation at tick 3, and Bob accepts the relayed
    initial message at tick 5. Not partnered, not matched, and a forgery. Once Bob's key is
    revealed, the challenge is not fresh: reveal equivalence has no time condition.
-
-The fixtures check the tests on these end states only. They do not show that a run of the
-experiment reaches these states, that the contexts come from `initiate` and `accept`, that the
-oracle writes these clocks, or, for the identifier swap, that only identifiers change. Witnesses
-that runs reach these states are future work.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
