@@ -1,5 +1,6 @@
 import Libsignal.Specs.Core.Address
 import Libsignal.Specs.Protocol.Crypto
+import Libsignal.Specs.Protocol.Kem
 import Libsignal.Specs.Protocol.Pqxdh
 import Libsignal.Specs.Std.Alloc.Boxed
 import Libsignal.Specs.Std.Alloc.Vec
