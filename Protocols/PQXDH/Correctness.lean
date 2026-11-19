@@ -7,6 +7,7 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Protocols.PQXDH.Contracts
+import Protocols.PQXDH.HonestRun
 import Protocols.PQXDH.Scheme
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
@@ -31,7 +32,8 @@ The fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean` show that the success e
 are not vacuous: entry points that always panic, always return an error or never terminate fail
 every statement for every `δ < 1`.
 
-The proofs of the four theorems are stubs, which `Protocols/LEDGER.md` lists as temporary stubs.
+The proofs of the two wrapper statements are stubs, which `Protocols/LEDGER.md` lists as temporary
+stubs. The two core statements are proved from the honest run of `HonestRun.lean`.
 -/
 
 open OracleSpec OracleComp AKE ENNReal
@@ -112,8 +114,7 @@ for some MAC interface `H`, valid curve25519 pairs from `P.ecKeygen`, Kyber1024-
 
 Completion does not depend on Kyber's correctness. Kyber decapsulation returns a secret even when
 it disagrees with the encapsulated one (`rust/protocol/src/kem/kyber1024.rs:42-54`), and
-`pqxdh_accept` derives keys without checking them (`rust/protocol/src/pqxdh.rs:379-386`). The
-proof is a temporary stub. -/
+`pqxdh_accept` derives keys without checking them (`rust/protocol/src/pqxdh.rs:379-386`). -/
 theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -121,14 +122,38 @@ theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) :
     rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK) {true} = 1 := by
-  sorry
+  rw [rustRuntime_evalDist_true]
+  refine le_antisymm (prEvent_le_one _) ?_
+  simp only [coreCompletionExp, coreHonestRun, bind_assoc]
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikA hikA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikB hikB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun spkB hspkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun opkB hopkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun pqpkB hpqpkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ekA hekA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun R hR => ?_
+  rw [ExceptT.support_liftM] at hikA hikB hspkB hopkB hpqpkB hekA hR
+  obtain ⟨ss, ct, ss', r', hkA, hkB, -, -, hinit, hacc, -, -⟩ :=
+    honest_run_ok hC H hH P.rngInst P.cryptoRngInst Dom hRng ikA ikB spkB ekA opkB pqpkB R
+      (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) (hEC _ hekA)
+      (genOPK_valid P hasOPK hEC _ hopkB) (hPQ _ hpqpkB) (hCoins _ hR)
+  simp only [EntryPoints.extracted, hinit, hacc, liftResult_ok, pure_bind]
+  rw [prEvent_pure]
+  simp
 
 /-- Joint key-record agreement: on honest inputs, both extracted entry points return their keys,
 the two joint outputs agree on the root key, the chain key with its index and the post-quantum
 ratchet key, and the chain index is `0`, with probability at least `1 - δ`. Here `δ` bounds the
 correctness error of the extracted Kyber operations, and a Kyber mismatch is the only way the
-keys can differ. The hypotheses are those of `coreCompletion_extracted` and `KyberDeltaCorrect P δ`.
-The proof is a temporary stub. -/
+keys can differ. The hypotheses are those of `coreCompletion_extracted` and
+`KyberDeltaCorrect P δ`. -/
 theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -136,7 +161,35 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
     1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK) {true} := by
-  sorry
+  refine (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans ?_
+  rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
+  simp only [jointKeyExp, coreHonestRun, KEMScheme.correctnessExperiment, kyberKem, bind_assoc,
+    pure_bind]
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikA hikA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikB hikB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun spkB hspkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun opkB hopkB => ?_
+  refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun pqpkB hpqpkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ekA hekA => ?_
+  refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun R hR => ?_
+  rw [ExceptT.support_liftM] at hikA hikB hspkB hopkB hpqpkB hekA hR
+  obtain ⟨ss, ct, ss', r', hkA, hkB, henc, hdec, hinit, hacc, hidx, hagree⟩ :=
+    honest_run_ok hC H hH P.rngInst P.cryptoRngInst Dom hRng ikA ikB spkB ekA opkB pqpkB R
+      (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) (hEC _ hekA)
+      (genOPK_valid P hasOPK hEC _ hopkB) (hPQ _ hpqpkB) (hCoins _ hR)
+  simp only [EntryPoints.extracted, henc, hdec, hinit, hacc, liftResult_ok, pure_bind]
+  rw [prEvent_pure, prEvent_pure]
+  by_cases h : ss' = ss
+  · subst h
+    have hk := hagree rfl
+    subst hk
+    simp [JointKeys.ofHandshakeKeys, hidx]
+  · simp [h]
 
 /-- Wrapper agreement with Bob authenticated: in an honest run of `uakeInitiator` on the extracted
 entry points, both parties output a key and the two keys are equal, with probability at least
