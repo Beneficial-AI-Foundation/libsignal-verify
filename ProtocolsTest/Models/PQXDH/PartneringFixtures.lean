@@ -19,13 +19,16 @@ games), the value of `forgeExp`
 freshness test of `finalizePartnered`) and the transcript matching `isPingPong` of DF'17.
 
 1. Identifier swap (#35): Bob accepts at tick 4 and Alice at tick 5, but Alice received a bundle
-   with other identifiers. Partnered and no forgery, but not matched, so transcript matching
-   would count a forgery.
+   other than Bob's. Partnered and no forgery, but not matched, so transcript matching would
+   count a forgery. The hypothesis on the two bundles is only that they differ, in any field, and
+   the two initial messages are arbitrary; a bundle with other identifiers is one such case.
 2. Other key material: Bob accepts at tick 4 and Alice at tick 5 on the same messages, but Bob's
    `km` differs from Alice's. Not partnered, and a forgery, whatever the keys.
 3. Forge then relay: Alice accepts a forged confirmation at tick 3, and Bob accepts the relayed
-   initial message at tick 5. Not partnered, not matched, and a forgery. Once Bob's key is
-   revealed, the challenge is not fresh: reveal equivalence has no time condition.
+   initial message at tick 5. Their states are partners under `originalKeyPartnering`, but Bob
+   accepted after Alice, so the time-order condition of `authPartnered` fails: not partnered in
+   the sense of `challengePartnered`, not matched, and a forgery. Once Bob's key is revealed, the
+   challenge is not fresh: reveal equivalence has no time condition.
 -/
 
 open OracleSpec OracleComp AKE AKE.UAKE
@@ -85,9 +88,11 @@ theorem forgeExp_eq_map_forgeEvent (A : UAKE.Adversary (uakeInitiator P msg hasO
   rfl
 
 omit [SampleableType K] in
-/-- The identifier swap of #35: Alice receives a bundle `b'` with other identifiers than Bob's
-  bundle `b`, and the associated data and key material stay equal. Bob is her original-key
-  partner, so the run is no forgery, but her transcript does not match his. -/
+/-- The identifier swap of #35: Alice receives a bundle `b'` other than Bob's bundle `b`, and the
+  associated data and key material stay equal. Bob is her original-key partner, so the run is no
+  forgery, but her transcript does not match his. The hypothesis `hb` asks only that `b` and `b'`
+  differ, in any field, and the initial messages `im` and `im'` are arbitrary; the identifier swap
+  of #35 is the case where `b'` differs from `b` only in its key identifiers. -/
 theorem identifierSwap_partnered (ca cb : SessionContext G PQPK Msg K SS)
     (had : ca.ad = cb.ad) (hkm : ca.km = cb.km)
     (b b' : PreKeyBundle G PQPK S IdC IdK) (hb : b ≠ b')
@@ -145,9 +150,10 @@ theorem otherKeyMaterial_not_partnered (ca cb : SessionContext G PQPK Msg K SS)
 omit [SampleableType K] in
 /-- Forge then relay: Alice accepts a forged confirmation `c'` at tick 3, and Bob accepts the
   relayed initial message at tick 5, sends his confirmation `c`, and holds Alice's associated data
-  and key material. Bob accepted after Alice, so he is not her partner, her transcript does not
-  match his, and the run is a forgery, whether or not `c'` equals `c`. Once his key is revealed,
-  he is reveal-equivalent to her, so the challenge is not fresh. -/
+  and key material. Their states are partners under `originalKeyPartnering`, but Bob accepted
+  after Alice, so the time-order condition of `authPartnered` fails and `challengePartnered` is
+  false. Her transcript does not match his, and the run is a forgery, whether or not `c'` equals
+  `c`. Once his key is revealed, he is reveal-equivalent to her, so the challenge is not fresh. -/
 theorem forgeThenRelay_not_partnered (ca cb : SessionContext G PQPK Msg K SS)
     (had : ca.ad = cb.ad) (hkm : ca.km = cb.km)
     (b : PreKeyBundle G PQPK S IdC IdK) (im : InitialMessage G CT C IdC IdK) (c c' : C) :
