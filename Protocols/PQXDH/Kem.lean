@@ -58,6 +58,16 @@ noncomputable instance : DecidableEq KemSecret := Classical.decEq _
 
 variable {Rand Msg C IdC IdK : Type}
 
+/-- The extracted `encapsulate` on the public key `pk` and the generator state `r`, with its
+result as a ciphertext and a secret. A protocol error is both the ciphertext and the secret. The
+encapsulation step of `kyberKem` and `kyberKemAfterGenerate`, which differ only in `r`. -/
+noncomputable def kyberEncapsOn (P : Params Rand Msg C IdC IdK) (pk : PQPub) (r : Rand) :
+    RustOracleComp unifSpec (KemCiphertext × KemSecret) := do
+  let (res, _) ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst pk r)
+  match res with
+  | .Ok (ss, ct) => pure (.Ok ct, .Ok ss)
+  | .Err e => pure (.Err e, .Err e)
+
 /-- The extracted Kyber operations as a KEM in `RustOracleComp unifSpec`. Key generation is the
 ideal generator `P.pqKeygen`. Encapsulation draws the generator state from `P.coins` and runs the
 extracted `encapsulate`. Decapsulation runs the extracted `decapsulate`, and it returns no key on
@@ -69,10 +79,7 @@ noncomputable def kyberKem (P : Params Rand Msg C IdC IdK) :
     pure (kp.public_key, kp.secret_key)
   encaps pk := do
     let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
-    let (res, _) ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst pk r)
-    match res with
-    | .Ok (ss, ct) => pure (.Ok ct, .Ok ss)
-    | .Err e => pure (.Err e, .Err e)
+    kyberEncapsOn P pk r
   decaps sk c :=
     match c with
     | .Ok ct => do
@@ -89,9 +96,9 @@ theorem kyberKem_correctExp_sound (P : Params Rand Msg C IdC IdK)
     ∃ kp ∈ support P.pqKeygen, ∃ r ∈ support P.coins, ∃ (ss ct : Slice U8) (r' : Rand),
       kem.KeyPublic.encapsulate P.cryptoRngInst kp.public_key r = .ok (.Ok (ss, ct), r') ∧
         kem.KeySecret.decapsulate kp.secret_key ct = .ok (.Ok ss) := by
-  simp only [KEMScheme.correctnessExperiment, kyberKem, bind_pure_comp, bind_assoc, bind_map_left,
-    support_bind, ExceptT.support_liftM, ExceptT.mem_support_iff, support_map, Set.mem_iUnion,
-    Set.mem_image, decide_eq_true_eq, exists_eq_right, exists_prop, Prod.exists,
+  simp only [KEMScheme.correctnessExperiment, kyberKem, kyberEncapsOn, bind_pure_comp, bind_assoc,
+    bind_map_left, support_bind, ExceptT.support_liftM, ExceptT.mem_support_iff, support_map,
+    Set.mem_iUnion, Set.mem_image, decide_eq_true_eq, exists_eq_right, exists_prop, Prod.exists,
     exists_and_right] at h
   obtain ⟨kp, hkp, r, hr, a, ⟨r', henc⟩, a₁, b, hmid, hdec⟩ := h
   rw [← ExceptT.mem_support_iff, mem_support_liftResult] at henc
@@ -126,10 +133,7 @@ noncomputable def kyberKemAfterGenerate (P : Params Rand Msg C IdC IdK) :
   encaps pk := do
     let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
     let (_, r₁) ← liftResult (curve.KeyPair.generate P.rngInst P.cryptoRngInst r)
-    let (res, _) ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst pk r₁)
-    match res with
-    | .Ok (ss, ct) => pure (.Ok ct, .Ok ss)
-    | .Err e => pure (.Err e, .Err e)
+    kyberEncapsOn P pk r₁
   decaps := (kyberKem P).decaps
 
 /-- `δ`-correctness of the extracted Kyber operations on the state that `generate` returns: the

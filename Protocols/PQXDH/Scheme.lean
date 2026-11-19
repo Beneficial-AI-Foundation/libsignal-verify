@@ -194,6 +194,17 @@ or a non-terminating call is a fault of the run, never `false`. -/
 def verifyBytes (pk : ECPub) (m σ : Slice U8) : RustOracleComp unifSpec Bool :=
   liftResult (libsignal_core.curve.PublicKey.verify_signature pk m σ)
 
+/-- A signed Kyber prekey of Bob: a key pair drawn from `P.pqKeygen` and the result of signing
+the extracted serialization of its public key with the private key `sk`. `setup` draws the
+last-resort prekey with it, and `sessionKyberPrekey` each one-time prekey. -/
+def signedKyberPrekey (P : Params Rand Msg C IdC IdK) (sk : ECPriv) :
+    RustOracleComp unifSpec
+      (PQKeyPair × core.result.Result (Slice U8) libsignal_core.curve.CurveError) := do
+  let kp ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
+  let bytes ← encodeKEM kp.public_key
+  let sig ← signBytes P sk bytes
+  pure (kp, sig)
+
 /-- Long-term keys: Alice's identity key pair, Bob's identity key pair, Bob's signed prekey pair
 and his last-resort Kyber prekey pair, all from the ideal generators. Bob signs his signed prekey
 and his last-resort Kyber prekey once each with his identity key, on the extracted serializations
@@ -207,9 +218,7 @@ def setup (P : Params Rand Msg C IdC IdK) (msg : Msg) :
   let spkB ← (liftM P.ecKeygen : RustOracleComp unifSpec ECKeyPair)
   let spkBytes ← encodeEC spkB.public_key
   let spkSigB ← signBytes P ikB.private_key spkBytes
-  let lrpqpkB ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
-  let lrBytes ← encodeKEM lrpqpkB.public_key
-  let lrpqpkSigB ← signBytes P ikB.private_key lrBytes
+  let (lrpqpkB, lrpqpkSigB) ← signedKyberPrekey P ikB.private_key
   pure ({ ikA := identityKeyPairOf ikA, ikB := identityKeyOf ikB, msg := msg },
     { ikB := identityKeyPairOf ikB, spkB := spkB, spkSigB := spkSigB, lrpqpkB := lrpqpkB,
       lrpqpkSigB := lrpqpkSigB })
@@ -361,11 +370,7 @@ def sessionKyberPrekey (P : Params Rand Msg C IdC IdK) (kind : KyberPrekeyKind)
     RustOracleComp unifSpec
       (PQKeyPair × core.result.Result (Slice U8) libsignal_core.curve.CurveError) :=
   match kind with
-  | .oneTime => do
-      let pqpkB ← (liftM P.pqKeygen : RustOracleComp unifSpec PQKeyPair)
-      let pqBytes ← encodeKEM pqpkB.public_key
-      let sig ← signBytes P idn.ikB.private_key pqBytes
-      pure (pqpkB, sig)
+  | .oneTime => signedKyberPrekey P idn.ikB.private_key
   | .lastResort => pure (idn.lrpqpkB, idn.lrpqpkSigB)
 
 /-- Bob's start of a session: unless signing his signed prekey failed, he draws his one-time
