@@ -417,7 +417,7 @@ def double_ratchet.RatchetState.apply_to_pb
     }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::apply_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 670:4-672:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 671:4-673:5 -/
 def state.session.SessionState.apply_ratchet_state
   (self : state.session.SessionState) (ratchet : double_ratchet.RatchetState) :
   Result _root_.Libsignal.RatchetState.state.session.SessionState
@@ -426,7 +426,7 @@ def state.session.SessionState.apply_ratchet_state
   ok { session := ss }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::take_pq_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 705:4-707:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 706:4-708:5 -/
 def state.session.SessionState.take_pq_ratchet_state
   (self : state.session.SessionState) :
   Result ((alloc.vec.Vec Std.U8) × state.session.SessionState)
@@ -437,7 +437,7 @@ def state.session.SessionState.take_pq_ratchet_state
   ok (v, { session := { self.session with pq_ratchet_state := v1 } })
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::set_pq_ratchet_state]:
-    Source: 'rust/protocol/src/state/session.rs', lines 709:4-711:5 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 710:4-712:5 -/
 def state.session.SessionState.set_pq_ratchet_state
   (self : state.session.SessionState) (state : alloc.vec.Vec Std.U8) :
   Result _root_.Libsignal.RatchetState.state.session.SessionState
