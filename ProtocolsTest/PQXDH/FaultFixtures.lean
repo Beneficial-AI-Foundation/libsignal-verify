@@ -128,7 +128,7 @@ theorem initiate_eq_none (hE : E.NeverAgrees) (p : InitiatorParameters Msg)
   split_ifs at hx
   · simpa using hx
   simp only [support_bind, Set.mem_iUnion, exists_prop] at hx
-  obtain ⟨_, -, ⟨res, R'⟩, hres, hx⟩ := hx
+  obtain ⟨⟨_, R₁⟩, -, ⟨res, R'⟩, hres, hx⟩ := hx
   rw [mem_support_liftResult] at hres
   rcases res with ag | e
   · exact absurd hres (hE _ _ _ _ ag R')
@@ -221,15 +221,15 @@ theorem initiatorNoConfirm_init_waiting (p : InitiatorParameters Msg) :
 /-- Wrapper agreement in the three-message scheme has probability `0` when the initiator never
 returns an agreement: Alice never outputs a key. -/
 theorem agreementExp_uakeInitiator_eq_zero [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (msg : Msg) (hasOPK : Bool) (hE : E.NeverAgrees) :
-    rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK)) {true} = 0 := by
+    (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind) (hE : E.NeverAgrees) :
+    rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK kind)) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
   obtain ⟨⟨uk, tk⟩, -, ⟨uOut, tOut, ms⟩, hrun, h⟩ := h
-  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_fst_of_stuck (uakeInitiator P E msg hasOPK).U
-    (uakeInitiator P E msg hasOPK).T AliceWaiting (initiator_stuck P hE)
-    (initiator_init_waiting P) uk tk _ _ hrun
+  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_fst_of_stuck
+    (uakeInitiator P E msg hasOPK kind).U (uakeInitiator P E msg hasOPK kind).T AliceWaiting
+    (initiator_stuck P hE) (initiator_init_waiting P) uk tk _ _ hrun
   simp only [uakeInitiator, initiator, InitiatorState.jointKeys, Option.map_none, support_pure,
     Set.mem_singleton_iff] at hout
   subst hout
@@ -239,15 +239,15 @@ theorem agreementExp_uakeInitiator_eq_zero [DecidableEq Msg] [DecidableEq IdC] [
 returns an agreement: Alice, the authenticated party, never outputs a key, and agreement needs
 both keys. -/
 theorem agreementExp_uakeRecipient_eq_zero [DecidableEq IdC] [DecidableEq IdK]
-    (msg : Msg) (hasOPK : Bool) (hE : E.NeverAgrees) :
-    rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK)) {true} = 0 := by
+    (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind) (hE : E.NeverAgrees) :
+    rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK kind)) {true} = 0 := by
   rw [probOutput_rustRuntime_eq_zero_iff]
   intro h
   simp only [agreementExp, support_bind, Set.mem_iUnion, exists_prop] at h
   obtain ⟨⟨uk, tk⟩, -, ⟨uOut, tOut, ms⟩, hrun, h⟩ := h
-  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_snd_of_stuck (uakeRecipient P E msg hasOPK).U
-    (uakeRecipient P E msg hasOPK).T AliceWaiting (initiatorNoConfirm_stuck P hE)
-    (initiatorNoConfirm_init_waiting P) uk tk _ _ hrun
+  obtain ⟨st, ⟨p, R, rfl⟩, hout⟩ := Party.runHonest_snd_of_stuck
+    (uakeRecipient P E msg hasOPK kind).U (uakeRecipient P E msg hasOPK kind).T AliceWaiting
+    (initiatorNoConfirm_stuck P hE) (initiatorNoConfirm_init_waiting P) uk tk _ _ hrun
   simp only [uakeRecipient, initiatorNoConfirm, InitiatorState.jointKeys, Option.map_none,
     support_pure, Set.mem_singleton_iff] at hout
   subst hout
@@ -260,7 +260,7 @@ end Wrapper
 
 section Fixtures
 
-variable (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
+variable (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
   [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
 
 /-- A positive lower bound `1 - δ` is not met by probability `0`. -/
@@ -270,22 +270,23 @@ theorem not_one_sub_le_zero {δ : ℝ≥0∞} (hδ : δ < 1) : ¬ 1 - δ ≤ 0 :
 
 /-- Entry points that never return an agreement fail all three correctness statements: core
 completion does not hold with probability `1`, and for every `δ < 1` neither joint key-record
-agreement nor wrapper agreement (in either scheme) holds with probability at least `1 - δ`. -/
+agreement nor wrapper agreement (in either scheme, for either kind of Kyber prekey) holds with
+probability at least `1 - δ`. -/
 theorem fails_of_neverAgrees {E : EntryPoints Rand} (hE : E.NeverAgrees) {δ : ℝ≥0∞}
     (hδ : δ < 1) :
     rustRuntime.evalDist (coreCompletionExp P E hasOPK) {true} ≠ 1 ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist (jointKeyExp P E hasOPK) {true} ∧
-      ¬ 1 - δ ≤ rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK)) {true} ∧
+      ¬ 1 - δ ≤ rustRuntime.evalDist (agreementExp (uakeInitiator P E msg hasOPK kind)) {true} ∧
       ¬ 1 - δ ≤
-        rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK)) {true} := by
+        rustRuntime.evalDist (agreementExp (uakeRecipient P E msg hasOPK kind)) {true} := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · rw [coreCompletionExp_eq_zero P hasOPK hE]
     exact zero_ne_one
   · rw [jointKeyExp_eq_zero P hasOPK hE]
     exact not_one_sub_le_zero hδ
-  · rw [agreementExp_uakeInitiator_eq_zero P msg hasOPK hE]
+  · rw [agreementExp_uakeInitiator_eq_zero P msg hasOPK kind hE]
     exact not_one_sub_le_zero hδ
-  · rw [agreementExp_uakeRecipient_eq_zero P msg hasOPK hE]
+  · rw [agreementExp_uakeRecipient_eq_zero P msg hasOPK kind hE]
     exact not_one_sub_le_zero hδ
 
 /-- The always-panic fixture: entry points that always panic fail every correctness statement,
@@ -294,10 +295,10 @@ theorem alwaysPanic_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
     rustRuntime.evalDist (coreCompletionExp P EntryPoints.alwaysPanic hasOPK) {true} ≠ 1 ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysPanic hasOPK) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeInitiator P EntryPoints.alwaysPanic msg hasOPK)) {true} ∧
+        (agreementExp (uakeInitiator P EntryPoints.alwaysPanic msg hasOPK kind)) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeRecipient P EntryPoints.alwaysPanic msg hasOPK)) {true} :=
-  fails_of_neverAgrees P msg hasOPK EntryPoints.alwaysPanic_neverAgrees hδ
+        (agreementExp (uakeRecipient P EntryPoints.alwaysPanic msg hasOPK kind)) {true} :=
+  fails_of_neverAgrees P msg hasOPK kind EntryPoints.alwaysPanic_neverAgrees hδ
 
 /-- The always-error fixture: entry points that always return the protocol error `e` fail every
 correctness statement, for every `δ < 1`. -/
@@ -307,10 +308,10 @@ theorem alwaysError_fails (e : error.SignalProtocolError) {δ : ℝ≥0∞} (hδ
       ¬ 1 - δ ≤
         rustRuntime.evalDist (jointKeyExp P (EntryPoints.alwaysError e) hasOPK) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeInitiator P (EntryPoints.alwaysError e) msg hasOPK)) {true} ∧
+        (agreementExp (uakeInitiator P (EntryPoints.alwaysError e) msg hasOPK kind)) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeRecipient P (EntryPoints.alwaysError e) msg hasOPK)) {true} :=
-  fails_of_neverAgrees P msg hasOPK (EntryPoints.alwaysError_neverAgrees e) hδ
+        (agreementExp (uakeRecipient P (EntryPoints.alwaysError e) msg hasOPK kind)) {true} :=
+  fails_of_neverAgrees P msg hasOPK kind (EntryPoints.alwaysError_neverAgrees e) hδ
 
 /-- The always-diverge fixture: entry points that never terminate fail every correctness
 statement, for every `δ < 1`. -/
@@ -320,10 +321,10 @@ theorem alwaysDiverge_fails {δ : ℝ≥0∞} (hδ : δ < 1) :
       ¬ 1 - δ ≤
         rustRuntime.evalDist (jointKeyExp P EntryPoints.alwaysDiverge hasOPK) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeInitiator P EntryPoints.alwaysDiverge msg hasOPK)) {true} ∧
+        (agreementExp (uakeInitiator P EntryPoints.alwaysDiverge msg hasOPK kind)) {true} ∧
       ¬ 1 - δ ≤ rustRuntime.evalDist
-        (agreementExp (uakeRecipient P EntryPoints.alwaysDiverge msg hasOPK)) {true} :=
-  fails_of_neverAgrees P msg hasOPK EntryPoints.alwaysDiverge_neverAgrees hδ
+        (agreementExp (uakeRecipient P EntryPoints.alwaysDiverge msg hasOPK kind)) {true} :=
+  fails_of_neverAgrees P msg hasOPK kind EntryPoints.alwaysDiverge_neverAgrees hδ
 
 end Fixtures
 
@@ -339,6 +340,7 @@ info: 'Protocols.PQXDH.alwaysPanic_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
@@ -353,6 +355,7 @@ info: 'Protocols.PQXDH.alwaysError_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
@@ -367,6 +370,7 @@ info: 'Protocols.PQXDH.alwaysDiverge_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
+ curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
  core.num.niche_types.NonZeroU8Inner,
