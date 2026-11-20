@@ -40,14 +40,14 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 ## Findings
 
-1. **Two fault-or-value forms do not follow from their total forms.** The module docstring of
-   `Protocols/PQXDH/Contracts.lean` says that the fault-or-value form of a contract follows from its
-   total form. No Lean lemma proves this. For the first part of `SignaturePartial` and for the
-   1568-byte branch of `KyberPartial` it cannot be derived in Lean: these parts quantify over every
-   generator, while `SignTotal` and `KyberEncapsBackend` assume `RngTotal`, and the operations are
-   opaque. Both parts are true
-   of the Rust code, because array types fix the output sizes. They are therefore separate trusted
-   claims, not consequences of the total forms. See sections 4 and 7.
+1. **Two parts of the fault-or-value forms do not follow from the total forms.** The first part of
+   `SignaturePartial` and the part of `KyberPartial` for encapsulation on a 1568-byte key cannot be
+   derived in Lean from the total forms: these parts quantify over every generator, while
+   `SignTotal` and `KyberEncapsBackend` assume `RngTotal`, and the operations are opaque. Both parts
+   are true of the Rust code, because array types fix the output sizes. They are therefore separate
+   trusted claims, not consequences of the total forms. Every other part of the fault-or-value forms
+   follows from a total form. No Lean lemma states these implications: this review checked them
+   against the definitions. See sections 1, 4 and 7.
 2. **Kyber termination is a claim about SHAKE128 on every seed.** `KyberEncapsBackend` and
    `KyberDecaps` state termination for every key of the right length. libcrux samples the public matrix
    in a loop with no bound, and its seed comes from the key, which the adversary chooses. We know of no
