@@ -1,0 +1,25 @@
+Translation patch: libsignal_protocol::state::session::SessionState::set_unacknowledged_kyber_pre_key_id
+
+Change: the body takes the pending Kyber prekey out of the option with `take()`, calls `expect` on the owned value, sets its `pre_key_id` and stores it back with `Some(pending)`. The original called `as_mut()` and then `expect` on the `Option<&mut PendingKyberPreKey>`.
+Why: at nightly-2026.10.30-de16f3c Aeneas translates `expect` on an `Option<&mut T>` as a function that returns the borrow and a write-back function. The Aeneas model of `Option::expect` returns the value only, so the generated Lean fails with "expected a product type, got PendingKyberPreKey". `take` and `expect` on an owned option are modelled.
+Behaviour: identical. `take()` leaves `None` behind. When the option was `None`, `expect` panics with the same message and the session state is still `None`, as it was. When the option was `Some`, the new body writes the same `pre_key_id` and stores the same value back in the field. It moves the value out and back and copies nothing.
+
+diff --git a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -538,12 +538,13 @@ impl SessionState {
+         &mut self,
+         signed_kyber_pre_key_id: KyberPreKeyId,
+     ) {
+-        let pending = self
++        let mut pending = self
+             .session
+             .pending_kyber_pre_key
+-            .as_mut()
++            .take()
+             .expect("must have been set if kyber pre key is present");
+         pending.pre_key_id = signed_kyber_pre_key_id.into();
++        self.session.pending_kyber_pre_key = Some(pending);
+     }
+ 
+     pub(crate) fn unacknowledged_pre_key_message_items(
