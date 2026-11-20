@@ -1403,8 +1403,7 @@ hypothesis on the AEAD scheme and no AEAD term.
 
 ## What the statements of hops 5 and 6 do not cover
 
-The Lean module note of the security theorems names two kinds of run for which the bounds have
-no term of their own.
+The Lean module note of the security theorems states two limits of the statements.
 
 Original-key partnering compares the associated data and the key material, and the key
 derivation reads the key material only. A session of $`T` with the key material of the
