@@ -171,7 +171,10 @@ theorem uakeInitiator_advantage_projection
   rw [← uakeInitiator_Exp_projection P msg hasOPK A]
 
 /-- Every adversary of `uakeInitiator` has the same DF'17 advantage against the key-only parties:
-  keeping the session contexts leaves the advantage in `UAKE.Exp` unchanged. -/
+  keeping the session contexts leaves the advantage in `UAKE.Exp` unchanged. The lemma is about
+  the transcript-matching experiment `UAKE.Exp` only. It does not apply to `PartneredExp` over
+  `originalKeyPartnering`, which reads the key material that the key-only parties do not keep
+  once they accept. -/
 theorem uakeInitiator_advantage_eq_keyOnly (B : UAKE.Adversary (uakeInitiator P msg hasOPK)) :
     UAKE.advantage ProbCompRuntime.probComp B =
       UAKE.advantage ProbCompRuntime.probComp
