@@ -16,7 +16,9 @@ recorded at the current clock, which then rises by one), derived by hand. The fi
 the experiment's own tests on that end state: `challengePartnered` (the forgery test of the
 games), the value of `forgeExp`
 (`forgeEvent`, tied to `forgeExp` by `forgeExp_eq_map_forgeEvent`), `revealedPartnered` (the
-freshness test of `finalizePartnered`) and the transcript matching `isPingPong` of DF'17.
+freshness test of `finalizePartnered`) and the transcript matching `isPingPong` of DF'17. The
+session contexts are arguments of the theorems and the end states are built by hand, so the
+fixtures do not show that a run of the experiment reaches these end states.
 
 1. Identifier swap (#35): Bob accepts at tick 4 and Alice at tick 5, but Alice received a bundle
    other than Bob's. Partnered and no forgery, but not matched, so transcript matching would
