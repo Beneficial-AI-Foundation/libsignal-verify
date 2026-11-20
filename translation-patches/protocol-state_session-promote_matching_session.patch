@@ -1,0 +1,65 @@
+Translation patch: libsignal_protocol::state::session::SessionRecord::promote_matching_session
+
+Change: the search through the previous sessions moves into a new private method, `find_previous_session`. The old code was a `for` loop over `self.previous_session_states().enumerate()`. The new method is an index loop (`while i < self.previous_sessions.len()`) that decodes the stored session `i`, tests it and returns `Ok(Some((i, previous)))` on a match. `promote_matching_session` calls it and keeps the rest of its body, except that the local variable `state` is renamed `promoted`.
+Why: at nightly-2026.10.30-de16f3c Aeneas stops on the original `for` loop with `Internal error` (`interp/InterpReduceCollapse.ml`, line 1151). The loop runs over the `impl ExactSizeIterator` that `previous_session_states` returns. That function is opaque in the extraction, and the two closure impls of its `map` closure fail a prepass (`llbc/Substitute.ml`, line 242), so the extraction excludes them. A `for` loop over `self.previous_sessions.iter().enumerate()` translates, so a `for` loop alone is not the cause. The exact trigger is not isolated. The index loop in a separate method gives one loop in the generated code. The same body inline in `promote_matching_session` gives three copies of the loop. The rename is needed because Aeneas keeps the name of a local variable, and a local `state` hides the Lean namespace `state` in the call `state.session.SessionRecord.promote_old_session`, which then fails to elaborate (aeneas#1098, as for protocol-triple_ratchet-from_session_state.patch).
+Behaviour: identical. `previous_session_states().enumerate()` pairs each stored session with its index, in order, and decodes a session only when the loop reaches it. A decoding failure becomes `Err(InvalidSessionError("failed to decode previous session protobuf"))`, and `previous?` returns it unchanged. The loop stops at the first match or the first error. The new loop visits the same indices in the same order, decodes the same bytes only when it reaches them, builds the same error and returns it directly. The `?` in `promote_matching_session` converts `InvalidSessionError` into itself. `i` stays below the length of the vector, so `i += 1` cannot overflow. The rename changes no behaviour. `previous_session_states` is unchanged, and its other callers are untouched.
+
+diff --git a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -753,25 +753,43 @@ impl SessionRecord {
+             }
+         }
+
+-        let mut session_to_promote = None;
+-        for (i, previous) in self.previous_session_states().enumerate() {
+-            let previous = previous?;
+-            if previous.session_version()? == version
+-                && alice_base_key.ct_eq(previous.alice_base_key()).into()
+-            {
+-                session_to_promote = Some((i, previous));
+-                break;
+-            }
+-        }
++        let session_to_promote = self.find_previous_session(version, alice_base_key)?;
+
+-        if let Some((i, state)) = session_to_promote {
+-            self.promote_old_session(i, state);
++        if let Some((i, promoted)) = session_to_promote {
++            self.promote_old_session(i, promoted);
+             return Ok(true);
+         }
+
+         Ok(false)
+     }
+
++    /// The first previous session with a matching version and `alice_base_key`, with its index.
++    fn find_previous_session(
++        &self,
++        version: u32,
++        alice_base_key: &[u8],
++    ) -> Result<Option<(usize, SessionState)>, InvalidSessionError> {
++        let mut i = 0;
++        while i < self.previous_sessions.len() {
++            let structure = match SessionStructure::decode(&self.previous_sessions[i][..]) {
++                Ok(structure) => structure,
++                Err(_) => {
++                    return Err(InvalidSessionError(
++                        "failed to decode previous session protobuf",
++                    ));
++                }
++            };
++            let previous: SessionState = structure.into();
++            if previous.session_version()? == version
++                && alice_base_key.ct_eq(previous.alice_base_key()).into()
++            {
++                return Ok(Some((i, previous)));
++            }
++            i += 1;
++        }
++        Ok(None)
++    }
++
+     pub(crate) fn session_state(&self) -> Option<&SessionState> {
+         self.current_session.as_ref()
+     }

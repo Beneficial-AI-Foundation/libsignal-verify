@@ -195,6 +195,17 @@ axiom core.option.Option.Insts.CoreCloneClone.clone
   {T : Type} (cloneCloneInst : core.clone.Clone T) :
   Option T → Result (Option T)
 
+/-- [core::option::{impl core::default::Default for core::option::Option<T>}::default]:
+    Source: '/rustc/library/core/src/option.rs', lines 2314:4-2314:29
+    Name pattern: [core::option::{core::default::Default<core::option::Option<@T>>}::default]
+    Visibility: public -/
+-- The core library function: `None`.
+@[rust_fun
+  "core::option::{core::default::Default<core::option::Option<@T>>}::default"]
+def core.option.Option.Insts.CoreDefaultDefault.default
+  (T : Type _) : Result (Option T) :=
+  ok none
+
 -- (dropped axiom core.option.Option.Insts.CoreOpsTry_traitTry.branch; provided by an imported sibling lib)
 
 -- (dropped axiom core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual; provided by an imported sibling lib)
@@ -671,6 +682,18 @@ axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
 axiom U8.Insts.CoreConvertFromDeviceId.from
   : libsignal_core.address.DeviceId → Result Std.U8
 
+/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
+    Source: 'rust/core/src/address.rs', lines 776:9-776:14
+    Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone]
+    Visibility: public -/
+-- The derived `Clone` copies the name and the device ID, so the copy equals the original.
+@[rust_fun
+  "libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone"]
+def libsignal_core.address.ProtocolAddress.Insts.CoreCloneClone.clone
+  (a : libsignal_core.address.ProtocolAddress) :
+  Result libsignal_core.address.ProtocolAddress :=
+  ok a
+
 -- (dropped axiom libsignal_core.address.ProtocolAddress.name; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.ProtocolAddress.device_id; provided by an imported sibling lib)
@@ -700,6 +723,8 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone
 -- (dropped axiom libsignal_core.curve.PublicKey.public_key_bytes; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PublicKey.serialize; provided by an imported sibling lib)
+
+-- (dropped axiom libsignal_core.curve.PublicKey.verify_signature; provided by an imported sibling lib)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message]:
     Source: 'rust/core/src/curve.rs', lines 138:4-142:13
