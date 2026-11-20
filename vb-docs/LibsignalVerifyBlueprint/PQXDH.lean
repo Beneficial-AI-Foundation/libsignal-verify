@@ -731,6 +731,67 @@ hypotheses.
 
 # The security theorems
 
+The security theorems use the experiment of chapter 2 with two of its tests changed. The two
+tests compare the states of the challenge session and of a session of $`T` under a partnering,
+in place of their transcripts.
+
+::::definition "uake_partnered_exp" (lean := "AKE.UAKE.Partnering, AKE.UAKE.authPartnered, AKE.UAKE.revealedPartnered, AKE.UAKE.PartneredExp, AKE.UAKE.partneredAdvantage") (uses := "uake_exp, uake_scheme, uake_transcript")
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.Partnering -docstrings
+Let $`\Pi` be a UAKE scheme. A _partnering_ $`\pi` for $`\Pi` is a relation between the
+states of $`U` and the states of $`T`. A state of $`U` and a state of $`T` that are related are
+_partners_ under $`\pi`.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.authPartnered -docstrings
+Let $`\pi` be a partnering for $`\Pi`, let $`s^*` be a state of $`U` and $`\tau^*` a
+transcript, and let a list of sessions with $`T` be given. We say that $`s^*` has an
+_authentication partner_ among these sessions if one of them has a key in $`K`, has a state
+that is a partner of $`s^*` under $`\pi`, and has a nonempty transcript whose last timestamp is
+at most the last timestamp of $`\tau^*`, which is nonempty too.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.revealedPartnered -docstrings
+Let $`\pi` be a partnering for $`\Pi`, let $`s^*` be a state of $`U`, and let a list of
+sessions with $`T` be given. We say that $`s^*` has a _revealed partner_ among these sessions if
+one of them is marked as revealed and has a state that is a partner of $`s^*` under $`\pi`.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.PartneredExp -docstrings
+Let $`\Pi` be a UAKE scheme over a monad $`m` whose key space $`K` is finite and nonempty, let
+$`\iota` be a monad morphism from probabilistic computations to $`m`, let $`\pi` be a
+partnering for $`\Pi`, and let $`\mathcal{A}` be an adversary against $`\Pi`. We define the
+_partnered experiment_ $`\mathsf{Exp}_\pi(\mathcal{A})` to be the experiment
+$`\mathsf{Exp}(\mathcal{A})` of chapter 2 with two changes.
+
+* In step 4, output $`1` if the state of the challenge session has no authentication partner
+  under $`\pi` among the sessions with $`T`, with $`\tau^*` as its transcript, both read at the
+  end of step 2.
+* In step 7, output a uniform bit if the state of the challenge session has a revealed partner
+  under $`\pi` among the sessions with $`T`, both read at the end of step 6.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.partneredAdvantage -docstrings
+Let $`R` be a runtime for $`m`. The advantage of $`\mathcal{A}` in the partnered experiment is
+$$`\mathrm{Adv}_{R,\pi}(\mathcal{A}) := \big|\Pr_R[\mathsf{Exp}_\pi(\mathcal{A}) = 1] - \tfrac{1}{2}\big|,`
+where the experiment uses the monad morphism of $`R`.
+:::
+::::
+
+The test of step 4 asks for a partner that accepted no later than the challenge session, and
+the test of step 7 has no condition on time. In Lean, `finalizePartnered` runs steps 6 and 7.
+
+::::definition "pqxdh_original_key_partnering" (lean := "Protocols.Models.PQXDH.originalKeyPartnering") (uses := "uake_partnered_exp, pqxdh_uake_initiator, pqxdh_session_context, pqxdh_initiator, pqxdh_recipient")
+:::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.originalKeyPartnering -docstrings -comments
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, and let
+$`h \in \{0, 1\}`. We define _original-key partnering_ $`\pi_{\mathrm{ok}}` for
+$`\Pi_B(P, \mu, h)` as follows. A state of $`\mathrm{Alice}_P` and a state of
+$`\mathrm{Bob}_{P,h}` are partners if the state of Alice is a completed session context
+$`\kappa_A`, the state of Bob is a session context $`\kappa_B`, and $`\kappa_A` and
+$`\kappa_B` have the same associated data and the same key material.
+:::
+::::
+
+The identifiers of the keys, the signatures and the one-time prekey of the bundle are not
+compared, so they are not authenticated: a run that changes them without changing the key
+material keeps the partner.
+
 Both theorems bound the advantage $`\mathrm{Adv}_R(\mathcal{A})` of chapter 1, for the
 runtime $`R` of probabilistic computations, of an adversary $`\mathcal{A}` against
 $`\Pi_B(P, \mu, h)`. The bound is a sum of bounds on the advantage against the primitives of
@@ -986,6 +1047,22 @@ transcript. In the partnered experiment over original-key partnering, a session 
 holds the associated data and the key material of the challenge session is its partner,
 whatever its transcript and the time at which it accepted, so revealing it makes the experiment
 output a uniform bit.
+
+::::definition "pqxdh_challenge_partnered" (lean := "Protocols.Models.PQXDH.challengePartnered") (uses := "pqxdh_challenge_result, pqxdh_original_key_partnering, uake_partnered_exp")
+:::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.challengePartnered -docstrings -comments
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a challenge
+result of $`\Pi_B(P, \mu, h)`, and let $`e` be a state of the oracles, with a state $`s^*` of
+the challenge session and a list of sessions with $`T`. We say that the challenge is
+_partnered_, $`\mathrm{Partnered}(\mathrm{cr}, e)`, if $`s^*` has an authentication partner
+under $`\pi_{\mathrm{ok}}` among the sessions with $`T` of $`e`, with $`\tau^*` as its
+transcript.
+:::
+::::
+
+So the challenge is partnered when a session of Bob has a key, holds the associated data and
+the key material of Alice, and accepted no later than she did.
 
 ## Experiments
 
