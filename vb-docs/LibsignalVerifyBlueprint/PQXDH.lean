@@ -970,12 +970,16 @@ $`\mathrm{Guess}(\mathrm{cr})` holds if one of the following holds.
 
 The first case is a collision of the KEM keys that sessions of $`T` draw. In the second case,
 the challenge session accepted a bundle before a session of $`T` carrying the same KEM key was
-opened, so the adversary predicted a key that was not yet drawn. A KEM with colliding or
-predictable public keys breaks UAKE security. A second session that holds the same KEM key,
-and the same one-time prekey when one is in use, accepts a replay of the initial message of the
-challenge session and derives the same session key. The adversary can reveal that key without
-matching the challenge transcript. No assumption on a primitive excludes the event. Hop 4
-below bounds its probability by the bound on the KEM public keys.
+opened, so the adversary predicted a key that was not yet drawn. No assumption on a primitive
+excludes the event, and hop 4 below bounds its probability by the bound on the KEM public keys.
+In the transcript-matching experiment of chapter 2, a KEM with colliding or predictable public
+keys breaks UAKE security. A second session that holds the same KEM key, and the same one-time
+prekey when one is in use, accepts a replay of the initial message of the challenge session and
+derives the same session key. The adversary can reveal that key without matching the challenge
+transcript. In the partnered experiment over original-key partnering, a session of $`T` that
+holds the associated data and the key material of the challenge session is its partner,
+whatever its transcript and the time at which it accepted, so revealing it makes the experiment
+output a uniform bit.
 
 ## Experiments
 
@@ -1238,8 +1242,7 @@ Each session of $`T` draws its KEM public key afresh. The $`j`-th draw hits one 
 known keys with probability at most $`j\,\varepsilon_{\mathrm{pk}}`. Only the first condition
 of the bound on the sessions is used, the one on the challenge stage. Hop 4 is proved.
 
-The remaining four hops are admitted. Each states the bound that the proof plan in its
-docstring is meant to give.
+The remaining four hops are admitted.
 
 ::::theorem "pqxdh_hop5_dh" (lean := "Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap") (uses := "pqxdh_forge_honest_good, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap -docstrings -comments
@@ -1257,23 +1260,9 @@ $$`\mathrm{good}(\mathcal{A}) \le q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_
 :::
 ::::
 
-The proof plan in the docstring has four steps. It first finds the unique session of $`T` that
-can share the key material of the challenge session. The accepted bundle fixes the identity key,
-the signed prekey and the KEM key. The KEM key belongs to one session, by the injectivity of
-$`\mathrm{id}_{\mathrm{KEM}}` and the absence of the KEM-key event. The plan then replaces the
-output of the key derivation on that key material by a uniform triple, at the cost of a
-Gap-DH adversary and a PRF adversary. With the first key uniform, an initial message with a
-changed ciphertext is a forgery against the AEAD scheme. With the second key uniform, the
-confirmation that Alice accepts was produced by the paired session, again at the cost of an
-AEAD adversary, so the transcripts match. The docstring says that the last step does not hold
-as stated. The unsigned fields of the bundle and the signatures on honestly signed keys can
-change without changing the derived keys. Then the transcripts differ without a forgery
-([issue #35](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/35)).
-[Pull request #71](https://github.com/Beneficial-AI-Foundation/libsignal-verify/pull/71)
-changes the experiment for this reason. The factor $`q` is generous. It makes the bound of the
-theorem equal to $`\varepsilon_{\mathrm{sig}}` when $`\mathcal{A}` opens no session, because
-then completing the challenge session already needs a signature forgery. The statement is
-admitted, and VersoBlueprint marks it as containing `sorry`.
+The statement is admitted, and VersoBlueprint marks it as containing `sorry`. For $`q = 0` the
+bounds of hops 4, 5 and 6 are $`0`, and each theorem bounds the advantage by
+$`\varepsilon_{\mathrm{sig}}`.
 
 ::::theorem "pqxdh_hop6_dh" (lean := "Protocols.Models.PQXDH.indistAdvantage_le_gap") (uses := "pqxdh_indist, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.indistAdvantage_le_gap -docstrings -comments
@@ -1294,12 +1283,7 @@ $$`\begin{aligned}\mathrm{ind}(\mathcal{A}) \le{}& q\,(\varepsilon_{\mathrm{gap}
 :::
 ::::
 
-In the plan for hop 6, a challenge session with no output, or one in the coin-flipped branch,
-gives the adversary no advantage. In the remaining branch the accepted bundle is the bundle of a
-session of $`T`, and the same replacement of the key derivation makes the challenge key
-uniform. The two stages of $`\mathcal{A}` together open at most $`2q` sessions, which gives at
-most $`2q^2` pairs of sessions and the term $`2q^2\,\varepsilon_{\mathrm{pk}}`. The statement is
-admitted.
+The statement is admitted.
 
 ::::theorem "pqxdh_hop5_pq" (lean := "Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq") (uses := "pqxdh_forge_honest_good, pqxdh_opens_at_most, pqxdh_kdf_prf, kem_perfectly_correct, kem_ind_cca_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq -docstrings -comments
@@ -1337,17 +1321,39 @@ $$`\mathrm{ind}(\mathcal{A}) \le q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\
 :::
 ::::
 
-The plans of the two post-quantum hops use the IND-CCA security of the KEM in place of the
-Gap-DH problem. The plan of hop 5 guesses the session of $`T` that can share the key material,
-among the at most $`q` that are opened, and embeds the IND-CCA challenge in it. This replaces
-the KEM secret of the challenge session by a uniform one. The key derivation is then a PRF under
-a hidden uniform key, and the AEAD step is as in the Diffie-Hellman case. In hop 6, perfect
-correctness shows that the paired session decapsulates the relayed ciphertext to the same
-secret, so the hop has no AEAD term. Both hops are admitted. The hypothesis of perfect
-correctness is an idealisation, as the section on modelling choices says. The plans of the two
-Diffie-Hellman hops are stated for the key derivation as a random oracle. The plans of the
-post-quantum hops use the PRF model as it stands. The last step of the plan of hop 5 has the
-same defect in both cases.
+Both post-quantum hops are admitted. They assume that the KEM is perfectly correct, which is an
+idealisation, as the section on modelling choices says. The post-quantum hop 6 has no
+hypothesis on the AEAD scheme and no AEAD term.
+
+## What the statements of hops 5 and 6 do not cover
+
+The Lean module note of the security theorems names two kinds of run for which the bounds have
+no term of their own.
+
+Original-key partnering compares the associated data and the key material, and the key
+derivation reads the key material only. A session of $`T` with the key material of the
+challenge session and other associated data derives the same three keys as Alice. A session
+with other key material holds her session key $`\mathrm{sk}`, or her key $`k_B`, when
+$`\mathrm{KDF}` gives equal outputs in that component. Neither session is her partner.
+Revealing a session that holds her $`\mathrm{sk}` returns her session key, and the experiment
+draws no uniform bit for it. Confirm decrypts under her $`k_B` and her associated data. The
+definitions do not exclude that she accepts a confirmation from such a session while no session
+that accepted no later than she did is her partner, and the experiment then outputs $`1`. No
+hypothesis of either theorem is about equal outputs of the key derivation. The PRF hypothesis
+on $`\mathrm{KDF}_{\mathrm{DH}}(P)` is about one uniform key in the place of the third
+Diffie-Hellman value, and the one on $`\mathrm{KDF}_{\mathrm{SS}}(P)` is about one uniform KEM
+secret. Neither says anything about two inputs that differ in that place. The bounds have no
+term of their own for these runs.
+
+Accept computes the three keys before the AEAD decryption of the ciphertext of the initial
+message, so a session of $`T` that rejects the ciphertext has still derived keys from its key
+material. The AEAD scheme of chapter 2 has no laws. Nothing in the model says that a ciphertext
+made under one key, or with other associated data, fails to decrypt under another key or other
+associated data. Perfect correctness of the AEAD scheme concerns one key and one associated
+data, and the security theorems do not assume it. Rejection under another key or other
+associated data is only the security property INT-CTXT-D, which bounds it for one uniform key
+and counts only the pairs that its encryption oracle did not output. INT-CTXT-D is a hypothesis
+of hop 5 in both theorems and of hop 6 in the Diffie-Hellman theorem.
 
 # Modelling choices
 
@@ -1434,10 +1440,10 @@ KS describes an analysis in CryptoVerif. It models the hash function as a random
 secrecy and the authentication of a completed exchange. For forward secrecy against a later
 quantum adversary, it models the hash function as a PRF (KS, Section 4, p. 11). The Lean module
 note says that the proof of the Diffie-Hellman theorem may need a random oracle in place of a
-PRF. The plans of the two Diffie-Hellman hops 5 and 6 are written for that case, and the hops
-wait for the decision
+PRF. The module note of the two Diffie-Hellman hops 5 and 6 says that their proofs are deferred
+to that change of the model
 ([issue #81](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/81)). The
-plans of the post-quantum hops use the PRF as it stands.
+post-quantum hops are stated with the PRF as it stands.
 
 ## The signature and the KEM
 
