@@ -29,6 +29,29 @@ Scope of the two theorems
   KDF. Alice wins outright when she accepts and no session of Bob that accepted no later than she
   did is her partner. The key identifiers, the signatures and the bytes of an unsigned one-time
   pre-key are not authenticated: changing them without changing `km` keeps the partner.
+* Partnering compares `(ad, km)`, and `P.kdf` takes `km` only (`initiate` and `accept` in
+  `Basic.lean`). A session of Bob with Alice's key material and other associated data derives
+  the same three KDF outputs as she does. A session with other key material holds her session
+  key `sk`, or her confirmation key `kb`, when `P.kdf` gives equal outputs in that component.
+  Neither session is her partner. Revealing a session that holds her `sk` returns her session
+  key, and `finalizePartnered` flips no coin for it. Alice's `confirm` decrypts under her `kb`
+  and her associated data. The definitions do not exclude that she accepts a confirmation from
+  such a session while no session that accepted no later than she did is her partner, and
+  `PartneredExp` then counts a win. No premise of either theorem is about equal KDF outputs. In
+  the DH theorem, `hkdf` is PRF security of `kdfPRFDH` under one uniform exponent `c`, with
+  `c • P.gen` in the place of the third Diffie-Hellman value. In the PQ theorem, `hkdf` is PRF
+  security of `kdfPRF` under one uniform KEM shared secret. Neither says anything about two inputs
+  that differ in its key slot. The bounds have no term of their own for these runs.
+* `accept` computes the three KDF outputs before the AEAD decryption of the ciphertext of the
+  initial message, so a session of Bob that rejects that ciphertext has still derived keys from
+  its key material. The AEAD interface `AEAD.Scheme` has no laws. Nothing in the model says that
+  a ciphertext made under one key, or with other associated data, fails to decrypt under another
+  key or other associated data. `AEAD.PerfectlyCorrect` concerns one key and one associated data,
+  and neither theorem assumes it. Rejection under another key or other associated data is only
+  the security property INT-CTXT-D, which `haead` bounds for one uniform key. That game scores
+  only pairs of associated data and ciphertext that its encryption oracle did not output. `haead`
+  is a premise of hop 5 in both theorems and of hop 6 in the DH theorem. Hop 6 of the PQ theorem
+  has no AEAD premise.
 
 Model simplifications
 * **Unilateral authentication:** UAKE is unilaterally authenticated. In
