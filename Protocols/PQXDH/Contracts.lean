@@ -27,7 +27,11 @@ verify it, so every contract is trusted and has its own row in `Protocols/LEDGER
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
 and `fullExp_noLostMass` take. The fault-or-value form says only what a leaf returns if it
-returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
+returns. The total forms imply the fault-or-value forms, except two parts, which are stated for
+every generator, while `SignTotal` and `KyberEncapsBackend` assume a total generator (`RngTotal`):
+the first part of `SignaturePartial` and the part of `KyberPartial` for encapsulation on a
+1568-byte key. These two parts are separate assumptions. `PartialContracts` bundles the
+fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 -/
 
