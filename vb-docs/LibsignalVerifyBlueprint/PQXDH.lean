@@ -315,19 +315,21 @@ absent, and an AEAD ciphertext.
 
 KS lists the same items for the initial message (KS, Section 3.3, p. 10).
 
-::::definition "pqxdh_session_context" (lean := "Protocols.Models.PQXDH.SessionContext")
+::::definition "pqxdh_session_context" (lean := "Protocols.Models.PQXDH.SessionContext") (uses := "pqxdh_key_material")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.SessionContext -docstrings -comments
-Let $`G`, $`\mathrm{PQPK}`, $`\mathrm{Msg}` and $`K` be types. A _session context_ is a
-tuple
-$$`\begin{aligned}&(\mathrm{sk}, k_B, \mathrm{AD}, \mu)\\ &\in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg},\end{aligned}`
-with a session key $`\mathrm{sk}`, an AEAD key $`k_B`, associated data $`\mathrm{AD}` and a
-message $`\mu`.
+Let $`G`, $`\mathrm{PQPK}`, $`\mathrm{Msg}`, $`K` and $`\mathrm{SS}` be types. A _session
+context_ is a tuple
+$$`\begin{aligned}&(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})\\ &\in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg} \times \mathrm{KM}(G, \mathrm{SS}),\end{aligned}`
+with a session key $`\mathrm{sk}`, an AEAD key $`k_B`, associated data $`\mathrm{AD}`, a
+message $`\mu` and the key material $`\mathrm{km}` that the session passed to the key
+derivation.
 :::
 ::::
 
-Alice stores a session context when she sends her initial message, and Bob stores one when
-he accepts it. The key $`k_B` and the message serve the confirmation message that Bob sends
-in the model and not in the protocol.
+Alice stores a session context when she sends her initial message, and she keeps it when she
+completes. Bob stores one when he accepts her message. The key $`k_B` and the message serve the
+confirmation message that Bob sends in the model and not in the protocol. The security
+theorems compare the associated data and the key material of two sessions.
 
 ## The procedures
 
@@ -399,13 +401,14 @@ $`\bot`, given by the following steps.
    $`\mathrm{DH}_3 = \mathrm{DH}(\mathrm{ek}_A, \mathrm{SPK})`. Put
    $`\mathrm{DH}_4 = \mathrm{DH}(\mathrm{ek}_A, \mathrm{OPK})` if $`o = (\mathrm{OPK}, i_{\mathrm{OPK}})`,
    and $`\mathrm{DH}_4 = \ast` if $`o = \ast`.
-6. Put $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`
+6. Put $`\mathrm{km} = (\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`,
+   $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{km})`
    and $`\mathrm{AD} = (\mathrm{IK}_A, \mathrm{IK}, \mathrm{PQPK})`.
 7. Run $`E(k_A, \mathrm{AD}, \mu)` to get $`c`.
 8. Output the initial message
    $`(\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}}, i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)`,
    where $`i_{\mathrm{OPK}} = \ast` if $`o = \ast`, and the session context
-   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`.
+   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`.
 :::
 ::::
 
@@ -440,11 +443,12 @@ computation with output in the session contexts, or $`\bot`, given by the follow
    $`\mathrm{DH}_3 = \mathrm{DH}(\mathrm{spk}_B, \mathrm{EK}_A)`. Put
    $`\mathrm{DH}_4 = \mathrm{DH}(\mathrm{opk}, \mathrm{EK}_A)` if
    $`o = (\mathrm{OPK}, \mathrm{opk})`, and $`\mathrm{DH}_4 = \ast` if $`o = \ast`.
-4. Put $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`
+4. Put $`\mathrm{km} = (\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`,
+   $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{km})`
    and $`\mathrm{AD} = (\mathrm{IK}_A, \mathrm{IK}_B, \mathrm{PQPK}_B)`.
 5. If $`D(k_A, \mathrm{AD}, c) = \mathsf{rej}`, output $`\bot`. Otherwise let
    $`\mu = D(k_A, \mathrm{AD}, c)`, and output the session context
-   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`.
+   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`.
 :::
 ::::
 
@@ -457,10 +461,10 @@ p. 17). In the model, the identifiers are neither signed nor in the associated d
 
 ::::definition "pqxdh_confirm" (lean := "Protocols.Models.PQXDH.confirm") (uses := "pqxdh_parameters, pqxdh_session_context")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.confirm -docstrings -comments
-Let $`P` be a set of PQXDH parameters, let $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)` be a
-session context, and let $`c \in C`. We define
-$`\mathrm{Confirm}_P((\mathrm{sk}, k_B, \mathrm{AD}, \mu), c)` to be $`\mathrm{sk}` if
-$`D(k_B, \mathrm{AD}, c) = \mu`, and $`\bot` otherwise.
+Let $`P` be a set of PQXDH parameters, let $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`
+be a session context, and let $`c \in C`. We define
+$`\mathrm{Confirm}_P((\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km}), c)` to be
+$`\mathrm{sk}` if $`D(k_B, \mathrm{AD}, c) = \mu`, and $`\bot` otherwise.
 :::
 ::::
 
@@ -513,21 +517,21 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`. We define the party $`\mathrm{Alice}_P`
 over probabilistic computations, with inputs in the initiator parameters, messages in $`W`
 and outputs in $`K + \{\bot\}`, as follows. Its states are the initiator parameters, the
-session contexts and the elements of $`K`.
+session contexts that wait for a confirmation, and the completed session contexts.
 
 * $`\mathrm{init}(p) = (p, \ast)`: Alice starts in the state $`p` and waits for Bob to
   speak first.
 * In a state $`p` that is an initiator parameter, on a message $`\mathsf{bundle}(\beta)`,
   Alice runs $`\mathrm{Initiate}_P(p, \beta)`. If the result is $`\bot`, she rejects. If it
   is $`(m, \kappa)`, she accepts, replies $`\mathsf{initial}(m)` with flag $`0`, and moves to
-  the state $`\kappa`.
-* In a state $`\kappa` that is a session context, on a message
+  the state $`\kappa`, waiting for a confirmation.
+* In a state $`\kappa` that waits for a confirmation, on a message
   $`\mathsf{confirmation}(c)`, Alice computes $`\mathrm{Confirm}_P(\kappa, c)`. If the
-  result is $`\bot`, she rejects. If it is $`\mathrm{sk}`, she completes in the state
-  $`\mathrm{sk}`.
+  result is $`\bot`, she rejects. Otherwise she completes in the state $`\kappa`, marked as
+  completed.
 * In every other case she rejects.
-* $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
-  for every other state $`s`.
+* $`\mathrm{output}(s)` is the session key $`\mathrm{sk}` of $`\kappa` if $`s` is a completed
+  session context $`\kappa`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
@@ -539,7 +543,7 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`, and let $`h \in \{0, 1\}`. We define the
 party $`\mathrm{Bob}_{P,h}` over probabilistic computations, with inputs in the long-term
 states of Bob, messages in $`W` and outputs in $`K + \{\bot\}`, as follows. Its states are
-the session parameters of Bob and the elements of $`K`.
+the session parameters of Bob and the session contexts.
 
 * For the input $`((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}})`,
   $`\mathrm{init}` draws $`o` from $`\mathrm{GenOPK}_g(h)` and $`(\mathrm{PQPK}_B, \mathrm{pqsk}_B)`
@@ -549,12 +553,12 @@ the session parameters of Bob and the elements of $`K`.
   first message $`\mathsf{bundle}(\beta)`.
 * In a state $`p` that is a session parameter, on a message $`\mathsf{initial}(m)`, Bob runs
   $`\mathrm{Accept}_P(p, m)`. If the result is $`\bot`, he rejects. If it is
-  $`\kappa = (\mathrm{sk}, k_B, \mathrm{AD}, \mu)`, he draws $`c` from
+  $`\kappa = (\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`, he draws $`c` from
   $`E(k_B, \mathrm{AD}, \mu)`, accepts, replies $`\mathsf{confirmation}(c)` with flag $`1`,
-  and moves to the state $`\mathrm{sk}`.
+  and moves to the state $`\kappa`.
 * In every other case he rejects.
-* $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
-  for every other state $`s`.
+* $`\mathrm{output}(s)` is the session key $`\mathrm{sk}` of $`\kappa` if $`s` is a session
+  context $`\kappa`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
@@ -595,7 +599,7 @@ initiator parameters and the elements of $`K`.
 * $`\mathrm{init}(p) = (p, \ast)`.
 * In a state $`p`, on a message $`\mathsf{bundle}(\beta)`, Alice runs
   $`\mathrm{Initiate}_P(p, \beta)`. If the result is $`\bot`, she rejects. If it is
-  $`(m, (\mathrm{sk}, k_B, \mathrm{AD}, \mu))`, she accepts, replies $`\mathsf{initial}(m)`
+  $`(m, (\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km}))`, she accepts, replies $`\mathsf{initial}(m)`
   with flag $`1`, and moves to the state $`\mathrm{sk}`.
 * In every other case she rejects.
 * $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
@@ -609,10 +613,12 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`, and let $`h \in \{0, 1\}`. We define the
 party $`\mathrm{Bob}^-_{P,h}` over probabilistic computations, with inputs in the long-term
 states of Bob, messages in $`W` and outputs in $`K + \{\bot\}`, to be the party
-$`\mathrm{Bob}_{P,h}` with the following change. In a state $`p`, on a message
+$`\mathrm{Bob}_{P,h}` with the following changes. Its states are the session parameters of Bob
+and the elements of $`K`. In a state $`p`, on a message
 $`\mathsf{initial}(m)`, Bob runs $`\mathrm{Accept}_P(p, m)`. If the result is $`\bot`, he
-rejects. If it is $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`, he completes in the state
-$`\mathrm{sk}`, with no reply.
+rejects. If it is $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`, he completes in the
+state $`\mathrm{sk}`, with no reply. $`\mathrm{output}(s) = \mathrm{sk}` if
+$`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
