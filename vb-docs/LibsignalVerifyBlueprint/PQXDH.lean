@@ -1422,7 +1422,8 @@ term of their own for these runs.
 
 Accept computes the three keys before the AEAD decryption of the ciphertext of the initial
 message, so a session of $`T` that rejects the ciphertext has still derived keys from its key
-material. The AEAD scheme of chapter 2 has no laws. Nothing in the model says that a ciphertext
+material. The AEAD scheme of chapter 2 has only an encryption and a decryption function, and no
+property that relates them. Nothing in the model says that a ciphertext
 made under one key, or with other associated data, fails to decrypt under another key or other
 associated data. Perfect correctness of the AEAD scheme concerns one key and one associated
 data, and the security theorems do not assume it. Rejection under another key or other

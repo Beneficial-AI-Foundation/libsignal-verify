@@ -45,7 +45,8 @@ Scope of the two theorems
   that differ in its key slot. The bounds have no term of their own for these runs.
 * `accept` computes the three KDF outputs before the AEAD decryption of the ciphertext of the
   initial message, so a session of Bob that rejects that ciphertext has still derived keys from
-  its key material. The AEAD interface `AEAD.Scheme` has no laws. Nothing in the model says that
+  its key material. The AEAD interface `AEAD.Scheme` has only the functions `encrypt` and
+  `decrypt`, and no property that relates them. Nothing in the model says that
   a ciphertext made under one key, or with other associated data, fails to decrypt under another
   key or other associated data. `AEAD.PerfectlyCorrect` concerns one key and one associated data,
   and neither theorem assumes it. Rejection under another key or other associated data is only
