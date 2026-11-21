@@ -18,8 +18,9 @@ Scope of the two theorems
 * The premises on the primitives (`hsig`, `hgap`, `hkem`, `haead`, `hkdf`) quantify over
   all adversaries, with no resource bound (#41). An unbounded adversary breaks each
   primitive, so each premise holds only when its `ε` is close to the largest advantage of
-  its game. The theorems are true implications that do not yet express computational
-  security. That needs the resource model of #41.
+  its game. The theorems do not express computational security. That needs the resource model
+  of #41. Each theorem is proved from the six hops of `SecurityLemmas.lean`: hops 1 to 4 are
+  proved, and hops 5 and 6 are admitted (`Protocols/LEDGER.md`).
 * `hkemCorrect` (perfect KEM correctness) is an idealization, because production Kyber
   decapsulates wrongly with a small probability. Only the PQ hops 5 and 6 use it, and no theorem
   of this repository instantiates them at production Kyber.

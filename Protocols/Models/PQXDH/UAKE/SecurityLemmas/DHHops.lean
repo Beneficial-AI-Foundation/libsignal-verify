@@ -19,10 +19,9 @@ Both hops are stated over original-key partnering (`originalKeyPartnering`). The
 of hop 5 is "Alice accepted and no session of Bob is her original-key partner", and `indistExp`
 flips a coin on that event and when a revealed session is a partner.
 
-These statements are believed true in the current model (the KDF as a plain
-parameter function, plus a PRF hypothesis), but the standard reductions
-require the KDF to be a programmable random oracle, so their proofs are
-deferred to that planned model change.
+Both lemmas are admitted. The model takes the KDF as a parameter function with the PRF premise
+`hkdf`, and the proofs wait for the choice between a PRF and a random-oracle model of the KDF
+(#81).
 
 The lemma statements and proofs in this file are AI-written.
 -/

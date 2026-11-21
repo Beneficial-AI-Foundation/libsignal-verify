@@ -48,15 +48,11 @@ The games and event predicates live in `SecurityLemmas/Games.lean`. Hops 1
 and 2 are proven; they are purely probabilistic. Hop 4 is proven by a union bound over the
 fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is proven by an
 explicit reduction, built and compared with the real challenge phase in
-`SecurityLemmas/SigReduction.lean`. The GapDH cores idealize the KDF outputs on the challenge
-session's key material, which requires the KDF to be a programmable random
-oracle, so their proofs are deferred to that planned model change. The IND-CCA cores
+`SecurityLemmas/SigReduction.lean`. The GapDH cores are admitted, and their proofs wait for the
+choice between a PRF and a random-oracle model of the KDF (#81). The IND-CCA cores
 take PRF security of `kdfPRF`, which keys the KDF with the KEM shared secret; the games also
 compare that secret, as the last component of `km`, in the partnering tests. Their proofs are
-deferred as future reduction work. The well-formedness lemmas in
-`WellFormedLemmas.lean` (parties output exactly at completion, honest runs
-transfer exactly `rounds` messages) are expected to discharge the
-bookkeeping relating `K0` to challenge-session completion.
+deferred as future reduction work.
 
 The contents of this file and the `SecurityLemmas/` directory are
 AI-written.

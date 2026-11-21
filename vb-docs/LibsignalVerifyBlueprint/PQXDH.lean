@@ -1515,8 +1515,8 @@ KS describes an analysis in CryptoVerif. It models the hash function as a random
 secrecy and the authentication of a completed exchange. For forward secrecy against a later
 quantum adversary, it models the hash function as a PRF (KS, Section 4, p. 11). The Lean module
 note says that the proof of the Diffie-Hellman theorem may need a random oracle in place of a
-PRF. The module note of the two Diffie-Hellman hops 5 and 6 says that their proofs are deferred
-to that change of the model
+PRF. The module note of the two Diffie-Hellman hops 5 and 6 says that both are admitted and that
+their proofs wait for the choice between a PRF and a random-oracle model of the derivation
 ([issue #81](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/81)). The
 post-quantum hops are stated with the PRF as it stands.
 
