@@ -28,7 +28,11 @@ Each contract comes in two forms. The total form says that a leaf returns, and w
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
 and `fullExp_noLostMass` take, together with `GenerateTotal`, the total form for Core's key
 generator `KeyPair::generate`. The fault-or-value form says only what a leaf returns if it
-returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
+returns. The total forms imply the fault-or-value forms, except two parts, which are stated for
+every generator, while `SignTotal` and `KyberEncapsBackend` assume a total generator (`RngTotal`):
+the first part of `SignaturePartial` and the part of `KyberPartial` for encapsulation on a
+1568-byte key. These two parts are separate assumptions. `PartialContracts` bundles the
+fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 `generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
 -/
@@ -122,8 +126,8 @@ def SignVerify : Prop :=
       curve.PrivateKey.calculate_signature crng rng sk msg r = .ok (.Ok σ, r') →
         libsignal_core.curve.PublicKey.verify_signature pk msg σ = .ok true
 
-/-- On every public key, message and signature, verification returns a Boolean, and it returns
-`false` for a malformed signature or key
+/-- On every public key, list of message parts and signature, the multipart verification
+terminates without a panic and returns a Boolean
 (`rust/core/src/curve.rs:138-151`; `rust/core/src/curve/curve25519.rs:119-139`). -/
 def VerifyTotal : Prop :=
   ∀ (pk : ECPub) (parts : Slice (Slice U8)) (σ : Slice U8),
