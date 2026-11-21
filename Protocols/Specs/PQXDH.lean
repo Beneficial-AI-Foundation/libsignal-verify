@@ -18,11 +18,10 @@ on. The build fails if a statement or its trust changes. A reader can check the 
 together with the definitions they mention, without reading the proofs.
 
 The dependencies of a statement are the opaque leaves of the extracted code that its definitions
-mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision constant that
-the extraction of `pqxdh_accept` introduces, and the stub marker when the proof, or a proof it
-uses, is a stub. In this file only the security statements and `fullExp_noLostMass` carry the
-marker, and their corollaries inherit it. `Protocols/LEDGER.md` lists these security placeholders
-apart from the admitted hops of the abstract model.
+mention (for example `curve.PrivateKey.calculate_agreement`), and the stub marker when the proof, or
+a proof it uses, is a stub. In this file only the security statements and `fullExp_noLostMass` carry
+the marker, and their corollaries inherit it. `Protocols/LEDGER.md` lists these security
+placeholders apart from the admitted hops of the abstract model.
 
 The fault fixtures, which show that the correctness statements are not vacuous, are in
 `ProtocolsTest/PQXDH/FaultFixtures.lean` and carry their own dependency checks.
