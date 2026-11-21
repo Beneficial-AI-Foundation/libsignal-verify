@@ -452,10 +452,70 @@ def address.ProtocolAddress.impl.device_id
   (self : address.ProtocolAddress) : Result address.DeviceId := do
   ok self.device_id
 
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::new]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 27:4-38:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.new
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  (randrngRngInst : rand.rng.Rng R) (csprng : R) :
+  Result (curve.curve25519.PrivateKey × R)
+  := do
+  let bytes := Array.repeat 32#usize 0#u8
+  let (s, to_slice_mut_back) ← lift (Array.to_slice_mut bytes)
+  let (csprng1, s1) ←
+    rand_core_1CryptoRngInst.RngCoreInst.fill_bytes csprng s
+  let bytes1 := to_slice_mut_back s1
+  let bytes2 ← curve25519_dalek.scalar.clamp_integer bytes1
+  let secret ←
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from bytes2
+  ok ({ secret }, csprng1)
+
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::derive_public_key_bytes]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 161:4-163:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.derive_public_key_bytes
+  (self : curve.curve25519.PrivateKey) : Result (Array Std.U8 32#usize) := do
+  let pk ←
+    x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from
+      self.secret
+  x25519_dalek.x25519.PublicKey.as_bytes pk
+
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::private_key_bytes]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 165:4-167:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.private_key_bytes
+  (self : curve.curve25519.PrivateKey) : Result (Array Std.U8 32#usize) := do
+  x25519_dalek.x25519.StaticSecret.to_bytes self.secret
+
+/-- [libsignal_core::curve::curve25519::{impl core::convert::From<[u8; 32usize]> for libsignal_core::curve::curve25519::PrivateKey}::from]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 171:4-174:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.Insts.CoreConvertFromArrayU832.from
+  (private_key : Array Std.U8 32#usize) :
+  Result curve.curve25519.PrivateKey
+  := do
+  let a ← curve25519_dalek.scalar.clamp_integer private_key
+  let secret ←
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from a
+  ok { secret }
+
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyType}::value]:
     Source: 'rust/core/src/curve.rs', lines 26:4-30:5 -/
 def curve.KeyType.value (self : curve.KeyType) : Result Std.U8 := do
   ok 5#u8
+
+/-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PublicKeyData> for libsignal_core::curve::PublicKey}::from]:
+    Source: 'rust/core/src/curve.rs', lines 63:26-63:43
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreConvertFromPublicKeyData.from
+  (value : curve.PublicKeyData) : Result curve.PublicKey := do
+  ok { key := value }
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::new]:
+    Source: 'rust/core/src/curve.rs', lines 80:4-82:5 -/
+def curve.PublicKey.new
+  (key : curve.PublicKeyData) : Result curve.PublicKey := do
+  ok { key }
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::public_key_bytes]:
     Source: 'rust/core/src/curve.rs', lines 107:4-111:5
@@ -558,6 +618,13 @@ def curve.PublicKey.is_canonical (self : curve.PublicKey) : Result Bool := do
   then curve.PublicKey.scalar_is_in_range self
   else ok false
 
+/-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PrivateKeyData> for libsignal_core::curve::PrivateKey}::from]:
+    Source: 'rust/core/src/curve.rs', lines 236:37-236:54
+    Visibility: public -/
+def curve.PrivateKey.Insts.CoreConvertFromPrivateKeyData.from
+  (value : curve.PrivateKeyData) : Result curve.PrivateKey := do
+  ok { key := value }
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::serialize]:
     Source: 'rust/core/src/curve.rs', lines 253:4-257:5
     Visibility: public -/
@@ -567,12 +634,47 @@ def curve.PrivateKey.serialize
   let s ← lift (Array.to_slice v)
   alloc.slice.Slice.to_vec core.clone.CloneU8 s
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]:
+    Source: 'rust/core/src/curve.rs', lines 259:4-267:5
+    Visibility: public -/
+def curve.PrivateKey.public_key
+  (self : curve.PrivateKey) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  let ⟨ private_key ⟩ := self.key
+  let pk ←
+    curve.curve25519.PrivateKey.Insts.CoreConvertFromArrayU832.from private_key
+  let public_key ← curve.curve25519.PrivateKey.derive_public_key_bytes pk
+  let pk1 ← curve.PublicKey.new (curve.PublicKeyData.DjbPublicKey public_key)
+  ok (core.result.Result.Ok pk1)
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::key_type]:
     Source: 'rust/core/src/curve.rs', lines 269:4-273:5
     Visibility: public -/
 def curve.PrivateKey.key_type
   (self : curve.PrivateKey) : Result curve.KeyType := do
   ok curve.KeyType.Djb
+
+/-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]:
+    Source: 'rust/core/src/curve.rs', lines 327:4-341:5
+    Visibility: public -/
+def curve.KeyPair.generate
+  {R : Type _} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) (csprng : R) :
+  Result (curve.KeyPair × R)
+  := do
+  let (private_key, csprng1) ←
+    curve.curve25519.PrivateKey.new rand_core_1CryptoRngInst randrngRngInst
+      csprng
+  let a ← curve.curve25519.PrivateKey.derive_public_key_bytes private_key
+  let public_key ←
+    curve.PublicKey.Insts.CoreConvertFromPublicKeyData.from
+      (curve.PublicKeyData.DjbPublicKey a)
+  let a1 ← curve.curve25519.PrivateKey.private_key_bytes private_key
+  let private_key1 ←
+    curve.PrivateKey.Insts.CoreConvertFromPrivateKeyData.from
+      (curve.PrivateKeyData.DjbPrivateKey a1)
+  ok ({ public_key, private_key := private_key1 }, csprng1)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::from_public_and_private]:
     Source: 'rust/core/src/curve.rs', lines 350:4-360:5
