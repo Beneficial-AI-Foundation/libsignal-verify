@@ -21,7 +21,11 @@ flips a coin on that event and when a revealed session is a partner.
 
 The premise `hkdf` is PRF security of `kdfPRF`, which keys the KDF with the KEM shared secret.
 The games also compare that secret, as the last component of the key material `km`, in the
-partnering tests. The proofs are deferred as future reduction work.
+partnering tests. The PRF game of `kdfPRF` gives its adversary only a function oracle, the KDF
+under one uniform secret that it never sees or a random function, and nothing in that game
+compares the secret with another value. So the PRF premise says nothing about the partnering
+tests, which compare Alice's secret with the secret that Bob decapsulates from a ciphertext that
+the UAKE adversary chooses. The proofs are deferred as future reduction work.
 
 The lemma statements and proofs in this file are AI-written.
 -/
