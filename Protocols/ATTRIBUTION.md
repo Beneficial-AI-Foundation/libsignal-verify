@@ -79,7 +79,8 @@ project root. The files listed here were ported from other projects and keep the
 ## Beneficial AI Foundation, secure-messaging
 
 - Source: <https://github.com/Beneficial-AI-Foundation/secure-messaging>, commit `8369ee7`. That repository
-  uses Lean 4.35, so this repository cannot import it at its pins and restates the declarations instead.
+  uses Lean 4.35 and the same Mathlib and VCVio pins as this repository, which restates the
+  declarations instead of importing them.
 - Copyright (c) 2026 Beneficial AI Foundation.
 - Licence: Apache License 2.0, as stated in the source file headers; text in `LICENSES/Apache-2.0.txt`.
 
