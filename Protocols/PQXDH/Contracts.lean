@@ -126,8 +126,8 @@ def SignVerify : Prop :=
       curve.PrivateKey.calculate_signature crng rng sk msg r = .ok (.Ok σ, r') →
         libsignal_core.curve.PublicKey.verify_signature pk msg σ = .ok true
 
-/-- On every public key, message and signature, verification returns a Boolean, and it returns
-`false` for a malformed signature or key
+/-- On every public key, list of message parts and signature, the multipart verification
+terminates without a panic and returns a Boolean
 (`rust/core/src/curve.rs:138-151`; `rust/core/src/curve/curve25519.rs:119-139`). -/
 def VerifyTotal : Prop :=
   ∀ (pk : ECPub) (parts : Slice (Slice U8)) (σ : Slice U8),

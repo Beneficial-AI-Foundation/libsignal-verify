@@ -508,8 +508,8 @@ state properties of X25519 and of the curve, which we did not check in the pinne
 no guarantee that they do not panic. We did not look for such a guarantee for X25519 or SHA-512, and we did not read any of this code for
 panics.
 
-**Gaps.** The docstring of `VerifyTotal` also says that verification returns `false` on a malformed
-signature or key. The statement does not include this: it states only that a Boolean is returned.
+**Gaps.** `VerifyTotal` states only that verification returns a Boolean. It does not say which
+signatures or keys give `false`.
 
 **If false.** The completion and agreement statements and `fullExp_noLostMass` take `CoreContracts`
 and, for the wrapper, `SignatureContracts`. The security statements take the fault-or-value forms.
