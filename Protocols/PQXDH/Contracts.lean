@@ -18,6 +18,13 @@ curve25519 agreement and signatures, the Kyber1024 backend, the random-number ge
 allocation of a string. The hand-maintained external files declare them without a body, so Lean
 knows only their types.
 
+Core's `KeyPair::generate` and `PrivateKey::public_key` are not opaque: the extraction gives them
+their bodies, and `GenerateTotal` and the contracts that name `public_key` speak of these
+definitions. The bodies call items of two crates outside libsignal that have no body in Lean:
+`clamp_integer` of curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey`
+and the functions `StaticSecret::from`, `StaticSecret::to_bytes`, `PublicKey::from` and
+`PublicKey::as_bytes`. No fact about these items is stated.
+
 A contract states what such a leaf does on an explicit domain: which values or errors it returns,
 and that it terminates without panicking. Each contract is a proposition that a theorem takes as a
 named hypothesis. A `Result` type allows a panic and a loop, and a contract excludes them only
@@ -133,7 +140,7 @@ end Signature
 
 section KeyGen
 
-/-- On a state in `Dom`, Core's opaque `KeyPair::generate` (`curve.KeyPair.generate`) returns a
+/-- On a state in `Dom`, Core's extracted `KeyPair::generate` (`curve.KeyPair.generate`) returns a
 curve25519 pair satisfying `ECKeyPairValid` and a state in `Dom`, provided both generator views
 are total on `Dom`. It reads 32 bytes through `fill_bytes`, clamps them and derives the public key
 (`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). -/
