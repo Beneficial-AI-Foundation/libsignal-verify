@@ -424,8 +424,8 @@ question for libcrux (#72 puts it out of scope).
 **Gaps.**
 
 - The published bound is over Kyber's own key generation from uniform seeds and uniform 32-byte
-  encapsulation coins. The contract is over `P.pqKeygen`, which only `PQKeyPairShape` constrains, and
-  over the generator states of `P.coins`. Reusing a published δ needs a proof that the failure mass
+  encapsulation coins. `KyberDeltaCorrect` is over `P.pqKeygen`, which only `PQKeyPairShape`
+  constrains, and over the generator states of `P.coins`. Reusing a published δ needs a proof that the failure mass
   on these draws, counting faults, protocol errors and mismatched secrets, is at most δ. Such a proof
   would also need libcrux to implement the specification and the wrappers not to fault. It does not
   need the draws to be production's. #75 lists `P.pqKeygen` and `P.coins` among the ideal draws that
@@ -501,6 +501,8 @@ signature or key. The statement does not include this: it states only that a Boo
 
 **If false.** The completion and agreement statements and `fullExp_noLostMass` take `CoreContracts`
 and, for the wrapper, `SignatureContracts`. The security statements take the fault-or-value forms.
+Both `wrapperAgreement_*`, `fullExp_noLostMass` and the two `_total` corollaries also take
+`GenerateTotal` (section 8), and `coreCompletion_extracted` and `jointKeyAgreement_extracted` do not.
 
 **Fault-or-value forms.** `AgreementPartial` and `DerivedCanonicalPartial` follow from the total forms.
 The second part of `SignaturePartial` follows from `SignVerify`. The first part says, for every
@@ -548,7 +550,7 @@ calls it before encapsulation (section 6).
   idempotent: it clears the three low bits and the top bit and sets bit 254 (`curve25519-dalek` 5.0.0,
   `src/scalar.rs:1407-1412`). So `public_key` applies the same function to the same bytes `b` and
   returns `Ok` of the same public key. Both paths wrap the bytes as `PublicKeyData::DjbPublicKey`
-  (`PublicKey::new`, `curve.rs:80-82`, and the derived `From` that `generate` uses).
+  (`PublicKey::new`, `curve.rs:80-82`, and the derived `From` that `generate` uses, `curve.rs:63-64`).
 
 **From the source.** Assumed, not checked: the base-point multiplication of `curve25519-dalek` 5.0.0
 does not panic. As for X25519 in section 7, we did not read this code for panics.
