@@ -340,12 +340,18 @@ info: 'Protocols.PQXDH.alwaysPanic_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.alwaysPanic_fails
@@ -355,12 +361,18 @@ info: 'Protocols.PQXDH.alwaysError_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.alwaysError_fails
@@ -370,12 +382,18 @@ info: 'Protocols.PQXDH.alwaysDiverge_fails' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.alwaysDiverge_fails

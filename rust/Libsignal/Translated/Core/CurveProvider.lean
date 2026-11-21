@@ -11,11 +11,11 @@ noncomputable abbrev libsignal_core.curve.PublicKey.deserialize :=
 noncomputable abbrev libsignal_core.curve.PrivateKey.deserialize :=
   _root_.curve.PrivateKey.deserialize
 
-noncomputable abbrev libsignal_core.curve.KeyPair.generate :=
-  @_root_.curve.KeyPair.generate
+noncomputable abbrev _root_.curve.KeyPair.generate :=
+  @libsignal_core.curve.KeyPair.generate
 
-noncomputable abbrev libsignal_core.curve.PrivateKey.public_key :=
-  _root_.curve.PrivateKey.public_key
+noncomputable abbrev _root_.curve.PrivateKey.public_key :=
+  libsignal_core.curve.PrivateKey.public_key
 
 noncomputable abbrev libsignal_core.curve.PrivateKey.calculate_signature :=
   @_root_.curve.PrivateKey.calculate_signature

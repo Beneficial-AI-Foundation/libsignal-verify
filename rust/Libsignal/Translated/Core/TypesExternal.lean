@@ -42,3 +42,17 @@ axiom core.num.nonzero.NonZero (T : Type) (Clause0_NonZeroInner : Type) : Type
     Visibility: public -/
 @[rust_type "uuid::error::Error"]
 axiom uuid.error.Error : Type
+
+/-- [x25519_dalek::x25519::PublicKey]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 32:0-32:20
+    Name pattern: [x25519_dalek::x25519::PublicKey]
+    Visibility: public -/
+@[rust_type "x25519_dalek::x25519::PublicKey"]
+axiom x25519_dalek.x25519.PublicKey : Type
+
+/-- [x25519_dalek::x25519::StaticSecret]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 206:0-206:23
+    Name pattern: [x25519_dalek::x25519::StaticSecret]
+    Visibility: public -/
+@[rust_type "x25519_dalek::x25519::StaticSecret"]
+axiom x25519_dalek.x25519.StaticSecret : Type
