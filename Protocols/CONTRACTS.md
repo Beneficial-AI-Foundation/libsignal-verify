@@ -362,14 +362,38 @@ nothing for that `K`, so its IND-CCA premise gives no bound on the extracted Kyb
 
 **Discharge.** A model of libcrux's Kyber-1024, with #75 for the coins.
 
-## 6. `KyberDeltaCorrect`
+## 6. `KyberDeltaCorrect` and `KyberDeltaCorrectAfterGenerate`
 
-**Statement.** `KyberDeltaCorrect P δ` in `Protocols/PQXDH/Kem.lean`: the correctness error of
-`kyberKem P` under `rustRuntime` is at most `δ`. This is the probability, over a key pair from
-`P.pqKeygen` and a state from `P.coins`, that encapsulation and decapsulation do not return the same
-secret. Faults and protocol errors count as failures. `δ` stays symbolic.
+**Statements.** Both are in `Protocols/PQXDH/Kem.lean`. `δ` stays symbolic in both.
+
+- `KyberDeltaCorrect P δ`: the correctness error of `kyberKem P` under `rustRuntime` is at most `δ`.
+  This is the probability, over a key pair from `P.pqKeygen` and a state from `P.coins`, that
+  encapsulation and decapsulation do not return the same secret. Faults and protocol errors count as
+  failures.
+- `KyberDeltaCorrectAfterGenerate P δ`: the same bound for `kyberKemAfterGenerate P`. Its key
+  generation and decapsulation are those of `kyberKem P`. Its encapsulation draws a state from
+  `P.coins`, runs Core's `curve.KeyPair.generate` on it, drops the key pair, and encapsulates on the
+  state that `generate` returns. Faults of `generate` count as failures too.
 
 **Stands for.** The decryption-failure probability of Kyber-1024 as libcrux implements it.
+`KyberDeltaCorrectAfterGenerate` stands for it with encapsulation on Alice's generator after that
+generator has drawn her ephemeral key.
+
+**Checked here, `KyberDeltaCorrectAfterGenerate`.**
+
+- In production, `process_prekey_bundle` calls `KeyPair::generate(&mut csprng)`
+  (`rust/protocol/src/session.rs:237`) and passes the same generator to `initialize_alice_session`
+  (`:262`). That function passes it to `pqxdh_initiate` (`rust/protocol/src/ratchet.rs:55`,
+  `rust/protocol/src/pqxdh.rs:48`), which computes three or four agreements and then encapsulates with
+  it (`pqxdh.rs:227`). Nothing draws from the generator between `generate` and the encapsulation.
+- `kyberKem` and `kyberKemAfterGenerate` share `kyberEncapsOn`, so the two KEMs differ only in the
+  state on which encapsulation runs. In the wrapper, `initiate` (`Protocols/PQXDH/Scheme.lean`) runs
+  the initiator's entry point on the state that `generate` returns, which is the state that
+  `kyberKemAfterGenerate` uses.
+- Neither contract can be derived in Lean from the other. Both bound an average over the
+  encapsulation state, and the two states can have different laws. `generate` is opaque, and
+  `GenerateTotal` says only that the returned state is in `Dom` (section 8). No Lean lemma relates the
+  two contracts.
 
 **Why believed.** In this paragraph, three facts about libcrux's `kyber1024` are checked here: its
 round-3 label (`src/lib.rs:104-114`), rank 4, and compression 11 and 5. The failure analysis is cited
@@ -400,14 +424,20 @@ question for libcrux (#72 puts it out of scope).
 - Faults and protocol errors count as failures. The bound concerns only the faults, protocol errors
   and mismatches on the ideal draws, so termination on every key, as section 4 states it, is not
   necessary for it.
+- A published δ reaches `KyberDeltaCorrectAfterGenerate` only with a proof that the failure mass is at
+  most δ when encapsulation runs on the state that `generate` returns from a state drawn from
+  `P.coins`. `KyberDeltaCorrect P δ` does not give this, and no premise describes the law of that
+  state (section 8).
 
-**If false.** `jointKeyAgreement_extracted` and both `wrapperAgreement_*` take `KyberDeltaCorrect P δ`
-as a hypothesis and conclude that the two parties agree with probability at least `1 − δ`. If the
-correctness error is above the chosen `δ`, the hypothesis fails, and these statements give no
-agreement bound for that `δ`.
+**If false.** `jointKeyAgreement_extracted` takes `KyberDeltaCorrect P δ` as a hypothesis, and both
+`wrapperAgreement_*` take `KyberDeltaCorrectAfterGenerate P δ`. They conclude that the two parties
+agree with probability at least `1 − δ`. If the correctness error of the KEM in the hypothesis is
+above the chosen `δ`, the hypothesis fails, and the statement gives no agreement bound for that `δ`.
 
-**Discharge.** A proof that the failure mass on the ideal draws is at most δ, from the published
-analysis and a model of libcrux. #75 has no step yet for `P.pqKeygen`.
+**Discharge.** For `KyberDeltaCorrect`, a proof that the failure mass on the ideal draws is at most δ,
+from the published analysis and a model of libcrux. #75 has no step yet for `P.pqKeygen`. For
+`KyberDeltaCorrectAfterGenerate`, the same proof for encapsulation on the state that `generate`
+returns, which needs more about that state than `GenerateTotal` says.
 
 ## 7. Curve25519 and XEdDSA contracts
 
