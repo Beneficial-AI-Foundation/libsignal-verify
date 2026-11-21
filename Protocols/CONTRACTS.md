@@ -624,10 +624,16 @@ from the admitted statements that `Protocols/LEDGER.md` lists under "Security pl
 
 - The contracts constrain the same constants that the entry points and the Full realization call. The
   closures of `CoreContracts`, `SignatureContracts`, `PartialContracts` and `GenerateTotal` name the
-  `curve.*` declarations of `rust/Libsignal/Translated/Core/FunsExternal.lean`. They do not name the
-  `libsignal_core.curve.*` duplicates in `rust/Libsignal/Translated/Protocol/FunsExternal.lean`, such
-  as `libsignal_core.curve.KeyPair.generate`, which nothing on these paths reaches. `initiate` and
-  `kyberKemAfterGenerate` call `curve.KeyPair.generate`, the declaration that `GenerateTotal` names.
+  `curve.*` declarations of `rust/Libsignal/Translated/Core/FunsExternal.lean`.
+  `rust/Libsignal/Translated/Protocol/FunsExternal.lean` declares no axiom for the curve functions in
+  the table above. `rust/Libsignal/Translated/Core/CurveProvider.lean` makes the Protocol names of
+  `generate`, `public_key`, `calculate_agreement`, `calculate_signature` and
+  `verify_signature_for_multipart_message` abbreviations of Core's declarations, such as
+  `libsignal_core.curve.KeyPair.generate` for `curve.KeyPair.generate`. So a Protocol caller of these
+  five functions reaches the declaration that the contracts name. `is_torsion_free` has no Protocol
+  name: Core's translated body of `is_canonical` (`rust/Libsignal/Translated/Core/Funs.lean`) calls
+  `curve.PublicKey.is_torsion_free`. `initiate` and `kyberKemAfterGenerate` call
+  `curve.KeyPair.generate`, the declaration that `GenerateTotal` names.
 - The two `key_length` axioms enter the closures only as the field of the `KeyKind` instances
   (`rust/Libsignal/Translated/Protocol/Funs.lean`). On the PQXDH paths the instance is passed to
   `KeyMaterial`'s `deref`, which ignores it and returns the key bytes. No PQXDH path calls `key_length`.
