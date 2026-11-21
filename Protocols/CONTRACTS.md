@@ -461,7 +461,77 @@ generator, that a returning call gives a 64-byte signature. `SignTotal` gives th
 that satisfy `RngTotal`, so this part is a separate claim. It holds for the Rust code, which returns a
 64-byte array.
 
-## 8. Opaque declarations reached by the PQXDH statements
+## 8. `GenerateTotal`
+
+**Statement.** `GenerateTotal` in `Protocols/PQXDH/Contracts.lean`. When both views of the generator,
+`crng.RngCoreInst` and `rng.rand_core_1RngCoreInst`, are total on the same `Dom` and the state is in
+`Dom`, Core's `curve.KeyPair.generate` terminates without a panic. It returns a key pair that satisfies
+`ECKeyPairValid` and a state in `Dom`. `ECKeyPairValid` (`Protocols/PQXDH/Defs.lean`) says that
+`PrivateKey::public_key` on the private half returns `Ok` of the public half. The contract says
+nothing about the law of the pair or of the returned state.
+
+**Stands for.** `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs:327-341`). This is a
+function of libsignal-core itself, not of an outside library. The Core extraction makes it opaque
+(`rust/aeneas-config.core.yml`, with the other functions of `curve.rs` that call into
+curve25519-dalek) and excludes the module `curve::curve25519` that it calls. So the contract stands
+for these lines:
+
+- `KeyPair::generate` (`curve.rs:327-341`). It calls `curve25519::PrivateKey::new`, and it stores
+  `derive_public_key_bytes()` as the public key and `private_key_bytes()` as the private key.
+- `curve25519::PrivateKey::new` (`rust/core/src/curve/curve25519.rs:27-37`). It fills a 32-byte array
+  with `fill_bytes`, clamps it with `clamp_integer` and stores it in an `x25519_dalek::StaticSecret`.
+- `derive_public_key_bytes` and `private_key_bytes` (`curve25519.rs:161-167`).
+
+`process_prekey_bundle` calls it to draw Alice's ephemeral key (`rust/protocol/src/session.rs:237`).
+In the Full realization, `initiate` (`Protocols/PQXDH/Scheme.lean`) calls the extracted
+`curve.KeyPair.generate` on Alice's generator state for the same purpose, and `kyberKemAfterGenerate`
+calls it before encapsulation (section 6).
+
+**Checked here.**
+
+- `generate` has no `Result` and no panic path of its own. It uses the generator once, through
+  `fill_bytes` on a 32-byte array. So when the generator is total on `Dom`, the returned state is in
+  `Dom`.
+- The pair satisfies `ECKeyPairValid`. Let `b` be the clamped bytes. In `x25519-dalek` 3.0.0,
+  `StaticSecret::from` stores the bytes unchanged and `to_bytes` returns them (`src/x25519.rs:235-237`,
+  `:247-252`), so the private half holds `b`. The public half is `PublicKey::from(&StaticSecret)`, a
+  base-point multiplication on `b` (`src/x25519.rs:255-260`). `PrivateKey::public_key`
+  (`curve.rs:259-267`) rebuilds a `curve25519::PrivateKey` from the stored bytes, which clamps them
+  again (`curve25519.rs:170-174`), and calls the same `derive_public_key_bytes`. Clamping is
+  idempotent: it clears the three low bits and the top bit and sets bit 254 (`curve25519-dalek` 5.0.0,
+  `src/scalar.rs:1407-1412`). So `public_key` applies the same function to the same bytes `b` and
+  returns `Ok` of the same public key. Both paths wrap the bytes as `PublicKeyData::DjbPublicKey`
+  (`PublicKey::new`, `curve.rs:80-82`, and the derived `From` that `generate` uses).
+
+**From the source.** Assumed, not checked: the base-point multiplication of `curve25519-dalek` 5.0.0
+does not panic. As for X25519 in section 7, we did not read this code for panics.
+
+**Gaps.**
+
+- No fault-or-value form. `PartialContracts` does not include `GenerateTotal`. The closures of
+  `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` contain `curve.KeyPair.generate`, and these
+  statements take no premise on it (finding 6).
+- `ECKeyPairValid` is the only property of the pair. No premise describes the law of Alice's ephemeral
+  key, which comes from `generate` and not from `P.ecKeygen`, or the law of the state that `generate`
+  returns from a state drawn from `P.coins`. `Protocols/LEDGER.md` records this under "Security
+  placeholders". Sections 5 and 6 meet the same gap for the state.
+
+**If false.** Alice's ephemeral draw could fault on honest runs, or give a pair whose public half is
+not the one derived from its private half. `fullExp_noLostMass`, the two `_total` corollaries and both
+`wrapperAgreement_*` take `GenerateTotal` as the hypothesis `hG`. If it fails, these statements say
+nothing about production. `coreCompletion_extracted` and `jointKeyAgreement_extracted` do not take it:
+they draw the ephemeral key from `P.ecKeygen` (`coreHonestRun` in `Protocols/PQXDH/Correctness.lean`),
+and their closures do not contain `generate`.
+
+**Discharge.** A translated body of `KeyPair::generate` would turn this assumption into a proof
+obligation on that body. The functions of `curve::curve25519` that the body calls, what they call in
+`x25519-dalek`, and `PrivateKey::public_key` in `ECKeyPairValid` would still need bodies or contracts
+of their own. `Protocols/LEDGER.md` gives the curve25519-dalek fork and the `rand` crate as the
+discharge. This review did not check that route.
+
+**Fault-or-value form.** None. `PartialContracts` does not include `GenerateTotal`.
+
+## 9. Opaque declarations reached by the PQXDH statements
 
 The declarations below are all the axioms of the extraction that the frozen closures of
 `pqxdh_initiate`, `pqxdh_accept` and the Full statements contain. A closure is frozen when a
