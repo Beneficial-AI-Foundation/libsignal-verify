@@ -9,9 +9,10 @@ what would discharge it.
 
 The file covers:
 
-- the contracts in `Protocols/PQXDH/Contracts.lean`, with their fault-or-value forms;
+- the contracts in `Protocols/PQXDH/Contracts.lean`, with their fault-or-value forms where they exist;
 - `HkdfSha256Contract` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`;
-- `KyberBridge` in `Protocols/PQXDH/SecurityDefs.lean` and `KyberDeltaCorrect` in `Protocols/PQXDH/Kem.lean`;
+- `KyberBridge` in `Protocols/PQXDH/SecurityDefs.lean`, and `KyberDeltaCorrect` and
+  `KyberDeltaCorrectAfterGenerate` in `Protocols/PQXDH/Kem.lean`;
 - the opaque declarations of the extraction that the PQXDH statements reach. These are the non-logical
   axioms in the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean` and
   `rust/Libsignal/Specs/Protocol/Kem.lean` and `Protocols/Specs/PQXDH.lean`.
@@ -20,11 +21,12 @@ The fault-or-value form of a contract says only what a call returns when it retu
 definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok r` and constrains `r`,
 so it allows a panic or non-termination. The total form says that the call returns, and what it
 returns, under its own premises. A fault-or-value form does not always follow from its total form
-(finding 1).
+(finding 1). `ToOwnedTotal` and `GenerateTotal` have no fault-or-value form (finding 6).
 
 Policies and modelling choices (`ECKeyPairValid`, `PQKeyPairShape`, `Adversary.SendsFittingMessages`,
-`P.coins`, `P.ecKeygen`, `P.pqKeygen`, the synthetic AEAD wrapper) are not contracts. The ledger lists
-them, and this file does not review them.
+`P.coins`, `P.ecKeygen`, `P.pqKeygen`, the synthetic AEAD wrapper, the last-resort Kyber prekey,
+`KyberPrekeyKind`) are not contracts, and neither are the limits of the model, such as the missing
+corruption oracle. The ledger lists them, and this file does not review them.
 
 Each review separates two kinds of evidence. "Checked here" means that we read the code or did the
 arithmetic for this review. "From the source" means that we take the claim from the cited code or
@@ -56,16 +58,27 @@ numbers in that patched copy. This file cites the committed tree unless it says 
    Keccak-f[1600] is a permutation. It is a possible discharge route, not a proof: this review checked
    its steps only for libcrux's portable backend, and not that libcrux's permutation is Keccak-f[1600].
    The contracts still trust termination. See section 4.
-3. **No published δ reaches `KyberDeltaCorrect` yet.** The published failure bound is for Kyber's own
-   key generation and uniform coins. The contract bounds the failure mass over the ideal draws
-   `P.pqKeygen` and `P.coins`, counting faults, protocol errors and mismatched secrets. Reusing a
-   published δ needs a proof that this mass is at most δ, and no such proof is done. The contract does
-   not need the draws to be production's (#75), nor termination on every key (section 4): only the
-   failure mass on the ideal draws counts. See section 6.
+3. **No published δ reaches `KyberDeltaCorrect` or `KyberDeltaCorrectAfterGenerate` yet.** The
+   published failure bound is for Kyber's own key generation and uniform coins. `KyberDeltaCorrect`
+   bounds the failure mass over the ideal draws `P.pqKeygen` and `P.coins`, counting faults, protocol
+   errors and mismatched secrets. Reusing a published δ needs a proof that this mass is at most δ, and
+   no such proof is done. The contract does not need the draws to be production's (#75), nor
+   termination on every key (section 4): only the failure mass on the ideal draws counts.
+   `KyberDeltaCorrectAfterGenerate` bounds the same mass with encapsulation on the state that Core's
+   `generate` returns. No premise describes the law of that state, and this contract cannot be derived
+   in Lean from `KyberDeltaCorrect`. See section 6.
 4. **The HKDF contract describes a patched helper.** `crypto::hkdf_sha256` exists only in the patched
    copy. Its link to production is the two translation patches, which we checked. See section 1.
 5. **Stale citation.** The docstring of `RngTotal` cites `rand_core` 0.9.3. `Cargo.lock` pins 0.9.5.
    The cited lines are the same in both versions.
+6. **The security statements reach `generate` with no premise on it.** The closures of
+   `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` contain Core's `curve.KeyPair.generate`.
+   These statements take neither `GenerateTotal` nor a fault-or-value form of it, because
+   `PartialContracts` has none. They count the faults of `generate` in `Pr[⊥]`, but no premise says
+   what a returning call gives: a pair with a derived public half, or a key whose law relates to
+   `P.ecKeygen`. `Protocols/LEDGER.md` records this under "Security placeholders". `ToOwnedTotal` has
+   no fault-or-value form either, but its string goes only into an error value (section 2). See
+   section 8.
 
 ## Summary
 
@@ -76,8 +89,9 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | #75; an OS entropy failure stays outside any proof |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
 | `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #75 for the coins |
-| `KyberDeltaCorrect` | the decryption-failure probability of Kyber-1024 | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux |
+| `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` | the decryption-failure probability of Kyber-1024, with encapsulation on a state from `P.coins` or on the state that `generate` returns | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux; for the second, also a description of the state that `generate` returns |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
+| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), opaque in the extraction | a translated body of `KeyPair::generate`, which turns the contract into a proof obligation; its calls into `curve::curve25519` and `x25519-dalek` still need bodies or contracts |
 
 ## 1. `HkdfSha256Contract`
 
@@ -211,14 +225,14 @@ outside any proof. The extraction declares the methods of `UnwrapErr` as axioms
 (`rand_core_1.UnwrapErr.Insts.Rand_core_1RngCore.*`), but no statement uses that instance. The
 statements hold for every generator that satisfies `RngTotal`.
 
-**If false.** Signing and Kyber encapsulation could fault, because `SignTotal` and
-`KyberEncapsBackend` take `RngTotal` as a premise. The completion and agreement statements and
-`fullExp_noLostMass` depend on it. The two fault-counting security statements,
+**If false.** Signing, Kyber encapsulation and Core's `generate` could fault, because `SignTotal`,
+`KyberEncapsBackend` and `GenerateTotal` take `RngTotal` as a premise. The completion and agreement
+statements and `fullExp_noLostMass` depend on it. The two fault-counting security statements,
 `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq`, do not take it: they count faults in `Pr[⊥]`.
 The two `_total` corollaries take `RngTotal` for both views of the generator, on a domain that
 contains the states from `P.coins` (`Protocols/PQXDH/Security.lean`), so they depend on it.
 
-**Discharge.** #75 (step 3) decides whether the per-session draw `P.coins` needs a correspondence with
+**Discharge.** #75 (step 3) decides whether the draws from `P.coins` need a correspondence with
 production's generator. For a deterministic generator, such as the
 ChaCha generator of the tests, `RngTotal` could be proved from a body.
 
@@ -354,7 +368,10 @@ differences separate the Lean premise from the usual computational assumption. T
 (#41; see the limits in the module docstring of `Protocols/PQXDH/Security.lean`). And `K`'s key
 generation is the law of `P.pqKeygen`, so the premise is about Kyber's own key generation only if
 `P.pqKeygen` draws keys as Kyber does. #75 lists `P.pqKeygen` among the ideal draws that nothing
-relates yet, but none of its proposed steps relates it to Kyber's key generation.
+relates yet, but none of its proposed steps relates it to Kyber's key generation. Last, the bridge's
+clause on the extracted encapsulation holds on every state, but `K`'s encapsulation draws its state
+from `P.coins`. In the wrapper, Alice encapsulates on the state that Core's `generate` returns from a
+state drawn from `P.coins`, and no premise relates the law of that state to `P.coins` (section 8).
 
 **If false.** `uakeInitiator_secure_pq` and `uakeInitiator_secure_pq_total` take `KyberBridge P K` as a
 hypothesis, next to the IND-CCA premise on `K`. If the bridge fails for a `K`, the statements say
@@ -578,23 +595,25 @@ from the admitted statements that `Protocols/LEDGER.md` lists under "Security pl
 | --- | --- |
 | `crypto.hkdf_sha256` | `HkdfSha256Contract` (section 1) |
 | `Str.Insts.AllocBorrowToOwnedString.to_owned` | `ToOwnedTotal` (section 2) |
-| `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberBridge`, `KyberDeltaCorrect` (sections 4 to 6) |
-| `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate` | `KyberDecaps`, `KyberBridge`, `KyberDeltaCorrect` (sections 4 to 6) |
+| `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |
+| `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate` | `KyberDecaps`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |
 | `curve.PrivateKey.calculate_agreement` | `AgreementDerived`, `AgreementTotal` (section 7) |
-| `curve.PrivateKey.public_key` | `AgreementDerived`, `DerivedCanonical`, `SignVerify` (section 7); the policy `ECKeyPairValid` |
+| `curve.PrivateKey.public_key` | `AgreementDerived`, `DerivedCanonical`, `SignVerify` (section 7); `GenerateTotal` through `ECKeyPairValid` (section 8); the policy `ECKeyPairValid` |
 | `curve.PrivateKey.calculate_signature` | `SignTotal`, `SignVerify` (section 7) |
 | `curve.PublicKey.is_torsion_free` | `TorsionFreeTotal`, and `DerivedCanonical` through `is_canonical` (section 7) |
 | `curve.PublicKey.verify_signature_for_multipart_message` | `VerifyTotal`, and `SignVerify` through `verify_signature` (section 7) |
+| `curve.KeyPair.generate` | `GenerateTotal` (section 8), with no fault-or-value form; `KyberDeltaCorrectAfterGenerate` runs it before encapsulation (section 6) |
 | `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length` | none needed, see below |
 | `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero` | none needed, see below |
 
 **Checked here.**
 
-- The contracts constrain the same constants that the entry points call. The closures of
-  `CoreContracts`, `SignatureContracts` and `PartialContracts` name the `curve.*` declarations of
-  `rust/Libsignal/Translated/Core/FunsExternal.lean`. They do not name the `libsignal_core.curve.*`
-  duplicates in `rust/Libsignal/Translated/Protocol/FunsExternal.lean`, which nothing on these paths
-  reaches.
+- The contracts constrain the same constants that the entry points and the Full realization call. The
+  closures of `CoreContracts`, `SignatureContracts`, `PartialContracts` and `GenerateTotal` name the
+  `curve.*` declarations of `rust/Libsignal/Translated/Core/FunsExternal.lean`. They do not name the
+  `libsignal_core.curve.*` duplicates in `rust/Libsignal/Translated/Protocol/FunsExternal.lean`, such
+  as `libsignal_core.curve.KeyPair.generate`, which nothing on these paths reaches. `initiate` and
+  `kyberKemAfterGenerate` call `curve.KeyPair.generate`, the declaration that `GenerateTotal` names.
 - The two `key_length` axioms enter the closures only as the field of the `KeyKind` instances
   (`rust/Libsignal/Translated/Protocol/Funs.lean`). On the PQXDH paths the instance is passed to
   `KeyMaterial`'s `deref`, which ignores it and returns the key bytes. No PQXDH path calls `key_length`.
