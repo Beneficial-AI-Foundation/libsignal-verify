@@ -13,9 +13,11 @@ The file covers:
 - `HkdfSha256Contract` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`;
 - `KyberBridge` in `Protocols/PQXDH/SecurityDefs.lean`, and `KyberDeltaCorrect` and
   `KyberDeltaCorrectAfterGenerate` in `Protocols/PQXDH/Kem.lean`;
-- the opaque declarations of the extraction that the PQXDH statements reach. These are the non-logical
-  axioms in the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean` and
-  `rust/Libsignal/Specs/Protocol/Kem.lean` and `Protocols/Specs/PQXDH.lean`.
+- the opaque declarations of the extraction that the PQXDH statements reach. These are the axioms of
+  the extraction among those that the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean`,
+  `rust/Libsignal/Specs/Protocol/Kem.lean` and `Protocols/Specs/PQXDH.lean` print. The checks also
+  print `propext`, `Classical.choice` and `Quot.sound`, and seven checks in `Protocols/Specs/PQXDH.lean`
+  print `sorryAx`. None of these comes from the extraction (section 9).
 
 The fault-or-value form of a contract says only what a call returns when it returns: each `*Partial`
 definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok r` and constrains `r`,
@@ -117,7 +119,10 @@ helper on a 96-byte buffer, split into three 32-byte arrays.
 - Extract is the HMAC of `ikm` under the salt (`src/lib.rs:53-64`, `:117-121`).
 - `expand_multi_info` (`src/lib.rs:130-166`) computes `T(i) = HMAC(PRK, T(i-1) | info | i)` with a
   one-byte counter `i` from 1. This is `hkdfExpandBlock`. It returns an error only when the output is
-  longer than 255 · 32 bytes, so 96 bytes give `Ok(())`. The loop runs three times.
+  longer than 255 · 32 bytes, so a 96-byte output excludes this error. The loop runs three times. This
+  argument bounds only the output. It does not show that the call returns `Ok(())` on every input: a
+  build with overflow checks panics inside SHA-256 on a very long `ikm` (in Extract) or `info` (in
+  this loop), see "Gaps".
 - The three `expect` calls on this path cannot fail. HMAC accepts a key of any length
   (`src/hmac_impl.rs`), and the PRK has 32 bytes, at least `HashLen` (`src/lib.rs:60-64`, `from_prk`).
   The counter `u8::try_from(block_n).expect(..) + 1` (`src/lib.rs:155`) sees the block indices 0, 1
@@ -131,8 +136,9 @@ helper on a 96-byte buffer, split into three 32-byte arrays.
 
 **Gaps.** The contract describes the patched helper. Its link to production is the two patches, which
 we read. `H` is a parameter: a theorem that assumes `HkdfSha256Contract H` holds for every `H` that the
-helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The contract covers
-only the call that PQXDH makes: no salt and 96 bytes of output.
+helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The contract fixes the
+salt and the output length to those of the call that PQXDH makes: no salt and 96 bytes of output. It
+does not restrict the lengths of `ikm` and `info`.
 
 The contract allows `ikm` and `info` of any length, and the argument above bounds only the output.
 HMAC's inner SHA-256 hash receives one 64-byte pad block before the message (`hmac` 0.13.0,
@@ -159,7 +165,9 @@ could fail, the `expect` in `derive_with_label` would panic.
 
 **Discharge.** A verified HMAC-SHA256 and HKDF that the extraction can call, or an extraction of the
 `hkdf`, `hmac` and `sha2` crates. `derive_spec` already proves the extracted key derivation from this
-contract, so nothing else needs to change.
+contract. The contract as stated includes inputs of 2^61 bytes or more, on which a build with overflow
+checks panics (see "Gaps"). So a discharge from the pinned crates with overflow checks cannot prove the
+contract on these inputs.
 
 **Fault-or-value form.** `HkdfSha256Partial H`. It follows from the total form, on the same domain.
 
@@ -403,10 +411,12 @@ generator has drawn her ephemeral key.
   (`:262`). That function passes it to `pqxdh_initiate` (`rust/protocol/src/ratchet.rs:55`,
   `rust/protocol/src/pqxdh.rs:48`), which computes three or four agreements and then encapsulates with
   it (`pqxdh.rs:227`). Nothing draws from the generator between `generate` and the encapsulation.
-- `kyberKem` and `kyberKemAfterGenerate` share `kyberEncapsOn`, so the two KEMs differ only in the
-  state on which encapsulation runs. In the wrapper, `initiate` (`Protocols/PQXDH/Scheme.lean`) runs
-  the initiator's entry point on the state that `generate` returns, which is the state that
-  `kyberKemAfterGenerate` uses.
+- `kyberKem` and `kyberKemAfterGenerate` share key generation, decapsulation and `kyberEncapsOn`.
+  They differ only in encapsulation. `kyberKemAfterGenerate` first runs `generate` on the drawn state.
+  If `generate` faults, encapsulation faults without running `kyberEncapsOn`. Otherwise it runs
+  `kyberEncapsOn` on the state that `generate` returns. In the wrapper, `initiate`
+  (`Protocols/PQXDH/Scheme.lean`) runs the initiator's entry point on the state that `generate`
+  returns, which is the state that `kyberKemAfterGenerate` uses.
 - Neither contract can be derived in Lean from the other. Both bound an average over the
   encapsulation state, and the two states can have different laws. `generate` is opaque, and
   `GenerateTotal` says only that the returned state is in `Dom` (section 8). No Lean lemma relates the
@@ -427,10 +437,11 @@ question for libcrux (#72 puts it out of scope).
   encapsulation coins. `KyberDeltaCorrect` is over `P.pqKeygen`, which only `PQKeyPairShape`
   constrains, and over the generator states of `P.coins`. Reusing a published δ needs a proof that the failure mass
   on these draws, counting faults, protocol errors and mismatched secrets, is at most δ. Such a proof
-  would also need libcrux to implement the specification and the wrappers not to fault. It does not
-  need the draws to be production's. #75 lists `P.pqKeygen` and `P.coins` among the ideal draws that
-  nothing relates yet, but none of its proposed steps relates `P.pqKeygen` to Kyber's key generation.
-  No route to the proof is done.
+  would also need libcrux to implement the specification. It would not need the wrappers to be free of
+  faults: their faults count toward the same mass, so a proof that the wrappers do not fault on these
+  draws is one way to bound that part. It does not need the draws to be production's. #75 lists
+  `P.pqKeygen` and `P.coins` among the ideal draws that nothing relates yet, but none of its proposed
+  steps relates `P.pqKeygen` to Kyber's key generation. No route to the proof is done.
 - The contract averages over key pairs and coins, as `KEMScheme.deltaCorrect` does. VCVio supplies the
   experiment `KEMScheme.correctnessExperiment`. This project defines `correctnessError` and
   `deltaCorrect` in `Protocols/ToVCVio/CryptoFoundations/KEMCorrectness.lean`, after secure-messaging.
@@ -469,9 +480,9 @@ curve25519-dalek specifications. This review stands until then.
 | Contract | Statement | Checked here | From the source |
 | --- | --- | --- | --- |
 | `AgreementTotal` | agreement returns 32 bytes or `InvalidKeyAgreement` | `calculate_agreement` (`curve.rs:296-309`) runs X25519 and rejects only the all-zero value | assumed: X25519 itself does not panic |
-| `AgreementDerived` | on keys with derived public halves, both agreements return the same 32 bytes | `public_key` (`curve.rs:259-267`) and agreement both use the clamped scalar (`curve25519.rs:170-174`); argument 1 below the table | both values are the u-coordinate of the product of the two clamped scalars with the base point, and that u-coordinate is 0 only for the identity and the point of order 2 |
+| `AgreementDerived` | on keys with derived public halves, both agreements return the same 32 bytes | `public_key` (`curve.rs:259-267`) and agreement both use the clamped scalar (`curve25519.rs:170-174`); argument 1 below the table | assumed: both values are the u-coordinate of the product of the two clamped scalars with the base point, and that u-coordinate is 0 only for the identity and the point of order 2 |
 | `TorsionFreeTotal` | the torsion check returns a Boolean | `is_torsion_free` (`curve.rs:165-174`) has no panic path of its own | assumed: `to_edwards` and `is_torsion_free` of curve25519-dalek do not panic |
-| `DerivedCanonical` | a derived public key passes `is_canonical` | `is_canonical` is `is_torsion_free && scalar_is_in_range` (`curve.rs:165-190`) | a derived key lies in the prime-order subgroup, and its u-coordinate is encoded below `2^255 - 19` |
+| `DerivedCanonical` | a derived public key passes `is_canonical` | `is_canonical` is `is_torsion_free && scalar_is_in_range` (`curve.rs:165-190`) | assumed: a derived key lies in the prime-order subgroup, and its u-coordinate is encoded below `2^255 - 19` |
 | `SignTotal` | when both views of the generator, `crng.RngCoreInst` and `rng.rand_core_1RngCoreInst`, are total on the same `Dom` and the starting state is in `Dom`, signing returns 64 bytes and a state in `Dom` | signing (`curve.rs:275-294`, `curve25519.rs:66-117`) draws 64 bytes with `fill_bytes` and always returns `Ok` of a 64-byte array | assumed: SHA-512 and scalar arithmetic do not panic |
 | `SignVerify` | a signature by `sk` verifies under the public key derived from `sk` | argument 2 below the table | `to_edwards` on `A`'s u-coordinate and sign bit returns `A` |
 | `VerifyTotal` | verification returns a Boolean | `verify_signature_for_multipart_message` (`curve.rs:138-151`) returns `false` on a wrong signature length and otherwise calls `verify_signature`. That function returns `false` on a failed `to_edwards` or when bit 253 or 254 of `s` is set (`curve25519.rs:125-139`), and otherwise compares the recomputed `R` with the signature bytes (`:142-158`). The libsignal code has no panic path of its own | assumed: curve25519-dalek's double-scalar multiplication does not panic |
@@ -490,10 +501,11 @@ Since `A = aB` with `a` reduced modulo the order of `B`, `sB − hA = (ha + r)B 
 compression of `rB` is the first 32 bytes of the signature (`:99`, `:112`), so the final comparison
 succeeds (`:156-158`).
 
-The cells marked "assumed" are not checked. The `curve25519-dalek` 5.0.0 doc comments that we read
-(`src/montgomery.rs:227-239` for `to_edwards`, `src/edwards.rs:1079` for the double-scalar
-multiplication) say what these functions compute but state no guarantee that they do not panic. We
-did not look for such a guarantee for X25519 or SHA-512, and we did not read any of this code for
+The cells marked "assumed" are not checked. The cells of `AgreementDerived` and `DerivedCanonical`
+state properties of X25519 and of the curve, which we did not check in the pinned code. The
+`curve25519-dalek` 5.0.0 doc comments that we read (`src/montgomery.rs:227-239` for `to_edwards`,
+`src/edwards.rs:1079` for the double-scalar multiplication) say what these functions compute but state
+no guarantee that they do not panic. We did not look for such a guarantee for X25519 or SHA-512, and we did not read any of this code for
 panics.
 
 **Gaps.** The docstring of `VerifyTotal` also says that verification returns `false` on a malformed
