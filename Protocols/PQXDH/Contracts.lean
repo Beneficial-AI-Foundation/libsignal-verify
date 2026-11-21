@@ -18,18 +18,18 @@ curve25519 agreement and signatures, the Kyber1024 backend, the random-number ge
 allocation of a string. The hand-maintained external files declare them without a body, so Lean
 knows only their types.
 
-Core's `KeyPair::generate` and `PrivateKey::public_key` are not opaque: the extraction gives them
-their bodies, and `GenerateTotal` and the contracts that name `public_key` speak of these
-definitions. The bodies call items of two crates outside libsignal that have no body in Lean:
-`clamp_integer` of curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey`
-and the functions `StaticSecret::from`, `StaticSecret::to_bytes`, `PublicKey::from` and
-`PublicKey::as_bytes`. No fact about these items is stated.
-
 A contract states what such a leaf does on an explicit domain: which values or errors it returns,
 and that it terminates without panicking. Each contract is a proposition that a theorem takes as a
 named hypothesis. A `Result` type allows a panic and a loop, and a contract excludes them only
 where it says so. Each contract cites the Rust code it describes. We read that code but did not
 verify it, so every contract is trusted and has its own row in `Protocols/LEDGER.md`.
+
+Core's `KeyPair::generate` and `PrivateKey::public_key` are extracted with their bodies, and
+`GenerateTotal` and the contracts that name `public_key` speak of these definitions. The bodies
+call items of two crates outside libsignal that have no body in Lean: `clamp_integer` of
+curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey` and the functions
+`From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey`
+and `PublicKey::as_bytes`. No fact about these items is stated.
 
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
