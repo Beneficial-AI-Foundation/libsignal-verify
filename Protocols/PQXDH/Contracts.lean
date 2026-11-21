@@ -164,8 +164,9 @@ def KyberEncapsBadLength : Prop :=
 in `Dom`, encapsulation on a 1568-byte key terminates without panicking, with a 32-byte shared
 secret, a 1568-byte ciphertext and a state in `Dom`. libcrux 0.0.10 converts the key by length
 only (`libcrux-ml-kem-0.0.10/src/types.rs:45-54`) and validates nothing else. Its rejection
-sampling loop has no proved bound (`src/sampling.rs:74`, `:95-102`), so the contract trusts
-termination. -/
+sampling loop has no bound in the code (`src/sampling.rs:74`, `:95-102`). ePrint 2023/708 proves
+that Kyber's sampling, as specified, ends on every seed; that proof is about the algorithm, not this
+code, so the contract trusts termination. -/
 def KyberEncapsBackend : Prop :=
   ∀ {R : Type} (crng : rand_core_1.CryptoRng R) (Dom : R → Prop), RngTotal crng.RngCoreInst Dom →
     ∀ (key : kem.KeyMaterial kem.Public) (r : R), key.data.length = 1568 → Dom r →

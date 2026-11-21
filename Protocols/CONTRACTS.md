@@ -54,10 +54,12 @@ numbers in that patched copy. This file cites the committed tree unless it says 
    against the definitions. See sections 1, 4 and 7.
 2. **Kyber termination is a claim about SHAKE128 on every seed.** `KyberEncapsBackend` and
    `KyberDecaps` state termination for every key of the right length. libcrux samples the public matrix
-   in a loop with no bound, and its seed comes from the key, which the adversary chooses. We know of no
-   published proof that this loop ends on every seed. libcrux marks the sampling function
-   `verification_status(lax)`. Section 4 gives a deterministic argument from the fact that
-   Keccak-f[1600] is a permutation. It is a possible discharge route, not a proof: this review checked
+   in a loop with no bound, and its seed comes from the key, which the adversary chooses. For Kyber as
+   specified, Barbosa and Schwabe prove that matrix sampling ends on every seed; the only property of
+   Keccak-f[1600] they use is that it is a permutation of the 1600-bit state (*Kyber terminates*, IACR
+   ePrint 2023/708, Section 3). Their proof is about the algorithm, and we know of no proof for
+   libcrux's code. libcrux marks the sampling function `verification_status(lax)`. Section 4 applies
+   their argument to libcrux's code. It is a possible discharge route, not a proof: this review checked
    its steps only for libcrux's portable backend, and not that libcrux's permutation is Keccak-f[1600].
    The contracts still trust termination. See section 4.
 3. **No published δ reaches `KyberDeltaCorrect` or `KyberDeltaCorrectAfterGenerate` yet.** The
@@ -280,8 +282,10 @@ decapsulate}` from `libcrux-ml-kem` 0.0.10. That module is "Kyber 1024 (NIST PQC
 - Termination. libcrux samples the public matrix in `sample_from_xof` (`src/sampling.rs:75-105`). After
   three SHAKE128 blocks it squeezes further blocks in `while !done` with no bound (`:95-102`). The loop
   ends once every entry has 256 coefficients below q. Its seed comes from the public key, and
-  decapsulation samples the same matrix when it re-encrypts. The source comment cites ePrint 2023/708
-  for the claim that more than five blocks are rarely needed.
+  decapsulation samples the same matrix when it re-encrypts. The source comment (`:90-92`) cites
+  ePrint 2023/708 for the claim that needing more than five blocks should be very unlikely. The paper
+  derives this for uniformly random input (Section 2) and leaves it open for SHAKE128; what it proves
+  for SHAKE128 is termination on every seed, with no useful bound (see "Gaps").
 - Panic freedom of libcrux's arithmetic. libcrux carries hax and F* annotations, but `sample_from_xof`
   is marked `verification_status(lax)` (`src/sampling.rs:74`).
 - On a 1568-byte ciphertext that does not match the key, Kyber returns a pseudorandom secret, not an
@@ -289,13 +293,16 @@ decapsulate}` from `libcrux-ml-kem` 0.0.10. That module is "Kyber 1024 (NIST PQC
 
 **Gaps.** Termination on every key is a claim about SHAKE128 on every seed, and the adversary chooses
 the seed. Under a random-oracle view of SHAKE128 the loop ends with probability 1. For a fixed seed,
-we know of no published proof. The route below may give one, but this review did not check all its
-steps. libsignal does not call libcrux's `validate_public_key`, so encapsulation accepts any 1568
-bytes. The contract matches this.
+ePrint 2023/708 proves that Kyber's sampling, as specified, ends after at most 3 · 2^1600 calls of the
+permutation per matrix entry. We know of no such proof for libcrux's code. The route below applies the
+paper's argument to it, but this review did not check all its steps. libsignal does not call libcrux's
+`validate_public_key`, so encapsulation accepts any 1568 bytes. The contract matches this.
 
 **A possible discharge route for termination (not fully checked).** For a fixed seed, the sampling
-loop may end for a deterministic reason. We checked the first three steps below in `libcrux-sha3`
-0.0.10 and in the portable backend of `libcrux-ml-kem` 0.0.10, both pinned in `Cargo.lock`.
+loop may end for a deterministic reason. Steps 1 to 4 follow the argument of ePrint 2023/708
+(Section 3), which is about Kyber as specified, and locate its premises in libcrux's code. We checked
+the first three steps below in `libcrux-sha3` 0.0.10 and in the portable backend of `libcrux-ml-kem`
+0.0.10, both pinned in `Cargo.lock`.
 
 1. Each matrix entry absorbs a 34-byte seed into a zero state with rate 168 bytes
    (`libcrux-ml-kem` `src/hash_functions.rs:133-172`; `libcrux-sha3`
