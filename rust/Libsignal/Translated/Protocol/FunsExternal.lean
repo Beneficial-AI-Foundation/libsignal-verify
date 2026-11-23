@@ -1874,18 +1874,6 @@ axiom state.session.UnacknowledgedPreKeyMessageItems.new
     proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
     → Result state.session.UnacknowledgedPreKeyMessageItems
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 201:4-204:5 -/
-axiom state.session.SessionState.alice_base_key
-  : state.session.SessionState → Result (Slice Std.U8)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 206:4-211:5 -/
-axiom state.session.SessionState.session_version
-  :
-  state.session.SessionState → Result (core.result.Result Std.U32
-    state.session.InvalidSessionError)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key]:
     Source: 'rust/protocol/src/state/session.rs', lines 213:4-221:5 -/
 axiom state.session.SessionState.remote_identity_key
@@ -1990,12 +1978,6 @@ axiom state.session.SessionState.local_registration_id
 axiom state.session.SessionState.get_kyber_ciphertext
   : state.session.SessionState → Result (Option (alloc.vec.Vec Std.U8))
 
-/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 715:4-717:5
-    Visibility: public -/
-axiom state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
-  : proto.storage.SessionStructure → Result state.session.SessionState
-
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}::from]:
     Source: 'rust/protocol/src/state/session.rs', lines 721:4-723:5
     Visibility: public -/
@@ -2055,14 +2037,6 @@ axiom state.session.SessionRecord.local_registration_id
   state.session.SessionRecord → Result (core.result.Result Std.U32
     error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 897:4-906:5
-    Visibility: public -/
-axiom state.session.SessionRecord.session_version
-  :
-  state.session.SessionRecord → Result (core.result.Result Std.U32
-    error.SignalProtocolError)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::local_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 908:4-917:5
     Visibility: public -/
@@ -2087,14 +2061,6 @@ axiom state.session.SessionRecord.has_usable_sender_chain
   state.session.SessionRecord → std.time.SystemTime →
     state.session.SessionUsabilityRequirements → Result (core.result.Result
     Bool error.SignalProtocolError)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 941:4-950:5
-    Visibility: public -/
-axiom state.session.SessionRecord.alice_base_key
-  :
-  state.session.SessionRecord → Result (core.result.Result (Slice Std.U8)
-    error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::get_receiver_chain_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 952:4-965:5

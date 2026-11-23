@@ -2274,6 +2274,13 @@ def double_ratchet.RatchetState.consume_message_key
       let mkg ← ratchet.keys.ChainKey.message_keys chain_key1
       ok (core.result.Result.Ok mkg, self2)
 
+/-- [libsignal_protocol::error::{libsignal_protocol::error::SessionNotFound}::without_address]:
+    Source: 'rust/protocol/src/error.rs', lines 117:4-119:5
+    Visibility: public -/
+def error.SessionNotFound.without_address
+  (op : Str) : Result error.SessionNotFound := do
+  ok { address := none, op }
+
 /-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
     Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
     Visibility: public -/
@@ -6934,6 +6941,23 @@ def state.session.SessionRecord.promote_old_session
   state.session.SessionRecord.promote_state
     { self with previous_sessions := v } updated_session
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::from_session_structure]:
+    Source: 'rust/protocol/src/state/session.rs', lines 170:4-172:5 -/
+def state.session.SessionState.from_session_structure
+  (session : proto.storage.SessionStructure) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  ok { session }
+
+/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}::from]:
+    Source: 'rust/protocol/src/state/session.rs', lines 716:4-718:5
+    Visibility: public -/
+def state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
+  (value : proto.storage.SessionStructure) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  state.session.SessionState.from_session_structure value
+
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}]
     Source: 'rust/protocol/src/state/session.rs', lines 715:0-719:1 -/
 @[reducible]
@@ -6943,6 +6967,22 @@ def state.session.SessionState.Insts.CoreConvertFromSessionStructure :
   «from» :=
     state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
 }
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_version]:
+    Source: 'rust/protocol/src/state/session.rs', lines 206:4-211:5 -/
+def state.session.SessionState.session_version
+  (self : state.session.SessionState) :
+  Result (core.result.Result Std.U32 state.session.InvalidSessionError)
+  := do
+  match self.session.session_version with
+  | 0#uscalar => ok (core.result.Result.Ok 2#u32)
+  | _ => ok (core.result.Result.Ok self.session.session_version)
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::alice_base_key]:
+    Source: 'rust/protocol/src/state/session.rs', lines 201:4-204:5 -/
+def state.session.SessionState.alice_base_key
+  (self : state.session.SessionState) : Result (Slice Std.U8) := do
+  ok (alloc.vec.Vec.deref self.session.alice_base_key)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::find_previous_session]: loop body 0:
     Source: 'rust/protocol/src/state/session.rs', lines 802:8-820:5 -/
@@ -8920,14 +8960,6 @@ def state.session.SessionState.Insts.CoreCloneClone : core.clone.Clone
   clone := state.session.SessionState.Insts.CoreCloneClone.clone
 }
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::from_session_structure]:
-    Source: 'rust/protocol/src/state/session.rs', lines 170:4-172:5 -/
-def state.session.SessionState.from_session_structure
-  (session : proto.storage.SessionStructure) :
-  Result _root_.libsignal_protocol.state.session.SessionState
-  := do
-  ok { session }
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_with_self]:
     Source: 'rust/protocol/src/state/session.rs', lines 238:4-246:5 -/
 def state.session.SessionState.session_with_self
@@ -9299,6 +9331,99 @@ def state.session.SessionRecord.serialize
       proto.storage.RecordStructure.Insts.ProstMessageMessage
       { current_session := o1, previous_sessions := v }
   ok (core.result.Result.Ok v1)
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{impl core::ops::function::FnOnce<(), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{closure}}::call_once]:
+    Source: 'rust/protocol/src/state/session.rs', lines 919:24-923:13 -/
+def
+  state.session.SessionRecord.session_version.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError.call_once
+  (c : state.session.SessionRecord.session_version.closure) (_ : Unit) :
+  Result error.SignalProtocolError
+  := do
+  let snf ← error.SessionNotFound.without_address (toStr "session_version")
+  ok (error.SignalProtocolError.SessionNotFound snf)
+
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{impl core::ops::function::FnOnce<(), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{closure}}]
+    Source: 'rust/protocol/src/state/session.rs', lines 919:24-923:13 -/
+@[reducible]
+def
+  state.session.SessionRecord.session_version.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError
+  : core.ops.function.FnOnce
+  state.session.SessionRecord.session_version.closure Unit
+  error.SignalProtocolError := {
+  call_once :=
+    state.session.SessionRecord.session_version.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError.call_once
+}
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version]:
+    Source: 'rust/protocol/src/state/session.rs', lines 916:4-925:5
+    Visibility: public -/
+def state.session.SessionRecord.session_version
+  (self : state.session.SessionRecord) :
+  Result (core.result.Result Std.U32 error.SignalProtocolError)
+  := do
+  let o ← state.session.SessionRecord.session_state self
+  let r ←
+    core.option.Option.ok_or_else
+      state.session.SessionRecord.session_version.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError
+      o ()
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let r1 ← state.session.SessionState.session_version val
+    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+    match cf1 with
+    | core.ops.control_flow.ControlFlow.Continue val1 =>
+      ok (core.result.Result.Ok val1)
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+        Std.U32
+        error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError
+        residual
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      Std.U32 (core.convert.FromSame error.SignalProtocolError) residual
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{impl core::ops::function::FnOnce<(), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{closure}}::call_once]:
+    Source: 'rust/protocol/src/state/session.rs', lines 963:24-967:13 -/
+def
+  state.session.SessionRecord.alice_base_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError.call_once
+  (c : state.session.SessionRecord.alice_base_key.closure) (_ : Unit) :
+  Result error.SignalProtocolError
+  := do
+  let snf ← error.SessionNotFound.without_address (toStr "alice_base_key")
+  ok (error.SignalProtocolError.SessionNotFound snf)
+
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{impl core::ops::function::FnOnce<(), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{closure}}]
+    Source: 'rust/protocol/src/state/session.rs', lines 963:24-967:13 -/
+@[reducible]
+def
+  state.session.SessionRecord.alice_base_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError
+  : core.ops.function.FnOnce state.session.SessionRecord.alice_base_key.closure
+  Unit error.SignalProtocolError := {
+  call_once :=
+    state.session.SessionRecord.alice_base_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError.call_once
+}
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key]:
+    Source: 'rust/protocol/src/state/session.rs', lines 960:4-969:5
+    Visibility: public -/
+def state.session.SessionRecord.alice_base_key
+  (self : state.session.SessionRecord) :
+  Result (core.result.Result (Slice Std.U8) error.SignalProtocolError)
+  := do
+  let o ← state.session.SessionRecord.session_state self
+  let r ←
+    core.option.Option.ok_or_else
+      state.session.SessionRecord.alice_base_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolError
+      o ()
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let s ← state.session.SessionState.alice_base_key val
+    ok (core.result.Result.Ok s)
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      (Slice Std.U8) (core.convert.FromSame error.SignalProtocolError) residual
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::current_ratchet_key_matches]:
     Source: 'rust/protocol/src/state/session.rs', lines 997:4-1005:5

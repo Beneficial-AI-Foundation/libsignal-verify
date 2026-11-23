@@ -187,7 +187,9 @@ charon:
     # InvalidSessionError(&'static str) / SignalProtocolError, use format!/log,
     # or decode protobuf — all hit "no bottoms" / Internal error. Simple
     # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
-    - "libsignal_protocol::state::session::_::alice_base_key"
+    # alice_base_key and session_version are translated, for SessionState and for
+    # SessionRecord: Charon's name matcher has no case for an inherent impl segment, so no
+    # pattern selects the methods of one of the two types.
     - "libsignal_protocol::state::session::_::current_pq_state"
     - "libsignal_protocol::state::session::_::deserialize"
     - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
@@ -204,11 +206,14 @@ charon:
     - "libsignal_protocol::state::session::_::remote_identity_key_bytes"
     - "libsignal_protocol::state::session::_::remote_registration_id"
     - "libsignal_protocol::state::session::_::sender_ratchet_private_key"
-    - "libsignal_protocol::state::session::_::session_version"
     - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
     - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
     - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
-    - "libsignal_protocol::state::session::_::from"                    # From<InvalidSessionError> (&str) + protobuf conversions
+    # From<InvalidSessionError> moves a &'static str into an error variant. The two
+    # conversions back to SessionStructure are off the handshake path.
+    # From<SessionStructure> for SessionState is translated.
+    - "libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from"
+    - "libsignal_protocol::state::session::{impl core::convert::From<_> for libsignal_protocol::proto::storage::SessionStructure}::from"
     - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
     # state::bundle — PreKeyBundle builder
     - "libsignal_protocol::state::bundle::_::modify"

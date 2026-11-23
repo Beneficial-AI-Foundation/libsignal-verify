@@ -1230,6 +1230,16 @@ def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 919:24-923:13 -/
+@[reducible]
+def state.session.SessionRecord.session_version.closure := Unit
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 963:24-967:13 -/
+@[reducible]
+def state.session.SessionRecord.alice_base_key.closure := Unit
+
 /-- [libsignal_protocol::state::signed_prekey::SignedPreKeyRecord]
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 27:0-29:1
     Visibility: public -/
