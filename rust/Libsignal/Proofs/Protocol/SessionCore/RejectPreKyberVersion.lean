@@ -12,7 +12,8 @@ is `CIPHERTEXT_MESSAGE_PRE_KYBER_VERSION` (version 3) with an `InvalidMessage` e
 message and the text "X3DH no longer supported". It lets every other version pass. Rejecting other
 versions is not the business of this step: it belongs to the message parser, which this file does
 not describe. A comment in the source says that the caller runs this step after it looks for an
-existing session, so that an existing session of version 3 is still accepted.
+existing session. The caller returns early when that lookup finds a session with the same version
+and base key and the same identity key, so such a session of version 3 never reaches this step.
 
 The callers of this step, `process_prekey` and its helpers, are `async` and call the stores of the
 application, so the extraction leaves them out. The order of the steps, and of the store calls

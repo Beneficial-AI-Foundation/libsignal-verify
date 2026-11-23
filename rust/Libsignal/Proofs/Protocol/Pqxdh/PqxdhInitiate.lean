@@ -7,9 +7,10 @@ import Libsignal.Translated.Protocol.Funs
 
 /-! # Spec theorem for `pqxdh::pqxdh_initiate`: the call does not read `self_session`
 
-`InitiatorParameters` has a flag `self_session`. `pqxdh_initiate` reads the other fields of the
-record and never this flag. So a record that differs from another only in the flag gives the same
-result, together with the same state of the random-number generator.
+`InitiatorParameters` has a flag `self_session`. `pqxdh_initiate` reads six of the other seven
+fields of the record (it does not read `their_ratchet_key`) and never this flag. So a record that
+differs from another only in the flag gives the same result, together with the same state of the
+random-number generator.
 `pqxdh_initiate_self_session` states this for a change of the flag to `false`.
 
 **Source**: rust/protocol/src/pqxdh.rs, lines 201:0-247:1 (`pqxdh_initiate`) of the work copy that
