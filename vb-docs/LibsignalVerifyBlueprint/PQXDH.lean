@@ -1575,12 +1575,12 @@ who can compute the secret keys of curve keys and then impersonate Alice (KS, Se
 p. 15).
 
 UAKE security has two parts, the secrecy of the key and the authenticity of $`T`, and it
-cannot state secrecy alone. The post-quantum theorem therefore proves UAKE security for an
-adversary that may break Diffie-Hellman, which is how the Lean docstring puts it. It assumes
-the joint unforgeability of the identity signature scheme. In PQXDH the signature is an
-elliptic-curve signature, which a quantum adversary breaks. So this hypothesis does not hold in
-the post-quantum setting. A secrecy-only notion in place of UAKE would not need the
-hypothesis. The theorem therefore does not express the aim of PQXDH.
+cannot state secrecy alone. The post-quantum theorem therefore states UAKE security with no
+Diffie-Hellman hypothesis, which is how the Lean docstring puts it. It assumes the joint
+unforgeability of the identity signature scheme. In PQXDH the signature is an elliptic-curve
+signature, which a quantum adversary breaks. So this hypothesis does not hold in the
+post-quantum setting. A secrecy-only notion in place of UAKE would not need the hypothesis. The
+theorem therefore does not express the aim of PQXDH.
 
 ## What the bounds cover
 
