@@ -83,19 +83,19 @@ inductive address.ServiceId where
 | Pni : address.SpecificServiceId 1#u8 → address.ServiceId
 
 /-- [libsignal_core::address::DeviceId]
-    Source: 'rust/core/src/address.rs', lines 689:0-691:1
+    Source: 'rust/core/src/address.rs', lines 684:0-686:1
     Visibility: public -/
 structure address.DeviceId where
   id : core.num.nonzero.NonZero Std.U8 core.num.niche_types.NonZeroU8Inner
 
 /-- [libsignal_core::address::InvalidDeviceId]
-    Source: 'rust/core/src/address.rs', lines 696:0-696:27
+    Source: 'rust/core/src/address.rs', lines 691:0-691:27
     Visibility: public -/
 @[reducible]
 def address.InvalidDeviceId := Unit
 
 /-- [libsignal_core::address::ProtocolAddress]
-    Source: 'rust/core/src/address.rs', lines 782:0-785:1
+    Source: 'rust/core/src/address.rs', lines 777:0-780:1
     Visibility: public -/
 structure address.ProtocolAddress where
   «name» : String
@@ -137,24 +137,24 @@ structure curve.PublicKey where
   key : curve.PublicKeyData
 
 /-- [libsignal_core::curve::PrivateKeyData]
-    Source: 'rust/core/src/curve.rs', lines 235:0-237:1 -/
+    Source: 'rust/core/src/curve.rs', lines 232:0-234:1 -/
 @[discriminant isize]
 inductive curve.PrivateKeyData where
 | DjbPrivateKey : Array Std.U8 32#usize → curve.PrivateKeyData
 
 /-- [libsignal_core::curve::PrivateKey]
-    Source: 'rust/core/src/curve.rs', lines 240:0-242:1
+    Source: 'rust/core/src/curve.rs', lines 237:0-239:1
     Visibility: public -/
 structure curve.PrivateKey where
   key : curve.PrivateKeyData
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}]
-    Source: 'rust/core/src/curve.rs', lines 248:21-248:76 -/
+    Source: 'rust/core/src/curve.rs', lines 245:21-245:76 -/
 @[reducible]
 def curve.PrivateKey.deserialize.closure := Slice Std.U8
 
 /-- [libsignal_core::curve::KeyPair]
-    Source: 'rust/core/src/curve.rs', lines 324:0-327:1
+    Source: 'rust/core/src/curve.rs', lines 321:0-324:1
     Visibility: public -/
 structure curve.KeyPair where
   public_key : curve.PublicKey
