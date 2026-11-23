@@ -7,11 +7,12 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-12 |
+| Date | 2026-11-23 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
+| curve25519-dalek fork | 19c37220 |
 | `sorry` or `sorryAx` under `Protocols/` | 9 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
@@ -24,7 +25,8 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
 - `Protocols/Specs/PQXDH.lean`: the key-derivation mirror, the branch equations of the two entry
-  points, the lemmas of one honest run and the statements of the Full realization;
+  points, the lemmas of one honest run, the statements of the Full realization and the four facts
+  about X25519 and clamping of `Protocols/PQXDH/X25519.lean`;
 - `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization and deserialization of a Kyber
   ciphertext;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;

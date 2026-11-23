@@ -7,8 +7,8 @@ Usage, from the repository root:
         Protocols Protocols.lean ProtocolsTest ProtocolsTest.lean > admissions.log
     python3 scripts/ledger-check.py admissions.log
 
-Exits 0 iff the three admission counts and the Lean, Mathlib, VCVio and Aeneas pins of the State
-table match the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
+Exits 0 iff the three admission counts and the Lean, Mathlib, VCVio, Aeneas and curve25519-dalek
+fork pins of the State table match the `rg` listing, `lean-toolchain` and `lake-manifest.json`.
 
 The script does not check axiom closures. The `#guard_msgs` checks on `#print axioms` in the spec
 summaries (`Protocols/Specs/`, `rust/Libsignal/Specs/`) and in two files of `ProtocolsTest/` (the
@@ -180,6 +180,7 @@ observed = {
     'Mathlib': f"{pkgs['mathlib']['rev'][:8]} ({pkgs['mathlib']['inputRev']})",
     'VCVio': pkgs['VCVio']['rev'][:8],
     'Aeneas': pkgs['aeneas']['inputRev'],
+    'curve25519-dalek fork': pkgs['«curve25519-dalek»']['rev'][:8],
 }
 for key, value in observed.items():
     same = str(value) == state.get(key)
