@@ -1666,6 +1666,15 @@ def double_ratchet.RatchetState.take_root_key
   let (rk1, rk2) := core.mem.replace self.root_key rk
   ok (rk1, { self with root_key := rk2 })
 
+/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from]:
+    Source: 'rust/protocol/src/state/session.rs', lines 36:4-38:5
+    Visibility: public -/
+def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
+  (e : state.session.InvalidSessionError) :
+  Result error.SignalProtocolError
+  := do
+  ok (error.SignalProtocolError.InvalidSessionStructure e)
+
 /-- Trait implementation: [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}]
     Source: 'rust/protocol/src/state/session.rs', lines 35:0-39:1 -/
 @[reducible]

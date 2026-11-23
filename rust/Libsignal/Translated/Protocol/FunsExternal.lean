@@ -1476,12 +1476,6 @@ def double_ratchet.log_jump_ahead
 def double_ratchet.log_corrupt_receiver_chain : Result Unit :=
   ok ()
 
-/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 36:4-38:5
-    Visibility: public -/
-axiom error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
-  : state.session.InvalidSessionError → Result error.SignalProtocolError
-
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
     Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-221:5 -/
 axiom ratchet.keys.RootKey.create_chain

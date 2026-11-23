@@ -209,10 +209,9 @@ charon:
     - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
     - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
     - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
-    # From<InvalidSessionError> moves a &'static str into an error variant. The two
-    # conversions back to SessionStructure are off the handshake path.
-    # From<SessionStructure> for SessionState is translated.
-    - "libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from"
+    # The two conversions back to SessionStructure are off the handshake path.
+    # From<SessionStructure> for SessionState and From<InvalidSessionError> for
+    # SignalProtocolError are translated.
     - "libsignal_protocol::state::session::{impl core::convert::From<_> for libsignal_protocol::proto::storage::SessionStructure}::from"
     - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
     # state::bundle — PreKeyBundle builder
