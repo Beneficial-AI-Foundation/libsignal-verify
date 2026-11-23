@@ -147,6 +147,12 @@ charon:
     # NB: matcher uses the trait's DEFINING path `prost::message::Message` (the
     # `prost::Message` re-export path does NOT match). Patterns cover each nesting
     # depth prost emits for nested messages.
+    # Tried again for SessionStructure and the five messages it contains (include lines
+    # on their Message methods): aeneas fails, first on "Unimplemented" for the FnOnce
+    # instance of <u32 as Default>::default that the generated code passes as a function
+    # value, then with "Internal error: please file an issue" (Aeneas
+    # de16f3cf877976e966906dc890f63dcb418884fa, Charon
+    # 373d84044d80f6eb44285c2c349bae1453f5b6ca).
     - "libsignal_protocol::proto::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
