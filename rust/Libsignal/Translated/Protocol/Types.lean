@@ -1231,17 +1231,17 @@ def state.session.SessionUsabilityRequirements := Std.U32
 def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::serialize::{closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 888:63-888:75 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 884:63-884:75 -/
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 923:24-927:13 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 919:24-923:13 -/
 @[reducible]
 def state.session.SessionRecord.session_version.closure := Unit
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{closure}]
-    Source: 'rust/protocol/src/state/session.rs', lines 967:24-971:13 -/
+    Source: 'rust/protocol/src/state/session.rs', lines 963:24-967:13 -/
 @[reducible]
 def state.session.SessionRecord.alice_base_key.closure := Unit
 
