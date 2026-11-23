@@ -59,19 +59,24 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_dh
@@ -106,19 +111,24 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_dh_total' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_dh_total
@@ -153,19 +163,24 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_pq
@@ -205,19 +220,24 @@ info: 'Protocols.PQXDH.uakeInitiator_secure_pq_total' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator_secure_pq_total
@@ -243,19 +263,24 @@ info: 'Protocols.PQXDH.fullExp_noLostMass' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullExp_noLostMass
@@ -277,15 +302,20 @@ info: 'Protocols.PQXDH.coreCompletion_extracted' depends on axioms:
  Quot.sound,
  crypto.hkdf_sha256,
  curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.coreCompletion_extracted
@@ -306,15 +336,20 @@ info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
  Quot.sound,
  crypto.hkdf_sha256,
  curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.jointKeyAgreement_extracted
@@ -417,19 +452,24 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.wrapperAgreement_uakeInitiator
@@ -456,19 +496,24 @@ info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.wrapperAgreement_uakeRecipient
@@ -1217,7 +1262,12 @@ info: 'Protocols.PQXDH.agreement_of_valid' depends on axioms:
  Classical.choice,
  Quot.sound,
  curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key]
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.agreement_of_valid
@@ -1280,15 +1330,20 @@ info: 'Protocols.PQXDH.honest_run_ok' depends on axioms:
  Quot.sound,
  crypto.hkdf_sha256,
  curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.honest_run_ok
@@ -1445,11 +1500,17 @@ info: 'Protocols.PQXDH.initiator_output_eq' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.initiator_output_eq
@@ -1530,13 +1591,19 @@ info: 'Protocols.PQXDH.kyberKemAfterGenerate' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.kyberKemAfterGenerate
@@ -1546,13 +1613,19 @@ info: 'Protocols.PQXDH.KyberDeltaCorrectAfterGenerate' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.KyberDeltaCorrectAfterGenerate
@@ -1566,8 +1639,13 @@ info: 'Protocols.PQXDH.GenerateTotal' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
- curve.PrivateKey.public_key]
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.GenerateTotal
@@ -1577,12 +1655,18 @@ info: 'Protocols.PQXDH.uakeInitiator' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeInitiator
@@ -1592,12 +1676,18 @@ info: 'Protocols.PQXDH.uakeRecipient' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
- kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length]
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.uakeRecipient
@@ -1607,16 +1697,22 @@ info: 'Protocols.PQXDH.fullPartnering' depends on axioms:
  [propext,
  Classical.choice,
  Quot.sound,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullPartnering
@@ -1627,18 +1723,24 @@ info: 'Protocols.PQXDH.fullExp' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullExp
@@ -1649,18 +1751,24 @@ info: 'Protocols.PQXDH.fullAdvantage' depends on axioms:
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
- curve.KeyPair.generate,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
  core.num.niche_types.NonZeroU8Inner,
  core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
  kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.fullAdvantage
@@ -1671,11 +1779,16 @@ info: 'Protocols.PQXDH.CoreContracts' depends on axioms:
  Classical.choice,
  Quot.sound,
  curve.PrivateKey.calculate_agreement,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
  Str.Insts.AllocBorrowToOwnedString.to_owned,
+ x25519_dalek.x25519.PublicKey.as_bytes,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.CoreContracts
@@ -1686,8 +1799,13 @@ info: 'Protocols.PQXDH.SignatureContracts' depends on axioms:
  Classical.choice,
  Quot.sound,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
- curve.PublicKey.verify_signature_for_multipart_message]
+ curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.SignatureContracts
@@ -1700,11 +1818,16 @@ info: 'Protocols.PQXDH.PartialContracts' depends on axioms:
  crypto.hkdf_sha256,
  curve.PrivateKey.calculate_agreement,
  curve.PrivateKey.calculate_signature,
- curve.PrivateKey.public_key,
  curve.PublicKey.is_torsion_free,
  curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
  kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
- kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.PartialContracts

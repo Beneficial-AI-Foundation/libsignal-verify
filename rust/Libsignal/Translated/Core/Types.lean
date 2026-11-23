@@ -95,6 +95,12 @@ structure address.ProtocolAddress where
   «name» : String
   device_id : address.DeviceId
 
+/-- [libsignal_core::curve::curve25519::PrivateKey]
+    Source: 'rust/core/src/curve/curve25519.rs', lines 22:0-24:1
+    Visibility: public -/
+structure curve.curve25519.PrivateKey where
+  secret : x25519_dalek.x25519.StaticSecret
+
 /-- [libsignal_core::curve::KeyType]
     Source: 'rust/core/src/curve.rs', lines 15:0-17:1
     Visibility: public -/

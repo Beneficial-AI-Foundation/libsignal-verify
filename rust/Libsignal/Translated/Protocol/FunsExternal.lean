@@ -726,30 +726,11 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone
 
 -- (dropped axiom libsignal_core.curve.PublicKey.verify_signature; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message]:
-    Source: 'rust/core/src/curve.rs', lines 138:4-142:13
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message"]
-axiom libsignal_core.curve.PublicKey.verify_signature_for_multipart_message
-  :
-  libsignal_core.curve.PublicKey → Slice (Slice Std.U8) → Slice Std.U8 →
-    Result Bool
+-- (dropped axiom libsignal_core.curve.PublicKey.verify_signature_for_multipart_message; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PublicKey.is_canonical; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PublicKey}::try_from]:
-    Source: 'rust/core/src/curve.rs', lines 196:4-196:57
-    Name pattern: [libsignal_core::curve::{core::convert::TryFrom<libsignal_core::curve::PublicKey, &'0 [u8], libsignal_core::curve::CurveError>}::try_from]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{core::convert::TryFrom<libsignal_core::curve::PublicKey, &'0 [u8], libsignal_core::curve::CurveError>}::try_from"]
-axiom
-  libsignal_core.curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
-  :
-  Slice Std.U8 → Result (core.result.Result libsignal_core.curve.PublicKey
-    libsignal_core.curve.CurveError)
+-- (dropped axiom libsignal_core.curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from; provided by an imported sibling lib)
 
 /-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
     Source: 'rust/core/src/curve.rs', lines 215:4-215:43
@@ -766,40 +747,11 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
 
 -- (dropped axiom libsignal_core.curve.PrivateKey.serialize; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]:
-    Source: 'rust/core/src/curve.rs', lines 259:4-259:61
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key"]
-axiom libsignal_core.curve.PrivateKey.public_key
-  :
-  libsignal_core.curve.PrivateKey → Result (core.result.Result
-    libsignal_core.curve.PublicKey libsignal_core.curve.CurveError)
+-- (dropped axiom libsignal_core.curve.PrivateKey.public_key; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature]:
-    Source: 'rust/core/src/curve.rs', lines 275:4-279:38
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature"]
-axiom libsignal_core.curve.PrivateKey.calculate_signature
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
-  (rand_1rngRngInst : rand_1.rng.Rng R) :
-  libsignal_core.curve.PrivateKey → Slice Std.U8 → R → Result
-    ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
+-- (dropped axiom libsignal_core.curve.PrivateKey.calculate_signature; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature_for_multipart_message]:
-    Source: 'rust/core/src/curve.rs', lines 283:4-287:38
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature_for_multipart_message]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature_for_multipart_message"]
-axiom libsignal_core.curve.PrivateKey.calculate_signature_for_multipart_message
-  {R : Type} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
-  (rand_1rngRngInst : rand_1.rng.Rng R) :
-  libsignal_core.curve.PrivateKey → Slice (Slice Std.U8) → R → Result
-    ((core.result.Result (Slice Std.U8) libsignal_core.curve.CurveError) × R)
+-- (dropped axiom libsignal_core.curve.PrivateKey.calculate_signature_for_multipart_message; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PrivateKey.calculate_agreement; provided by an imported sibling lib)
 
@@ -812,15 +764,7 @@ axiom libsignal_core.curve.PrivateKey.calculate_signature_for_multipart_message
 axiom libsignal_core.curve.KeyPair.Insts.CoreCloneClone.clone
   : libsignal_core.curve.KeyPair → Result libsignal_core.curve.KeyPair
 
-/-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]:
-    Source: 'rust/core/src/curve.rs', lines 327:4-327:72
-    Name pattern: [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]
-    Visibility: public -/
-@[rust_fun "libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate"]
-axiom libsignal_core.curve.KeyPair.generate
-  {R : Type} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) :
-  R → Result (libsignal_core.curve.KeyPair × R)
+-- (dropped axiom libsignal_core.curve.KeyPair.generate; provided by an imported sibling lib)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::new]:
     Source: 'rust/core/src/curve.rs', lines 343:4-343:70

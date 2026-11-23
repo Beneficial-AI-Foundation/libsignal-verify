@@ -126,7 +126,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 
 - `deserialize(value: &[u8]) -> Result<Self, CurveError>` — opaque (calls `scalar::clamp_integer`)
 - `serialize(&self) -> Vec<u8>`
-- `public_key(&self) -> Result<PublicKey, CurveError>` — opaque (calls curve25519)
+- `public_key(&self) -> Result<PublicKey, CurveError>` — extracted with its body (calls `curve25519::PrivateKey::from` and `derive_public_key_bytes`)
 - `key_type(&self) -> KeyType`
 - `calculate_signature(...)` — opaque (calls curve25519)
 - `calculate_signature_for_multipart_message(...)` — opaque (calls curve25519)
@@ -134,15 +134,20 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 
 ### KeyPair
 
-- `generate(csprng: &mut R) -> Self` — opaque (calls curve25519)
+- `generate(csprng: &mut R) -> Self` — extracted with its body (calls `curve25519::PrivateKey::new`, `derive_public_key_bytes` and `private_key_bytes`)
 - `new(public_key: PublicKey, private_key: PrivateKey) -> Self`
 - `from_public_and_private(public_key: &[u8], private_key: &[u8]) -> Result<Self, CurveError>`
 - `calculate_signature(...)` — opaque (calls curve25519)
 - `calculate_agreement(&self, their_key: &PublicKey) -> Result<Box<[u8]>, CurveError>` — opaque (calls curve25519)
 
-### curve25519 (submodule — excluded)
+### curve25519 (submodule)
 
-Excluded entirely — Charon panics on `simplify_constants` pass due to array constant in `calculate_signature`.
+The core profile does not exclude this module. `KeyPair::generate` and `PrivateKey::public_key` call four of its items, which are extracted with their bodies: `PrivateKey::new`, `derive_public_key_bytes`, `private_key_bytes` and `From<[u8; 32]> for PrivateKey`. Its signer, verifier and agreement are not extracted: their callers in `curve.rs` are opaque, so Charon does not reach them. The module was first excluded because Charon panicked on the `simplify_constants` pass on an array constant in `calculate_signature`. That panic was not tested again. The protocol profile still excludes the module.
+
+These four items call items of two crates outside libsignal. The extraction gives those outside items no body, and no fact about them is stated:
+
+- curve25519-dalek 5.0.0: the function `scalar::clamp_integer` (`curve25519_dalek.scalar.clamp_integer`)
+- x25519-dalek 3.0.0: the types `StaticSecret` and `PublicKey`, and the functions `From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey` (the base-point multiplication) and `PublicKey::as_bytes` (`x25519_dalek.x25519.*` in `Core/TypesExternal.lean` and `Core/FunsExternal.lean`)
 
 Contains:
 - `AGREEMENT_LENGTH: usize = 32`
@@ -241,6 +246,8 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `Option::default` | `fun T => ok none` | The derived `Default` of `SessionStructure`, which `decode` takes as an argument, calls it. The Aeneas library does not model it |
 | `ProtocolAddress::clone` | `fun a => ok a` | The derived `Clone` copies the name and the device ID. `session_core::require_trusted_identity` clones the address for the `UntrustedIdentity` error |
 | `PublicKey::verify_signature` | Dropped; Core's definition is used | `session_core::verify_bundle_signatures` calls it. Core defines it over the root axiom `curve.PublicKey.verify_signature_for_multipart_message`, so no Protocol-side verifier axiom enters the closure |
+| `KeyPair::generate`, `PrivateKey::public_key` | Dropped; Core's generated definitions `libsignal_core.curve.KeyPair.generate` and `libsignal_core.curve.PrivateKey.public_key` have the names that the Protocol code calls. `Core/CurveProvider.lean` makes the root names `curve.KeyPair.generate` and `curve.PrivateKey.public_key` aliases of these definitions | Core extracts both functions with their bodies. There is one constant for each Rust function, and the PQXDH statements, which use the root names, speak of the extracted definitions |
+| `PrivateKey::{calculate_signature, calculate_signature_for_multipart_message}`, `PublicKey::verify_signature_for_multipart_message`, `TryFrom<&[u8]> for PublicKey` | Dropped; `Core/CurveProvider.lean` makes each Protocol name an alias of Core's root axiom (`curve.PrivateKey.calculate_signature` and so on) | Core has no body for them. With the alias there is one constant for each Rust function, so a contract on Core's constant also covers the Protocol callers |
 | `double_ratchet::skipped_key_from_pb` | `MessageKeyGenerator::from_pb` followed by the same `map` and `map_err` | Transcription; `InvalidSessionError` translates to `Str` |
 | `Iterator::position` for slice iterators | Transcription of the loop in core's `slice/iter/macros.rs`: apply the predicate in order, stop at the first `true`, consume that element | It was an axiom, so nothing fixed which receiver chain or skipped key `find_receiver_chain_index` and `take_skipped_key` select |
 | `subtle::Choice` | Structure with one `U8` field, owned by Crypto and imported by Protocol | Rust defines `struct Choice(u8)`, holding 0 or 1 |
