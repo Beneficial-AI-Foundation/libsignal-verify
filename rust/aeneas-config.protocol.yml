@@ -249,13 +249,11 @@ charon:
     - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
     - "libsignal_protocol::sender_keys::_::add_sender_key_state"
     - "libsignal_protocol::sender_keys::_::new"  # slow: Index<RangeFull> trait-proof recursion (charon a535e914)
-    # protocol — signature verify (crypto), kyber_ciphertext accessor
-    # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
-    # free fns.
+    # protocol — signature verify (crypto), TryFrom protobuf parse (&str), float-ratio +
+    # content free fns. kyber_ciphertext is translated through a translation patch.
     - "libsignal_protocol::protocol::_::verify_signature"
     - "libsignal_protocol::protocol::log_invalid_local_addresses"  # log::warn!
     - "libsignal_protocol::protocol::log_address_mismatch"         # log::warn!
-    - "libsignal_protocol::protocol::_::kyber_ciphertext"
     - "libsignal_protocol::protocol::_::try_from"
     - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
     - "libsignal_protocol::protocol::_::from"   # From impls building protobuf structs (Default::default)

@@ -3912,7 +3912,7 @@ def protocol.CIPHERTEXT_MESSAGE_PRE_KYBER_VERSION : Std.U8 := 3#u8
 def protocol.SENDERKEY_MESSAGE_CURRENT_VERSION : Std.U8 := 3#u8
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::PlaintextContent}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 806:16-806:21
+    Source: 'rust/protocol/src/protocol.rs', lines 809:16-809:21
     Visibility: public -/
 def protocol.PlaintextContent.Insts.CoreCloneClone.clone
   (self : protocol.PlaintextContent) : Result protocol.PlaintextContent := do
@@ -3922,7 +3922,7 @@ def protocol.PlaintextContent.Insts.CoreCloneClone.clone
   ok { serialized := s }
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 519:16-519:21
+    Source: 'rust/protocol/src/protocol.rs', lines 522:16-522:21
     Visibility: public -/
 def protocol.SenderKeyMessage.Insts.CoreCloneClone.clone
   (self : protocol.SenderKeyMessage) : Result protocol.SenderKeyMessage := do
@@ -4197,21 +4197,21 @@ def protocol.CiphertextMessage.message_type
     ok protocol.CiphertextMessageType.Plaintext
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 830:4-832:5
+    Source: 'rust/protocol/src/protocol.rs', lines 833:4-835:5
     Visibility: public -/
 def protocol.PlaintextContent.impl.serialized
   (self : protocol.PlaintextContent) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 601:4-603:5
+    Source: 'rust/protocol/src/protocol.rs', lines 604:4-606:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.serialized
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 435:4-437:5
+    Source: 'rust/protocol/src/protocol.rs', lines 438:4-440:5
     Visibility: public -/
 def protocol.PreKeySignalMessage.impl.serialized
   (self : protocol.PreKeySignalMessage) : Result (Slice Std.U8) := do
@@ -4859,8 +4859,17 @@ def protocol.PreKeySignalMessage.kyber_pre_key_id
     protocol.PreKeySignalMessage.kyber_pre_key_id.closure.Insts.CoreOpsFunctionFnOnceTupleShared0KyberPayloadKyberPreKeyId
     o ()
 
+/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_ciphertext]:
+    Source: 'rust/protocol/src/protocol.rs', lines 415:4-420:5
+    Visibility: public -/
+def protocol.PreKeySignalMessage.kyber_ciphertext
+  (self : protocol.PreKeySignalMessage) : Result (Option (Slice Std.U8)) := do
+  match self.kyber_payload with
+  | none => ok none
+  | some kyber => ok (some kyber.ciphertext)
+
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::base_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 420:4-422:5
+    Source: 'rust/protocol/src/protocol.rs', lines 423:4-425:5
     Visibility: public -/
 def protocol.PreKeySignalMessage.impl.base_key
   (self : protocol.PreKeySignalMessage) :
@@ -4869,28 +4878,28 @@ def protocol.PreKeySignalMessage.impl.base_key
   ok self.base_key
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::identity_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 425:4-427:5
+    Source: 'rust/protocol/src/protocol.rs', lines 428:4-430:5
     Visibility: public -/
 def protocol.PreKeySignalMessage.impl.identity_key
   (self : protocol.PreKeySignalMessage) : Result identity_key.IdentityKey := do
   ok self.identity_key
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::message]:
-    Source: 'rust/protocol/src/protocol.rs', lines 430:4-432:5
+    Source: 'rust/protocol/src/protocol.rs', lines 433:4-435:5
     Visibility: public -/
 def protocol.PreKeySignalMessage.impl.message
   (self : protocol.PreKeySignalMessage) : Result protocol.SignalMessage := do
   ok self.message
 
 /-- [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::PreKeySignalMessage}::as_ref]:
-    Source: 'rust/protocol/src/protocol.rs', lines 441:4-443:5
+    Source: 'rust/protocol/src/protocol.rs', lines 444:4-446:5
     Visibility: public -/
 def protocol.PreKeySignalMessage.Insts.CoreConvertAsRefSliceU8.as_ref
   (self : protocol.PreKeySignalMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::PreKeySignalMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 440:0-444:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 443:0-447:1 -/
 @[reducible]
 def protocol.PreKeySignalMessage.Insts.CoreConvertAsRefSliceU8 :
   core.convert.AsRef protocol.PreKeySignalMessage (Slice Std.U8) := {
@@ -4898,7 +4907,7 @@ def protocol.PreKeySignalMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PreKeySignalMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 446:0-517:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 449:0-520:1 -/
 @[reducible]
 def
   protocol.PreKeySignalMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -4909,7 +4918,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 519:16-519:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 522:16-522:21 -/
 @[reducible]
 def protocol.SenderKeyMessage.Insts.CoreCloneClone : core.clone.Clone
   protocol.SenderKeyMessage := {
@@ -4917,12 +4926,12 @@ def protocol.SenderKeyMessage.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::SIGNATURE_LEN]
-    Source: 'rust/protocol/src/protocol.rs', lines 530:4-530:36 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 533:4-533:36 -/
 @[global_simps, irreducible]
 def protocol.SenderKeyMessage.SIGNATURE_LEN : Std.Usize := 64#usize
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::new]:
-    Source: 'rust/protocol/src/protocol.rs', lines 532:4-563:5
+    Source: 'rust/protocol/src/protocol.rs', lines 535:4-566:5
     Visibility: public -/
 def protocol.SenderKeyMessage.new
   {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
@@ -4994,49 +5003,49 @@ def protocol.SenderKeyMessage.new
     ok (r2, csprng1)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::message_version]:
-    Source: 'rust/protocol/src/protocol.rs', lines 576:4-578:5
+    Source: 'rust/protocol/src/protocol.rs', lines 579:4-581:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.message_version
   (self : protocol.SenderKeyMessage) : Result Std.U8 := do
   ok self.message_version
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::distribution_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 581:4-583:5
+    Source: 'rust/protocol/src/protocol.rs', lines 584:4-586:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.distribution_id
   (self : protocol.SenderKeyMessage) : Result uuid.Uuid := do
   ok self.distribution_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::chain_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 586:4-588:5
+    Source: 'rust/protocol/src/protocol.rs', lines 589:4-591:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.chain_id
   (self : protocol.SenderKeyMessage) : Result Std.U32 := do
   ok self.chain_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::iteration]:
-    Source: 'rust/protocol/src/protocol.rs', lines 591:4-593:5
+    Source: 'rust/protocol/src/protocol.rs', lines 594:4-596:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.iteration
   (self : protocol.SenderKeyMessage) : Result Std.U32 := do
   ok self.iteration
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyMessage}::ciphertext]:
-    Source: 'rust/protocol/src/protocol.rs', lines 596:4-598:5
+    Source: 'rust/protocol/src/protocol.rs', lines 599:4-601:5
     Visibility: public -/
 def protocol.SenderKeyMessage.impl.ciphertext
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
   ok self.ciphertext
 
 /-- [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyMessage}::as_ref]:
-    Source: 'rust/protocol/src/protocol.rs', lines 607:4-609:5
+    Source: 'rust/protocol/src/protocol.rs', lines 610:4-612:5
     Visibility: public -/
 def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8.as_ref
   (self : protocol.SenderKeyMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 606:0-610:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 609:0-613:1 -/
 @[reducible]
 def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8 :
   core.convert.AsRef protocol.SenderKeyMessage (Slice Std.U8) := {
@@ -5044,7 +5053,7 @@ def protocol.SenderKeyMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 612:0-658:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 615:0-661:1 -/
 @[reducible]
 def
   protocol.SenderKeyMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -5055,7 +5064,7 @@ def
 }
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyDistributionMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 660:16-660:21
+    Source: 'rust/protocol/src/protocol.rs', lines 663:16-663:21
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone.clone
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5083,7 +5092,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone.clone
     }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 660:16-660:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 663:16-663:21 -/
 @[reducible]
 def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone :
   core.clone.Clone protocol.SenderKeyDistributionMessage := {
@@ -5091,7 +5100,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreCloneClone :
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::new]:
-    Source: 'rust/protocol/src/protocol.rs', lines 672:4-702:5
+    Source: 'rust/protocol/src/protocol.rs', lines 675:4-705:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.new
   (message_version : Std.U8) (distribution_id : uuid.Uuid) (chain_id : Std.U32)
@@ -5147,14 +5156,14 @@ def protocol.SenderKeyDistributionMessage.new
     })
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::message_version]:
-    Source: 'rust/protocol/src/protocol.rs', lines 705:4-707:5
+    Source: 'rust/protocol/src/protocol.rs', lines 708:4-710:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.message_version
   (self : protocol.SenderKeyDistributionMessage) : Result Std.U8 := do
   ok self.message_version
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::distribution_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 710:4-712:5
+    Source: 'rust/protocol/src/protocol.rs', lines 713:4-715:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.distribution_id
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5163,7 +5172,7 @@ def protocol.SenderKeyDistributionMessage.impl.distribution_id
   ok (core.result.Result.Ok self.distribution_id)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::chain_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 715:4-717:5
+    Source: 'rust/protocol/src/protocol.rs', lines 718:4-720:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.chain_id
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5172,7 +5181,7 @@ def protocol.SenderKeyDistributionMessage.impl.chain_id
   ok (core.result.Result.Ok self.chain_id)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::iteration]:
-    Source: 'rust/protocol/src/protocol.rs', lines 720:4-722:5
+    Source: 'rust/protocol/src/protocol.rs', lines 723:4-725:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.iteration
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5181,7 +5190,7 @@ def protocol.SenderKeyDistributionMessage.impl.iteration
   ok (core.result.Result.Ok self.iteration)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::chain_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 725:4-727:5
+    Source: 'rust/protocol/src/protocol.rs', lines 728:4-730:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.chain_key
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5191,7 +5200,7 @@ def protocol.SenderKeyDistributionMessage.impl.chain_key
   ok (core.result.Result.Ok s)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::signing_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 730:4-732:5
+    Source: 'rust/protocol/src/protocol.rs', lines 733:4-735:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.signing_key
   (self : protocol.SenderKeyDistributionMessage) :
@@ -5201,21 +5210,21 @@ def protocol.SenderKeyDistributionMessage.impl.signing_key
   ok (core.result.Result.Ok self.signing_key)
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::SenderKeyDistributionMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 735:4-737:5
+    Source: 'rust/protocol/src/protocol.rs', lines 738:4-740:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.impl.serialized
   (self : protocol.SenderKeyDistributionMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyDistributionMessage}::as_ref]:
-    Source: 'rust/protocol/src/protocol.rs', lines 741:4-743:5
+    Source: 'rust/protocol/src/protocol.rs', lines 744:4-746:5
     Visibility: public -/
 def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8.as_ref
   (self : protocol.SenderKeyDistributionMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::AsRef<[u8]> for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 740:0-744:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 743:0-747:1 -/
 @[reducible]
 def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8 :
   core.convert.AsRef protocol.SenderKeyDistributionMessage (Slice Std.U8) := {
@@ -5224,7 +5233,7 @@ def protocol.SenderKeyDistributionMessage.Insts.CoreConvertAsRefSliceU8 :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::SenderKeyDistributionMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 746:0-804:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 749:0-807:1 -/
 @[reducible]
 def
   protocol.SenderKeyDistributionMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -5235,7 +5244,7 @@ def
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 806:16-806:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 809:16-809:21 -/
 @[reducible]
 def protocol.PlaintextContent.Insts.CoreCloneClone : core.clone.Clone
   protocol.PlaintextContent := {
@@ -5243,18 +5252,18 @@ def protocol.PlaintextContent.Insts.CoreCloneClone : core.clone.Clone
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::PLAINTEXT_CONTEXT_IDENTIFIER_BYTE]
-    Source: 'rust/protocol/src/protocol.rs', lines 816:4-816:55 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 819:4-819:55 -/
 @[global_simps, irreducible]
 def protocol.PlaintextContent.PLAINTEXT_CONTEXT_IDENTIFIER_BYTE : Std.U8 :=
   192#u8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::PADDING_BOUNDARY_BYTE]
-    Source: 'rust/protocol/src/protocol.rs', lines 822:4-822:43 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 825:4-825:43 -/
 @[global_simps, irreducible]
 def protocol.PlaintextContent.PADDING_BOUNDARY_BYTE : Std.U8 := 128#u8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PlaintextContent}::body]:
-    Source: 'rust/protocol/src/protocol.rs', lines 825:4-827:5
+    Source: 'rust/protocol/src/protocol.rs', lines 828:4-830:5
     Visibility: public -/
 def protocol.PlaintextContent.body
   (self : protocol.PlaintextContent) : Result (Slice Std.U8) := do
@@ -5262,7 +5271,7 @@ def protocol.PlaintextContent.body
     Std.U8) self.serialized { start := 1#usize }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::From<libsignal_protocol::protocol::DecryptionErrorMessage> for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 835:0-850:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 838:0-853:1 -/
 @[reducible]
 def protocol.PlaintextContent.Insts.CoreConvertFromDecryptionErrorMessage :
   core.convert.From protocol.PlaintextContent protocol.DecryptionErrorMessage
@@ -5272,7 +5281,7 @@ def protocol.PlaintextContent.Insts.CoreConvertFromDecryptionErrorMessage :
 }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PlaintextContent}]
-    Source: 'rust/protocol/src/protocol.rs', lines 852:0-868:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 855:0-871:1 -/
 @[reducible]
 def
   protocol.PlaintextContent.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError
@@ -5290,7 +5299,7 @@ def timestamp.Timestamp.Insts.CoreCloneClone.clone
   ok self
 
 /-- [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::DecryptionErrorMessage}::clone]:
-    Source: 'rust/protocol/src/protocol.rs', lines 870:16-870:21
+    Source: 'rust/protocol/src/protocol.rs', lines 873:16-873:21
     Visibility: public -/
 def protocol.DecryptionErrorMessage.Insts.CoreCloneClone.clone
   (self : protocol.DecryptionErrorMessage) :
@@ -5307,7 +5316,7 @@ def protocol.DecryptionErrorMessage.Insts.CoreCloneClone.clone
   ok { ratchet_key := o, timestamp := t, device_id := i, serialized := s }
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::clone::Clone for libsignal_protocol::protocol::DecryptionErrorMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 870:16-870:21 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 873:16-873:21 -/
 @[reducible]
 def protocol.DecryptionErrorMessage.Insts.CoreCloneClone : core.clone.Clone
   protocol.DecryptionErrorMessage := {
@@ -5322,7 +5331,7 @@ def timestamp.Timestamp.epoch_millis
   ok self.millis
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{impl core::ops::function::FnOnce<(libsignal_core::curve::PublicKey,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{closure}}::call_once]:
-    Source: 'rust/protocol/src/protocol.rs', lines 904:41-904:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
 def
   protocol.DecryptionErrorMessage.for_original.closure.Insts.CoreOpsFunctionFnOnceTuplePublicKeyVecU8.call_once
   (c : protocol.DecryptionErrorMessage.for_original.closure)
@@ -5334,7 +5343,7 @@ def
     Std.U8 alloc.alloc.Global) s
 
 /-- Trait implementation: [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{impl core::ops::function::FnOnce<(libsignal_core::curve::PublicKey,), alloc::vec::Vec<u8>> for libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{closure}}]
-    Source: 'rust/protocol/src/protocol.rs', lines 904:41-904:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
 @[reducible]
 def
   protocol.DecryptionErrorMessage.for_original.closure.Insts.CoreOpsFunctionFnOnceTuplePublicKeyVecU8
@@ -5346,7 +5355,7 @@ def
 }
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original]:
-    Source: 'rust/protocol/src/protocol.rs', lines 879:4-915:5
+    Source: 'rust/protocol/src/protocol.rs', lines 882:4-918:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.for_original
   (original_bytes : Slice Std.U8)
@@ -5453,14 +5462,14 @@ def protocol.DecryptionErrorMessage.for_original
     ok (core.result.Result.Err (error.SignalProtocolError.InvalidArgument s))
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::timestamp]:
-    Source: 'rust/protocol/src/protocol.rs', lines 918:4-920:5
+    Source: 'rust/protocol/src/protocol.rs', lines 921:4-923:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.timestamp
   (self : protocol.DecryptionErrorMessage) : Result timestamp.Timestamp := do
   ok self.timestamp
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::ratchet_key]:
-    Source: 'rust/protocol/src/protocol.rs', lines 923:4-925:5
+    Source: 'rust/protocol/src/protocol.rs', lines 926:4-928:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.ratchet_key
   (self : protocol.DecryptionErrorMessage) :
@@ -5469,21 +5478,21 @@ def protocol.DecryptionErrorMessage.impl.ratchet_key
   core.option.Option.as_ref self.ratchet_key
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::device_id]:
-    Source: 'rust/protocol/src/protocol.rs', lines 928:4-930:5
+    Source: 'rust/protocol/src/protocol.rs', lines 931:4-933:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.device_id
   (self : protocol.DecryptionErrorMessage) : Result Std.U32 := do
   ok self.device_id
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::serialized]:
-    Source: 'rust/protocol/src/protocol.rs', lines 933:4-935:5
+    Source: 'rust/protocol/src/protocol.rs', lines 936:4-938:5
     Visibility: public -/
 def protocol.DecryptionErrorMessage.impl.serialized
   (self : protocol.DecryptionErrorMessage) : Result (Slice Std.U8) := do
   ok self.serialized
 
 /-- Trait implementation: [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::DecryptionErrorMessage}]
-    Source: 'rust/protocol/src/protocol.rs', lines 938:0-960:1 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 941:0-963:1 -/
 @[reducible]
 def
   protocol.DecryptionErrorMessage.Insts.CoreConvertTryFromShared0SliceU8SignalProtocolError

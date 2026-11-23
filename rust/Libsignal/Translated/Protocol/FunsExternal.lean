@@ -1596,12 +1596,6 @@ axiom
   Slice Std.U8 → Result (core.result.Result protocol.SignalMessage
     error.SignalProtocolError)
 
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_ciphertext]:
-    Source: 'rust/protocol/src/protocol.rs', lines 415:4-417:5
-    Visibility: public -/
-axiom protocol.PreKeySignalMessage.kyber_ciphertext
-  : protocol.PreKeySignalMessage → Result (Option (Slice Std.U8))
-
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PreKeySignalMessage}::try_from]:
     Source: 'rust/protocol/src/protocol.rs', lines 449:4-516:5
     Visibility: public -/
