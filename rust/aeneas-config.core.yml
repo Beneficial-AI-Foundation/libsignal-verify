@@ -54,7 +54,6 @@ charon:
     - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
     # Crate-level excludes
-    - "libsignal_core::curve::curve25519" # Charon panic in curve25519_dalek
     - "core::str::pattern"                # GATs unsupported by Aeneas
     - "rand::distr::uniform"              # mutually recursive traits
     - "zerocopy"                          # raw pointer ops, GATs
@@ -69,11 +68,9 @@ charon:
     - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::curve::_::verify_signature_for_multipart_message"
     - "libsignal_core::curve::_::is_torsion_free"
-    - "libsignal_core::curve::_::public_key"
     - "libsignal_core::curve::_::calculate_signature"
     - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
     - "libsignal_core::curve::_::calculate_agreement"
-    - "libsignal_core::curve::_::generate"
     - "libsignal_core::curve::_::try_from"
 
 aeneas_args:

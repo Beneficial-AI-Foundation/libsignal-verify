@@ -109,10 +109,10 @@ The stubs of these statements are temporary, unlike the security placeholders ab
 
 ## Contracts, policies and modelling choices of the Full realization
 
-These are the hypotheses of the Full statements, each a named proposition. A contract describes an opaque
-leaf of the extraction and is trusted. A policy describes what the calling application supplies. A modelling
-choice describes something outside the extracted code. The contracts are in
-`Protocols/PQXDH/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
+These are the hypotheses of the Full statements, each a named proposition. A contract describes an opaque leaf
+of the extraction, or an extracted function whose body calls opaque leaves, and is trusted. A policy describes
+what the calling application supplies. A modelling choice describes something outside the extracted code. The
+contracts are in `Protocols/PQXDH/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
 
 | Item | Kind | Describes | Discharged by |
 | --- | --- | --- | --- |
@@ -123,7 +123,7 @@ choice describes something outside the extracted code. The contracts are in
 | `RngTotal` | contract | totality of the caller's generator on a domain containing the drawn states | the caller's choice of generator |
 | `ToOwnedTotal` | contract | `str::to_owned` terminates; `pqxdh_accept` calls it only to build the error message for a non-canonical ephemeral key | none: the Aeneas standard library models no way to build a `String` from a `str`, so no translation patch can route the call through a modelled one |
 | `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | unchanged from `main` |
-| `GenerateTotal` | contract | Core's `KeyPair::generate`, the call that draws Alice's ephemeral key in `initiate`: on a state in the domain of a total generator it returns a valid pair and a state in the domain. Only the total form exists; `PartialContracts` has no fault-or-value form | curve25519-dalek-fork and the `rand` crate |
+| `GenerateTotal` | contract | Core's `KeyPair::generate`, the call that draws Alice's ephemeral key in `initiate`: on a state in the domain of a total generator it returns a valid pair and a state in the domain. Only the total form exists; `PartialContracts` has no fault-or-value form. `generate` is extracted with its body; the outside items that it calls have no body | curve25519-dalek-fork (`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the `rand` crate |
 | `KyberBridge` | contract | extracted Kyber calls fault or return the outputs of an abstract KEM `K` | a model of libcrux |
 | `KyberDeltaCorrect` | contract | correctness error of the extracted Kyber operations at most `δ`, with encapsulation on a state from `P.coins` (core statement) | published Kyber analysis with a model of libcrux |
 | `KyberDeltaCorrectAfterGenerate` | contract | the same bound with encapsulation on the state that Alice's `generate` returns, as in the wrapper; faults of `generate` count as failures; assumes no law of that state beyond the law of `P.coins` (wrapper statements) | published Kyber analysis with a model of libcrux |

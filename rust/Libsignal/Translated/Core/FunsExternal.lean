@@ -85,6 +85,14 @@ axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref
 
 -- alloc::vec::Vec::into_boxed_slice is shared; imported from Libsignal.Translated.Shared.Alloc.
 
+/-- [curve25519_dalek::scalar::clamp_integer]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/curve25519-dalek-5.0.0/src/scalar.rs', lines 1407:0-1407:59
+    Name pattern: [curve25519_dalek::scalar::clamp_integer]
+    Visibility: public -/
+@[rust_fun "curve25519_dalek::scalar::clamp_integer"]
+axiom curve25519_dalek.scalar.clamp_integer
+  : Array Std.U8 32#usize → Result (Array Std.U8 32#usize)
+
 /-- [derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<T>}::new]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-2.1.1/src/convert.rs', lines 29:8-29:42
     Name pattern: [derive_more::convert::try_from::{derive_more::convert::try_from::TryFromReprError<@T>}::new]
@@ -110,6 +118,42 @@ axiom uuid.builder.Uuid.from_slice
     Visibility: public -/
 @[rust_fun "uuid::builder::{uuid::Uuid}::from_bytes"]
 axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
+
+/-- [x25519_dalek::x25519::{impl core::convert::From<[u8; 32usize]> for x25519_dalek::x25519::StaticSecret}::from]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 249:4-249:44
+    Name pattern: [x25519_dalek::x25519::{core::convert::From<x25519_dalek::x25519::StaticSecret, [u8; 32]>}::from]
+    Visibility: public -/
+@[rust_fun
+  "x25519_dalek::x25519::{core::convert::From<x25519_dalek::x25519::StaticSecret, [u8; 32]>}::from"]
+axiom x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from
+  : Array Std.U8 32#usize → Result x25519_dalek.x25519.StaticSecret
+
+/-- [x25519_dalek::x25519::{x25519_dalek::x25519::StaticSecret}::to_bytes]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 235:4-235:38
+    Name pattern: [x25519_dalek::x25519::{x25519_dalek::x25519::StaticSecret}::to_bytes]
+    Visibility: public -/
+@[rust_fun
+  "x25519_dalek::x25519::{x25519_dalek::x25519::StaticSecret}::to_bytes"]
+axiom x25519_dalek.x25519.StaticSecret.to_bytes
+  : x25519_dalek.x25519.StaticSecret → Result (Array Std.U8 32#usize)
+
+/-- [x25519_dalek::x25519::{impl core::convert::From<&'a x25519_dalek::x25519::StaticSecret> for x25519_dalek::x25519::PublicKey}::from]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 257:4-257:50
+    Name pattern: [x25519_dalek::x25519::{core::convert::From<x25519_dalek::x25519::PublicKey, &'a x25519_dalek::x25519::StaticSecret>}::from]
+    Visibility: public -/
+@[rust_fun
+  "x25519_dalek::x25519::{core::convert::From<x25519_dalek::x25519::PublicKey, &'a x25519_dalek::x25519::StaticSecret>}::from"]
+axiom
+  x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from
+  : x25519_dalek.x25519.StaticSecret → Result x25519_dalek.x25519.PublicKey
+
+/-- [x25519_dalek::x25519::{x25519_dalek::x25519::PublicKey}::as_bytes]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 50:4-50:39
+    Name pattern: [x25519_dalek::x25519::{x25519_dalek::x25519::PublicKey}::as_bytes]
+    Visibility: public -/
+@[rust_fun "x25519_dalek::x25519::{x25519_dalek::x25519::PublicKey}::as_bytes"]
+axiom x25519_dalek.x25519.PublicKey.as_bytes
+  : x25519_dalek.x25519.PublicKey → Result (Array Std.U8 32#usize)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]:
     Source: 'rust/core/src/curve.rs', lines 84:4-105:5
@@ -141,14 +185,6 @@ axiom curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
 axiom curve.PrivateKey.deserialize
   :
   Slice Std.U8 → Result (core.result.Result curve.PrivateKey
-    curve.CurveError)
-
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]:
-    Source: 'rust/core/src/curve.rs', lines 259:4-267:5
-    Visibility: public -/
-axiom curve.PrivateKey.public_key
-  :
-  curve.PrivateKey → Result (core.result.Result curve.PublicKey
     curve.CurveError)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature]:
@@ -185,14 +221,6 @@ axiom
   :
   Slice Std.U8 → Result (core.result.Result curve.PrivateKey
     curve.CurveError)
-
-/-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]:
-    Source: 'rust/core/src/curve.rs', lines 327:4-341:5
-    Visibility: public -/
-axiom curve.KeyPair.generate
-  {R : Type} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
-  rand_core_1.CryptoRng R) :
-  R → Result (curve.KeyPair × R)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::calculate_signature]:
     Source: 'rust/core/src/curve.rs', lines 362:4-368:5
