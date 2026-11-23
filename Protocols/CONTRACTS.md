@@ -1,9 +1,9 @@
 # Contract reviews
 
 The PQXDH statements of the Full realization rest on contracts: named hypotheses about opaque leaves of
-the extraction. `Protocols/LEDGER.md` lists them. This file reviews the contracts that stay assumptions:
-what each one states, which Rust code it stands for, why we believe it, what breaks if it is false, and
-what would discharge it.
+the extraction, or about extracted functions whose bodies call opaque leaves. `Protocols/LEDGER.md`
+lists them. This file reviews the contracts that stay assumptions: what each one states, which Rust
+code it stands for, why we believe it, what breaks if it is false, and what would discharge it.
 
 ## Scope and conventions
 
@@ -75,14 +75,14 @@ numbers in that patched copy. This file cites the committed tree unless it says 
    copy. Its link to production is the two translation patches, which we checked. See section 1.
 5. **Stale citation.** The docstring of `RngTotal` cites `rand_core` 0.9.3. `Cargo.lock` pins 0.9.5.
    The cited lines are the same in both versions.
-6. **The security statements reach `generate` with no premise on it.** The closures of
-   `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` contain Core's `curve.KeyPair.generate`.
-   These statements take neither `GenerateTotal` nor a fault-or-value form of it, because
-   `PartialContracts` has none. They count the faults of `generate` in `Pr[⊥]`, but no premise says
-   what a returning call gives: a pair with a derived public half, or a key whose law relates to
-   `P.ecKeygen`. `Protocols/LEDGER.md` records this under "Security placeholders". `ToOwnedTotal` has
-   no fault-or-value form either, but its string goes only into an error value (section 2). See
-   section 8.
+6. **The security statements reach `generate` with no premise on it.** `uakeInitiator_secure_dh` and
+   `uakeInitiator_secure_pq` run Core's extracted `curve.KeyPair.generate`, and their closures contain
+   the outside items that its body calls (section 9). These statements take neither `GenerateTotal`
+   nor a fault-or-value form of it, because `PartialContracts` has none. They count the faults of
+   `generate` in `Pr[⊥]`, but no premise says what a returning call gives: a pair with a derived
+   public half, or a key whose law relates to `P.ecKeygen`. `Protocols/LEDGER.md` records this under
+   "Security placeholders". `ToOwnedTotal` has no fault-or-value form either, but its string goes only
+   into an error value (section 2). See section 8.
 
 ## Summary
 
@@ -95,7 +95,7 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #75 for the coins |
 | `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` | the decryption-failure probability of Kyber-1024, with encapsulation on a state from `P.coins` or on the state that `generate` returns | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux; for the second, also a description of the state that `generate` returns |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
-| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), opaque in the extraction | a translated body of `KeyPair::generate`, which turns the contract into a proof obligation; its calls into `curve::curve25519` and `x25519-dalek` still need bodies or contracts |
+| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | curve25519-dalek-fork (`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the `rand` crate |
 
 ## 1. `HkdfSha256Contract`
 
@@ -425,9 +425,8 @@ generator has drawn her ephemeral key.
   (`Protocols/PQXDH/Scheme.lean`) runs the initiator's entry point on the state that `generate`
   returns, which is the state that `kyberKemAfterGenerate` uses.
 - Neither contract can be derived in Lean from the other. Both bound an average over the
-  encapsulation state, and the two states can have different laws. `generate` is opaque, and
-  `GenerateTotal` says only that the returned state is in `Dom` (section 8). No Lean lemma relates the
-  two contracts.
+  encapsulation state, and the two states can have different laws. `GenerateTotal` says only that the
+  returned state is in `Dom` (section 8). No Lean lemma relates the two contracts.
 
 **Why believed.** In this paragraph, three facts about libcrux's `kyber1024` are checked here: its
 round-3 label (`src/lib.rs:104-114`), rank 4, and compression 11 and 5. The failure analysis is cited
@@ -482,7 +481,10 @@ curve25519-dalek specifications. This review stands until then.
 **Stands for.** `PrivateKey::public_key`, `calculate_agreement` and `calculate_signature` and
 `PublicKey::is_torsion_free`, `is_canonical` and `verify_signature_for_multipart_message` in
 `rust/core/src/curve.rs`, over `rust/core/src/curve/curve25519.rs`, `x25519-dalek` 3.0.0 and
-`curve25519-dalek` 5.0.0.
+`curve25519-dalek` 5.0.0. Of these, `PrivateKey::public_key` is extracted with its body
+(`rust/Libsignal/Translated/Core/Funs.lean`), and the contracts that name it speak of that definition.
+The body calls `clamp_integer` of curve25519-dalek and items of x25519-dalek that have no body in Lean
+(section 9).
 
 | Contract | Statement | Checked here | From the source |
 | --- | --- | --- | --- |
@@ -539,10 +541,11 @@ that satisfy `RngTotal`, so this part is a separate claim. It holds for the Rust
 nothing about the law of the pair or of the returned state.
 
 **Stands for.** `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs:327-341`). This is a
-function of libsignal-core itself, not of an outside library. The Core extraction makes it opaque
-(`rust/aeneas-config.core.yml`, with the other functions of `curve.rs` that call into
-curve25519-dalek) and excludes the module `curve::curve25519` that it calls. So the contract stands
-for these lines:
+function of libsignal-core itself, not of an outside library. The Core extraction gives it and the
+three functions of `curve::curve25519` that it calls their bodies
+(`rust/Libsignal/Translated/Core/Funs.lean`), so the contract is a statement about these definitions,
+not yet proved. The bodies call `clamp_integer` of curve25519-dalek and items of x25519-dalek that
+have no body in Lean (section 9). The contract stands for these lines:
 
 - `KeyPair::generate` (`curve.rs:327-341`). It calls `curve25519::PrivateKey::new`, and it stores
   `derive_public_key_bytes()` as the public key and `private_key_bytes()` as the private key.
@@ -576,8 +579,8 @@ does not panic. As for X25519 in section 7, we did not read this code for panics
 
 **Gaps.**
 
-- No fault-or-value form. `PartialContracts` does not include `GenerateTotal`. The closures of
-  `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` contain `curve.KeyPair.generate`, and these
+- No fault-or-value form. `PartialContracts` does not include `GenerateTotal`.
+  `uakeInitiator_secure_dh` and `uakeInitiator_secure_pq` run `curve.KeyPair.generate`, and these
   statements take no premise on it (finding 6).
 - `ECKeyPairValid` is the only property of the pair. No premise describes the law of Alice's ephemeral
   key, which comes from `generate` and not from `P.ecKeygen`, or the law of the state that `generate`
@@ -589,13 +592,14 @@ not the one derived from its private half. `fullExp_noLostMass`, the two `_total
 `wrapperAgreement_*` take `GenerateTotal` as the hypothesis `hG`. If it fails, these statements say
 nothing about production. `coreCompletion_extracted` and `jointKeyAgreement_extracted` do not take it:
 they draw the ephemeral key from `P.ecKeygen` (`coreHonestRun` in `Protocols/PQXDH/Correctness.lean`),
-and their closures do not contain `generate`.
+and they do not run `generate`.
 
-**Discharge.** A translated body of `KeyPair::generate` would turn this assumption into a proof
-obligation on that body. The functions of `curve::curve25519` that the body calls, what they call in
-`x25519-dalek`, and `PrivateKey::public_key` in `ECKeyPairValid` would still need bodies or contracts
-of their own. `Protocols/LEDGER.md` gives the curve25519-dalek fork and the `rand` crate as the
-discharge. This review did not check that route.
+**Discharge.** `KeyPair::generate`, the functions of `curve::curve25519` that it calls, and
+`PrivateKey::public_key` in `ECKeyPairValid` are extracted with their bodies, so the contract is a
+statement about these bodies, not yet proved. The bodies call items of curve25519-dalek and
+x25519-dalek that have no body in Lean (section 9). `Protocols/LEDGER.md` gives curve25519-dalek-fork
+(`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the
+`rand` crate as the discharge. This review did not check that route.
 
 **Fault-or-value form.** None. `PartialContracts` does not include `GenerateTotal`.
 
@@ -619,28 +623,52 @@ from the admitted statements that `Protocols/LEDGER.md` lists under "Security pl
 | `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |
 | `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate` | `KyberDecaps`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |
 | `curve.PrivateKey.calculate_agreement` | `AgreementDerived`, `AgreementTotal` (section 7) |
-| `curve.PrivateKey.public_key` | `AgreementDerived`, `DerivedCanonical`, `SignVerify` (section 7); `GenerateTotal` through `ECKeyPairValid` (section 8); the policy `ECKeyPairValid` |
 | `curve.PrivateKey.calculate_signature` | `SignTotal`, `SignVerify` (section 7) |
 | `curve.PublicKey.is_torsion_free` | `TorsionFreeTotal`, and `DerivedCanonical` through `is_canonical` (section 7) |
 | `curve.PublicKey.verify_signature_for_multipart_message` | `VerifyTotal`, and `SignVerify` through `verify_signature` (section 7) |
-| `curve.KeyPair.generate` | `GenerateTotal` (section 8), with no fault-or-value form; `KyberDeltaCorrectAfterGenerate` runs it before encapsulation (section 6) |
+| `curve25519_dalek.scalar.clamp_integer`, `x25519_dalek.x25519.StaticSecret`, `x25519_dalek.x25519.PublicKey`, `x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from`, `x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from`, `x25519_dalek.x25519.PublicKey.as_bytes` | no contract of their own; the bodies of `public_key` and `generate` call them, see below |
+| `x25519_dalek.x25519.StaticSecret.to_bytes` | no contract of its own; the body of `generate` calls it, see below |
 | `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length` | none needed, see below |
 | `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero` | none needed, see below |
 
 **Checked here.**
 
 - The contracts constrain the same constants that the entry points and the Full realization call. The
-  closures of `CoreContracts`, `SignatureContracts`, `PartialContracts` and `GenerateTotal` name the
-  `curve.*` declarations of `rust/Libsignal/Translated/Core/FunsExternal.lean`.
+  closures of `CoreContracts`, `SignatureContracts` and `PartialContracts` name the `curve.*`
+  declarations of `rust/Libsignal/Translated/Core/FunsExternal.lean`. The closure of `GenerateTotal`
+  names none of them: besides `propext`, `Classical.choice` and `Quot.sound`, it contains only the
+  seven outside items of the table above.
   `rust/Libsignal/Translated/Protocol/FunsExternal.lean` declares no axiom for the curve functions in
   the table above. `rust/Libsignal/Translated/Core/CurveProvider.lean` makes the Protocol names of
-  `generate`, `public_key`, `calculate_agreement`, `calculate_signature` and
-  `verify_signature_for_multipart_message` abbreviations of Core's declarations, such as
-  `libsignal_core.curve.KeyPair.generate` for `curve.KeyPair.generate`. So a Protocol caller of these
-  five functions reaches the declaration that the contracts name. `is_torsion_free` has no Protocol
-  name: Core's translated body of `is_canonical` (`rust/Libsignal/Translated/Core/Funs.lean`) calls
-  `curve.PublicKey.is_torsion_free`. `initiate` and `kyberKemAfterGenerate` call
-  `curve.KeyPair.generate`, the declaration that `GenerateTotal` names.
+  `calculate_agreement`, `calculate_signature` and `verify_signature_for_multipart_message`
+  abbreviations of Core's declarations, such as `libsignal_core.curve.PrivateKey.calculate_agreement`
+  for `curve.PrivateKey.calculate_agreement`. For `generate` and `public_key` it goes the other way:
+  the Protocol names `libsignal_core.curve.KeyPair.generate` and
+  `libsignal_core.curve.PrivateKey.public_key` are Core's definitions, and the names
+  `curve.KeyPair.generate` and `curve.PrivateKey.public_key` that the contracts use are abbreviations
+  of them. So a Protocol caller of the first three functions reaches the declaration that the
+  contracts name, and a caller of `generate` or `public_key` reaches the definition that this name
+  abbreviates. `is_torsion_free` has no Protocol name: Core's translated body of `is_canonical`
+  (`rust/Libsignal/Translated/Core/Funs.lean`) calls `curve.PublicKey.is_torsion_free`. `initiate`
+  and `kyberKemAfterGenerate` call `curve.KeyPair.generate`, the declaration that `GenerateTotal`
+  names.
+- The seven declarations of `curve25519-dalek` 5.0.0 and `x25519-dalek` 3.0.0 in the table are items
+  of these outside crates that the extracted bodies of `PrivateKey::public_key` and
+  `KeyPair::generate` call (`rust/Libsignal/Translated/Core/Funs.lean`). `clamp_integer` clamps 32
+  bytes to an X25519 scalar. `StaticSecret` and `PublicKey` are the secret-key and public-key types of
+  x25519-dalek, declared in `rust/Libsignal/Translated/Core/TypesExternal.lean`.
+  `From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey` and
+  `PublicKey::as_bytes` build a secret from bytes, return its bytes, derive its public key and return
+  that key's bytes. These four and `clamp_integer` are declared in
+  `rust/Libsignal/Translated/Core/FunsExternal.lean`. `public_key` calls all of them but `to_bytes`,
+  and `generate` calls all seven, `to_bytes` through `private_key_bytes`. So the closures of
+  `CoreContracts`, `SignatureContracts`, `PartialContracts`, `coreCompletion_extracted` and
+  `jointKeyAgreement_extracted` contain all of them but `StaticSecret.to_bytes`, and the closures of
+  the statements that run `generate`, such as the four security statements, `fullExp_noLostMass`,
+  both `wrapperAgreement_*`, `GenerateTotal` and `KyberDeltaCorrectAfterGenerate`, contain all
+  seven. The closures of `pqxdh_initiate` and `pqxdh_accept` contain none of them. No contract
+  states a fact about these items, and this file does not review them. Section 8 cites the lines of
+  their source that its check of `ECKeyPairValid` uses.
 - The two `key_length` axioms enter the closures only as the field of the `KeyKind` instances
   (`rust/Libsignal/Translated/Protocol/Funs.lean`). On the PQXDH paths the instance is passed to
   `KeyMaterial`'s `deref`, which ignores it and returns the key bytes. No PQXDH path calls `key_length`.
