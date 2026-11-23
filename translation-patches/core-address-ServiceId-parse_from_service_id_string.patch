@@ -1,8 +1,8 @@
 Translation patch: libsignal_core::address::ServiceId::parse_from_service_id_string
 
 Change: `input.strip_prefix("PNI:")` becomes a call of the new function `strip_pni_prefix` at the end of the file. It tests that the bytes of `input` start with the bytes `PNI:` (a length check and a comparison of `bytes[..4]` with `b"PNI:"`) and then returns the second half of `input.split_at(4)`. No other line of the file moves.
-Why: `str::strip_prefix` goes through `core::str::pattern`, which the extraction excludes (Aeneas does not support its generic associated types).
-Behaviour: same result. For a `&str` prefix, `strip_prefix` returns `Some(&input[4..])` exactly when the bytes of `input` start with the bytes of `"PNI:"`, and `None` otherwise. `split_at(4)` returns `(&input[..4], &input[4..])` and cannot panic here: the four bytes before index 4 are ASCII, so index 4 is a character boundary.
+Why: `str::strip_prefix` is generic over `core::str::pattern::Pattern`, and the extraction excludes `core::str::pattern` (Aeneas does not support its generic associated types). Without this patch Aeneas reports "Could not find: trait_decl_id" at the signature of `strip_prefix` (library/core/src/str/mod.rs, line 2458) and "Could not find: trait_impl_id" at the parser, and leaves the parser without a body.
+Behaviour: same result. For a `&str` prefix, `strip_prefix` returns `Some(haystack.get_unchecked(4..))` exactly when `haystack.as_bytes().starts_with(b"PNI:")` (library/core/src/str/pattern.rs, `strip_prefix_of` and `is_prefix_of` for `&str`), and `[u8]::starts_with` is `self.len() >= n && needle == &self[..n]` (library/core/src/slice/mod.rs), the test written here. `split_at(4)` returns `(&input[..4], &input[4..])`; it panics only when 4 is not a character boundary, and here the four bytes before index 4 are ASCII.
 
 diff --git a/rust/core/src/address.rs b/rust/core/src/address.rs
 --- a/rust/core/src/address.rs
