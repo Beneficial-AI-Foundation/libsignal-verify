@@ -2,7 +2,7 @@
 
 Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the supported `signal-crypto` operations, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
 
-The crypto profile translates AES-GCM constructors, encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. The constructors propagate errors and assemble their state; `setup_gcm`, including its key/nonce validation and primitive initialization, remains external. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Protocol through an exact trait alias.
+The crypto profile translates AES-GCM constructors, encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. The constructors propagate errors and assemble their state; `setup_gcm`, including its key/nonce validation and primitive initialization, remains external. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Core and Protocol through an exact trait alias.
 
 PQXDH's optional-prekey accessors, `HandshakeKeys::derive` and `derive_with_label` are translated. The generated code supplies the domain-separation label, calls HKDF-SHA256 for 96 bytes, and copies bytes 0–31, 32–63 and 64–95 into the root, chain and initial PQR keys. HKDF remains the primitive boundary; splitting and key construction are generated.
 
@@ -123,6 +123,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - `verify_signature_for_multipart_message(&self, message: &[&[u8]], signature: &[u8]) -> bool` — opaque (calls curve25519)
 - `key_type(&self) -> KeyType`
 - `is_canonical(&self) -> bool`
+- `PartialEq` (calls `ConstantTimeEq for PublicKey`, `key_data` and the derived `PartialEq` of `KeyType`)
 
 ### PrivateKey
 
@@ -254,7 +255,7 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `double_ratchet::skipped_key_from_pb` | `MessageKeyGenerator::from_pb` followed by the same `map` and `map_err` | Transcription; `InvalidSessionError` translates to `Str` |
 | `Iterator::position` for slice iterators | Transcription of the loop in core's `slice/iter/macros.rs`: apply the predicate in order, stop at the first `true`, consume that element | It was an axiom, so nothing fixed which receiver chain or skipped key `find_receiver_chain_index` and `take_skipped_key` select |
 | `subtle::Choice` | Structure with one `U8` field, owned by Crypto and imported by Protocol | Rust defines `struct Choice(u8)`, holding 0 or 1 |
-| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
+| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Core and Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model. `ConstantTimeEq for i32`, which `ConstantTimeEq for PublicKey` calls as `0.ct_eq(&1)` when the key types differ, has no model (`Core/FunsExternal.lean`) |
 | `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
 | `<Box<T, A> as AsRef<T>>::as_ref` | `fun x => ok x` | The `alloc` body returns `self`, a borrow of the boxed value with no failing path, and Aeneas models both `Box<T, A>` and `&T` as `T`. The allocator type parameter stays in the signature |
 | `triple_ratchet::decrypt_failure_message` | External | String formatting, as for `format!` elsewhere |

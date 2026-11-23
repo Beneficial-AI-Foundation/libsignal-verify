@@ -113,6 +113,20 @@ def libsignal_core.derive_more.convert.try_from.TryFromReprError.new
   Result (libsignal_core.derive_more.convert.try_from.TryFromReprError T) :=
   ok { input }
 
+-- (dropped axiom Bool.Insts.CoreConvertFromChoice.from; provided by an imported sibling lib)
+
+-- (dropped axiom Slice.Insts.SubtleConstantTimeEq.ct_eq; provided by an imported sibling lib)
+
+-- (dropped axiom U8.Insts.SubtleConstantTimeEq.ct_eq; provided by an imported sibling lib)
+
+/-- [subtle::{impl subtle::ConstantTimeEq for i32}::ct_eq]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 362:12-362:51; this code is generated from a macro invocation at: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 372:0-372:37
+    Name pattern: [subtle::{subtle::ConstantTimeEq<i32>}::ct_eq]
+    Visibility: public -/
+@[rust_fun "subtle::{subtle::ConstantTimeEq<i32>}::ct_eq"]
+axiom I32.Insts.SubtleConstantTimeEq.ct_eq
+  : Std.I32 → Std.I32 → Result subtle.Choice
+
 /-- [uuid::builder::{uuid::Uuid}::from_slice]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/builder.rs', lines 287:4-287:54
     Name pattern: [uuid::builder::{uuid::Uuid}::from_slice]

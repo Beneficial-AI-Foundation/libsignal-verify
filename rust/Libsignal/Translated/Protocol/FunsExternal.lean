@@ -701,16 +701,7 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone
 
 -- (dropped axiom libsignal_core.curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
-    Source: 'rust/core/src/curve.rs', lines 215:4-215:43
-    Name pattern: [libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::eq]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::eq"]
-axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
-  :
-  libsignal_core.curve.PublicKey → libsignal_core.curve.PublicKey → Result
-    Bool
+-- (dropped axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PrivateKey.deserialize; provided by an imported sibling lib)
 

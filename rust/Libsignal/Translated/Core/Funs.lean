@@ -87,6 +87,14 @@ def U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner :
   markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy
 }
 
+/-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36; this code is generated from a macro invocation at: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 370:0-370:34
+    Name pattern: [subtle::ConstantTimeEq<u8>] -/
+@[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
+def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
+  ct_eq := U8.Insts.SubtleConstantTimeEq.ct_eq
+}
+
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceIdKind> for libsignal_core::address::ServiceIdKind}::eq]:
     Source: 'rust/core/src/address.rs', lines 16:28-16:37
     Visibility: public -/
@@ -142,10 +150,13 @@ def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
 /-- Trait implementation: [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}]
     Source: 'rust/core/src/address.rs', lines 62:22-62:31 -/
 @[reducible]
-def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId (RAW_KIND
-  : Std.U8) : core.cmp.PartialEq (address.SpecificServiceId RAW_KIND)
+impl_def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId
+  (RAW_KIND : Std.U8) : core.cmp.PartialEq (address.SpecificServiceId RAW_KIND)
   (address.SpecificServiceId RAW_KIND) := {
   eq := address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    (address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId
+    RAW_KIND)
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::from_uuid]:
@@ -570,6 +581,23 @@ def curve.curve25519.PrivateKey.Insts.CoreConvertFromArrayU832.from
     x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from a
   ok { secret }
 
+/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::KeyType> for libsignal_core::curve::KeyType}::eq]:
+    Source: 'rust/core/src/curve.rs', lines 14:29-14:38
+    Visibility: public -/
+def curve.KeyType.Insts.CoreCmpPartialEqKeyType.eq
+  (self : curve.KeyType) (other : curve.KeyType) : Result Bool := do
+  ok true
+
+/-- Trait implementation: [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::KeyType> for libsignal_core::curve::KeyType}]
+    Source: 'rust/core/src/curve.rs', lines 14:29-14:38 -/
+@[reducible]
+impl_def curve.KeyType.Insts.CoreCmpPartialEqKeyType : core.cmp.PartialEq
+  curve.KeyType curve.KeyType := {
+  eq := curve.KeyType.Insts.CoreCmpPartialEqKeyType.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    curve.KeyType.Insts.CoreCmpPartialEqKeyType
+}
+
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyType}::value]:
     Source: 'rust/core/src/curve.rs', lines 26:4-30:5 -/
 def curve.KeyType.value (self : curve.KeyType) : Result Std.U8 := do
@@ -649,6 +677,13 @@ def curve.PublicKey.verify_signature
   let s ← lift (Array.to_slice (Array.make 1#usize [ message ]))
   curve.PublicKey.verify_signature_for_multipart_message self s signature
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::key_data]:
+    Source: 'rust/core/src/curve.rs', lines 153:4-157:5 -/
+def curve.PublicKey.key_data
+  (self : curve.PublicKey) : Result (Slice Std.U8) := do
+  let ⟨ k ⟩ := self.key
+  Array.Insts.CoreConvertAsRefSlice.as_ref k
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::scalar_is_in_range]:
     Source: 'rust/core/src/curve.rs', lines 176:4-186:5 -/
 def curve.PublicKey.scalar_is_in_range
@@ -688,6 +723,33 @@ def curve.PublicKey.is_canonical (self : curve.PublicKey) : Result Bool := do
   if b
   then curve.PublicKey.scalar_is_in_range self
   else ok false
+
+/-- [libsignal_core::curve::{impl subtle::ConstantTimeEq for libsignal_core::curve::PublicKey}::ct_eq]:
+    Source: 'rust/core/src/curve.rs', lines 206:4-211:5
+    Visibility: public -/
+def curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq
+  (self : curve.PublicKey) (other : curve.PublicKey) :
+  Result subtle.Choice
+  := do
+  let kt ← curve.PublicKey.key_type self
+  let kt1 ← curve.PublicKey.key_type other
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      curve.KeyType.Insts.CoreCmpPartialEqKeyType kt kt1
+  if b
+  then I32.Insts.SubtleConstantTimeEq.ct_eq 0#i32 1#i32
+  else
+    let s ← curve.PublicKey.key_data self
+    let s1 ← curve.PublicKey.key_data other
+    Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
+
+/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
+    Source: 'rust/core/src/curve.rs', lines 215:4-217:5
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
+  (self : curve.PublicKey) (other : curve.PublicKey) : Result Bool := do
+  let c ← curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq self other
+  Bool.Insts.CoreConvertFromChoice.from c
 
 /-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PrivateKeyData> for libsignal_core::curve::PrivateKey}::from]:
     Source: 'rust/core/src/curve.rs', lines 236:37-236:54
