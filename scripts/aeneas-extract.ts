@@ -31,6 +31,8 @@ const TARGETS: Record<TargetKey, {
       "libsignal_core::address::clone": 2,
       "libsignal_core::address::eq": 2,
       "libsignal_core::curve::eq": 1,
+      "libsignal_core::curve::deserialize": 2,
+      "libsignal_core::curve::try_from": 1,
     },
   },
   crypto: {

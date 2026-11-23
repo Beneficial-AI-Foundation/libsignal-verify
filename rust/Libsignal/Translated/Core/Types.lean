@@ -137,19 +137,24 @@ structure curve.PublicKey where
   key : curve.PublicKeyData
 
 /-- [libsignal_core::curve::PrivateKeyData]
-    Source: 'rust/core/src/curve.rs', lines 232:0-234:1 -/
+    Source: 'rust/core/src/curve.rs', lines 235:0-237:1 -/
 @[discriminant isize]
 inductive curve.PrivateKeyData where
 | DjbPrivateKey : Array Std.U8 32#usize → curve.PrivateKeyData
 
 /-- [libsignal_core::curve::PrivateKey]
-    Source: 'rust/core/src/curve.rs', lines 237:0-239:1
+    Source: 'rust/core/src/curve.rs', lines 240:0-242:1
     Visibility: public -/
 structure curve.PrivateKey where
   key : curve.PrivateKeyData
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}]
+    Source: 'rust/core/src/curve.rs', lines 248:21-248:76 -/
+@[reducible]
+def curve.PrivateKey.deserialize.closure := Slice Std.U8
+
 /-- [libsignal_core::curve::KeyPair]
-    Source: 'rust/core/src/curve.rs', lines 321:0-324:1
+    Source: 'rust/core/src/curve.rs', lines 324:0-327:1
     Visibility: public -/
 structure curve.KeyPair where
   public_key : curve.PublicKey

@@ -31,6 +31,7 @@ charon:
     - "{impl core::cmp::PartialEq for libsignal_core::address::ServiceId}::eq"
     - "{impl core::cmp::PartialEq for libsignal_core::curve::PublicKey}::eq"
     - "libsignal_core::curve::_::deserialize"
+    - "{impl core::convert::TryFrom for libsignal_core::curve::PublicKey}::try_from"
     - "libsignal_core::curve::_::serialize"
     - "libsignal_core::curve::_::key_type"
     - "libsignal_core::curve::_::public_key"
@@ -70,13 +71,12 @@ charon:
     - "libsignal_core::try_derive_arrays"
   opaque:
     # curve functions that call into curve25519_dalek or use log::warn!
-    - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::curve::_::verify_signature_for_multipart_message"
     - "libsignal_core::curve::_::is_torsion_free"
+    - "libsignal_core::curve::log_public_key_trailing_bytes" # log::warn!
     - "libsignal_core::curve::_::calculate_signature"
     - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
     - "libsignal_core::curve::_::calculate_agreement"
-    - "libsignal_core::curve::_::try_from"
 
 aeneas_args:
   options:

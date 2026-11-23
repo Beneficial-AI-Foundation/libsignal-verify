@@ -74,6 +74,23 @@ axiom core.result.Result.ok
 
 -- core::result Try::branch + FromResidual::from_residual are shared (Libsignal.Translated.Shared.Core).
 
+/-- [core::slice::{[T]}::split_first]:
+    Source: '/rustc/library/core/src/slice/mod.rs', lines 200:4-200:57
+    Name pattern: [core::slice::{[@T]}::split_first]
+    Visibility: public -/
+@[rust_fun "core::slice::{[@T]}::split_first"]
+axiom core.slice.Slice.split_first
+  {T : Type _} : Slice T → Result (Option (T × (Slice T)))
+
+/-- [core::slice::{[T]}::split_first_chunk]:
+    Source: '/rustc/library/core/src/slice/mod.rs', lines 389:4-389:84
+    Name pattern: [core::slice::{[@T]}::split_first_chunk]
+    Visibility: public -/
+@[rust_fun "core::slice::{[@T]}::split_first_chunk"]
+axiom core.slice.Slice.split_first_chunk
+  {T : Type _} (N : Std.Usize) :
+  Slice T → Result (Option ((Array T N) × (Slice T)))
+
 /-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
     Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
     Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
@@ -187,12 +204,11 @@ axiom
 axiom x25519_dalek.x25519.PublicKey.as_bytes
   : x25519_dalek.x25519.PublicKey → Result (Array Std.U8 32#usize)
 
-/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]:
-    Source: 'rust/core/src/curve.rs', lines 84:4-105:5
-    Visibility: public -/
-axiom curve.PublicKey.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result curve.PublicKey curve.CurveError)
+/-- [libsignal_core::curve::log_public_key_trailing_bytes]:
+    Source: 'rust/core/src/curve.rs', lines 81:0-83:1 -/
+-- Logging affects neither the key nor the result.
+def curve.log_public_key_trailing_bytes (_trailing : Std.Usize) : Result Unit :=
+  ok ()
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature_for_multipart_message]:
     Source: 'rust/core/src/curve.rs', lines 138:4-151:5
@@ -203,21 +219,6 @@ axiom curve.PublicKey.verify_signature_for_multipart_message
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::is_torsion_free]:
     Source: 'rust/core/src/curve.rs', lines 165:4-174:5 -/
 axiom curve.PublicKey.is_torsion_free : curve.PublicKey → Result Bool
-
-/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PublicKey}::try_from]:
-    Source: 'rust/core/src/curve.rs', lines 196:4-198:5
-    Visibility: public -/
-axiom curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
-  :
-  Slice Std.U8 → Result (core.result.Result curve.PublicKey curve.CurveError)
-
-/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize]:
-    Source: 'rust/core/src/curve.rs', lines 242:4-251:5
-    Visibility: public -/
-axiom curve.PrivateKey.deserialize
-  :
-  Slice Std.U8 → Result (core.result.Result curve.PrivateKey
-    curve.CurveError)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::calculate_signature]:
     Source: 'rust/core/src/curve.rs', lines 275:4-281:5
@@ -244,15 +245,6 @@ axiom curve.PrivateKey.calculate_agreement
   :
   curve.PrivateKey → curve.PublicKey → Result (core.result.Result (Slice
     Std.U8) curve.CurveError)
-
-/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PrivateKey}::try_from]:
-    Source: 'rust/core/src/curve.rs', lines 315:4-317:5
-    Visibility: public -/
-axiom
-  curve.PrivateKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
-  :
-  Slice Std.U8 → Result (core.result.Result curve.PrivateKey
-    curve.CurveError)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::calculate_signature]:
     Source: 'rust/core/src/curve.rs', lines 362:4-368:5

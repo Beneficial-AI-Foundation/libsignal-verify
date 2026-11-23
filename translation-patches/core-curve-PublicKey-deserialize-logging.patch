@@ -1,0 +1,34 @@
+Translation patch: libsignal_core::curve::PublicKey::deserialize
+
+Change: the `log::warn!` call for trailing bytes moves into the new function `log_public_key_trailing_bytes` in the same module, called at the same point with `tail.len()`.
+Why: Aeneas stops with an internal error on `log!` expansions ("Internal error: please file an issue" at the expansion, then `Not_found` in `llbc/FunsAnalysis.ml`). The helper is opaque in the extraction (`aeneas-config.core.yml`).
+Behaviour: same log level, target and message at the same point. The log record gives the helper's source line, and `tail.len()` is computed before the call instead of inside the macro (it has no effect).
+
+diff --git a/rust/core/src/curve.rs b/rust/core/src/curve.rs
+--- a/rust/core/src/curve.rs
++++ b/rust/core/src/curve.rs
+@@ -76,6 +76,12 @@
+     }
+ }
+ 
++// Logging helper: Aeneas fails on `log!` expansions, so the extraction treats
++// it as an opaque effect. Level and message are unchanged.
++fn log_public_key_trailing_bytes(trailing: usize) {
++    log::warn!("ECPublicKey deserialized with {} trailing bytes", trailing);
++}
++
+ impl PublicKey {
+     fn new(key: PublicKeyData) -> Self {
+         Self { key }
+@@ -92,10 +98,7 @@
+                 // We currently allow trailing data after the public key.
+                 // TODO: once this is known to not be seen in practice, make this a hard error.
+                 if !tail.is_empty() {
+-                    log::warn!(
+-                        "ECPublicKey deserialized with {} trailing bytes",
+-                        tail.len()
+-                    );
++                    log_public_key_trailing_bytes(tail.len());
+                 }
+                 Ok(PublicKey {
+                     key: PublicKeyData::DjbPublicKey(*key),

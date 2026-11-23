@@ -603,6 +603,17 @@ impl_def curve.KeyType.Insts.CoreCmpPartialEqKeyType : core.cmp.PartialEq
 def curve.KeyType.value (self : curve.KeyType) : Result Std.U8 := do
   ok 5#u8
 
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<u8, libsignal_core::curve::CurveError> for libsignal_core::curve::KeyType}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 50:4-55:5
+    Visibility: public -/
+def curve.KeyType.Insts.CoreConvertTryFromU8CurveError.try_from
+  (x : Std.U8) :
+  Result (core.result.Result curve.KeyType curve.CurveError)
+  := do
+  match x with
+  | 5#uscalar => ok (core.result.Result.Ok curve.KeyType.Djb)
+  | _ => ok (core.result.Result.Err (curve.CurveError.BadKeyType x))
+
 /-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PublicKeyData> for libsignal_core::curve::PublicKey}::from]:
     Source: 'rust/core/src/curve.rs', lines 63:26-63:43
     Visibility: public -/
@@ -611,13 +622,61 @@ def curve.PublicKey.Insts.CoreConvertFromPublicKeyData.from
   ok { key := value }
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::new]:
-    Source: 'rust/core/src/curve.rs', lines 80:4-82:5 -/
+    Source: 'rust/core/src/curve.rs', lines 86:4-88:5 -/
 def curve.PublicKey.new
   (key : curve.PublicKeyData) : Result curve.PublicKey := do
   ok { key }
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]:
+    Source: 'rust/core/src/curve.rs', lines 90:4-108:5
+    Visibility: public -/
+def curve.PublicKey.deserialize
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  let o ← core.slice.Slice.split_first value
+  let r ← core.option.Option.ok_or o curve.CurveError.NoKeyTypeIdentifier
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue p =>
+    let (key_type, value1) := p
+    let r1 ←
+      curve.KeyType.Insts.CoreConvertTryFromU8CurveError.try_from key_type
+    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+    match cf1 with
+    | core.ops.control_flow.ControlFlow.Continue _ =>
+      let o1 ← core.slice.Slice.split_first_chunk 32#usize value1
+      let i := Slice.len value1
+      let i1 ← i + 1#usize
+      let r2 ←
+        core.option.Option.ok_or o1 (curve.CurveError.BadKeyLength
+          curve.KeyType.Djb i1)
+      let cf2 ← core.result.Result.Insts.CoreOpsTry.branch r2
+      match cf2 with
+      | core.ops.control_flow.ControlFlow.Continue p1 =>
+        let (key, tail) := p1
+        let b ← core.slice.Slice.is_empty tail
+        if b
+        then
+          ok (core.result.Result.Ok
+            { key := (curve.PublicKeyData.DjbPublicKey key) })
+        else
+          let i2 := Slice.len tail
+          curve.log_public_key_trailing_bytes i2
+          ok (core.result.Result.Ok
+            { key := (curve.PublicKeyData.DjbPublicKey key) })
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+          curve.PublicKey (core.convert.FromSame curve.CurveError) residual
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+        curve.PublicKey (core.convert.FromSame curve.CurveError) residual
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      curve.PublicKey (core.convert.FromSame curve.CurveError) residual
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::public_key_bytes]:
-    Source: 'rust/core/src/curve.rs', lines 107:4-111:5
+    Source: 'rust/core/src/curve.rs', lines 110:4-114:5
     Visibility: public -/
 def curve.PublicKey.public_key_bytes
   (self : curve.PublicKey) : Result (Slice Std.U8) := do
@@ -625,7 +684,7 @@ def curve.PublicKey.public_key_bytes
   ok (Array.to_slice v)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::from_djb_public_key_bytes]:
-    Source: 'rust/core/src/curve.rs', lines 113:4-120:5
+    Source: 'rust/core/src/curve.rs', lines 116:4-123:5
     Visibility: public -/
 def curve.PublicKey.from_djb_public_key_bytes
   (bytes : Slice Std.U8) :
@@ -643,14 +702,14 @@ def curve.PublicKey.from_djb_public_key_bytes
       i))
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::key_type]:
-    Source: 'rust/core/src/curve.rs', lines 159:4-163:5
+    Source: 'rust/core/src/curve.rs', lines 162:4-166:5
     Visibility: public -/
 def curve.PublicKey.key_type
   (self : curve.PublicKey) : Result curve.KeyType := do
   ok curve.KeyType.Djb
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::serialize]:
-    Source: 'rust/core/src/curve.rs', lines 122:4-132:5
+    Source: 'rust/core/src/curve.rs', lines 125:4-135:5
     Visibility: public -/
 def curve.PublicKey.serialize
   (self : curve.PublicKey) : Result (Slice Std.U8) := do
@@ -667,7 +726,7 @@ def curve.PublicKey.serialize
   alloc.vec.FromBoxSliceVec.from result2
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::verify_signature]:
-    Source: 'rust/core/src/curve.rs', lines 134:4-136:5
+    Source: 'rust/core/src/curve.rs', lines 137:4-139:5
     Visibility: public -/
 def curve.PublicKey.verify_signature
   (self : curve.PublicKey) (message : Slice Std.U8) (signature : Slice Std.U8)
@@ -678,14 +737,14 @@ def curve.PublicKey.verify_signature
   curve.PublicKey.verify_signature_for_multipart_message self s signature
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::key_data]:
-    Source: 'rust/core/src/curve.rs', lines 153:4-157:5 -/
+    Source: 'rust/core/src/curve.rs', lines 156:4-160:5 -/
 def curve.PublicKey.key_data
   (self : curve.PublicKey) : Result (Slice Std.U8) := do
   let ⟨ k ⟩ := self.key
   Array.Insts.CoreConvertAsRefSlice.as_ref k
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::scalar_is_in_range]:
-    Source: 'rust/core/src/curve.rs', lines 176:4-186:5 -/
+    Source: 'rust/core/src/curve.rs', lines 179:4-189:5 -/
 def curve.PublicKey.scalar_is_in_range
   (self : curve.PublicKey) : Result Bool := do
   let ⟨ k ⟩ := self.key
@@ -716,7 +775,7 @@ def curve.PublicKey.scalar_is_in_range
   ok (¬ b)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::is_canonical]:
-    Source: 'rust/core/src/curve.rs', lines 188:4-190:5
+    Source: 'rust/core/src/curve.rs', lines 191:4-193:5
     Visibility: public -/
 def curve.PublicKey.is_canonical (self : curve.PublicKey) : Result Bool := do
   let b ← curve.PublicKey.is_torsion_free self
@@ -724,8 +783,17 @@ def curve.PublicKey.is_canonical (self : curve.PublicKey) : Result Bool := do
   then curve.PublicKey.scalar_is_in_range self
   else ok false
 
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PublicKey}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 199:4-201:5
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  curve.PublicKey.deserialize value
+
 /-- [libsignal_core::curve::{impl subtle::ConstantTimeEq for libsignal_core::curve::PublicKey}::ct_eq]:
-    Source: 'rust/core/src/curve.rs', lines 206:4-211:5
+    Source: 'rust/core/src/curve.rs', lines 209:4-214:5
     Visibility: public -/
 def curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq
   (self : curve.PublicKey) (other : curve.PublicKey) :
@@ -744,7 +812,7 @@ def curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq
     Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
 
 /-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
-    Source: 'rust/core/src/curve.rs', lines 215:4-217:5
+    Source: 'rust/core/src/curve.rs', lines 218:4-220:5
     Visibility: public -/
 def curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
   (self : curve.PublicKey) (other : curve.PublicKey) : Result Bool := do
@@ -752,14 +820,59 @@ def curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
   Bool.Insts.CoreConvertFromChoice.from c
 
 /-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PrivateKeyData> for libsignal_core::curve::PrivateKey}::from]:
-    Source: 'rust/core/src/curve.rs', lines 236:37-236:54
+    Source: 'rust/core/src/curve.rs', lines 239:37-239:54
     Visibility: public -/
 def curve.PrivateKey.Insts.CoreConvertFromPrivateKeyData.from
   (value : curve.PrivateKeyData) : Result curve.PrivateKey := do
   ok { key := value }
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{impl core::ops::function::FnOnce<(core::array::TryFromSliceError,), libsignal_core::curve::CurveError> for libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}<'_0>}::call_once]:
+    Source: 'rust/core/src/curve.rs', lines 248:21-248:76 -/
+def
+  curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError.call_once
+  (c : curve.PrivateKey.deserialize.closure)
+  (tupled_args : core.array.TryFromSliceError) :
+  Result curve.CurveError
+  := do
+  let i := Slice.len c
+  ok (curve.CurveError.BadKeyLength curve.KeyType.Djb i)
+
+/-- Trait implementation: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{impl core::ops::function::FnOnce<(core::array::TryFromSliceError,), libsignal_core::curve::CurveError> for libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}<'_0>}]
+    Source: 'rust/core/src/curve.rs', lines 248:21-248:76 -/
+@[reducible]
+def
+  curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError
+  : core.ops.function.FnOnce curve.PrivateKey.deserialize.closure
+  core.array.TryFromSliceError curve.CurveError := {
+  call_once :=
+    curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError.call_once
+}
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize]:
+    Source: 'rust/core/src/curve.rs', lines 245:4-254:5
+    Visibility: public -/
+def curve.PrivateKey.deserialize
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PrivateKey curve.CurveError)
+  := do
+  let r ←
+    core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 value
+  let r1 ←
+    core.result.Result.map_err
+      curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError
+      r value
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r1
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let key ← curve25519_dalek.scalar.clamp_integer val
+    ok (core.result.Result.Ok
+      { key := (curve.PrivateKeyData.DjbPrivateKey key) })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      curve.PrivateKey (core.convert.FromSame curve.CurveError) residual
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::serialize]:
-    Source: 'rust/core/src/curve.rs', lines 253:4-257:5
+    Source: 'rust/core/src/curve.rs', lines 256:4-260:5
     Visibility: public -/
 def curve.PrivateKey.serialize
   (self : curve.PrivateKey) : Result (alloc.vec.Vec Std.U8) := do
@@ -768,7 +881,7 @@ def curve.PrivateKey.serialize
   alloc.slice.Slice.to_vec core.clone.CloneU8 s
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]:
-    Source: 'rust/core/src/curve.rs', lines 259:4-267:5
+    Source: 'rust/core/src/curve.rs', lines 262:4-270:5
     Visibility: public -/
 def curve.PrivateKey.public_key
   (self : curve.PrivateKey) :
@@ -782,14 +895,23 @@ def curve.PrivateKey.public_key
   ok (core.result.Result.Ok pk1)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::key_type]:
-    Source: 'rust/core/src/curve.rs', lines 269:4-273:5
+    Source: 'rust/core/src/curve.rs', lines 272:4-276:5
     Visibility: public -/
 def curve.PrivateKey.key_type
   (self : curve.PrivateKey) : Result curve.KeyType := do
   ok curve.KeyType.Djb
 
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PrivateKey}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 318:4-320:5
+    Visibility: public -/
+def curve.PrivateKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PrivateKey curve.CurveError)
+  := do
+  curve.PrivateKey.deserialize value
+
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]:
-    Source: 'rust/core/src/curve.rs', lines 327:4-341:5
+    Source: 'rust/core/src/curve.rs', lines 330:4-344:5
     Visibility: public -/
 def curve.KeyPair.generate
   {R : Type _} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
@@ -810,7 +932,7 @@ def curve.KeyPair.generate
   ok ({ public_key, private_key := private_key1 }, csprng1)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::from_public_and_private]:
-    Source: 'rust/core/src/curve.rs', lines 350:4-360:5
+    Source: 'rust/core/src/curve.rs', lines 353:4-363:5
     Visibility: public -/
 def curve.KeyPair.from_public_and_private
   (public_key : Slice Std.U8) (private_key : Slice Std.U8) :
