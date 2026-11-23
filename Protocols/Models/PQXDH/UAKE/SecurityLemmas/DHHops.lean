@@ -20,8 +20,7 @@ of hop 5 is "Alice accepted and no session of Bob is her original-key partner", 
 flips a coin on that event and when a revealed session is a partner.
 
 Both lemmas are admitted. The model takes the KDF as a parameter function with the PRF premise
-`hkdf`, and the proofs wait for the choice between a PRF and a random-oracle model of the KDF
-(#81).
+`hkdf`, and the proofs wait for a choice of assumptions that is open.
 
 The lemma statements and proofs in this file are AI-written.
 -/

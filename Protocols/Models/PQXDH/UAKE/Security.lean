@@ -27,9 +27,9 @@ Scope of the two theorems
 * The experiment is the partnered experiment `PartneredExp` over original-key partnering
   (`originalKeyPartnering`). Alice's challenge session and a session of Bob are partners when both
   have accepted with the same associated data and the same key material `km`, the input of the
-  KDF. Alice wins outright when she accepts and no session of Bob that accepted no later than she
-  did is her partner. The key identifiers, the signatures and the bytes of an unsigned one-time
-  pre-key are not authenticated: changing them without changing `km` keeps the partner.
+  KDF. The adversary wins outright when Alice accepts and no session of Bob that accepted no later
+  than she did is her partner. The key identifiers, the signatures and the bytes of an unsigned
+  one-time pre-key are not authenticated: changing them without changing `km` keeps the partner.
 * Partnering compares `(ad, km)`, and `P.kdf` takes `km` only (`initiate` and `accept` in
   `Basic.lean`). A session of Bob with Alice's key material and other associated data derives
   the same three KDF outputs as she does. A session with other key material holds her session
@@ -49,11 +49,12 @@ Scope of the two theorems
   `decrypt`, and no property that relates them. Nothing in the model says that
   a ciphertext made under one key, or with other associated data, fails to decrypt under another
   key or other associated data. `AEAD.PerfectlyCorrect` concerns one key and one associated data,
-  and neither theorem assumes it. Rejection under another key or other associated data is only
-  the security property INT-CTXT-D, which `haead` bounds for one uniform key. That game scores
-  only pairs of associated data and ciphertext that its encryption oracle did not output. `haead`
-  is a premise of hop 5 in both theorems and of hop 6 in the DH theorem. Hop 6 of the PQ theorem
-  has no AEAD premise.
+  and neither theorem assumes it. The only AEAD premise is INT-CTXT-D, which `haead` bounds. Its
+  game draws one uniform key, which the adversary never sees, and scores a decryption under that
+  key that succeeds on a pair of associated data and ciphertext that its encryption oracle had not
+  output. Neither theorem assumes a property of decryption under a second key, such as key
+  commitment (that a ciphertext decrypts under at most one key). `haead` is a premise of hop 5 in
+  both theorems and of hop 6 in the DH theorem. Hop 6 of the PQ theorem has no AEAD premise.
 
 Model simplifications
 * **Unilateral authentication:** UAKE is unilaterally authenticated. In

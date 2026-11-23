@@ -56,8 +56,8 @@ closures.
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model; the proof waits for the choice between a PRF and a random-oracle model of the KDF |
-| `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model; the proof waits for the choice between a PRF and a random-oracle model of the KDF |
+| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model; the proof waits for a choice of assumptions that is open (#81) |
+| `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model; the proof waits for a choice of assumptions that is open (#81) |
 | `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked |
 | `Protocols.Models.PQXDH.indistAdvantage_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 6 | discharge untracked |
 

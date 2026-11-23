@@ -25,13 +25,14 @@ Model simplifications
   keyed party (Bob). Therefore we add an extra message from Bob under the AEAD
   at the end of the protocol in the T=Bob case. This would represent the second
   message in the conversation between Alice and Bob. We represent this by
-  returning `⟨sk, kb, ad, m⟩`, rather than just the shared key `sk`, if Bob's
+  returning `⟨sk, kb, ad, m, km⟩`, rather than just the shared key `sk`, if Bob's
   `accept` procedure succeeds. Here, `m` and `ad` are the same as the message
   and additional data sent by Alice in her AEAD message, and `kb` is an AEAD
   key (output by the KDF independently from the shared secret and Alice's AEAD
   key). This is then sent to Alice, who uses the `confirm` procedure to check
   that it decrypts under the same `kb` and has the correct content, and returns
-  `sk`, if so. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
+  `sk`, if so. The last field `km` is the key material that `accept` passed to the
+  KDF. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
   without Bob's extra message. Its role assignment comes from the UAKE definition and
   carries no security claim. Alice's ciphertext models the specification's initial
   ciphertext. Production sends it as the first Double Ratchet message under

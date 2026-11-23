@@ -48,15 +48,15 @@ The games and event predicates live in `SecurityLemmas/Games.lean`. Hops 1
 and 2 are proven; they are purely probabilistic. Hop 4 is proven by a union bound over the
 fresh key draws, with the lemmas of `SecurityLemmas/KeyGuessing.lean`. Hop 3 is proven by an
 explicit reduction, built and compared with the real challenge phase in
-`SecurityLemmas/SigReduction.lean`. The GapDH cores are admitted, and their proofs wait for the
-choice between a PRF and a random-oracle model of the KDF (#81). The IND-CCA cores
+`SecurityLemmas/SigReduction.lean`. The GapDH cores are admitted, and their proofs wait for a
+choice of assumptions that is open. The IND-CCA cores
 take PRF security of `kdfPRF`, which keys the KDF with the KEM shared secret; the games also
-compare that secret, as the last component of `km`, in the partnering tests. The PRF game of
-`kdfPRF` gives its adversary only a function oracle, the KDF under one uniform secret that it
-never sees or a random function, and nothing in that game compares the secret with another value.
-So the PRF premise says nothing about the partnering tests, which compare Alice's secret with the
-secret that Bob decapsulates from a ciphertext that the UAKE adversary chooses. The proofs of the
-IND-CCA cores are deferred as future reduction work.
+compare that secret, as the last component of `km`, in the partnering tests. Besides uniform
+sampling, the PRF game of `kdfPRF` gives its adversary only a function oracle, the KDF under one
+uniform secret that it never sees or a random function, and nothing in that game compares the
+secret with another value. So the PRF premise says nothing about the partnering tests, which
+compare Alice's secret with the secret that Bob decapsulates from a ciphertext that the UAKE
+adversary chooses. The proofs of the IND-CCA cores are deferred as future reduction work.
 
 The contents of this file and the `SecurityLemmas/` directory are
 AI-written.
