@@ -265,7 +265,7 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 
 ## Own code without a body
 
-Some functions of libsignal's own code that the extraction keeps without a body, with the reason. The list is not complete: the configuration comments give the reasons for the other opaque items.
+This section lists functions of libsignal's own code that the extraction keeps without a body, with the reason. The list is not complete: the configuration comments give the reasons for the other opaque items.
 
 | Item | Configuration | Reason | Layer | Translator revisions |
 | --- | --- | --- | --- | --- |
@@ -278,7 +278,7 @@ Some functions of libsignal's own code that the extraction keeps without a body,
 
 The pinned Aeneas library models `Vec::insert(i, x)` as failing with `arrayOutOfBounds` when `i = len`; Rust appends in that case and panics only when `i > len` ([aeneas#1288](https://github.com/AeneasVerif/aeneas/issues/1288), still open after the partial fix in #1302). `RatchetState::store_skipped_key` inserts at index 0, so its Lean model fails on an empty vector, for the first skipped message key of a receiver chain, where Rust succeeds. Proofs about that path need the corrected model. In-order delivery does not call `store_skipped_key`.
 
-`SessionRecord::archive_current_state_inner` inserted at index 0 as well, which failed when the record had no previous sessions. The translation patch `protocol-state_session-archive_current_state_inner` calls `push` in that case, so its Lean model agrees with Rust.
+`SessionRecord::archive_current_state_inner` inserts at index 0 as well, so without the patch its Lean model fails when the record has a current session and no previous sessions, where Rust succeeds. That case is reached through `promote_state`, which `process_prekey` and `process_prekey_bundle` call for each new session, through `promote_old_session` when it promotes the only stored session, and through `archive_current_state`. The translation patch `protocol-state_session-archive_current_state_inner` calls `push` in that case, so its Lean model agrees with Rust.
 
 ## Known warnings
 

@@ -147,17 +147,16 @@ charon:
     # NB: matcher uses the trait's DEFINING path `prost::message::Message` (the
     # `prost::Message` re-export path does NOT match). Patterns cover each nesting
     # depth prost emits for nested messages.
-    # Tried again for SessionStructure and the five messages it contains (include lines
-    # on their Message methods): aeneas fails, first on "Unimplemented" for the FnOnce
-    # instance of <u32 as Default>::default that the generated code passes as a function
-    # value, then with "Internal error: please file an issue" (Aeneas
-    # de16f3cf877976e966906dc890f63dcb418884fa, Charon
-    # 373d84044d80f6eb44285c2c349bae1453f5b6ca).
+    # An attempt with include lines on the Message methods of SessionStructure and the five
+    # messages it contains fails in aeneas: first on "Unimplemented" for the FnOnce instance of
+    # <u32 as Default>::default that the generated code passes as a function value, then with
+    # "Internal error: please file an issue" (Aeneas de16f3cf877976e966906dc890f63dcb418884fa,
+    # Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca).
     - "libsignal_protocol::proto::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
-    # libsignal-protocol::kem — Plan A scope:
+    # libsignal-protocol::kem — which functions are translated and which stay opaque:
     # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
     # TRANSPARENT (their bodies are extracted; the libcrux Kyber-1024 primitive is
     # the axiomatic leaf). Everything else in kem.rs that touches the
