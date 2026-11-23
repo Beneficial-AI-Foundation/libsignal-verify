@@ -257,7 +257,7 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
 | `<Box<T, A> as AsRef<T>>::as_ref` | `fun x => ok x` | The `alloc` body returns `self`, a borrow of the boxed value with no failing path, and Aeneas models both `Box<T, A>` and `&T` as `T`. The allocator type parameter stays in the signature |
 | `<Vec<T, A> as AsRef<[T]>>::as_ref` | `fun v => ok (alloc.vec.Vec.deref v)` | The `alloc` body returns `self`, deref-coerced to the slice of the elements; the library's `Vec.deref` gives that slice |
-| `<Box<[T], A> as Clone>::clone` | `fun s => Slice.clone corecloneCloneInst.clone s` | The `alloc` body clones the allocator, then clones the elements in order into a new box (`to_vec_in`, `into_boxed_slice`). Aeneas models `Box<[T], A>` as `Slice T` with no allocator value, so only the element clones are modelled, with their failures. The `Clone` instance of `A` stays in the signature, unused |
+| `<Box<[T], A> as Clone>::clone` | `fun s => Slice.clone corecloneCloneInst.clone s` | The `alloc` body clones the allocator, then clones the elements in order into a new box (`to_vec_in`, `into_boxed_slice`); for a type with a trivial clone, such as `u8`, `to_vec_in` copies the elements instead, which gives the same values. Aeneas models `Box<[T], A>` as `Slice T` with no allocator value, so only the element clones are modelled, with their failures. The `Clone` instance of `A` stays in the signature, unused |
 | `<PhantomData<T> as Clone>::clone` | `fun x => ok x` | The `core` body returns `*self` |
 | `triple_ratchet::decrypt_failure_message` | External | String formatting, as for `format!` elsewhere |
 
@@ -265,7 +265,7 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 
 ## Own code without a body
 
-Functions of libsignal that the extraction keeps without a body although they are libsignal's own code, with the reason:
+Some functions of libsignal's own code that the extraction keeps without a body, with the reason. The list is not complete: the configuration comments give the reasons for the other opaque items.
 
 | Item | Configuration | Reason | Layer | Translator revisions |
 | --- | --- | --- | --- | --- |

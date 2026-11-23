@@ -821,13 +821,13 @@ structure pqxdh.RecipientParameters where
   self_session : Bool
 
 /-- [libsignal_protocol::protocol::PlaintextContent]
-    Source: 'rust/protocol/src/protocol.rs', lines 810:0-812:1
+    Source: 'rust/protocol/src/protocol.rs', lines 807:0-809:1
     Visibility: public -/
 structure protocol.PlaintextContent where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::SenderKeyMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 523:0-530:1
+    Source: 'rust/protocol/src/protocol.rs', lines 520:0-527:1
     Visibility: public -/
 structure protocol.SenderKeyMessage where
   message_version : Std.U8
@@ -927,7 +927,7 @@ def protocol.PreKeySignalMessage.new.closure := Unit
 def protocol.PreKeySignalMessage.kyber_pre_key_id.closure := Unit
 
 /-- [libsignal_protocol::protocol::SenderKeyDistributionMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 664:0-672:1
+    Source: 'rust/protocol/src/protocol.rs', lines 661:0-669:1
     Visibility: public -/
 structure protocol.SenderKeyDistributionMessage where
   message_version : Std.U8
@@ -945,7 +945,7 @@ structure timestamp.Timestamp where
   millis : Std.U64
 
 /-- [libsignal_protocol::protocol::DecryptionErrorMessage]
-    Source: 'rust/protocol/src/protocol.rs', lines 874:0-879:1
+    Source: 'rust/protocol/src/protocol.rs', lines 871:0-876:1
     Visibility: public -/
 structure protocol.DecryptionErrorMessage where
   ratchet_key : Option libsignal_core.curve.PublicKey
@@ -954,7 +954,7 @@ structure protocol.DecryptionErrorMessage where
   serialized : Slice Std.U8
 
 /-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::DecryptionErrorMessage}::for_original::{closure}]
-    Source: 'rust/protocol/src/protocol.rs', lines 907:41-907:65 -/
+    Source: 'rust/protocol/src/protocol.rs', lines 904:41-904:65 -/
 @[reducible]
 def protocol.DecryptionErrorMessage.for_original.closure := Unit
 

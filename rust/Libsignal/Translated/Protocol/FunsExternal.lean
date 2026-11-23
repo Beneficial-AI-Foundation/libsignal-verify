@@ -391,8 +391,10 @@ axiom BoxSlice.Insts.CoreConvertFromShared0Slice.from
     Name pattern: [alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone]
     Visibility: public -/
 -- alloc clones the allocator, then clones the elements in order into a new box
--- (`to_vec_in`, `into_boxed_slice`). Aeneas models `Box<[T], A>` as `Slice T`, with no
--- allocator value, so only the element clones are modelled; any of them may fail.
+-- (`to_vec_in`, `into_boxed_slice`); for a type with a trivial clone, such as `u8`,
+-- `to_vec_in` copies the elements instead, which gives the same values. Aeneas models
+-- `Box<[T], A>` as `Slice T`, with no allocator value, so only the element clones are
+-- modelled; any of them may fail.
 @[rust_fun "alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone"]
 def BoxSlice.Insts.CoreCloneClone.clone
   {T : Type} {A : Type} (corecloneCloneInst : core.clone.Clone T)

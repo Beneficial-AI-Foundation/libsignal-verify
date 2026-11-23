@@ -1,21 +1,18 @@
 Translation patch: libsignal_protocol::protocol::PreKeySignalMessage::kyber_ciphertext
 
-Change: the body `self.kyber_payload.as_ref().map(|kyber| &kyber.ciphertext)` becomes a `match` on `&self.kyber_payload` with the arms `Some(kyber) => Some(&kyber.ciphertext)` and `None => None`.
+Change: the body `self.kyber_payload.as_ref().map(|kyber| &kyber.ciphertext)` becomes `match &self.kyber_payload { Some(kyber) => Some(&kyber.ciphertext), None => None }`, on the same single line, so no later line of the file moves.
 Why: at nightly-2026.10.30-de16f3c Aeneas cannot translate the closure, which returns a borrow of a field of its argument: "Can't end abstraction 3 as it is set as non-endable", in the `call_once` of the closure.
 Behaviour: identical. `Option::as_ref` gives `Some(&kyber)` or `None`, and `map` applies the closure only to `Some`, which returns a reference to `kyber.ciphertext`. The `match` returns the same reference in the `Some` case and `None` otherwise. Neither form allocates, panics or has another effect.
 
 diff --git a/rust/protocol/src/protocol.rs b/rust/protocol/src/protocol.rs
 --- a/rust/protocol/src/protocol.rs
 +++ b/rust/protocol/src/protocol.rs
-@@ -405,7 +405,10 @@
+@@ -405,7 +405,7 @@
  
      #[inline]
      pub fn kyber_ciphertext(&self) -> Option<&kem::SerializedCiphertext> {
 -        self.kyber_payload.as_ref().map(|kyber| &kyber.ciphertext)
-+        match &self.kyber_payload {
-+            Some(kyber) => Some(&kyber.ciphertext),
-+            None => None,
-+        }
++        match &self.kyber_payload { Some(kyber) => Some(&kyber.ciphertext), None => None }
      }
  
      #[inline]
