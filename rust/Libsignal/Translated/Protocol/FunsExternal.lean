@@ -115,10 +115,12 @@ axiom core.iter.traits.iterator.Iterator.position.default
     Source: '/rustc/library/core/src/marker.rs', lines 848:4-848:27
     Name pattern: [core::marker::{core::clone::Clone<core::marker::PhantomData<@T>>}::clone]
     Visibility: public -/
+-- core returns `*self`, a copy of its argument.
 @[rust_fun
   "core::marker::{core::clone::Clone<core::marker::PhantomData<@T>>}::clone"]
-axiom core.marker.PhantomData.Insts.CoreCloneClone.clone
-  {T : Type} : core.marker.PhantomData T → Result (core.marker.PhantomData T)
+def core.marker.PhantomData.Insts.CoreCloneClone.clone
+  {T : Type} : core.marker.PhantomData T → Result (core.marker.PhantomData T) :=
+  fun x => ok x
 
 -- (dropped axiom core.mem.take; provided by an imported sibling lib)
 
@@ -388,11 +390,15 @@ axiom BoxSlice.Insts.CoreConvertFromShared0Slice.from
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2136:4-2136:27
     Name pattern: [alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone]
     Visibility: public -/
+-- alloc clones the allocator, then clones the elements in order into a new box
+-- (`to_vec_in`, `into_boxed_slice`). Aeneas models `Box<[T], A>` as `Slice T`, with no
+-- allocator value, so only the element clones are modelled; any of them may fail.
 @[rust_fun "alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone"]
-axiom BoxSlice.Insts.CoreCloneClone.clone
+def BoxSlice.Insts.CoreCloneClone.clone
   {T : Type} {A : Type} (corecloneCloneInst : core.clone.Clone T)
   (corecloneCloneInst1 : core.clone.Clone A) :
-  Slice T → Result (Slice T)
+  Slice T → Result (Slice T) :=
+  fun s => Slice.clone corecloneCloneInst.clone s
 
 /-- [alloc::boxed::{impl core::convert::AsRef<T> for alloc::boxed::Box<T>}::as_ref]:
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2429:4-2429:26
@@ -552,10 +558,12 @@ axiom alloc.vec.Vec.pop
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4445:4-4445:28
     Name pattern: [alloc::vec::{core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>}::as_ref]
     Visibility: public -/
+-- alloc returns `self`, deref-coerced to the slice of the vector's elements.
 @[rust_fun
   "alloc::vec::{core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>}::as_ref"]
-axiom alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref
-  {T : Type} (A : Type) : alloc.vec.Vec T → Result (Slice T)
+def alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref
+  {T : Type} (A : Type) : alloc.vec.Vec T → Result (Slice T) :=
+  fun v => ok (alloc.vec.Vec.deref v)
 
 /-- [alloc::vec::{impl core::convert::From<&'_0 [T]> for alloc::vec::Vec<T>}::from]:
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4467:4-4467:30
