@@ -83,19 +83,19 @@ inductive address.ServiceId where
 | Pni : address.SpecificServiceId 1#u8 → address.ServiceId
 
 /-- [libsignal_core::address::DeviceId]
-    Source: 'rust/core/src/address.rs', lines 684:0-686:1
+    Source: 'rust/core/src/address.rs', lines 689:0-691:1
     Visibility: public -/
 structure address.DeviceId where
   id : core.num.nonzero.NonZero Std.U8 core.num.niche_types.NonZeroU8Inner
 
 /-- [libsignal_core::address::InvalidDeviceId]
-    Source: 'rust/core/src/address.rs', lines 691:0-691:27
+    Source: 'rust/core/src/address.rs', lines 696:0-696:27
     Visibility: public -/
 @[reducible]
 def address.InvalidDeviceId := Unit
 
 /-- [libsignal_core::address::ProtocolAddress]
-    Source: 'rust/core/src/address.rs', lines 777:0-780:1
+    Source: 'rust/core/src/address.rs', lines 782:0-785:1
     Visibility: public -/
 structure address.ProtocolAddress where
   «name» : String

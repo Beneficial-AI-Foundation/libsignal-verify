@@ -1,0 +1,23 @@
+Translation patch: libsignal_core::address::ServiceId::parse_from_service_id_string
+
+Change: `input.strip_prefix("PNI:")` becomes a test that the bytes of `input` start with the bytes `PNI:` (a length check and a comparison of `bytes[..4]` with `b"PNI:"`), followed by `input.split_at(4)`, whose second half is the rest.
+Why: `str::strip_prefix` goes through `core::str::pattern`, which the extraction excludes (Aeneas does not support its generic associated types).
+Behaviour: same result. For a `&str` prefix, `strip_prefix` returns `Some(&input[4..])` exactly when the bytes of `input` start with the bytes of `"PNI:"`, and `None` otherwise (library/core/src/str/pattern.rs). `split_at(4)` returns `(&input[..4], &input[4..])` and cannot panic here: the four bytes before index 4 are ASCII, so index 4 is a character boundary.
+
+diff --git a/rust/core/src/address.rs b/rust/core/src/address.rs
+--- a/rust/core/src/address.rs
++++ b/rust/core/src/address.rs
+@@ -270,7 +270,12 @@
+             Uuid::try_parse(input).ok()
+         }
+ 
+-        if let Some(uuid_string) = input.strip_prefix("PNI:") {
++        // Modified for Aeneas: `str::strip_prefix` goes through `core::str::pattern`,
++        // which the extraction excludes. The same byte-prefix test and suffix.
++        let bytes = input.as_bytes();
++        let prefix: &[u8] = b"PNI:";
++        if bytes.len() >= prefix.len() && bytes[..prefix.len()] == *prefix {
++            let (_, uuid_string) = input.split_at(prefix.len());
+             let uuid = try_parse_hyphenated(uuid_string)?;
+             Some(Self::Pni(uuid.into()))
+         } else {

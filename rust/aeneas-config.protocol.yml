@@ -294,7 +294,6 @@ charon:
     - "libsignal_core::try_derive_arrays"
     # libsignal-core functions that use unsupported features
     - "libsignal_core::address::_::service_id_string"       # uses format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
     - "libsignal_core::curve::_::public_key"
     - "libsignal_core::curve::_::generate"
@@ -319,10 +318,9 @@ charon:
     - "signal_crypto::hash::_::finalize"
     # libsignal_core::address — opaque (NOT exclude): these are *called* by
     # protocol fns (is_same_account, serialize_addresses), so excluding them
-    # dangles. The str::Pattern GAT / format! is only in the body; signatures
-    # (&str -> Option<Self> / -> String) are clean, so opaque works.
+    # dangles. The format! is only in the body; signatures
+    # (-> String) are clean, so opaque works.
     - "libsignal_core::address::_::service_id_string"            # format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
 
 aeneas_args:

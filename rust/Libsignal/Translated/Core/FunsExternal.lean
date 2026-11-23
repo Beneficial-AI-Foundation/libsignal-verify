@@ -91,6 +91,27 @@ axiom core.slice.Slice.split_first_chunk
   {T : Type _} (N : Std.Usize) :
   Slice T → Result (Option ((Array T N) × (Slice T)))
 
+/-- [core::str::{str}::len]:
+    Source: '/rustc/library/core/src/str/mod.rs', lines 155:4-155:36
+    Name pattern: [core::str::{str}::len]
+    Visibility: public -/
+@[rust_fun "core::str::{str}::len"]
+axiom core.str.Str.len : Str → Result Std.Usize
+
+/-- [core::str::{str}::as_bytes]:
+    Source: '/rustc/library/core/src/str/mod.rs', lines 514:4-514:41
+    Name pattern: [core::str::{str}::as_bytes]
+    Visibility: public -/
+@[rust_fun "core::str::{str}::as_bytes"]
+axiom core.str.Str.as_bytes : Str → Result (Slice Std.U8)
+
+/-- [core::str::{str}::split_at]:
+    Source: '/rustc/library/core/src/str/mod.rs', lines 860:4-860:60
+    Name pattern: [core::str::{str}::split_at]
+    Visibility: public -/
+@[rust_fun "core::str::{str}::split_at"]
+axiom core.str.Str.split_at : Str → Std.Usize → Result (Str × Str)
+
 /-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
     Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
     Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
@@ -159,6 +180,15 @@ axiom uuid.builder.Uuid.from_slice
 @[rust_fun "uuid::builder::{uuid::Uuid}::from_bytes"]
 axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
 
+/-- [uuid::fmt::{uuid::fmt::Hyphenated}::LENGTH]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/fmt.rs', lines 292:4-292:27
+    Name pattern: [uuid::fmt::{uuid::fmt::Hyphenated}::LENGTH]
+    Visibility: public -/
+-- uuid 1.23.4 declares `pub const LENGTH: usize = 36;`, the length of a hyphenated UUID string.
+@[rust_const "uuid::fmt::{uuid::fmt::Hyphenated}::LENGTH"]
+def uuid.fmt.Hyphenated.LENGTH : Result Std.Usize :=
+  ok 36#usize
+
 /-- [uuid::{impl core::cmp::PartialEq<uuid::Uuid> for uuid::Uuid}::eq]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/lib.rs', lines 446:31-446:40
     Name pattern: [uuid::{core::cmp::PartialEq<uuid::Uuid, uuid::Uuid>}::eq]
@@ -167,6 +197,14 @@ axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
 @[rust_fun "uuid::{core::cmp::PartialEq<uuid::Uuid, uuid::Uuid>}::eq"]
 def uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq (self other : uuid.Uuid) : Result Bool :=
   ok (decide (self.bytes = other.bytes))
+
+/-- [uuid::parser::{uuid::Uuid}::try_parse]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/parser.rs', lines 110:4-110:62
+    Name pattern: [uuid::parser::{uuid::Uuid}::try_parse]
+    Visibility: public -/
+@[rust_fun "uuid::parser::{uuid::Uuid}::try_parse"]
+axiom uuid.parser.Uuid.try_parse
+  : Str → Result (core.result.Result uuid.Uuid uuid.error.Error)
 
 /-- [x25519_dalek::x25519::{impl core::convert::From<[u8; 32usize]> for x25519_dalek::x25519::StaticSecret}::from]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 249:4-249:44

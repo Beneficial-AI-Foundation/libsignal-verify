@@ -195,7 +195,7 @@ def uuid.Uuid.Insts.CoreConvertFromSpecificServiceId (KIND : Std.U8) :
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::ServiceId}::raw_uuid]:
-    Source: 'rust/core/src/address.rs', lines 288:4-293:5
+    Source: 'rust/core/src/address.rs', lines 293:4-298:5
     Visibility: public -/
 def address.ServiceId.raw_uuid
   (self : address.ServiceId) : Result uuid.Uuid := do
@@ -427,6 +427,105 @@ def address.SpecificServiceId.parse_from_service_id_fixed_width_binary
     core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (address.SpecificServiceId KIND) residual
 
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string::try_parse_hyphenated]:
+    Source: 'rust/core/src/address.rs', lines 268:8-275:9 -/
+def address.ServiceId.parse_from_service_id_string.try_parse_hyphenated
+  (input : Str) : Result (Option uuid.Uuid) := do
+  let i ← core.str.Str.len input
+  let i1 ← uuid.fmt.Hyphenated.LENGTH
+  if i != i1
+  then ok none
+  else let r ← uuid.parser.Uuid.try_parse input
+       core.result.Result.ok r
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
+    Source: 'rust/core/src/address.rs', lines 267:4-289:5
+    Visibility: public -/
+def address.ServiceId.parse_from_service_id_string
+  (input : Str) : Result (Option address.ServiceId) := do
+  let bytes ← core.str.Str.as_bytes input
+  let «prefix» ←
+    lift (Array.to_slice (Array.make 4#usize [ 80#u8, 78#u8, 73#u8, 58#u8 ]))
+  let i := Slice.len bytes
+  let i1 := Slice.len «prefix»
+  if i >= i1
+  then
+    let i2 := Slice.len «prefix»
+    let s ←
+      core.slice.index.Slice.index
+        (core.slice.index.SliceIndexRangeToUsizeSlice Std.U8) bytes
+        { «end» := i2 }
+    let b ←
+      core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 s «prefix»
+    if b
+    then
+      let i3 := Slice.len «prefix»
+      let (_, uuid_string) ← core.str.Str.split_at input i3
+      let o ←
+        address.ServiceId.parse_from_service_id_string.try_parse_hyphenated
+          uuid_string
+      let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+      match cf with
+      | core.ops.control_flow.ControlFlow.Continue val =>
+        let ssi ←
+          core.convert.IntoFrom.into
+            (address.SpecificServiceId.Insts.CoreConvertFromUuid 1#u8) val
+        ok (some (address.ServiceId.Pni ssi))
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+          address.ServiceId residual
+    else
+      let o ←
+        address.ServiceId.parse_from_service_id_string.try_parse_hyphenated
+          input
+      let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+      match cf with
+      | core.ops.control_flow.ControlFlow.Continue val =>
+        let ssi ←
+          core.convert.IntoFrom.into
+            (address.SpecificServiceId.Insts.CoreConvertFromUuid 0#u8) val
+        ok (some (address.ServiceId.Aci ssi))
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+          address.ServiceId residual
+  else
+    let o ←
+      address.ServiceId.parse_from_service_id_string.try_parse_hyphenated input
+    let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let ssi ←
+        core.convert.IntoFrom.into
+          (address.SpecificServiceId.Insts.CoreConvertFromUuid 0#u8) val
+      ok (some (address.ServiceId.Aci ssi))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+        address.ServiceId residual
+
+/-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::parse_from_service_id_string]:
+    Source: 'rust/core/src/address.rs', lines 135:4-139:5
+    Visibility: public -/
+def address.SpecificServiceId.parse_from_service_id_string
+  {Clause1_Error : Type _} {KIND : Std.U8}
+  (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
+  address.ServiceId (address.SpecificServiceId KIND))
+  (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
+  core.convert.TryFrom (address.SpecificServiceId KIND) address.ServiceId
+  Clause1_Error) (input : Str) :
+  Result (Option (address.SpecificServiceId KIND))
+  := do
+  let o ← address.ServiceId.parse_from_service_id_string input
+  let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let r ←
+      core.convert.TryInto.Blanket.try_into
+        coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst val
+    core.result.Result.ok r
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+      (address.SpecificServiceId KIND) residual
+
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
     Source: 'rust/core/src/address.rs', lines 184:28-184:37
     Visibility: public -/
@@ -452,7 +551,7 @@ def address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
   else ok false
 
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<KIND>> for libsignal_core::address::ServiceId}::eq]:
-    Source: 'rust/core/src/address.rs', lines 338:4-340:5
+    Source: 'rust/core/src/address.rs', lines 343:4-345:5
     Visibility: public -/
 def address.ServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
   {KIND : Std.U8} (coreconvertFromServiceIdSpecificServiceIdInst :
@@ -464,18 +563,18 @@ def address.ServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
   address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq self si
 
 /-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
-    Source: 'rust/core/src/address.rs', lines 683:15-683:20
+    Source: 'rust/core/src/address.rs', lines 688:15-688:20
     Visibility: public -/
 def address.DeviceId.Insts.CoreCloneClone.clone
   (self : address.DeviceId) : Result address.DeviceId := do
   ok self
 
 /-- [libsignal_core::address::MAX_VALID_DEVICE_ID]
-    Source: 'rust/core/src/address.rs', lines 719:0-719:36 -/
+    Source: 'rust/core/src/address.rs', lines 724:0-724:36 -/
 @[global_simps, irreducible] def address.MAX_VALID_DEVICE_ID : Std.U8 := 127#u8
 
 /-- [libsignal_core::address::{libsignal_core::address::DeviceId}::new_nonzero]:
-    Source: 'rust/core/src/address.rs', lines 710:4-716:5
+    Source: 'rust/core/src/address.rs', lines 715:4-721:5
     Visibility: public -/
 def address.DeviceId.new_nonzero
   (id : core.num.nonzero.NonZero Std.U8 core.num.niche_types.NonZeroU8Inner) :
@@ -489,7 +588,7 @@ def address.DeviceId.new_nonzero
   else ok (core.result.Result.Err ())
 
 /-- [libsignal_core::address::{libsignal_core::address::DeviceId}::new]:
-    Source: 'rust/core/src/address.rs', lines 699:4-704:5
+    Source: 'rust/core/src/address.rs', lines 704:4-709:5
     Visibility: public -/
 def address.DeviceId.new
   (id : Std.U8) :
@@ -503,7 +602,7 @@ def address.DeviceId.new
   | some id1 => address.DeviceId.new_nonzero id1
 
 /-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
-    Source: 'rust/core/src/address.rs', lines 776:9-776:14
+    Source: 'rust/core/src/address.rs', lines 781:9-781:14
     Visibility: public -/
 def address.ProtocolAddress.Insts.CoreCloneClone.clone
   (self : address.ProtocolAddress) : Result address.ProtocolAddress := do
@@ -512,7 +611,7 @@ def address.ProtocolAddress.Insts.CoreCloneClone.clone
   ok { «name» := s, device_id := di }
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::new]:
-    Source: 'rust/core/src/address.rs', lines 802:4-804:5
+    Source: 'rust/core/src/address.rs', lines 807:4-809:5
     Visibility: public -/
 def address.ProtocolAddress.new
   («name» : String) (device_id : address.DeviceId) :
@@ -521,14 +620,14 @@ def address.ProtocolAddress.new
   ok { «name», device_id }
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::name]:
-    Source: 'rust/core/src/address.rs', lines 808:4-810:5
+    Source: 'rust/core/src/address.rs', lines 813:4-815:5
     Visibility: public -/
 def address.ProtocolAddress.impl.name
   (self : address.ProtocolAddress) : Result Str := do
   alloc.string.String.Insts.CoreOpsDerefDerefStr.deref self.name
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::device_id]:
-    Source: 'rust/core/src/address.rs', lines 818:4-820:5
+    Source: 'rust/core/src/address.rs', lines 823:4-825:5
     Visibility: public -/
 def address.ProtocolAddress.impl.device_id
   (self : address.ProtocolAddress) : Result address.DeviceId := do

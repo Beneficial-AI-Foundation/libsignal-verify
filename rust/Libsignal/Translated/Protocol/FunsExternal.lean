@@ -641,14 +641,7 @@ axiom hex.encode
 
 -- (dropped axiom libsignal_core.address.ServiceId.service_id_fixed_width_binary; provided by an imported sibling lib)
 
-/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
-    Source: 'rust/core/src/address.rs', lines 267:4-267:68
-    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string"]
-axiom libsignal_core.address.ServiceId.parse_from_service_id_string
-  : Str → Result (Option libsignal_core.address.ServiceId)
+-- (dropped axiom libsignal_core.address.ServiceId.parse_from_service_id_string; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 

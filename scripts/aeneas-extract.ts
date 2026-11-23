@@ -33,6 +33,7 @@ const TARGETS: Record<TargetKey, {
       "libsignal_core::curve::eq": 1,
       "libsignal_core::curve::deserialize": 2,
       "libsignal_core::curve::try_from": 1,
+      "libsignal_core::address::parse_from_service_id_string": 2,
     },
   },
   crypto: {

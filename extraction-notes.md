@@ -86,7 +86,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - ~~`service_id_string(&self) -> String`~~ — excluded (uses `format!`)
 - `parse_from_service_id_binary(bytes: &[u8]) -> Option<Self>`
 - `parse_from_service_id_fixed_width_binary(bytes: &ServiceIdFixedWidthBinaryBytes) -> Option<Self>`
-- ~~`parse_from_service_id_string(input: &str) -> Option<Self>`~~ — excluded (uses `str::Pattern` GAT)
+- `parse_from_service_id_string(input: &str) -> Option<Self>` (calls `ServiceId::parse_from_service_id_string`)
 
 ### ServiceId
 
@@ -96,7 +96,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - ~~`service_id_string(&self) -> String`~~ — excluded (uses `format!`)
 - `parse_from_service_id_binary(bytes: &[u8]) -> Option<Self>`
 - `parse_from_service_id_fixed_width_binary(bytes: &ServiceIdFixedWidthBinaryBytes) -> Option<Self>`
-- ~~`parse_from_service_id_string(input: &str) -> Option<Self>`~~ — excluded (uses `str::Pattern` GAT)
+- `parse_from_service_id_string(input: &str) -> Option<Self>` — `strip_prefix` replaced by a byte-prefix test and `split_at` (patch `core-address-ServiceId-parse_from_service_id_string`); calls `str::{len, as_bytes, split_at}` and `Uuid::try_parse`, which have no model
 - `raw_uuid(self) -> Uuid`
 - derived `PartialEq` (with the derived `PartialEq` of `SpecificServiceId`), and `PartialEq<SpecificServiceId<KIND>> for ServiceId`
 - ~~`to_protocol_address(&self, device_id: DeviceId) -> ProtocolAddress`~~ — excluded (calls `service_id_string`)
@@ -207,6 +207,7 @@ Each workaround names its limitation in the patch header or in a comment in the 
 
 | Patch | Change | Limitation | Revert when |
 | --- | --- | --- | --- |
+| `core-address-ServiceId-parse_from_service_id_string` | `input.strip_prefix("PNI:")` → a test that `input.as_bytes()` starts with `b"PNI:"` (a length check and a slice comparison), then `input.split_at(4)` for the rest | `str::strip_prefix` goes through `core::str::pattern`, which the profiles exclude (generic associated types) | `core::str::pattern` translates |
 | `core-curve-PublicKey-deserialize-logging` | The `log::warn!` for trailing bytes in `PublicKey::deserialize` moved into `log_public_key_trailing_bytes`, same level, target and message, called at the same point with `tail.len()` | Aeneas stops with an internal error on the `log!` expansion, then with `Not_found` in `llbc/FunsAnalysis.ml` | `log!` translates inline |
 | `protocol-crypto-hkdf_sha256`; callers `protocol-ratchet_keys-MessageKeys-derive_keys`, `protocol-ratchet_keys-RootKey-create_chain`, `protocol-pqxdh-HandshakeKeys-derive_with_label` | Byte-slice HKDF-SHA256 helper, same salt/input/info/output | Charon cannot lift HKDF's generic-array associated types under `--preset=aeneas` | `Hkdf::<Sha256>::expand` translates inline |
 | `protocol-crypto-hmac_sha256_parts`; caller `protocol-protocol-SignalMessage-compute_mac` | One HMAC-SHA256 state fed the same three parts in order | Same associated-type limitation, for incremental `Hmac` | Inline `Hmac::update` calls translate |
@@ -251,6 +252,7 @@ The helper `log_public_key_trailing_bytes` (in core's `curve.rs`) is marked opaq
 | The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol`, and `curve::log_public_key_trailing_bytes` in Core | `ok ()` | Logging affects neither protocol state nor results |
 | `Option::default` | `fun T => ok none` | The derived `Default` of `SessionStructure`, which `decode` takes as an argument, calls it. The Aeneas library does not model it |
 | `String::clone` (`Core/FunsExternal.lean`) | `fun s => ok s` | The clone holds the same characters. Core's derived `Clone` of `ProtocolAddress`, which `session_core::require_trusted_identity` calls for the `UntrustedIdentity` error, clones the name with it; Protocol uses Core's definition |
+| `uuid::fmt::Hyphenated::LENGTH` (`Core/FunsExternal.lean`) | `ok 36#usize` | uuid 1.23.4 declares `pub const LENGTH: usize = 36`. `ServiceId::parse_from_service_id_string` compares the input length with it; `Uuid::try_parse`, `str::len`, `str::as_bytes` and `str::split_at` stay external |
 | `PartialEq for uuid::Uuid` (`Core/FunsExternal.lean`) | `ok (decide (self.bytes = other.bytes))` | uuid 1.23.4 declares `struct Uuid([u8; 16])` with a derived `PartialEq`, which compares the 16 bytes. Core's derived equality of `ServiceId` calls it |
 | `PublicKey::verify_signature` | Dropped; Core's definition is used | `session_core::verify_bundle_signatures` calls it. Core defines it over the root axiom `curve.PublicKey.verify_signature_for_multipart_message`, so no Protocol-side verifier axiom enters the closure |
 | `KeyPair::generate`, `PrivateKey::public_key` | Dropped; Core's generated definitions `libsignal_core.curve.KeyPair.generate` and `libsignal_core.curve.PrivateKey.public_key` have the names that the Protocol code calls. `Core/CurveProvider.lean` makes the root names `curve.KeyPair.generate` and `curve.PrivateKey.public_key` aliases of these definitions | Core extracts both functions with their bodies. There is one constant for each Rust function, and the PQXDH statements, which use the root names, speak of the extracted definitions |
