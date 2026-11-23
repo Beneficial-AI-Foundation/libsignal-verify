@@ -24,6 +24,13 @@ named hypothesis. A `Result` type allows a panic and a loop, and a contract excl
 where it says so. Each contract cites the Rust code it describes. We read that code but did not
 verify it, so every contract is trusted and has its own row in `Protocols/LEDGER.md`.
 
+Core's `KeyPair::generate` and `PrivateKey::public_key` are extracted with their bodies, and
+`GenerateTotal` and the contracts that name `public_key` speak of these definitions. The bodies
+call items of two crates outside libsignal that have no body in Lean: `clamp_integer` of
+curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey` and the functions
+`From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey`
+and `PublicKey::as_bytes`. No fact about these items is stated.
+
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
 and `fullExp_noLostMass` take, together with `GenerateTotal`, the total form for Core's key
@@ -137,7 +144,7 @@ end Signature
 
 section KeyGen
 
-/-- On a state in `Dom`, Core's opaque `KeyPair::generate` (`curve.KeyPair.generate`) returns a
+/-- On a state in `Dom`, Core's extracted `KeyPair::generate` (`curve.KeyPair.generate`) returns a
 curve25519 pair satisfying `ECKeyPairValid` and a state in `Dom`, provided both generator views
 are total on `Dom`. It reads 32 bytes through `fill_bytes`, clamps them and derives the public key
 (`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). -/

@@ -167,11 +167,12 @@ theorem uakeInitiator_secure_pq (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
   sorry
 
 omit [DecidableEq C] in
-/-- The Full experiment loses no mass. Under the total contracts on every opaque leaf
-(`CoreContracts`, `SignatureContracts`, `GenerateTotal`, `HkdfSha256Contract H`), with
-Kyber1024-shaped pairs from `P.pqKeygen` (Bob serializes his own Kyber keys), with both views of
-the generator total on a domain that contains every state drawn from `P.coins`, and against an
-adversary that sends only messages fitting in memory, the experiment faults with probability `0`.
+/-- The Full experiment loses no mass. Under the total contracts on every opaque leaf and on Core's
+extracted `generate` (`CoreContracts`, `SignatureContracts`, `GenerateTotal`,
+`HkdfSha256Contract H`), with Kyber1024-shaped pairs from `P.pqKeygen` (Bob serializes his own
+Kyber keys), with both views of the generator total on a domain that contains every state drawn
+from `P.coins`, and against an adversary that sends only messages fitting in memory, the experiment
+faults with probability `0`.
 The statement covers one-time Kyber prekeys only and is pending restatement (see the module
 docstring). The proof is a stub. -/
 theorem fullExp_noLostMass (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
