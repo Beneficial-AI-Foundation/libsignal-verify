@@ -507,12 +507,7 @@ axiom alloc.fmt.format : core.fmt.Arguments → Result String
   "alloc::str::{alloc::borrow::ToOwned<str, alloc::string::String>}::to_owned"]
 axiom Str.Insts.AllocBorrowToOwnedString.to_owned : Str → Result String
 
-/-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
-    Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
-    Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
-    Visibility: public -/
-@[rust_fun "alloc::string::{core::clone::Clone<alloc::string::String>}::clone"]
-axiom alloc.string.String.Insts.CoreCloneClone.clone : String → Result String
+-- (dropped axiom alloc.string.String.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 -- (dropped axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref; provided by an imported sibling lib)
 
@@ -642,16 +637,7 @@ axiom hex.encode
   Std.U8)) :
   T → Result String
 
-/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
-    Source: 'rust/core/src/address.rs', lines 184:28-184:37
-    Name pattern: [libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceId, libsignal_core::address::ServiceId>}::eq]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceId, libsignal_core::address::ServiceId>}::eq"]
-axiom libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
-  :
-  libsignal_core.address.ServiceId → libsignal_core.address.ServiceId →
-    Result Bool
+-- (dropped axiom libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.ServiceId.service_id_fixed_width_binary; provided by an imported sibling lib)
 
@@ -664,14 +650,7 @@ axiom libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
 axiom libsignal_core.address.ServiceId.parse_from_service_id_string
   : Str → Result (Option libsignal_core.address.ServiceId)
 
-/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
-    Source: 'rust/core/src/address.rs', lines 683:15-683:20
-    Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::DeviceId>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{core::clone::Clone<libsignal_core::address::DeviceId>}::clone"]
-axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
-  : libsignal_core.address.DeviceId → Result libsignal_core.address.DeviceId
+-- (dropped axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 /-- [libsignal_core::address::{impl core::convert::From<libsignal_core::address::DeviceId> for u8}::from]:
     Source: 'rust/core/src/address.rs', lines 728:4-728:36
@@ -682,17 +661,7 @@ axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
 axiom U8.Insts.CoreConvertFromDeviceId.from
   : libsignal_core.address.DeviceId → Result Std.U8
 
-/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
-    Source: 'rust/core/src/address.rs', lines 776:9-776:14
-    Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone]
-    Visibility: public -/
--- The derived `Clone` copies the name and the device ID, so the copy equals the original.
-@[rust_fun
-  "libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone"]
-def libsignal_core.address.ProtocolAddress.Insts.CoreCloneClone.clone
-  (a : libsignal_core.address.ProtocolAddress) :
-  Result libsignal_core.address.ProtocolAddress :=
-  ok a
+-- (dropped axiom libsignal_core.address.ProtocolAddress.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.ProtocolAddress.name; provided by an imported sibling lib)
 

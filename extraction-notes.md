@@ -98,6 +98,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - `parse_from_service_id_fixed_width_binary(bytes: &ServiceIdFixedWidthBinaryBytes) -> Option<Self>`
 - ~~`parse_from_service_id_string(input: &str) -> Option<Self>`~~ — excluded (uses `str::Pattern` GAT)
 - `raw_uuid(self) -> Uuid`
+- derived `PartialEq` (with the derived `PartialEq` of `SpecificServiceId`), and `PartialEq<SpecificServiceId<KIND>> for ServiceId`
 - ~~`to_protocol_address(&self, device_id: DeviceId) -> ProtocolAddress`~~ — excluded (calls `service_id_string`)
 
 ### DeviceId
@@ -108,6 +109,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 ### ProtocolAddress
 
 - `new(name: String, device_id: DeviceId) -> Self`
+- derived `Clone` (with the derived `Clone` of `DeviceId`)
 - `name(&self) -> &str`
 - `device_id(&self) -> DeviceId`
 
@@ -244,7 +246,8 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `triple_ratchet::{is_state_decode, is_bad_key_or_iv}` | `ok (match error with \| .StateDecode => true \| _ => false)` and the same for `BadKeyOrIv` | Exact transcription of the `matches!` bodies; the Lean inductive has no borrow problem |
 | The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol` | `ok ()` | Logging affects neither protocol state nor results |
 | `Option::default` | `fun T => ok none` | The derived `Default` of `SessionStructure`, which `decode` takes as an argument, calls it. The Aeneas library does not model it |
-| `ProtocolAddress::clone` | `fun a => ok a` | The derived `Clone` copies the name and the device ID. `session_core::require_trusted_identity` clones the address for the `UntrustedIdentity` error |
+| `String::clone` (`Core/FunsExternal.lean`) | `fun s => ok s` | The clone holds the same characters. Core's derived `Clone` of `ProtocolAddress`, which `session_core::require_trusted_identity` calls for the `UntrustedIdentity` error, clones the name with it; Protocol uses Core's definition |
+| `PartialEq for uuid::Uuid` (`Core/FunsExternal.lean`) | `ok (decide (self.bytes = other.bytes))` | uuid 1.23.4 declares `struct Uuid([u8; 16])` with a derived `PartialEq`, which compares the 16 bytes. Core's derived equality of `ServiceId` calls it |
 | `PublicKey::verify_signature` | Dropped; Core's definition is used | `session_core::verify_bundle_signatures` calls it. Core defines it over the root axiom `curve.PublicKey.verify_signature_for_multipart_message`, so no Protocol-side verifier axiom enters the closure |
 | `KeyPair::generate`, `PrivateKey::public_key` | Dropped; Core's generated definitions `libsignal_core.curve.KeyPair.generate` and `libsignal_core.curve.PrivateKey.public_key` have the names that the Protocol code calls. `Core/CurveProvider.lean` makes the root names `curve.KeyPair.generate` and `curve.PrivateKey.public_key` aliases of these definitions | Core extracts both functions with their bodies. There is one constant for each Rust function, and the PQXDH statements, which use the root names, speak of the extracted definitions |
 | `PrivateKey::{calculate_signature, calculate_signature_for_multipart_message}`, `PublicKey::verify_signature_for_multipart_message`, `TryFrom<&[u8]> for PublicKey` | Dropped; `Core/CurveProvider.lean` makes each Protocol name an alias of Core's root axiom (`curve.PrivateKey.calculate_signature` and so on) | Core has no body for them. With the alias there is one constant for each Rust function, so a contract on Core's constant also covers the Protocol callers |

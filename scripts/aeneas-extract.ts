@@ -25,7 +25,13 @@ type TargetKey = "core" | "crypto" | "crypto-cbc" | "crypto-full" | "protocol" |
 const TARGETS: Record<TargetKey, {
   configs: string[]; diagnostic?: boolean; requiredBodies?: Record<string, number>;
 }> = {
-  core: { configs: ["core"] },
+  core: {
+    configs: ["core"],
+    requiredBodies: {
+      "libsignal_core::address::clone": 2,
+      "libsignal_core::address::eq": 2,
+    },
+  },
   crypto: {
     configs: ["crypto"],
     requiredBodies: {

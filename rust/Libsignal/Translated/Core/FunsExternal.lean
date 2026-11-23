@@ -74,6 +74,15 @@ axiom core.result.Result.ok
 
 -- core::result Try::branch + FromResidual::from_residual are shared (Libsignal.Translated.Shared.Core).
 
+/-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
+    Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
+    Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
+    Visibility: public -/
+-- The clone holds the same characters as the original.
+@[rust_fun "alloc::string::{core::clone::Clone<alloc::string::String>}::clone"]
+def alloc.string.String.Insts.CoreCloneClone.clone (s : String) : Result String :=
+  ok s
+
 /-- [alloc::string::{impl core::ops::deref::Deref<str> for alloc::string::String}::deref]:
     Source: '/rustc/library/alloc/src/string.rs', lines 2835:4-2835:27
     Name pattern: [alloc::string::{core::ops::deref::Deref<alloc::string::String, str>}::deref]
@@ -118,6 +127,15 @@ axiom uuid.builder.Uuid.from_slice
     Visibility: public -/
 @[rust_fun "uuid::builder::{uuid::Uuid}::from_bytes"]
 axiom uuid.builder.Uuid.from_bytes : Array Std.U8 16#usize → Result uuid.Uuid
+
+/-- [uuid::{impl core::cmp::PartialEq<uuid::Uuid> for uuid::Uuid}::eq]:
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.4/src/lib.rs', lines 446:31-446:40
+    Name pattern: [uuid::{core::cmp::PartialEq<uuid::Uuid, uuid::Uuid>}::eq]
+    Visibility: public -/
+-- `Uuid` is `struct Uuid([u8; 16])` with a derived `PartialEq`, which compares the 16 bytes.
+@[rust_fun "uuid::{core::cmp::PartialEq<uuid::Uuid, uuid::Uuid>}::eq"]
+def uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq (self other : uuid.Uuid) : Result Bool :=
+  ok (decide (self.bytes = other.bytes))
 
 /-- [x25519_dalek::x25519::{impl core::convert::From<[u8; 32usize]> for x25519_dalek::x25519::StaticSecret}::from]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/x25519-dalek-3.0.0/src/x25519.rs', lines 249:4-249:44

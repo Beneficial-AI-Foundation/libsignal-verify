@@ -25,6 +25,10 @@ charon:
     - "libsignal_core::address::_::from_uuid"
     - "libsignal_core::address::_::name"
     - "libsignal_core::address::_::device_id"
+    # Derived clones and equalities that libsignal-protocol calls.
+    - "{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone"
+    - "{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone"
+    - "{impl core::cmp::PartialEq for libsignal_core::address::ServiceId}::eq"
     - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::curve::_::serialize"
     - "libsignal_core::curve::_::key_type"

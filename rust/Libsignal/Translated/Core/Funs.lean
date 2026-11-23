@@ -129,6 +129,25 @@ def U8.Insts.CoreConvertFromServiceIdKind : core.convert.From Std.U8
   «from» := U8.Insts.CoreConvertFromServiceIdKind.from
 }
 
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}::eq]:
+    Source: 'rust/core/src/address.rs', lines 62:22-62:31
+    Visibility: public -/
+def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  {RAW_KIND : Std.U8} (self : address.SpecificServiceId RAW_KIND)
+  (other : address.SpecificServiceId RAW_KIND) :
+  Result Bool
+  := do
+  uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq self.uuid other.uuid
+
+/-- Trait implementation: [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}]
+    Source: 'rust/core/src/address.rs', lines 62:22-62:31 -/
+@[reducible]
+def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId (RAW_KIND
+  : Std.U8) : core.cmp.PartialEq (address.SpecificServiceId RAW_KIND)
+  (address.SpecificServiceId RAW_KIND) := {
+  eq := address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+}
+
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::from_uuid]:
     Source: 'rust/core/src/address.rs', lines 77:4-79:5 -/
 def address.SpecificServiceId.from_uuid
@@ -397,6 +416,49 @@ def address.SpecificServiceId.parse_from_service_id_fixed_width_binary
     core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (address.SpecificServiceId KIND) residual
 
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
+    Source: 'rust/core/src/address.rs', lines 184:28-184:37
+    Visibility: public -/
+def address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
+  (self : address.ServiceId) (other : address.ServiceId) : Result Bool := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  if self1 = other1
+  then
+    match self with
+    | address.ServiceId.Aci __self_0 =>
+      match other with
+      | address.ServiceId.Aci __arg1_0 =>
+        address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+          __self_0 __arg1_0
+      | address.ServiceId.Pni _ => fail panic
+    | address.ServiceId.Pni __self_0 =>
+      match other with
+      | address.ServiceId.Aci _ => fail panic
+      | address.ServiceId.Pni __arg1_0 =>
+        address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+          __self_0 __arg1_0
+  else ok false
+
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<KIND>> for libsignal_core::address::ServiceId}::eq]:
+    Source: 'rust/core/src/address.rs', lines 338:4-340:5
+    Visibility: public -/
+def address.ServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  {KIND : Std.U8} (coreconvertFromServiceIdSpecificServiceIdInst :
+  core.convert.From address.ServiceId (address.SpecificServiceId KIND))
+  (self : address.ServiceId) (other : address.SpecificServiceId KIND) :
+  Result Bool
+  := do
+  let si ← coreconvertFromServiceIdSpecificServiceIdInst.«from» other
+  address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq self si
+
+/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
+    Source: 'rust/core/src/address.rs', lines 683:15-683:20
+    Visibility: public -/
+def address.DeviceId.Insts.CoreCloneClone.clone
+  (self : address.DeviceId) : Result address.DeviceId := do
+  ok self
+
 /-- [libsignal_core::address::MAX_VALID_DEVICE_ID]
     Source: 'rust/core/src/address.rs', lines 719:0-719:36 -/
 @[global_simps, irreducible] def address.MAX_VALID_DEVICE_ID : Std.U8 := 127#u8
@@ -428,6 +490,15 @@ def address.DeviceId.new
   match o with
   | none => ok (core.result.Result.Err ())
   | some id1 => address.DeviceId.new_nonzero id1
+
+/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
+    Source: 'rust/core/src/address.rs', lines 776:9-776:14
+    Visibility: public -/
+def address.ProtocolAddress.Insts.CoreCloneClone.clone
+  (self : address.ProtocolAddress) : Result address.ProtocolAddress := do
+  let s ← alloc.string.String.Insts.CoreCloneClone.clone self.name
+  let di ← address.DeviceId.Insts.CoreCloneClone.clone self.device_id
+  ok { «name» := s, device_id := di }
 
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::new]:
     Source: 'rust/core/src/address.rs', lines 802:4-804:5
