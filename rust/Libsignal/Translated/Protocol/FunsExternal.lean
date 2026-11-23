@@ -386,21 +386,34 @@ axiom BoxSlice.Insts.CoreConvertFromShared0Slice.from
   {T : Type} (corecloneCloneInst : core.clone.Clone T) :
   Slice T → Result (Slice T)
 
+-- Clones the elements of a list from the first to the last and stops at the first failure.
+-- `List.mapM_with_length` in the Aeneas library runs the clones from the last element to
+-- the first.
+private def BoxSlice.cloneElems {T : Type} (clone : T → Result T) :
+    (l : List T) → Result {l' : List T // l'.length = l.length}
+  | [] => ok ⟨[], rfl⟩
+  | a :: rest => do
+    let a' ← clone a
+    let l ← BoxSlice.cloneElems clone rest
+    ok ⟨a' :: l.val, congrArg Nat.succ l.property⟩
+
 /-- [alloc::boxed::{impl core::clone::Clone for alloc::boxed::Box<[T]>}::clone]:
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2136:4-2136:27
     Name pattern: [alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone]
     Visibility: public -/
--- alloc clones the allocator, then clones the elements in order into a new box
--- (`to_vec_in`, `into_boxed_slice`); for a type with a trivial clone, such as `u8`,
--- `to_vec_in` copies the elements instead, which gives the same values. Aeneas models
--- `Box<[T], A>` as `Slice T`, with no allocator value, so only the element clones are
--- modelled; any of them may fail.
+-- alloc clones the allocator, then clones the elements from the first to the last into a
+-- new box (`to_vec_in`, `into_boxed_slice`), so a failing clone stops at the first
+-- failure; for a type with a trivial clone, such as `u8`, `to_vec_in` copies the elements
+-- instead, which gives the same values. Aeneas models `Box<[T], A>` as `Slice T`, with no
+-- allocator value, so only the element clones are modelled; any of them may fail.
 @[rust_fun "alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone"]
 def BoxSlice.Insts.CoreCloneClone.clone
   {T : Type} {A : Type} (corecloneCloneInst : core.clone.Clone T)
   (corecloneCloneInst1 : core.clone.Clone A) :
   Slice T → Result (Slice T) :=
-  fun s => Slice.clone corecloneCloneInst.clone s
+  fun s => do
+    let l ← BoxSlice.cloneElems corecloneCloneInst.clone s.val
+    ok (Slice.from l.val (by rw [l.property]; exact s.property))
 
 /-- [alloc::boxed::{impl core::convert::AsRef<T> for alloc::boxed::Box<T>}::as_ref]:
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2429:4-2429:26
