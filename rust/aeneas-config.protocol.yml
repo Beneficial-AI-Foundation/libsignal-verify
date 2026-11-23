@@ -159,13 +159,15 @@ charon:
     - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
     # libsignal-protocol::kem — Plan A scope:
     # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
-    # TRANSPARENT (their bodies are extracted; the libcrux ML-KEM primitive is
+    # TRANSPARENT (their bodies are extracted; the libcrux Kyber-1024 primitive is
     # the axiomatic leaf). Everything else in kem.rs that touches the
     # `DynParameters` vtable becomes opaque — these aren't called from the
     # PQXDH verification target.
     - "libsignal_protocol::kem::_::key_length"            # KeyKind::key_length impls (Public, Secret) use parameters()
     - "libsignal_protocol::kem::_::generate"              # KeyPair::generate uses parameters().generate() (inherent-method `_::` form)
-    # libcrux ML-KEM 1024 primitive — the axiomatic leaf (FIPS 203).
+    # libcrux Kyber-1024 primitive — the axiomatic leaf. kyber1024.rs calls
+    # libcrux_ml_kem::kyber1024, which libcrux documents as Kyber 1024 of NIST PQC Round 3,
+    # not the FIPS 203 ML-KEM-1024.
     - "libsignal_protocol::kem::kyber1024::_::encapsulate"
     - "libsignal_protocol::kem::kyber1024::_::decapsulate"
     - "libsignal_protocol::kem::kyber1024::_::generate"
@@ -344,8 +346,10 @@ aeneas_args:
 tweaks:
   files: ["Types.lean", "Funs.lean"]
   substitutions:
-    # Explicit kernel-checked literal bounds avoid toStr's native_decide default.
-    # These substitutions change only proof arguments, not strings or operations.
+    # toStr takes a proof that the literal fits in U32. Its default in the pinned Aeneas
+    # library is `by rw [U32.max_eq]; decide +kernel`; these substitutions pass
+    # `by rw [U32.max_eq]; decide` instead. Neither uses native_decide. They change only
+    # proof arguments, not strings or operations.
     - find: 'toStr "valid length"'
       replace: 'toStr "valid length" (by rw [U32.max_eq]; decide)'
       required: true

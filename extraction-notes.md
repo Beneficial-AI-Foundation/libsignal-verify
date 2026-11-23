@@ -221,6 +221,8 @@ Each workaround names its limitation in the patch header or in a comment in the 
 | `protocol-state_session-promote_matching_session` | The search loop of `SessionRecord::promote_matching_session` moves into the new method `find_previous_session`, an index loop that decodes each stored session inline; the local `state` is renamed `promoted` | At nightly-2026.10.30-de16f3c Aeneas stops on the original `for` loop over `previous_session_states().enumerate()` with an internal error (`interp/InterpReduceCollapse.ml`), and the closure impls of `previous_session_states` fail a prepass (see the YAML). A local named `state` hides the `state` module in the generated Lean ([aeneas#1098](https://github.com/AeneasVerif/aeneas/issues/1098)) | The original loop translates |
 | `protocol-state_session-set_unacknowledged_kyber_pre_key_id` | `as_mut().expect(..)` → `take().expect(..)`, then the updated value is stored back with `Some(pending)` | For `expect` on an `Option<&mut T>` Aeneas generates a write-back function, but its model of `Option::expect` returns the value only, so the Lean does not type-check | The model of `expect` has the write-back |
 | `protocol-session_core-prekey_steps`; callers `protocol-session-process_prekey`, `protocol-session-process_prekey_bundle` | The stretches of code of the `async` callers `process_prekey`, `process_prekey_impl` and `process_prekey_bundle` between two store calls move into the functions of the new module `session_core`. The callers keep every store call in its place and call the functions in the original order. The functions cover the trust answer, the two signature checks, the initiator's key choice, session set-up (up to `ratchet::initialize_alice_session`) and pending prekey IDs, and the responder's session lookup, version check, Kyber checks and session set-up (up to `ratchet::initialize_bob_session`). The `log::info!` call of `process_prekey_bundle` stays in the caller | Charon cannot translate the `async` store traits, so the extraction leaves out the `session` module | Charon translates the `async` store traits |
+| `protocol-protocol-PreKeySignalMessage-kyber_ciphertext` | `self.kyber_payload.as_ref().map(\|kyber\| &kyber.ciphertext)` → a `match` on `&self.kyber_payload` that returns `Some(&kyber.ciphertext)` or `None` | At nightly-2026.10.30-de16f3c Aeneas cannot translate the closure, which returns a borrow of a field of its argument ("Can't end abstraction 3 as it is set as non-endable") | The closure form translates |
+| `protocol-state_session-archive_current_state_inner` | `self.previous_sessions.insert(0, …)` → `push` when the list is empty, `insert(0, …)` otherwise; the session is encoded first, as before | The pinned library model of `Vec::insert` fails at index `len`, where Rust appends (see [Known model defects](#known-model-defects)) | The library models `insert` at index `len` as an append |
 
 ### Outside `rust/`
 
@@ -254,20 +256,29 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
 | `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
 | `<Box<T, A> as AsRef<T>>::as_ref` | `fun x => ok x` | The `alloc` body returns `self`, a borrow of the boxed value with no failing path, and Aeneas models both `Box<T, A>` and `&T` as `T`. The allocator type parameter stays in the signature |
+| `<Vec<T, A> as AsRef<[T]>>::as_ref` | `fun v => ok (alloc.vec.Vec.deref v)` | The `alloc` body returns `self`, deref-coerced to the slice of the elements; the library's `Vec.deref` gives that slice |
+| `<Box<[T], A> as Clone>::clone` | `fun s => Slice.clone corecloneCloneInst.clone s` | The `alloc` body clones the allocator, then clones the elements in order into a new box (`to_vec_in`, `into_boxed_slice`). Aeneas models `Box<[T], A>` as `Slice T` with no allocator value, so only the element clones are modelled, with their failures. The `Clone` instance of `A` stays in the signature, unused |
+| `<PhantomData<T> as Clone>::clone` | `fun x => ok x` | The `core` body returns `*self` |
 | `triple_ratchet::decrypt_failure_message` | External | String formatting, as for `format!` elsewhere |
 
 `OutgoingTripleRatchet::{from_session_state, encrypt}` and `TripleRatchet::{from_session_state, decrypt}` are transparent. Their Lean bodies contain the SPQR calls, the mixing of chain and SPQR keys, MAC verification, AES-CBC, error classification, and the order in which ratchet and SPQR state is committed. `SignalMessage::{compute_mac, verify_mac, verify_mac_with_addresses}` are transparent as well, so the MAC is computed and compared in translated code; HMAC-SHA256 (`hmac_sha256_parts`) is the remaining external. `RatchetState::{consume_message_key, take_skipped_key, find_receiver_chain_index}`, which `decrypt` calls, are transparent; `MessageKeyGenerator::from_pb` stays external.
+
+## Own code without a body
+
+Functions of libsignal that the extraction keeps without a body although they are libsignal's own code, with the reason:
+
+| Item | Configuration | Reason | Layer | Translator revisions |
+| --- | --- | --- | --- | --- |
+| `crypto::hkdf_sha256`, the helper that `protocol-crypto-hkdf_sha256` adds | `opaque` | Its body is one call, `hkdf::Hkdf::<Sha256>::new(salt, input_key_material).expand(info, output)`, into the outside crate `hkdf`, whose generic-array associated types Charon cannot lift under `--preset=aeneas` (patch header). It is the HKDF-SHA256 primitive boundary | `charon` | not recorded |
+| `impl prost::Message` for `SessionStructure` and the messages it contains (`Chain`, `ChainKey`, `MessageKey`, `PendingPreKey`, `PendingKyberPreKey`), generated by `prost-build` from `proto/storage.proto` | `opaque`, through the four `proto` Message patterns | With `include` lines on their methods, Aeneas fails: first "Unimplemented" on the `FnOnce` instance of `<u32 as Default>::default`, which the generated code passes as a function value, then "Internal error: please file an issue" | `aeneas` | Aeneas `de16f3cf877976e966906dc890f63dcb418884fa`, Charon `373d84044d80f6eb44285c2c349bae1453f5b6ca` |
 
 ## Known model defects
 
 ### `Vec::insert` at the end of a vector
 
-The pinned Aeneas library models `Vec::insert(i, x)` as failing with `arrayOutOfBounds` when `i = len`; Rust appends in that case and panics only when `i > len` ([aeneas#1288](https://github.com/AeneasVerif/aeneas/issues/1288), still open after the partial fix in #1302). Two translated functions insert at index 0, so their Lean models fail on an empty vector where Rust succeeds:
+The pinned Aeneas library models `Vec::insert(i, x)` as failing with `arrayOutOfBounds` when `i = len`; Rust appends in that case and panics only when `i > len` ([aeneas#1288](https://github.com/AeneasVerif/aeneas/issues/1288), still open after the partial fix in #1302). `RatchetState::store_skipped_key` inserts at index 0, so its Lean model fails on an empty vector, for the first skipped message key of a receiver chain, where Rust succeeds. Proofs about that path need the corrected model. In-order delivery does not call `store_skipped_key`.
 
-- `RatchetState::store_skipped_key`, for the first skipped message key of a receiver chain;
-- `SessionRecord::archive_current_state_inner`, when the record has no previous sessions.
-
-Proofs about these paths need the corrected model. In-order delivery does not call `store_skipped_key`.
+`SessionRecord::archive_current_state_inner` inserted at index 0 as well, which failed when the record had no previous sessions. The translation patch `protocol-state_session-archive_current_state_inner` calls `push` in that case, so its Lean model agrees with Rust.
 
 ## Known warnings
 
