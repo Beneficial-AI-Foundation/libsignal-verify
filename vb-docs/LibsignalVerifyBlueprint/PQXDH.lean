@@ -1038,8 +1038,9 @@ prekey when one is in use, accepts a replay of the initial message of the challe
 derives the same session key. The adversary can reveal that key without matching the challenge
 transcript. In the partnered experiment over original-key partnering, a session of $`T` that
 holds the associated data and the key material of the challenge session is its partner,
-whatever its transcript and the time at which it accepted, so revealing it makes the experiment
-output a uniform bit.
+whatever its transcript and the time at which it accepted, so revealing it makes step 7 of the
+experiment output a uniform bit. Step 4 comes first: if the challenge session accepted and no
+session of $`T` that accepted no later than it did is its partner, the experiment outputs $`1`.
 
 ::::definition "pqxdh_challenge_partnered" (lean := "Protocols.Models.PQXDH.challengePartnered") (uses := "pqxdh_challenge_result, pqxdh_original_key_partnering, uake_partnered_exp")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.challengePartnered -docstrings -comments
@@ -1426,10 +1427,12 @@ material. The AEAD scheme of chapter 2 has only an encryption and a decryption f
 property that relates them. Nothing in the model says that a ciphertext
 made under one key, or with other associated data, fails to decrypt under another key or other
 associated data. Perfect correctness of the AEAD scheme concerns one key and one associated
-data, and the security theorems do not assume it. Rejection under another key or other
-associated data is only the security property INT-CTXT-D, which bounds it for one uniform key
-and counts only the pairs that its encryption oracle did not output. INT-CTXT-D is a hypothesis
-of hop 5 in both theorems and of hop 6 in the Diffie-Hellman theorem.
+data, and the security theorems do not assume it. Their only hypothesis on the AEAD scheme is
+INT-CTXT-D. Its game draws one uniform key, which the adversary never sees, and counts a
+decryption under that key that succeeds on a pair of associated data and ciphertext that its
+encryption oracle had not output. The theorems assume no property of decryption under a second
+key, such as key commitment (that a ciphertext decrypts under at most one key). INT-CTXT-D is a
+hypothesis of hop 5 in both theorems and of hop 6 in the Diffie-Hellman theorem.
 
 # Modelling choices
 
@@ -1517,7 +1520,7 @@ secrecy and the authentication of a completed exchange. For forward secrecy agai
 quantum adversary, it models the hash function as a PRF (KS, Section 4, p. 11). The Lean module
 note says that the proof of the Diffie-Hellman theorem may need a random oracle in place of a
 PRF. The module note of the two Diffie-Hellman hops 5 and 6 says that both are admitted and that
-their proofs wait for the choice between a PRF and a random-oracle model of the derivation
+their proofs wait for a choice of assumptions that is open
 ([issue #81](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/81)). The
 post-quantum hops are stated with the PRF as it stands.
 
