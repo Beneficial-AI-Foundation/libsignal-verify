@@ -243,7 +243,7 @@ axiom x25519_dalek.x25519.PublicKey.as_bytes
   : x25519_dalek.x25519.PublicKey → Result (Array Std.U8 32#usize)
 
 /-- [libsignal_core::curve::log_public_key_trailing_bytes]:
-    Source: 'rust/core/src/curve.rs', lines 566:0-568:1 -/
+    Source: 'rust/core/src/curve.rs', lines 567:0-569:1 -/
 -- Logging affects neither the key nor the result.
 def curve.log_public_key_trailing_bytes (_trailing : Std.Usize) : Result Unit :=
   ok ()
