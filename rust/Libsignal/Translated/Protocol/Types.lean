@@ -1047,6 +1047,11 @@ structure state.bundle.PreKeyBundle where
   identity_key : identity_key.IdentityKey
   kyber_pre_key : state.bundle.KyberPreKey
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 218:29-218:83 -/
+@[reducible]
+def state.session.SessionState.remote_identity_key.closure := Unit
+
 /-- [libsignal_protocol::session_core::reuse_matching_session::{closure}]
     Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 @[reducible]

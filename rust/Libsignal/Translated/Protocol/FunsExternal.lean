@@ -1868,13 +1868,6 @@ axiom state.session.UnacknowledgedPreKeyMessageItems.new
     proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
     → Result state.session.UnacknowledgedPreKeyMessageItems
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 213:4-221:5 -/
-axiom state.session.SessionState.remote_identity_key
-  :
-  state.session.SessionState → Result (core.result.Result (Option
-    identity_key.IdentityKey) state.session.InvalidSessionError)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 223:4-225:5 -/
 axiom state.session.SessionState.remote_identity_key_bytes

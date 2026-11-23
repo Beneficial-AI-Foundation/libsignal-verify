@@ -189,7 +189,8 @@ charon:
     # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
     # alice_base_key and session_version are translated, for SessionState and for
     # SessionRecord: Charon's name matcher has no case for an inherent impl segment, so no
-    # pattern selects the methods of one of the two types.
+    # pattern selects the methods of one of the two types. remote_identity_key, whose
+    # map_err closure returns InvalidSessionError with a literal, is translated as well.
     - "libsignal_protocol::state::session::_::current_pq_state"
     - "libsignal_protocol::state::session::_::deserialize"
     - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
@@ -202,7 +203,6 @@ charon:
     - "libsignal_protocol::state::session::_::local_identity_key_bytes"
     - "libsignal_protocol::state::session::_::local_registration_id"
     - "libsignal_protocol::state::session::_::previous_session_states"
-    - "libsignal_protocol::state::session::_::remote_identity_key"
     - "libsignal_protocol::state::session::_::remote_identity_key_bytes"
     - "libsignal_protocol::state::session::_::remote_registration_id"
     - "libsignal_protocol::state::session::_::sender_ratchet_private_key"

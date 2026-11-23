@@ -7167,6 +7167,54 @@ def state.session.SessionRecord.promote_matching_session
           residual
       ok (r1, self)
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{impl core::ops::function::FnOnce<(libsignal_protocol::error::SignalProtocolError,), libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{closure}}::call_once]:
+    Source: 'rust/protocol/src/state/session.rs', lines 218:29-218:83 -/
+def
+  state.session.SessionState.remote_identity_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolErrorInvalidSessionError.call_once
+  (c : state.session.SessionState.remote_identity_key.closure)
+  (tupled_args : error.SignalProtocolError) :
+  Result state.session.InvalidSessionError
+  := do
+  ok (toStr "invalid remote identity key")
+
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{impl core::ops::function::FnOnce<(libsignal_protocol::error::SignalProtocolError,), libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{closure}}]
+    Source: 'rust/protocol/src/state/session.rs', lines 218:29-218:83 -/
+@[reducible]
+def
+  state.session.SessionState.remote_identity_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolErrorInvalidSessionError
+  : core.ops.function.FnOnce
+  state.session.SessionState.remote_identity_key.closure
+  error.SignalProtocolError state.session.InvalidSessionError := {
+  call_once :=
+    state.session.SessionState.remote_identity_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolErrorInvalidSessionError.call_once
+}
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key]:
+    Source: 'rust/protocol/src/state/session.rs', lines 213:4-221:5 -/
+def state.session.SessionState.remote_identity_key
+  (self : state.session.SessionState) :
+  Result (core.result.Result (Option identity_key.IdentityKey)
+    state.session.InvalidSessionError)
+  := do
+  let i := alloc.vec.Vec.len self.session.remote_identity_public
+  match i.val with
+  | 0 => ok (core.result.Result.Ok none)
+  | _ =>
+    let s := alloc.vec.Vec.deref self.session.remote_identity_public
+    let r ← identity_key.IdentityKey.decode s
+    let r1 ←
+      core.result.Result.map_err
+        state.session.SessionState.remote_identity_key.closure.Insts.CoreOpsFunctionFnOnceTupleSignalProtocolErrorInvalidSessionError
+        r ()
+    let cf ← core.result.Result.Insts.CoreOpsTry.branch r1
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      ok (core.result.Result.Ok (some val))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+        (Option identity_key.IdentityKey) (core.convert.FromSame
+        state.session.InvalidSessionError) residual
+
 /-- [libsignal_protocol::session_core::reuse_matching_session::{impl core::ops::function::FnOnce<(libsignal_protocol::identity_key::IdentityKey,), bool> for libsignal_protocol::session_core::reuse_matching_session::{closure}<'_0>}::call_once]:
     Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 def
