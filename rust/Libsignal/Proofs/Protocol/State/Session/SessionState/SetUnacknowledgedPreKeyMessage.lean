@@ -8,16 +8,18 @@ import Libsignal.Translated.Protocol.Funs
 /-! # Spec theorems for `SessionState::set_unacknowledged_pre_key_message` and
 `SessionState::set_kyber_ciphertext`
 
-The two setters record, in the session of the initiator, what her first message must carry.
+The two setters store pending prekey data in the session of the initiator.
 `set_unacknowledged_pre_key_message` sets the pending prekey record: the one-time prekey ID, the
 signed prekey ID stored as the `i32` wrap of its `u32` value, the bytes of the base key
-(`PublicKey::serialize` of the key, copied into a vector), and a time stamp in seconds that the
-four clock calls below compute from `now`. `set_kyber_ciphertext` sets the pending Kyber
-prekey record: the placeholder ID `u32::MAX`, which a later call replaces by the actual ID, and
-the bytes of the Kyber ciphertext. Each setter changes nothing else in the session.
+(`PublicKey::serialize` of the key, copied into a vector), and the local creation time of the
+record in seconds, which the four time operations below compute from the argument `now`. The first
+message has no field for this time. `set_kyber_ciphertext` sets the pending Kyber prekey record:
+the placeholder ID `u32::MAX`, which a later call replaces by the ID of the Kyber prekey in the
+bundle, and the bytes of the Kyber ciphertext. Each setter changes nothing else in the session.
 
-The four calls that read the clock (`SystemTime::UNIX_EPOCH`, `SystemTime::duration_since`,
-`Result::unwrap_or_default` and `Duration::as_secs`) are outside libsignal. The hypotheses of
+The four operations used to derive the time stamp from `now` (`SystemTime::UNIX_EPOCH`,
+`SystemTime::duration_since`, `Result::unwrap_or_default` and `Duration::as_secs`) are outside
+libsignal. The hypotheses of
 `set_unacknowledged_pre_key_message_eq` name their values and nothing else about them. The call
 of `PublicKey::serialize` has a body in libsignal. The equation keeps the call and says nothing
 about the bytes that it returns.
@@ -35,19 +37,19 @@ namespace libsignal_protocol.state.session.SessionState
 natural language description:
 
 • `set_unacknowledged_pre_key_message`: converts the IDs, serializes the base key and copies the
-  bytes into a vector, computes the time stamp from the clock, and stores the pending prekey record
+  bytes into a vector, computes the time stamp from `now`, and stores the pending prekey record
   in the session.
 
 natural language specs:
 
-• If the four clock calls return `e`, `d`, `d'` and `t` as the hypotheses say, the call serializes
-  the base key and returns the session with the pending prekey record made of the one-time prekey
-  ID, the signed prekey ID wrapped to `i32`, the serialized bytes as a vector, and the time stamp
-  `t`.
+• If the four time operations return `e`, `d`, `d'` and `t` as the hypotheses say, the call
+  serializes the base key and returns the session with the pending prekey record made of the
+  one-time prekey ID, the signed prekey ID wrapped to `i32`, the serialized bytes as a vector, and
+  the time stamp `t`.
 -/
 
 /-- **Spec theorem for `SessionState.set_unacknowledged_pre_key_message`**. The hypotheses `he`,
-`hd`, `hd'` and `ht` name the values of the four clock calls, which are outside libsignal. The
+`hd`, `hd'` and `ht` name the values of the four time operations, which are outside libsignal. The
 call of `PublicKey.serialize`, which has a body in libsignal, stays in the equation. -/
 theorem set_unacknowledged_pre_key_message_eq (st : state.session.SessionState)
     (opk : Option state.prekey.PreKeyId) (spkId : state.signed_prekey.SignedPreKeyId)
@@ -65,7 +67,22 @@ theorem set_unacknowledged_pre_key_message_eq (st : state.session.SessionState)
           { pre_key_id := opk, signed_pre_key_id := UScalar.hcast .I32 spkId,
             base_key := { slice := s }, timestamp := t } :
             proto.storage.session_structure.PendingPreKey) } }) := by
-  sorry
+  have hv : ∀ s : Slice Std.U8,
+      alloc.slice.Slice.to_vec core.clone.CloneU8 s = ok { slice := s } := by
+    intro s
+    have h := alloc.slice.Slice.to_vec_spec core.clone.CloneU8 s (fun _ _ => rfl)
+    cases hr : alloc.slice.Slice.to_vec core.clone.CloneU8 s with
+    | ret v =>
+      rw [hr] at h
+      have h' : s = v.slice := (Aeneas.Std.WP.spec_ok v).mp h
+      rw [h']
+    | vis e k => rw [hr] at h; exact ((Aeneas.Std.WP.spec_vis e k).mp h).elim
+    | div => rw [hr] at h; exact (Aeneas.Std.WP.spec_div.mp h).elim
+  unfold state.session.SessionState.set_unacknowledged_pre_key_message
+  simp [he, hd, hd', ht, hv, core.convert.IntoFrom.into,
+    U32.Insts.CoreConvertFromSignedPreKeyId.from, U32.Insts.CoreConvertFromPreKeyId.from,
+    core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleTU.call_once]
+  cases opk <;> simp [lift]
 
 /-
 natural language description:
@@ -87,6 +104,6 @@ theorem set_kyber_ciphertext_eq (st : state.session.SessionState) (ct : Slice St
       .ok { session := { st.session with pending_kyber_pre_key := some (
           { pre_key_id := core.num.U32.MAX, ciphertext := alloc.slice.Slice.into_vec ct } :
             proto.storage.session_structure.PendingKyberPreKey) } } := by
-  sorry
+  simp [state.session.SessionState.set_kyber_ciphertext]
 
 end libsignal_protocol.state.session.SessionState

@@ -39,6 +39,6 @@ theorem pqxdh_initiate_self_session {R : Type _} (rng : rand_1.rng.Rng R)
     (crng : rand_core_1.CryptoRng R) (ip : InitiatorParameters) (b : Bool) (r : R) :
     pqxdh_initiate rng crng { ip with self_session := b } r =
       pqxdh_initiate rng crng { ip with self_session := false } r := by
-  sorry
+  rfl
 
 end libsignal_protocol.pqxdh

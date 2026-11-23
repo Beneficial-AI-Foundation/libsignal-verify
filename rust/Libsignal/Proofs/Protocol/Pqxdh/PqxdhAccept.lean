@@ -37,6 +37,6 @@ field `self_session` of the parameters. -/
 theorem pqxdh_accept_self_session (rp : RecipientParameters) (b : Bool) :
     pqxdh_accept { rp with self_session := b } =
       pqxdh_accept { rp with self_session := false } := by
-  sorry
+  rfl
 
 end libsignal_protocol.pqxdh

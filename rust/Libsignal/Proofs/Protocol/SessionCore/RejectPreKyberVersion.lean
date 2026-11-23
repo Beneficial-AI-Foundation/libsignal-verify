@@ -51,13 +51,13 @@ theorem reject_pre_kyber_version_x3dh (m : protocol.PreKeySignalMessage) (s : St
     reject_pre_kyber_version m =
       .ok (.Err (error.SignalProtocolError.InvalidMessage
         protocol.CiphertextMessageType.PreKey s)) := by
-  sorry
+  simp [reject_pre_kyber_version, protocol.PreKeySignalMessage.impl.message_version, h, hs]
 
 /-- **Spec theorem for `session_core.reject_pre_kyber_version`**, pass branch: a message of any
 other version passes. -/
 theorem reject_pre_kyber_version_ok (m : protocol.PreKeySignalMessage)
     (h : m.message_version ≠ protocol.CIPHERTEXT_MESSAGE_PRE_KYBER_VERSION) :
     reject_pre_kyber_version m = .ok (.Ok ()) := by
-  sorry
+  simp [reject_pre_kyber_version, protocol.PreKeySignalMessage.impl.message_version, h]
 
 end libsignal_protocol.session_core

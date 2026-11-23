@@ -43,7 +43,10 @@ theorem set_unacknowledged_kyber_pre_key_id_some (st : state.session.SessionStat
     st.set_unacknowledged_kyber_pre_key_id kid =
       .ok { session := { st.session with
         pending_kyber_pre_key := some { p with pre_key_id := kid } } } := by
-  sorry
+  simp [state.session.SessionState.set_unacknowledged_kyber_pre_key_id, h,
+    core.option.Option.take, core.option.Option.expect, Result.ofOption,
+    core.convert.IntoFrom.into,
+    U32.Insts.CoreConvertFromKyberPreKeyId.from]
 
 /-- **Spec theorem for `SessionState.set_unacknowledged_kyber_pre_key_id`**, missing branch: a
 session with no pending Kyber prekey makes the call panic. -/
@@ -51,6 +54,7 @@ theorem set_unacknowledged_kyber_pre_key_id_none (st : state.session.SessionStat
     (kid : state.kyber_prekey.KyberPreKeyId)
     (h : st.session.pending_kyber_pre_key = none) :
     st.set_unacknowledged_kyber_pre_key_id kid = .fail .panic := by
-  sorry
+  simp [state.session.SessionState.set_unacknowledged_kyber_pre_key_id, h,
+    core.option.Option.take, core.option.Option.expect, Result.ofOption]
 
 end libsignal_protocol.state.session.SessionState

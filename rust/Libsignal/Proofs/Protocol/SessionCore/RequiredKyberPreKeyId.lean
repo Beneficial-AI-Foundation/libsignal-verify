@@ -27,6 +27,7 @@ the work copy that Aeneas reads.
 -/
 
 open Aeneas Aeneas.Std Result
+open libsignal_protocol.protocol.PreKeySignalMessage.kyber_pre_key_id.closure.Insts
 
 namespace libsignal_protocol.session_core
 
@@ -48,7 +49,9 @@ the Kyber payload `p` gives the ID of `p`. -/
 theorem required_kyber_pre_key_id_some (m : protocol.PreKeySignalMessage)
     (p : protocol.KyberPayload) (h : m.kyber_payload = some p) :
     required_kyber_pre_key_id m = .ok (.Ok p.pre_key_id) := by
-  sorry
+  simp [required_kyber_pre_key_id, protocol.PreKeySignalMessage.kyber_pre_key_id, h,
+    core.option.Option.as_ref, core.option.Option.map,
+    CoreOpsFunctionFnOnceTupleShared0KyberPayloadKyberPreKeyId.call_once]
 
 /-- **Spec theorem for `session_core.required_kyber_pre_key_id`**, missing branch: a message with
 no Kyber payload is rejected with `InvalidMessage` for a prekey message. `s` is the value of the
@@ -59,6 +62,8 @@ theorem required_kyber_pre_key_id_none (m : protocol.PreKeySignalMessage) (s : S
     required_kyber_pre_key_id m =
       .ok (.Err (error.SignalProtocolError.InvalidMessage
         protocol.CiphertextMessageType.PreKey s)) := by
-  sorry
+  simp [required_kyber_pre_key_id, protocol.PreKeySignalMessage.kyber_pre_key_id, h, hs,
+    core.option.Option.as_ref, core.option.Option.map,
+    CoreOpsFunctionFnOnceTupleShared0KyberPayloadKyberPreKeyId.call_once]
 
 end libsignal_protocol.session_core
