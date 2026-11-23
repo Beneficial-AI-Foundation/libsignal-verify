@@ -195,9 +195,10 @@ charon:
     # or decode protobuf — all hit "no bottoms" / Internal error. Simple
     # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
     # alice_base_key and session_version are translated, for SessionState and for
-    # SessionRecord: Charon's name matcher has no case for an inherent impl segment, so no
-    # pattern selects the methods of one of the two types. remote_identity_key, whose
-    # map_err closure returns InvalidSessionError with a literal, is translated as well.
+    # SessionRecord: Charon's name matcher never matches an impl pattern against an inherent
+    # impl segment (that arm returns false), so no pattern selects the methods of one of the
+    # two types. remote_identity_key, whose map_err closure returns InvalidSessionError with
+    # a literal, is translated as well.
     - "libsignal_protocol::state::session::_::current_pq_state"
     - "libsignal_protocol::state::session::_::deserialize"
     - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
