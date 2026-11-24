@@ -15,6 +15,7 @@ import Libsignal.Proofs.Protocol.Pqxdh.PqxdhInitiate
 import Libsignal.Proofs.Protocol.SessionCore.RejectPreKyberVersion
 import Libsignal.Proofs.Protocol.SessionCore.RequiredKyberPreKeyId
 import Libsignal.Proofs.Protocol.SessionCore.SetUnacknowledgedPrekeyIds
+import Libsignal.Proofs.Protocol.State.Session.SessionState.SetKyberCiphertext
 import Libsignal.Proofs.Protocol.State.Session.SessionState.SetUnacknowledgedKyberPreKeyId
 import Libsignal.Proofs.Protocol.State.Session.SessionState.SetUnacknowledgedPreKeyMessage
 import Libsignal.Proofs.Std.Alloc.Boxed.AsRef

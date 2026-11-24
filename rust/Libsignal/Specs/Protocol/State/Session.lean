@@ -3,6 +3,7 @@ Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
+import Libsignal.Proofs.Protocol.State.Session.SessionState.SetKyberCiphertext
 import Libsignal.Proofs.Protocol.State.Session.SessionState.SetUnacknowledgedKyberPreKeyId
 import Libsignal.Proofs.Protocol.State.Session.SessionState.SetUnacknowledgedPreKeyMessage
 
