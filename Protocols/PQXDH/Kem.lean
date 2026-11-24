@@ -60,7 +60,9 @@ variable {Rand Msg C IdC IdK : Type}
 
 /-- The extracted `encapsulate` on the public key `pk` and the generator state `r`, with its
 result as a ciphertext and a secret. A protocol error is both the ciphertext and the secret. The
-encapsulation step of `kyberKem` and `kyberKemAfterGenerate`, which differ only in `r`. -/
+encapsulation step of `kyberKem` and `kyberKemAfterGenerate`. The two call it with different
+`r`; `kyberKemAfterGenerate` first runs `generate` and reaches this step only when `generate`
+returns. -/
 noncomputable def kyberEncapsOn (P : Params Rand Msg C IdC IdK) (pk : PQPub) (r : Rand) :
     RustOracleComp unifSpec (KemCiphertext × KemSecret) := do
   let (res, _) ← liftResult (kem.KeyPublic.encapsulate P.cryptoRngInst pk r)
