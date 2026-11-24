@@ -3,6 +3,8 @@ import Libsignal.Proofs.Core.Address.Kind
 import Libsignal.Proofs.Core.Address.RawUuid
 import Libsignal.Proofs.Core.Address.ServiceIdBinary
 import Libsignal.Proofs.Core.Address.ServiceIdFixedWidthBinary
+import Libsignal.Proofs.Core.Curve.KeyPair
+import Libsignal.Proofs.Core.Curve.PrivateKey
 import Libsignal.Proofs.Core.Curve.PublicKey
 import Libsignal.Proofs.Core.SharedTypes
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
