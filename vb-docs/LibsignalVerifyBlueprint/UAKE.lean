@@ -220,12 +220,9 @@ and the party of $`\tau^*` speaks first. This is DF, Definition 3, p. 6. The rel
 symmetric. In Lean, $`\beta` is the Boolean `oracleLeadsFirst`, and the function
 `interleave` builds the sequence of the $`u_i` and $`u'_i`.
 
-The security theorems for PQXDH in the next chapter use this matching. The open
-[pull request #71](https://github.com/Beneficial-AI-Foundation/libsignal-verify/pull/71)
-states them over a partnering in which two sessions are partners if they hold the same
-associated data and the same key material, in place of matching transcripts. This would change
-the definitions of this section and the statements of that chapter. The book describes the
-code as it stands.
+The security theorems for PQXDH in the next chapter do not use this matching. They use a
+partnered experiment, defined there, in which two sessions are partners if they hold the same
+associated data and the same key material.
 
 ::::definition "uake_ping_pong" (lean := "AKE.UAKE.pingPong") (uses := "uake_matching")
 :::LibsignalVerifyBlueprint.pair AKE.UAKE.pingPong -docstrings
@@ -536,8 +533,8 @@ is `true`. In place of "finite and nonempty", the key space carries an instance 
 The first chapter defines the advantage of $`\mathcal{A}` under a runtime $`R` for $`m` as
 $`\mathrm{Adv}_R(\mathcal{A}) = |\Pr_R[\mathsf{Exp}(\mathcal{A}) = 1] - \tfrac{1}{2}|`,
 where the experiment uses the monad morphism of $`R`. This section only gives definitions:
-it assumes nothing and proves nothing. The security theorems of the next chapter bound
-$`\mathrm{Adv}_R(\mathcal{A})` for PQXDH.
+it assumes nothing and proves nothing. The security theorems of the next chapter bound the
+advantage in a partnered experiment, defined there, which changes two tests of this one.
 
 DF define the experiment as follows (DF, Section 3, p. 8). The adversary runs one
 challenge session with $`U` and can open any number of sessions with copies of $`T`.

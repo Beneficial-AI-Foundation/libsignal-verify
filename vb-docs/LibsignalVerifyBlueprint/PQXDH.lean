@@ -315,19 +315,21 @@ absent, and an AEAD ciphertext.
 
 KS lists the same items for the initial message (KS, Section 3.3, p. 10).
 
-::::definition "pqxdh_session_context" (lean := "Protocols.Models.PQXDH.SessionContext")
+::::definition "pqxdh_session_context" (lean := "Protocols.Models.PQXDH.SessionContext") (uses := "pqxdh_key_material")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.SessionContext -docstrings -comments
-Let $`G`, $`\mathrm{PQPK}`, $`\mathrm{Msg}` and $`K` be types. A _session context_ is a
-tuple
-$$`\begin{aligned}&(\mathrm{sk}, k_B, \mathrm{AD}, \mu)\\ &\in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg},\end{aligned}`
-with a session key $`\mathrm{sk}`, an AEAD key $`k_B`, associated data $`\mathrm{AD}` and a
-message $`\mu`.
+Let $`G`, $`\mathrm{PQPK}`, $`\mathrm{Msg}`, $`K` and $`\mathrm{SS}` be types. A _session
+context_ is a tuple
+$$`\begin{aligned}&(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})\\ &\in K \times K \times (G \times G \times \mathrm{PQPK}) \times \mathrm{Msg} \times \mathrm{KM}(G, \mathrm{SS}),\end{aligned}`
+with a session key $`\mathrm{sk}`, an AEAD key $`k_B`, associated data $`\mathrm{AD}`, a
+message $`\mu` and the key material $`\mathrm{km}` that the session passed to the key
+derivation.
 :::
 ::::
 
-Alice stores a session context when she sends her initial message, and Bob stores one when
-he accepts it. The key $`k_B` and the message serve the confirmation message that Bob sends
-in the model and not in the protocol.
+Alice stores a session context when she sends her initial message, and she keeps it when she
+completes. Bob stores one when he accepts her message. The key $`k_B` and the message serve the
+confirmation message that Bob sends in the model and not in the protocol. The security
+theorems compare the associated data and the key material of two sessions.
 
 ## The procedures
 
@@ -399,13 +401,14 @@ $`\bot`, given by the following steps.
    $`\mathrm{DH}_3 = \mathrm{DH}(\mathrm{ek}_A, \mathrm{SPK})`. Put
    $`\mathrm{DH}_4 = \mathrm{DH}(\mathrm{ek}_A, \mathrm{OPK})` if $`o = (\mathrm{OPK}, i_{\mathrm{OPK}})`,
    and $`\mathrm{DH}_4 = \ast` if $`o = \ast`.
-6. Put $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`
+6. Put $`\mathrm{km} = (\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`,
+   $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{km})`
    and $`\mathrm{AD} = (\mathrm{IK}_A, \mathrm{IK}, \mathrm{PQPK})`.
 7. Run $`E(k_A, \mathrm{AD}, \mu)` to get $`c`.
 8. Output the initial message
    $`(\mathrm{IK}_A, \mathrm{EK}_A, \mathrm{ct}, i_{\mathrm{SPK}}, i_{\mathrm{PQPK}}, i_{\mathrm{OPK}}, c)`,
    where $`i_{\mathrm{OPK}} = \ast` if $`o = \ast`, and the session context
-   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`.
+   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`.
 :::
 ::::
 
@@ -440,11 +443,12 @@ computation with output in the session contexts, or $`\bot`, given by the follow
    $`\mathrm{DH}_3 = \mathrm{DH}(\mathrm{spk}_B, \mathrm{EK}_A)`. Put
    $`\mathrm{DH}_4 = \mathrm{DH}(\mathrm{opk}, \mathrm{EK}_A)` if
    $`o = (\mathrm{OPK}, \mathrm{opk})`, and $`\mathrm{DH}_4 = \ast` if $`o = \ast`.
-4. Put $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`
+4. Put $`\mathrm{km} = (\mathrm{DH}_1, \mathrm{DH}_2, \mathrm{DH}_3, \mathrm{DH}_4, \mathrm{ss})`,
+   $`(\mathrm{sk}, k_A, k_B) = \mathrm{KDF}(\mathrm{km})`
    and $`\mathrm{AD} = (\mathrm{IK}_A, \mathrm{IK}_B, \mathrm{PQPK}_B)`.
 5. If $`D(k_A, \mathrm{AD}, c) = \mathsf{rej}`, output $`\bot`. Otherwise let
    $`\mu = D(k_A, \mathrm{AD}, c)`, and output the session context
-   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`.
+   $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`.
 :::
 ::::
 
@@ -457,10 +461,10 @@ p. 17). In the model, the identifiers are neither signed nor in the associated d
 
 ::::definition "pqxdh_confirm" (lean := "Protocols.Models.PQXDH.confirm") (uses := "pqxdh_parameters, pqxdh_session_context")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.confirm -docstrings -comments
-Let $`P` be a set of PQXDH parameters, let $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)` be a
-session context, and let $`c \in C`. We define
-$`\mathrm{Confirm}_P((\mathrm{sk}, k_B, \mathrm{AD}, \mu), c)` to be $`\mathrm{sk}` if
-$`D(k_B, \mathrm{AD}, c) = \mu`, and $`\bot` otherwise.
+Let $`P` be a set of PQXDH parameters, let $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`
+be a session context, and let $`c \in C`. We define
+$`\mathrm{Confirm}_P((\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km}), c)` to be
+$`\mathrm{sk}` if $`D(k_B, \mathrm{AD}, c) = \mu`, and $`\bot` otherwise.
 :::
 ::::
 
@@ -513,21 +517,21 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`. We define the party $`\mathrm{Alice}_P`
 over probabilistic computations, with inputs in the initiator parameters, messages in $`W`
 and outputs in $`K + \{\bot\}`, as follows. Its states are the initiator parameters, the
-session contexts and the elements of $`K`.
+session contexts that wait for a confirmation, and the completed session contexts.
 
 * $`\mathrm{init}(p) = (p, \ast)`: Alice starts in the state $`p` and waits for Bob to
   speak first.
 * In a state $`p` that is an initiator parameter, on a message $`\mathsf{bundle}(\beta)`,
   Alice runs $`\mathrm{Initiate}_P(p, \beta)`. If the result is $`\bot`, she rejects. If it
   is $`(m, \kappa)`, she accepts, replies $`\mathsf{initial}(m)` with flag $`0`, and moves to
-  the state $`\kappa`.
-* In a state $`\kappa` that is a session context, on a message
+  the state $`\kappa`, waiting for a confirmation.
+* In a state $`\kappa` that waits for a confirmation, on a message
   $`\mathsf{confirmation}(c)`, Alice computes $`\mathrm{Confirm}_P(\kappa, c)`. If the
-  result is $`\bot`, she rejects. If it is $`\mathrm{sk}`, she completes in the state
-  $`\mathrm{sk}`.
+  result is $`\bot`, she rejects. Otherwise she completes in the state $`\kappa`, marked as
+  completed.
 * In every other case she rejects.
-* $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
-  for every other state $`s`.
+* $`\mathrm{output}(s)` is the session key $`\mathrm{sk}` of $`\kappa` if $`s` is a completed
+  session context $`\kappa`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
@@ -539,7 +543,7 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`, and let $`h \in \{0, 1\}`. We define the
 party $`\mathrm{Bob}_{P,h}` over probabilistic computations, with inputs in the long-term
 states of Bob, messages in $`W` and outputs in $`K + \{\bot\}`, as follows. Its states are
-the session parameters of Bob and the elements of $`K`.
+the session parameters of Bob and the session contexts.
 
 * For the input $`((\mathrm{IK}_B, \mathrm{ik}_B), (\mathrm{SPK}_B, \mathrm{spk}_B), \sigma_{\mathrm{SPK}})`,
   $`\mathrm{init}` draws $`o` from $`\mathrm{GenOPK}_g(h)` and $`(\mathrm{PQPK}_B, \mathrm{pqsk}_B)`
@@ -549,12 +553,12 @@ the session parameters of Bob and the elements of $`K`.
   first message $`\mathsf{bundle}(\beta)`.
 * In a state $`p` that is a session parameter, on a message $`\mathsf{initial}(m)`, Bob runs
   $`\mathrm{Accept}_P(p, m)`. If the result is $`\bot`, he rejects. If it is
-  $`\kappa = (\mathrm{sk}, k_B, \mathrm{AD}, \mu)`, he draws $`c` from
+  $`\kappa = (\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`, he draws $`c` from
   $`E(k_B, \mathrm{AD}, \mu)`, accepts, replies $`\mathsf{confirmation}(c)` with flag $`1`,
-  and moves to the state $`\mathrm{sk}`.
+  and moves to the state $`\kappa`.
 * In every other case he rejects.
-* $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
-  for every other state $`s`.
+* $`\mathrm{output}(s)` is the session key $`\mathrm{sk}` of $`\kappa` if $`s` is a session
+  context $`\kappa`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
@@ -595,7 +599,7 @@ initiator parameters and the elements of $`K`.
 * $`\mathrm{init}(p) = (p, \ast)`.
 * In a state $`p`, on a message $`\mathsf{bundle}(\beta)`, Alice runs
   $`\mathrm{Initiate}_P(p, \beta)`. If the result is $`\bot`, she rejects. If it is
-  $`(m, (\mathrm{sk}, k_B, \mathrm{AD}, \mu))`, she accepts, replies $`\mathsf{initial}(m)`
+  $`(m, (\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km}))`, she accepts, replies $`\mathsf{initial}(m)`
   with flag $`1`, and moves to the state $`\mathrm{sk}`.
 * In every other case she rejects.
 * $`\mathrm{output}(s) = \mathrm{sk}` if $`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast`
@@ -609,10 +613,12 @@ Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a 
 and whose type $`G` is a vector space over $`F`, and let $`h \in \{0, 1\}`. We define the
 party $`\mathrm{Bob}^-_{P,h}` over probabilistic computations, with inputs in the long-term
 states of Bob, messages in $`W` and outputs in $`K + \{\bot\}`, to be the party
-$`\mathrm{Bob}_{P,h}` with the following change. In a state $`p`, on a message
+$`\mathrm{Bob}_{P,h}` with the following changes. Its states are the session parameters of Bob
+and the elements of $`K`. In a state $`p`, on a message
 $`\mathsf{initial}(m)`, Bob runs $`\mathrm{Accept}_P(p, m)`. If the result is $`\bot`, he
-rejects. If it is $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu)`, he completes in the state
-$`\mathrm{sk}`, with no reply.
+rejects. If it is $`(\mathrm{sk}, k_B, \mathrm{AD}, \mu, \mathrm{km})`, he completes in the
+state $`\mathrm{sk}`, with no reply. $`\mathrm{output}(s) = \mathrm{sk}` if
+$`s = \mathrm{sk} \in K`, and $`\mathrm{output}(s) = \ast` for every other state $`s`.
 :::
 ::::
 
@@ -725,9 +731,70 @@ hypotheses.
 
 # The security theorems
 
-Both theorems bound the advantage $`\mathrm{Adv}_R(\mathcal{A})` of chapter 1, for the
-runtime $`R` of probabilistic computations, of an adversary $`\mathcal{A}` against
-$`\Pi_B(P, \mu, h)`. The bound is a sum of bounds on the advantage against the primitives of
+The security theorems use the experiment of chapter 2 with two of its tests changed. The two
+tests compare the states of the challenge session and of a session of $`T` under a partnering,
+in place of their transcripts.
+
+::::definition "uake_partnered_exp" (lean := "AKE.UAKE.Partnering, AKE.UAKE.authPartnered, AKE.UAKE.revealedPartnered, AKE.UAKE.PartneredExp, AKE.UAKE.partneredAdvantage") (uses := "uake_exp, uake_scheme, uake_transcript")
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.Partnering -docstrings
+Let $`\Pi` be a UAKE scheme. A _partnering_ $`\pi` for $`\Pi` is a relation between the
+states of $`U` and the states of $`T`. A state of $`U` and a state of $`T` that are related are
+_partners_ under $`\pi`.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.authPartnered -docstrings
+Let $`\pi` be a partnering for $`\Pi`, let $`s^*` be a state of $`U` and $`\tau^*` a
+transcript, and let a list of sessions with $`T` be given. We say that $`s^*` has an
+_authentication partner_ among these sessions if one of them has a key in $`K`, has a state
+that is a partner of $`s^*` under $`\pi`, and has a nonempty transcript whose last timestamp is
+at most the last timestamp of $`\tau^*`, which is nonempty too.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.revealedPartnered -docstrings
+Let $`\pi` be a partnering for $`\Pi`, let $`s^*` be a state of $`U`, and let a list of
+sessions with $`T` be given. We say that $`s^*` has a _revealed partner_ among these sessions if
+one of them is marked as revealed and has a state that is a partner of $`s^*` under $`\pi`.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.PartneredExp -docstrings
+Let $`\Pi` be a UAKE scheme over a monad $`m` whose key space $`K` is finite and nonempty, let
+$`\iota` be a monad morphism from probabilistic computations to $`m`, let $`\pi` be a
+partnering for $`\Pi`, and let $`\mathcal{A}` be an adversary against $`\Pi`. We define the
+_partnered experiment_ $`\mathsf{Exp}_\pi(\mathcal{A})` to be the experiment
+$`\mathsf{Exp}(\mathcal{A})` of chapter 2 with two changes.
+
+* In step 4, output $`1` if the state of the challenge session has no authentication partner
+  under $`\pi` among the sessions with $`T`, with $`\tau^*` as its transcript, both read at the
+  end of step 2.
+* In step 7, output a uniform bit if the state of the challenge session has a revealed partner
+  under $`\pi` among the sessions with $`T`, both read at the end of step 6.
+:::
+:::LibsignalVerifyBlueprint.pair AKE.UAKE.partneredAdvantage -docstrings
+Let $`R` be a runtime for $`m`. The advantage of $`\mathcal{A}` in the partnered experiment is
+$$`\mathrm{Adv}_{R,\pi}(\mathcal{A}) := \big|\Pr_R[\mathsf{Exp}_\pi(\mathcal{A}) = 1] - \tfrac{1}{2}\big|,`
+where the experiment uses the monad morphism of $`R`.
+:::
+::::
+
+The test of step 4 asks for a partner that accepted no later than the challenge session, and
+the test of step 7 has no condition on time. In Lean, `finalizePartnered` runs steps 6 and 7.
+
+::::definition "pqxdh_original_key_partnering" (lean := "Protocols.Models.PQXDH.originalKeyPartnering") (uses := "uake_partnered_exp, pqxdh_uake_initiator, pqxdh_session_context, pqxdh_initiator, pqxdh_recipient")
+:::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.originalKeyPartnering -docstrings -comments
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, and let
+$`h \in \{0, 1\}`. We define _original-key partnering_ $`\pi_{\mathrm{ok}}` for
+$`\Pi_B(P, \mu, h)` as follows. A state of $`\mathrm{Alice}_P` and a state of
+$`\mathrm{Bob}_{P,h}` are partners if the state of Alice is a completed session context
+$`\kappa_A`, the state of Bob is a session context $`\kappa_B`, and $`\kappa_A` and
+$`\kappa_B` have the same associated data and the same key material.
+:::
+::::
+
+The identifiers of the keys, the signatures and the one-time prekey of the bundle are not
+compared, so they are not authenticated: a run that changes them without changing the key
+material keeps the partner.
+
+Both theorems bound the advantage $`\mathrm{Adv}_{R,\pi_{\mathrm{ok}}}(\mathcal{A})` in the
+partnered experiment over original-key partnering, for the runtime $`R` of probabilistic
+computations, of an adversary $`\mathcal{A}` against $`\Pi_B(P, \mu, h)`. The bound is a sum of bounds on the advantage against the primitives of
 $`P`, with a factor that counts the sessions that $`\mathcal{A}` opens with $`T`.
 
 ::::definition "pqxdh_opens_at_most" (lean := "AKE.UAKE.Adversary.OpensAtMost") (uses := "uake_adversary, uake_oracle_spec, oracle_comp")
@@ -781,7 +848,7 @@ In the run of PQXDH, $`\mathrm{DH}_3 = \mathrm{ek}_A \cdot \mathrm{spk}_B \cdot 
 $`c` of $`\mathrm{KDF}_{\mathrm{DH}}` stands for the product of the two secret exponents of
 $`\mathrm{DH}_3`. The adversary of the PRF game chooses the other four arguments.
 
-::::theorem "pqxdh_secure_dh" (lean := "Protocols.Models.PQXDH.uakeInitiator_secure_dh") (uses := "pqxdh_uake_initiator, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, uake_advantage, sig_joint_advantage, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
+::::theorem "pqxdh_secure_dh" (lean := "Protocols.Models.PQXDH.uakeInitiator_secure_dh") (uses := "pqxdh_uake_initiator, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, uake_partnered_exp, pqxdh_original_key_partnering, sig_joint_advantage, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.uakeInitiator_secure_dh -docstrings -comments
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field,
 whose type $`G` is a vector space over $`F`, whose type $`K` is finite and nonempty, and whose
@@ -792,29 +859,28 @@ $`q \in \mathbb{N}`, let $`R` be the runtime of probabilistic computations, and 
 $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)` that opens at most $`q` sessions.
 Suppose that
 
-1. the map $`\mathrm{id}_{\mathrm{KEM}}` is injective;
-2. the verification algorithm is deterministic: for all $`X \in G`,
+1. the verification algorithm is deterministic: for all $`X \in G`,
    $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is $`b` such that
    $`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns $`b`;
-3. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
+2. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
    $`\varepsilon_{\mathrm{sig}}`;
-4. every Gap-DH adversary against $`(F, G, g)` has advantage at most
+3. every Gap-DH adversary against $`(F, G, g)` has advantage at most
    $`\varepsilon_{\mathrm{gap}}`;
-5. every INT-CTXT-D adversary against the AEAD scheme of $`P` has advantage at most
+4. every INT-CTXT-D adversary against the AEAD scheme of $`P` has advantage at most
    $`\varepsilon_{\mathrm{aead}}`;
-6. every PRF adversary against $`\mathrm{KDF}_{\mathrm{DH}}(P)` has advantage at most
+5. every PRF adversary against $`\mathrm{KDF}_{\mathrm{DH}}(P)` has advantage at most
    $`\varepsilon_{\mathrm{kdf}}`;
-7. for every $`Y \in \mathrm{PQPK}`, the probability that $`\mathrm{KeyGen}_\Lambda` outputs
+6. for every $`Y \in \mathrm{PQPK}`, the probability that $`\mathrm{KeyGen}_\Lambda` outputs
    a public key equal to $`Y` is at most $`\varepsilon_{\mathrm{pk}}`.
 
 Then
-$$`\begin{aligned}\mathrm{Adv}_R(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
+$$`\begin{aligned}\mathrm{Adv}_{R,\pi_{\mathrm{ok}}}(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
 :::
 ::::
 
-The third and the fourth hypotheses are the joint unforgeability of the identity signature
-scheme and the Gap-DH problem of chapter 2. The fifth is INT-CTXT-D of the AEAD scheme. The
-second hypothesis is the Lean statement that verification is deterministic. A comment in the
+The second and the third hypotheses are the joint unforgeability of the identity signature
+scheme and the Gap-DH problem of chapter 2. The fourth is INT-CTXT-D of the AEAD scheme. The
+first hypothesis is the Lean statement that verification is deterministic. A comment in the
 Lean file calls this a gap in the model, because VCV-io leaves verification probabilistic
 although it is deterministic for signature schemes in general.
 
@@ -822,7 +888,7 @@ The theorem for the post-quantum case has no Diffie-Hellman hypothesis. It assum
 is perfectly correct and IND-CCA secure, and that the key derivation is a PRF with the KEM
 secret as its key.
 
-::::theorem "pqxdh_secure_pq" (lean := "Protocols.Models.PQXDH.uakeInitiator_secure_pq") (uses := "pqxdh_uake_initiator, pqxdh_opens_at_most, pqxdh_kdf_prf, uake_advantage, sig_joint_advantage, kem_perfectly_correct, kem_ind_cca_advantage, aead_int_ctxt_d_advantage, prf_advantage")
+::::theorem "pqxdh_secure_pq" (lean := "Protocols.Models.PQXDH.uakeInitiator_secure_pq") (uses := "pqxdh_uake_initiator, pqxdh_opens_at_most, pqxdh_kdf_prf, uake_partnered_exp, pqxdh_original_key_partnering, sig_joint_advantage, kem_perfectly_correct, kem_ind_cca_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.uakeInitiator_secure_pq -docstrings -comments
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field,
 whose type $`G` is a vector space over $`F`, whose types $`K` and $`\mathrm{SS}` are finite and
@@ -833,24 +899,23 @@ be real numbers, let $`q \in \mathbb{N}`, let $`R` be the runtime of probabilist
 computations, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)` that opens at
 most $`q` sessions. Suppose that
 
-1. the map $`\mathrm{id}_{\mathrm{KEM}}` is injective;
-2. the verification algorithm is deterministic: for all $`X \in G`,
+1. the verification algorithm is deterministic: for all $`X \in G`,
    $`\nu \in G + \mathrm{PQPK}` and $`\sigma \in S`, there is $`b` such that
    $`\mathrm{Verify}(X, \nu, \sigma) = \mathrm{pure}(b)`, the computation that returns $`b`;
-3. the KEM $`\Lambda` is perfectly correct under the runtime of probabilistic computations;
-4. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
+2. the KEM $`\Lambda` is perfectly correct under the runtime of probabilistic computations;
+3. every joint adversary against $`(\Sigma_P, \mathrm{DH})` has advantage at most
    $`\varepsilon_{\mathrm{sig}}`;
-5. every IND-CCA adversary against $`\Lambda` has advantage at most
+4. every IND-CCA adversary against $`\Lambda` has advantage at most
    $`\varepsilon_{\mathrm{kem}}`;
-6. every INT-CTXT-D adversary against the AEAD scheme of $`P` has advantage at most
+5. every INT-CTXT-D adversary against the AEAD scheme of $`P` has advantage at most
    $`\varepsilon_{\mathrm{aead}}`;
-7. every PRF adversary against $`\mathrm{KDF}_{\mathrm{SS}}(P)` has advantage at most
+6. every PRF adversary against $`\mathrm{KDF}_{\mathrm{SS}}(P)` has advantage at most
    $`\varepsilon_{\mathrm{kdf}}`;
-8. for every $`Y \in \mathrm{PQPK}`, the probability that $`\mathrm{KeyGen}_\Lambda` outputs
+7. for every $`Y \in \mathrm{PQPK}`, the probability that $`\mathrm{KeyGen}_\Lambda` outputs
    a public key equal to $`Y` is at most $`\varepsilon_{\mathrm{pk}}`.
 
 Then
-$$`\begin{aligned}\mathrm{Adv}_R(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
+$$`\begin{aligned}\mathrm{Adv}_{R,\pi_{\mathrm{ok}}}(\mathcal{A}) \le{}& \varepsilon_{\mathrm{sig}} + 2q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}})\\ &+ 3q^2\,\varepsilon_{\mathrm{pk}}.\end{aligned}`
 :::
 ::::
 
@@ -872,16 +937,11 @@ Every hypothesis on a primitive bounds the advantage of every adversary of the p
 with no limit on its running time, so the bounds are trivial for every instantiation of
 the primitives
 ([issue #41](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/41)).
-Two further matters concern the statements. The experiment of chapter 2 counts a session of
-$`T` as a partner of the challenge session by the match of the transcripts. The open
-[pull request #71](https://github.com/Beneficial-AI-Foundation/libsignal-verify/pull/71)
-replaces this by a partnering in which two sessions are partners if they hold the same
-associated data and the same key material. It also drops the first hypothesis of both
-theorems. The reason is
-[issue #35](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/35): the
-identifiers and the one-time prekey in the bundle are not signed, so an adversary that changes
-them gives Alice and Bob the same keys, but the transcripts do not match. The section on
-modelling choices below explains the first hypothesis.
+The theorems use original-key partnering and not the matching of transcripts of the experiment
+of chapter 2. Under transcript matching, a run in which the adversary changes only the
+identifiers in the bundle, which are not signed, gives Alice and Bob the same keys, but the
+transcripts do not match, and the run counts as a forgery
+([issue #35](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/35)).
 
 # The structure of the proof
 
@@ -970,12 +1030,33 @@ $`\mathrm{Guess}(\mathrm{cr})` holds if one of the following holds.
 
 The first case is a collision of the KEM keys that sessions of $`T` draw. In the second case,
 the challenge session accepted a bundle before a session of $`T` carrying the same KEM key was
-opened, so the adversary predicted a key that was not yet drawn. A KEM with colliding or
-predictable public keys breaks UAKE security. A second session that holds the same KEM key,
-and the same one-time prekey when one is in use, accepts a replay of the initial message of the
-challenge session and derives the same session key. The adversary can reveal that key without
-matching the challenge transcript. No assumption on a primitive excludes the event. Hop 4
-below bounds its probability by the bound on the KEM public keys.
+opened, so the adversary predicted a key that was not yet drawn. No assumption on a primitive
+excludes the event, and hop 4 below bounds its probability by the bound on the KEM public keys.
+In the transcript-matching experiment of chapter 2, a KEM with colliding or predictable public
+keys breaks UAKE security. A second session that holds the same KEM key, and the same one-time
+prekey when one is in use, accepts a replay of the initial message of the challenge session and
+derives the same session key. The adversary can reveal that key without matching the challenge
+transcript. In the partnered experiment over original-key partnering, a session of $`T` that
+holds the associated data and the key material of the challenge session is its partner,
+whatever its transcript and the time at which it accepted, so revealing it makes step 7 of the
+experiment output a uniform bit. Step 4 comes first: if the challenge session accepted and no
+session of $`T` that accepted no later than it did is its partner, the experiment outputs $`1`.
+
+::::definition "pqxdh_challenge_partnered" (lean := "Protocols.Models.PQXDH.challengePartnered") (uses := "pqxdh_challenge_result, pqxdh_original_key_partnering, uake_partnered_exp")
+:::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.challengePartnered -docstrings -comments
+Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
+and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
+$`h \in \{0, 1\}`, let $`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` be a challenge
+result of $`\Pi_B(P, \mu, h)`, and let $`e` be a state of the oracles, with a state $`s^*` of
+the challenge session and a list of sessions with $`T`. We say that the challenge is
+_partnered_, $`\mathrm{Partnered}(\mathrm{cr}, e)`, if $`s^*` has an authentication partner
+under $`\pi_{\mathrm{ok}}` among the sessions with $`T` of $`e`, with $`\tau^*` as its
+transcript.
+:::
+::::
+
+So the challenge is partnered when a session of Bob has a key, holds the associated data and
+the key material of Alice, and accepted no later than she did.
 
 ## Experiments
 
@@ -991,8 +1072,8 @@ $`h \in \{0, 1\}`, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu
 define the _challenge phase_ $`\mathrm{Chal}(\mathcal{A})` to be the following computation.
 Run $`\mathrm{Setup}_P(\mu)` to get $`(\mathrm{uk}, \mathrm{tk})`, and run step 2 of the
 experiment $`\mathsf{Exp}(\mathcal{A})` of chapter 2 with these keys. Output the challenge
-result $`\mathrm{cr}` of this step, with the state of $`\mathcal{A}`, the state of the
-sessions of $`T`, and $`\mathrm{tk}`.
+result $`\mathrm{cr}` of this step, with the state of $`\mathcal{A}`, the state $`e` of the
+oracles, which holds the challenge session and the sessions of $`T`, and $`\mathrm{tk}`.
 :::
 ::::
 
@@ -1000,15 +1081,16 @@ The challenge bit of the experiment of chapter 2 does not enter the challenge ph
 experiments below draw it where they need it. This is the first part of
 $`\mathsf{Exp}(\mathcal{A})` up to the order of independent draws.
 
-::::definition "pqxdh_forge" (lean := "Protocols.Models.PQXDH.forgeExp, Protocols.Models.PQXDH.forgeProb") (uses := "pqxdh_challenge_phase, uake_ping_pong")
+::::definition "pqxdh_forge" (lean := "Protocols.Models.PQXDH.forgeExp, Protocols.Models.PQXDH.forgeProb") (uses := "pqxdh_challenge_phase, pqxdh_challenge_partnered")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeExp -docstrings -comments
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
 and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
 $`h \in \{0, 1\}`, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)`. We
 define the _forgery experiment_ $`\mathrm{Forge}(\mathcal{A})` to be the following
 computation with output in $`\{0, 1\}`. Run $`\mathrm{Chal}(\mathcal{A})` to get
-$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))`, and output $`1` if $`K_0 \neq \bot`
-and $`\mathrm{pingPong}_1(\tau_1, \dots, \tau_n; \tau^*) = 0`, and $`0` otherwise.
+$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` and the state $`e` of the oracles, and
+output $`1` if $`K_0 \neq \bot` and $`\mathrm{Partnered}(\mathrm{cr}, e)` does not hold, and
+$`0` otherwise.
 :::
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeProb -docstrings -comments
 We write $`\mathrm{forge}(\mathcal{A}) := \Pr[\mathrm{Forge}(\mathcal{A}) = 1]` as a real
@@ -1016,9 +1098,9 @@ number.
 :::
 ::::
 
-The first-speaker bit is $`1`, because $`\Pi_B` has $`r = 3` rounds. In a forgery, the
-challenge session has completed, and no session of $`T` matches it, so the adversary has
-spoofed a message of $`T`.
+In a forgery, the challenge session has completed, and no session of $`T` that accepted no
+later than Alice holds her associated data and key material. This is the run on which the
+partnered experiment outputs $`1` in its step 4.
 
 ::::definition "pqxdh_sig_forge" (lean := "Protocols.Models.PQXDH.sigForgeExp, Protocols.Models.PQXDH.sigForgeProb") (uses := "pqxdh_challenge_phase, pqxdh_honest_bundle")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.sigForgeExp -docstrings -comments
@@ -1054,16 +1136,16 @@ number.
 :::
 ::::
 
-::::definition "pqxdh_forge_honest_good" (lean := "Protocols.Models.PQXDH.forgeHonestGoodExp, Protocols.Models.PQXDH.forgeHonestGoodProb") (uses := "pqxdh_challenge_phase, pqxdh_honest_bundle, pqxdh_pqpk_guessed, uake_ping_pong")
+::::definition "pqxdh_forge_honest_good" (lean := "Protocols.Models.PQXDH.forgeHonestGoodExp, Protocols.Models.PQXDH.forgeHonestGoodProb") (uses := "pqxdh_challenge_phase, pqxdh_honest_bundle, pqxdh_pqpk_guessed, pqxdh_challenge_partnered")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeHonestGoodExp -docstrings -comments
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field
 and whose type $`G` is a vector space over $`F`, let $`\mu \in \mathrm{Msg}`, let
 $`h \in \{0, 1\}`, and let $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)`. We
 define the _residual forgery experiment_ $`\mathrm{Good}(\mathcal{A})` to be the following
 computation with output in $`\{0, 1\}`. Run $`\mathrm{Chal}(\mathcal{A})` to get
-$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` and the long-term state
-$`\mathrm{tk}` of Bob. Output $`1` if $`K_0 \neq \bot`,
-$`\mathrm{pingPong}_1(\tau_1, \dots, \tau_n; \tau^*) = 0`, the bundle
+$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))`, the state $`e` of the oracles and the
+long-term state $`\mathrm{tk}` of Bob. Output $`1` if $`K_0 \neq \bot`,
+$`\mathrm{Partnered}(\mathrm{cr}, e)` does not hold, the bundle
 $`\mathrm{Bun}_U(\mathrm{cr})` is $`\ast` or honest for $`\mathrm{tk}` and $`\mathrm{cr}`,
 and $`\mathrm{Guess}(\mathrm{cr})` does not hold. Otherwise output $`0`.
 :::
@@ -1073,7 +1155,7 @@ number.
 :::
 ::::
 
-::::definition "pqxdh_indist" (lean := "Protocols.Models.PQXDH.indistExp, Protocols.Models.PQXDH.indistAdvantage") (uses := "pqxdh_challenge_phase, uake_exp")
+::::definition "pqxdh_indist" (lean := "Protocols.Models.PQXDH.indistExp, Protocols.Models.PQXDH.indistAdvantage") (uses := "pqxdh_challenge_phase, uake_partnered_exp, pqxdh_original_key_partnering, pqxdh_challenge_partnered")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.indistExp -docstrings -comments
 Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a finite field,
 whose type $`G` is a vector space over $`F`, and whose type $`K` is finite and nonempty, let
@@ -1082,14 +1164,15 @@ $`\Pi_B(P, \mu, h)`. We define the _coin-flipped experiment_ $`\mathrm{Ind}(\mat
 be the following computation with output in $`\{0, 1\}`. Run $`\mathrm{Setup}_P(\mu)` to get
 $`(\mathrm{uk}, \mathrm{tk})`, draw a uniform bit $`b`, and run step 2 of
 $`\mathsf{Exp}(\mathcal{A})` with these keys, to get
-$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))` and a state. Then do the following.
+$`\mathrm{cr} = (K_0, \tau^*, (\tau_1, \dots, \tau_n))`, the state of $`\mathcal{A}` and the
+state $`e` of the oracles. Then do the following.
 
-1. If $`K_0 = \bot`, run steps 6 and 7 of $`\mathsf{Exp}(\mathcal{A})` with $`K_b = \bot`,
-   and output the result.
-2. Otherwise, if $`\mathrm{pingPong}_1(\tau_1, \dots, \tau_n; \tau^*) = 0`, output a uniform
-   bit.
+1. If $`K_0 = \bot`, run steps 6 and 7 of the partnered experiment
+   $`\mathsf{Exp}_{\pi_{\mathrm{ok}}}(\mathcal{A})` with $`K_b = \bot`, and output the result.
+2. Otherwise, if $`\mathrm{Partnered}(\mathrm{cr}, e)` does not hold, output a uniform bit.
 3. Otherwise, draw $`K_1` uniformly from $`K`, run steps 6 and 7 of
-   $`\mathsf{Exp}(\mathcal{A})` with this $`K_1` and the bit $`b`, and output the result.
+   $`\mathsf{Exp}_{\pi_{\mathrm{ok}}}(\mathcal{A})` with this $`K_1` and the bit $`b`, and
+   output the result.
 :::
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.indistAdvantage -docstrings -comments
 We write
@@ -1098,9 +1181,9 @@ real number.
 :::
 ::::
 
-The experiment is $`\mathsf{Exp}(\mathcal{A})` with one change: where
-$`\mathsf{Exp}(\mathcal{A})` outputs $`1` because the challenge session accepted with no
-matching session, this experiment outputs a uniform bit.
+The experiment is $`\mathsf{Exp}_{\pi_{\mathrm{ok}}}(\mathcal{A})` with one change: where
+$`\mathsf{Exp}_{\pi_{\mathrm{ok}}}(\mathcal{A})` outputs $`1` because the challenge session
+accepted with no authentication partner, this experiment outputs a uniform bit.
 
 ## The six hops
 
@@ -1109,14 +1192,14 @@ identity signature scheme, and hop 4 uses the bound on the KEM public keys. Hops
 the remaining hypotheses of the theorems, and hop 6 also uses the bound on the KEM public
 keys.
 
-::::theorem "pqxdh_hop1" (lean := "Protocols.Models.PQXDH.advantage_le_forgeProb_add_indistAdvantage") (uses := "pqxdh_forge, pqxdh_indist, uake_advantage")
+::::theorem "pqxdh_hop1" (lean := "Protocols.Models.PQXDH.advantage_le_forgeProb_add_indistAdvantage") (uses := "pqxdh_forge, pqxdh_indist, uake_partnered_exp, pqxdh_original_key_partnering")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.advantage_le_forgeProb_add_indistAdvantage (part := "signature") -docstrings -comments
 *Hop 1.* Let $`P` be a set of PQXDH parameters with generator $`g`, whose type $`F` is a
 finite field, whose type $`G` is a vector space over $`F`, and whose type $`K` is finite and
 nonempty, let $`\mu \in \mathrm{Msg}`, let $`h \in \{0, 1\}`, let $`R` be the runtime of
 probabilistic computations, and let $`\mathcal{A}` be an adversary against
 $`\Pi_B(P, \mu, h)`. Then
-$$`\mathrm{Adv}_R(\mathcal{A}) \le \mathrm{forge}(\mathcal{A}) + \mathrm{ind}(\mathcal{A}).`
+$$`\mathrm{Adv}_{R,\pi_{\mathrm{ok}}}(\mathcal{A}) \le \mathrm{forge}(\mathcal{A}) + \mathrm{ind}(\mathcal{A}).`
 :::
 ::::
 
@@ -1238,8 +1321,7 @@ Each session of $`T` draws its KEM public key afresh. The $`j`-th draw hits one 
 known keys with probability at most $`j\,\varepsilon_{\mathrm{pk}}`. Only the first condition
 of the bound on the sessions is used, the one on the challenge stage. Hop 4 is proved.
 
-The remaining four hops are admitted. Each states the bound that the proof plan in its
-docstring is meant to give.
+The remaining four hops are admitted.
 
 ::::theorem "pqxdh_hop5_dh" (lean := "Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap") (uses := "pqxdh_forge_honest_good, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap -docstrings -comments
@@ -1248,32 +1330,17 @@ whose type $`F` is a finite field, whose type $`G` is a vector space over $`F`, 
 type $`K` is finite and nonempty. Let $`\mu \in \mathrm{Msg}`, let $`h \in \{0, 1\}`, let
 $`q \in \mathbb{N}`, let $`\varepsilon_{\mathrm{gap}}`, $`\varepsilon_{\mathrm{aead}}` and
 $`\varepsilon_{\mathrm{kdf}}` be real numbers, and let $`\mathcal{A}` be an adversary against
-$`\Pi_B(P, \mu, h)` that opens at most $`q` sessions. Suppose that
-$`\mathrm{id}_{\mathrm{KEM}}` is injective, that every Gap-DH adversary has advantage at most
-$`\varepsilon_{\mathrm{gap}}`, that every INT-CTXT-D adversary against the AEAD scheme has
+$`\Pi_B(P, \mu, h)` that opens at most $`q` sessions. Suppose that every Gap-DH adversary has
+advantage at most $`\varepsilon_{\mathrm{gap}}`, that every INT-CTXT-D adversary against the AEAD scheme has
 advantage at most $`\varepsilon_{\mathrm{aead}}`, and that every PRF adversary against
 $`\mathrm{KDF}_{\mathrm{DH}}(P)` has advantage at most $`\varepsilon_{\mathrm{kdf}}`. Then
 $$`\mathrm{good}(\mathcal{A}) \le q\,(\varepsilon_{\mathrm{gap}} + 2\varepsilon_{\mathrm{aead}} + \varepsilon_{\mathrm{kdf}}).`
 :::
 ::::
 
-The proof plan in the docstring has four steps. It first finds the unique session of $`T` that
-can share the key material of the challenge session. The accepted bundle fixes the identity key,
-the signed prekey and the KEM key. The KEM key belongs to one session, by the injectivity of
-$`\mathrm{id}_{\mathrm{KEM}}` and the absence of the KEM-key event. The plan then replaces the
-output of the key derivation on that key material by a uniform triple, at the cost of a
-Gap-DH adversary and a PRF adversary. With the first key uniform, an initial message with a
-changed ciphertext is a forgery against the AEAD scheme. With the second key uniform, the
-confirmation that Alice accepts was produced by the paired session, again at the cost of an
-AEAD adversary, so the transcripts match. The docstring says that the last step does not hold
-as stated. The unsigned fields of the bundle and the signatures on honestly signed keys can
-change without changing the derived keys. Then the transcripts differ without a forgery
-([issue #35](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/35)).
-[Pull request #71](https://github.com/Beneficial-AI-Foundation/libsignal-verify/pull/71)
-changes the experiment for this reason. The factor $`q` is generous. It makes the bound of the
-theorem equal to $`\varepsilon_{\mathrm{sig}}` when $`\mathcal{A}` opens no session, because
-then completing the challenge session already needs a signature forgery. The statement is
-admitted, and VersoBlueprint marks it as containing `sorry`.
+The statement is admitted, and VersoBlueprint marks it as containing `sorry`. For $`q = 0` the
+bounds of hops 4, 5 and 6 are $`0`, and each theorem bounds the advantage by
+$`\varepsilon_{\mathrm{sig}}`.
 
 ::::theorem "pqxdh_hop6_dh" (lean := "Protocols.Models.PQXDH.indistAdvantage_le_gap") (uses := "pqxdh_indist, pqxdh_opens_at_most, pqxdh_kdf_prf_dh, dh_gap_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.indistAdvantage_le_gap -docstrings -comments
@@ -1283,9 +1350,8 @@ type $`K` is finite and nonempty. Let $`\mu \in \mathrm{Msg}`, let $`h \in \{0, 
 $`q \in \mathbb{N}`, let $`\varepsilon_{\mathrm{gap}}`, $`\varepsilon_{\mathrm{aead}}`,
 $`\varepsilon_{\mathrm{kdf}}` and $`\varepsilon_{\mathrm{pk}}` be real numbers, and let
 $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)` that opens at most $`q` sessions.
-Suppose that $`\mathrm{id}_{\mathrm{KEM}}` is injective, that every Gap-DH adversary has
-advantage at most $`\varepsilon_{\mathrm{gap}}`, that every INT-CTXT-D adversary against the
-AEAD scheme has advantage at most $`\varepsilon_{\mathrm{aead}}`, that every PRF adversary
+Suppose that every Gap-DH adversary has advantage at most $`\varepsilon_{\mathrm{gap}}`, that
+every INT-CTXT-D adversary against the AEAD scheme has advantage at most $`\varepsilon_{\mathrm{aead}}`, that every PRF adversary
 against $`\mathrm{KDF}_{\mathrm{DH}}(P)` has advantage at most
 $`\varepsilon_{\mathrm{kdf}}`, and that for every $`Y \in \mathrm{PQPK}` the probability that
 $`\mathrm{KeyGen}_\Lambda` outputs a public key equal to $`Y` is at most
@@ -1294,12 +1360,7 @@ $$`\begin{aligned}\mathrm{ind}(\mathcal{A}) \le{}& q\,(\varepsilon_{\mathrm{gap}
 :::
 ::::
 
-In the plan for hop 6, a challenge session with no output, or one in the coin-flipped branch,
-gives the adversary no advantage. In the remaining branch the accepted bundle is the bundle of a
-session of $`T`, and the same replacement of the key derivation makes the challenge key
-uniform. The two stages of $`\mathcal{A}` together open at most $`2q` sessions, which gives at
-most $`2q^2` pairs of sessions and the term $`2q^2\,\varepsilon_{\mathrm{pk}}`. The statement is
-admitted.
+The statement is admitted.
 
 ::::theorem "pqxdh_hop5_pq" (lean := "Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq") (uses := "pqxdh_forge_honest_good, pqxdh_opens_at_most, pqxdh_kdf_prf, kem_perfectly_correct, kem_ind_cca_advantage, aead_int_ctxt_d_advantage, prf_advantage")
 :::LibsignalVerifyBlueprint.pair Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq -docstrings -comments
@@ -1309,9 +1370,9 @@ types $`K` and $`\mathrm{SS}` are finite and nonempty. Let $`\mu \in \mathrm{Msg
 $`h \in \{0, 1\}`, let $`q \in \mathbb{N}`, let $`\varepsilon_{\mathrm{kem}}`,
 $`\varepsilon_{\mathrm{aead}}` and $`\varepsilon_{\mathrm{kdf}}` be real numbers, and let
 $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)` that opens at most $`q` sessions.
-Suppose that $`\mathrm{id}_{\mathrm{KEM}}` is injective, that $`\Lambda` is perfectly correct
-under the runtime of probabilistic computations, that every IND-CCA adversary against
-$`\Lambda` has advantage at most $`\varepsilon_{\mathrm{kem}}`, that every INT-CTXT-D
+Suppose that $`\Lambda` is perfectly correct under the runtime of probabilistic computations,
+that every IND-CCA adversary against $`\Lambda` has advantage at most
+$`\varepsilon_{\mathrm{kem}}`, that every INT-CTXT-D
 adversary against the AEAD scheme has advantage at most $`\varepsilon_{\mathrm{aead}}`, and
 that every PRF adversary against $`\mathrm{KDF}_{\mathrm{SS}}(P)` has advantage at most
 $`\varepsilon_{\mathrm{kdf}}`. Then
@@ -1327,9 +1388,9 @@ types $`K` and $`\mathrm{SS}` are finite and nonempty. Let $`\mu \in \mathrm{Msg
 $`h \in \{0, 1\}`, let $`q \in \mathbb{N}`, let $`\varepsilon_{\mathrm{kem}}`,
 $`\varepsilon_{\mathrm{kdf}}` and $`\varepsilon_{\mathrm{pk}}` be real numbers, and let
 $`\mathcal{A}` be an adversary against $`\Pi_B(P, \mu, h)` that opens at most $`q` sessions.
-Suppose that $`\mathrm{id}_{\mathrm{KEM}}` is injective, that $`\Lambda` is perfectly correct
-under the runtime of probabilistic computations, that every IND-CCA adversary against
-$`\Lambda` has advantage at most $`\varepsilon_{\mathrm{kem}}`, that every PRF adversary
+Suppose that $`\Lambda` is perfectly correct under the runtime of probabilistic computations,
+that every IND-CCA adversary against $`\Lambda` has advantage at most
+$`\varepsilon_{\mathrm{kem}}`, that every PRF adversary
 against $`\mathrm{KDF}_{\mathrm{SS}}(P)` has advantage at most $`\varepsilon_{\mathrm{kdf}}`,
 and that for every $`Y \in \mathrm{PQPK}` the probability that $`\mathrm{KeyGen}_\Lambda`
 outputs a public key equal to $`Y` is at most $`\varepsilon_{\mathrm{pk}}`. Then
@@ -1337,17 +1398,41 @@ $$`\mathrm{ind}(\mathcal{A}) \le q\,(\varepsilon_{\mathrm{kem}} + \varepsilon_{\
 :::
 ::::
 
-The plans of the two post-quantum hops use the IND-CCA security of the KEM in place of the
-Gap-DH problem. The plan of hop 5 guesses the session of $`T` that can share the key material,
-among the at most $`q` that are opened, and embeds the IND-CCA challenge in it. This replaces
-the KEM secret of the challenge session by a uniform one. The key derivation is then a PRF under
-a hidden uniform key, and the AEAD step is as in the Diffie-Hellman case. In hop 6, perfect
-correctness shows that the paired session decapsulates the relayed ciphertext to the same
-secret, so the hop has no AEAD term. Both hops are admitted. The hypothesis of perfect
-correctness is an idealisation, as the section on modelling choices says. The plans of the two
-Diffie-Hellman hops are stated for the key derivation as a random oracle. The plans of the
-post-quantum hops use the PRF model as it stands. The last step of the plan of hop 5 has the
-same defect in both cases.
+Both post-quantum hops are admitted. They assume that the KEM is perfectly correct, which is an
+idealisation, as the section on modelling choices says. The post-quantum hop 6 has no
+hypothesis on the AEAD scheme and no AEAD term.
+
+## What the statements of hops 5 and 6 do not cover
+
+The Lean module note of the security theorems states two limits of the statements.
+
+Original-key partnering compares the associated data and the key material, and the key
+derivation reads the key material only. A session of $`T` with the key material of the
+challenge session and other associated data derives the same three keys as Alice. A session
+with other key material holds her session key $`\mathrm{sk}`, or her key $`k_B`, when
+$`\mathrm{KDF}` gives equal outputs in that component. Neither session is her partner.
+Revealing a session that holds her $`\mathrm{sk}` returns her session key, and the experiment
+draws no uniform bit for it. Confirm decrypts under her $`k_B` and her associated data. The
+definitions do not exclude that she accepts a confirmation from such a session while no session
+that accepted no later than she did is her partner, and the experiment then outputs $`1`. No
+hypothesis of either theorem is about equal outputs of the key derivation. The PRF hypothesis
+on $`\mathrm{KDF}_{\mathrm{DH}}(P)` is about one uniform key in the place of the third
+Diffie-Hellman value, and the one on $`\mathrm{KDF}_{\mathrm{SS}}(P)` is about one uniform KEM
+secret. Neither says anything about two inputs that differ in that place. The bounds have no
+term of their own for these runs.
+
+Accept computes the three keys before the AEAD decryption of the ciphertext of the initial
+message, so a session of $`T` that rejects the ciphertext has still derived keys from its key
+material. The AEAD scheme of chapter 2 has only an encryption and a decryption function, and no
+property that relates them. Nothing in the model says that a ciphertext
+made under one key, or with other associated data, fails to decrypt under another key or other
+associated data. Perfect correctness of the AEAD scheme concerns one key and one associated
+data, and the security theorems do not assume it. Their only hypothesis on the AEAD scheme is
+INT-CTXT-D. Its game draws one uniform key, which the adversary never sees, and counts a
+decryption under that key that succeeds on a pair of associated data and ciphertext that its
+encryption oracle had not output. The theorems assume no property of decryption under a second
+key, such as key commitment (that a ciphertext decrypts under at most one key). INT-CTXT-D is a
+hypothesis of hop 5 in both theorems and of hop 6 in the Diffie-Hellman theorem.
 
 # Modelling choices
 
@@ -1434,10 +1519,10 @@ KS describes an analysis in CryptoVerif. It models the hash function as a random
 secrecy and the authentication of a completed exchange. For forward secrecy against a later
 quantum adversary, it models the hash function as a PRF (KS, Section 4, p. 11). The Lean module
 note says that the proof of the Diffie-Hellman theorem may need a random oracle in place of a
-PRF. The plans of the two Diffie-Hellman hops 5 and 6 are written for that case, and the hops
-wait for the decision
+PRF. The module note of the two Diffie-Hellman hops 5 and 6 says that both are admitted and that
+their proofs wait for a choice of assumptions that is open
 ([issue #81](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/81)). The
-plans of the post-quantum hops use the PRF as it stands.
+post-quantum hops are stated with the PRF as it stands.
 
 ## The signature and the KEM
 
@@ -1448,8 +1533,9 @@ unique. The note adds that the argument for authentication needs only that no on
 message without the key. The book has not checked this claim about XEdDSA.
 
 The event $`\mathrm{SigForge}` therefore compares signed keys and not the bytes of signatures.
-A new signature on a key that Bob signed is no forgery in hop 3. Such a run still fails the
-match of transcripts, and it belongs to the residual event of hop 5
+A new signature on a key that Bob signed is no forgery in hop 3. Such a run keeps the
+associated data and the key material, so Alice keeps her original-key partner, and the run is
+in no forgery event. It fails the match of transcripts of chapter 2
 ([issue #35](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/35)).
 
 The theorems assume that the verification algorithm is deterministic. This holds for signature
@@ -1461,23 +1547,24 @@ module note says that production Kyber decapsulates wrongly with a small probabi
 is an idealisation.
 
 The bound on the KEM public keys is the last hypothesis of both theorems. It bounds the
-collisions and the predictions of KEM public keys across the sessions of $`T`. The event
-$`\mathrm{Guess}(\mathrm{cr})` of the section on the structure of the proof shows that they
-break UAKE security, so no assumption on a primitive can replace the bound.
+collisions and the predictions of KEM public keys across the sessions of $`T`. No assumption on
+a primitive excludes them. The section on the structure of the proof shows, at the event
+$`\mathrm{Guess}(\mathrm{cr})`, how they break UAKE security in the transcript-matching
+experiment of chapter 2.
 
 ## Identifiers
 
 The identifiers of the keys are not signed and not in the associated data of the model. KS
 says that the identifiers are not security critical, because the key values are signed or in
 the associated data (KS, Section 4.13, p. 17). Issue #35 shows that this breaks the match of
-transcripts, and pull request #71 changes the experiment.
+transcripts. The security theorems therefore use original-key partnering, which does not
+compare the identifiers.
 
-Both theorems assume that $`\mathrm{id}_{\mathrm{KEM}}` is injective. KS allows an identifier
-with a smaller representation than the key, if collisions are unlikely (KS, Section 4.13,
-p. 17). Such an identifier is not injective on all keys. The Lean module note says that the
-hypothesis fails for production. There the identifiers are 32-bit prekey identifiers, and no
-map from the KEM public keys of 1568 bytes to them is injective. A collision-resistant
-identifier would be an improvement. Pull request #71 drops the hypothesis.
+The security theorems make no assumption on $`\mathrm{id}_{\mathrm{KEM}}`. KS allows an
+identifier with a smaller representation than the key, if collisions are unlikely (KS,
+Section 4.13, p. 17). Such an identifier is not injective on all keys. In production the
+identifiers are 32-bit prekey identifiers, and no map from the KEM public keys of 1568 bytes to
+them is injective.
 
 ## The post-quantum theorem
 
@@ -1488,12 +1575,12 @@ who can compute the secret keys of curve keys and then impersonate Alice (KS, Se
 p. 15).
 
 UAKE security has two parts, the secrecy of the key and the authenticity of $`T`, and it
-cannot state secrecy alone. The post-quantum theorem therefore proves UAKE security for an
-adversary that may break Diffie-Hellman, which is how the Lean docstring puts it. It assumes
-the joint unforgeability of the identity signature scheme. In PQXDH the signature is an
-elliptic-curve signature, which a quantum adversary breaks. So this hypothesis does not hold in
-the post-quantum setting. A secrecy-only notion in place of UAKE would not need the
-hypothesis. The theorem therefore does not express the aim of PQXDH.
+cannot state secrecy alone. The post-quantum theorem therefore states UAKE security with no
+Diffie-Hellman hypothesis, which is how the Lean docstring puts it. It assumes the joint
+unforgeability of the identity signature scheme. In PQXDH the signature is an elliptic-curve
+signature, which a quantum adversary breaks. So this hypothesis does not hold in the
+post-quantum setting. A secrecy-only notion in place of UAKE would not need the hypothesis. The
+theorem therefore does not express the aim of PQXDH.
 
 ## What the bounds cover
 

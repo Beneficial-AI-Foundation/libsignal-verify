@@ -1,4 +1,5 @@
 import Libsignal.Specs.Core.Address
+import Libsignal.Specs.Core.Curve
 import Libsignal.Specs.Protocol.Crypto
 import Libsignal.Specs.Protocol.Kem
 import Libsignal.Specs.Protocol.Pqxdh

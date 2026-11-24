@@ -116,7 +116,6 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_dh
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq SS] [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hidKEM : Function.Injective P.idKEM)
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εsig εgap εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
@@ -128,7 +127,7 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_dh
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × Option G × SS) (K × K × K),
       ((kdfPRFDH P).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
-    UAKE.advantage ProbCompRuntime.probComp A ≤
+    partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤
       εsig + 2 * q * (εgap + 2 * εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk
 
 /--
@@ -151,7 +150,6 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_pq
     [DecidableEq G] [DecidableEq PQPK] [DecidableEq CT] [DecidableEq S] [DecidableEq C]
     [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hidKEM : Function.Injective P.idKEM)
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
     (εsig εkem εaead εkdf εpk : ℝ)
     (hverifyDet : ∀ (pk : G) (m : G ⊕ PQPK) (σ : S), ∃ b, P.sig.verify pk m σ = pure b)
@@ -164,7 +162,7 @@ recall Protocols.Models.PQXDH.uakeInitiator_secure_pq
     (hkdf : ∀ D : PRFScheme.PRFAdversary (G × G × G × Option G) (K × K × K),
       ((kdfPRF P).prfAdvantage D).toReal ≤ εkdf)
     (hpk : ∀ pk : PQPK, (Pr{let y ← (Prod.fst <$> P.pqkem.keygen)}[y = pk]).toReal ≤ εpk) :
-    UAKE.advantage ProbCompRuntime.probComp A ≤
+    partneredAdvantage ProbCompRuntime.probComp (originalKeyPartnering P msg hasOPK) A ≤
       εsig + 2 * q * (εkem + εaead + εkdf) + 3 * (q : ℝ) ^ 2 * εpk
 
 /--
@@ -234,7 +232,7 @@ recall Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
-    (εgap εaead εkdf : ℝ) (hidKEM : Function.Injective P.idKEM)
+    (εgap εaead εkdf : ℝ)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
@@ -263,7 +261,7 @@ recall Protocols.Models.PQXDH.indistAdvantage_le_gap
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
-    (εgap εaead εkdf εpk : ℝ) (hidKEM : Function.Injective P.idKEM)
+    (εgap εaead εkdf εpk : ℝ)
     (hgap : ∀ D : DiffieHellman.GapDHAdversary F G,
       DiffieHellman.gapDHAdvantage P.gen D ≤ εgap)
     (haead : ∀ B : AEAD.INT_CTXT_D_Adversary P.aead,
@@ -293,7 +291,7 @@ recall Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
-    (εkem εaead εkdf : ℝ) (hidKEM : Function.Injective P.idKEM)
+    (εkem εaead εkdf : ℝ)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)
@@ -323,7 +321,7 @@ recall Protocols.Models.PQXDH.indistAdvantage_le_pq
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK) (msg : Msg) (hasOPK : Bool)
     [SampleableType SS] [DecidableEq SS] [Fintype K] [Inhabited K]
     (A : UAKE.Adversary (uakeInitiator P msg hasOPK)) (q : ℕ) (hq : A.OpensAtMost q)
-    (εkem εkdf εpk : ℝ) (hidKEM : Function.Injective P.idKEM)
+    (εkem εkdf εpk : ℝ)
     (hkemCorrect : P.pqkem.PerfectlyCorrect ProbCompRuntime.probComp)
     (hkem : ∀ B : P.pqkem.IND_CCA_Adversary,
       (P.pqkem.IND_CCA_Advantage ProbCompRuntime.probComp B).toReal ≤ εkem)

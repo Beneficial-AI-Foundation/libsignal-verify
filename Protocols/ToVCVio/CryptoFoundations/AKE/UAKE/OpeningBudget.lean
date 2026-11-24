@@ -1,0 +1,176 @@
+/-
+Copyright (c) 2026 Galois Inc. All rights reserved.
+Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
+Released under the Apache License 2.0 as described in the file LICENSES/Apache-2.0.txt.
+Authors: Ben Hamlin, Alessandro D'Angelo
+Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models, see
+Protocols/ATTRIBUTION.md.
+-/
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OracleInvariants
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
+
+/-!
+# The opening budget of a UAKE adversary
+
+`Adversary.OpensAtMost q` bounds the `openT` queries of each stage of the adversary by `q`: at
+most `q` in the challenge stage and at most `q` in the key-distinguishing stage.
+
+The budget is per stage, so the two stages together may open `2 * q` sessions: at most `2 * q` are
+open when the key-distinguishing stage ends (`Adversary.OpensAtMost.openCount_le_two_mul`).
+-/
+
+open OracleSpec OracleComp
+
+namespace AKE.UAKE
+
+variable {K UK TK W : Type}
+
+/-- The adversary opens at most `q` sessions of T in its challenge stage and at most `q` in its
+key-distinguishing stage, so at most `2 * q` in all
+(`Adversary.OpensAtMost.openCount_le_two_mul`). -/
+def Adversary.OpensAtMost {proto : Scheme ProbComp K UK TK W} (A : Adversary proto) (q : ℕ) :
+    Prop :=
+  (∀ uk w, (A.challenge uk w).IsQueryBoundP (· matches Sum.inr .openT) q) ∧
+    (∀ st k, (A.post st k).IsQueryBoundP (· matches Sum.inr .openT) q)
+
+variable {proto : Scheme ProbComp K UK TK W}
+
+/-- A query other than `openT` leaves the number of T sessions unchanged. -/
+theorem oracleImpl_openCount_of_not_openT (lift : ProbCompLift ProbComp) (tk : TK)
+    (t : (unifSpec + oracleSpec K W).Domain) (ht : ¬ (t matches Sum.inr .openT))
+    (env : Env proto) :
+    ∀ z ∈ support ((oracleImpl lift proto tk t).run env),
+      z.2.tSessions.length = env.tSessions.length := by
+  intro z hz
+  rcases t with n | op
+  · simp only [oracleImpl, HasQuery.toQueryImpl_apply, HasQuery.instOfMonadLift_query,
+      QueryImpl.add_apply_inl, StateT.run_monadLift, monadLift_self, bind_pure_comp,
+      support_map] at hz
+    obtain ⟨a, -, rfl⟩ := hz
+    rfl
+  · cases op with
+    | openT => exact absurd rfl ht
+    | revealT sid =>
+      simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
+      rcases hs : env.tSessions[sid]? with _ | t
+      · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs] at hz
+        subst hz
+        rfl
+      · rcases hk : t.key with _ | key
+        · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs, hk] at hz
+          subst hz
+          rfl
+        · simp only [StateT.run_bind, StateT.run_get, pure_bind, hs, hk, StateT.run_set] at hz
+          subst hz
+          simp
+    | stepT sid w =>
+      simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
+      rcases hs : env.tSessions[sid]? with _ | t
+      · simp only [pure_bind, StateT.run_bind, StateT.run_get, hs] at hz
+        subst hz
+        rfl
+      · rcases hk : t.key with _ | key
+        · simp only [bind_pure_comp, pure_bind, StateT.run_bind, StateT.run_get,
+            hs, hk, StateT.run_monadLift, monadLift_self, bind_map_left] at hz
+          obtain ⟨res, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+          cases res with
+          | reject =>
+            simp only at hz
+            subst hz
+            rfl
+          | acceptAndSend st' w' done =>
+            cases done
+            · simp only [Bool.false_eq_true, ↓reduceIte] at hz
+              subst hz
+              simp
+            · simp only [↓reduceIte, StateT.run_bind, StateT.run_monadLift, monadLift_self,
+                bind_pure_comp, StateT.run_set] at hz
+              obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+              simp only [pure_bind] at hz
+              subst hz
+              simp
+          | complete st' =>
+            simp only [StateT.run_bind, StateT.run_monadLift, monadLift_self, bind_pure_comp,
+              StateT.run_set] at hz
+            obtain ⟨y, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+            simp only [pure_bind] at hz
+            subst hz
+            simp
+        · simp only [pure_bind, StateT.run_bind, StateT.run_get, hs, hk] at hz
+          subst hz
+          rfl
+    | stepChallenge w =>
+      simp only [oracleImpl, QueryImpl.add_apply_inr, opImpl] at hz
+      by_cases hd : env.challengeDone = true
+      · simp only [StateT.run_bind, StateT.run_get, pure_bind, hd, ↓reduceIte] at hz
+        subst hz
+        rfl
+      · simp only [bind_pure_comp, StateT.run_bind, StateT.run_get, pure_bind, hd,
+          Bool.false_eq_true, ↓reduceIte, StateT.run_monadLift, monadLift_self,
+          bind_map_left] at hz
+        obtain ⟨res, -, hz⟩ := (mem_support_bind_iff _ _ _).1 hz
+        cases res with
+        | reject =>
+          simp only at hz
+          subst hz
+          rfl
+        | acceptAndSend st' w' done =>
+          simp only at hz
+          subst hz
+          rfl
+        | complete st' =>
+          simp only at hz
+          subst hz
+          rfl
+
+/-- A computation with at most `n` `openT` queries, simulated with the UAKE oracle, opens at most
+`n` sessions. -/
+theorem simulateQ_oracleImpl_openCount_le (lift : ProbCompLift ProbComp) (tk : TK) {α : Type}
+    {oa : OracleComp (unifSpec + oracleSpec K W) α} {n : ℕ}
+    (h : oa.IsQueryBoundP (· matches Sum.inr .openT) n) (env : Env proto) :
+    ∀ z ∈ support ((simulateQ (oracleImpl lift proto tk) oa).run env),
+      z.2.tSessions.length ≤ env.tSessions.length + n := by
+  refine IsQueryBoundP.cost_le_of_mem_support_run_simulateQ
+    (fun env : Env proto => env.tSessions.length) ?_ ?_ h env
+  · intro t ht s z hz
+    have hopen : t = Sum.inr .openT := by
+      revert ht; clear hz z; rcases t with _ | (_ | _ | _ | _) <;> simp
+    exact (oracleImpl_openT_count lift tk t hopen s z hz).le
+  · intro t ht s z hz
+    exact (oracleImpl_openCount_of_not_openT lift tk t
+      (by revert ht; clear hz z; rcases t with _ | (_ | _ | _ | _) <;> simp) s z hz).le
+
+/-- At most `q` sessions are open when the challenge stage ends. -/
+theorem Adversary.OpensAtMost.challengeSession_openCount_le {A : Adversary proto} {q : ℕ}
+    (hq : A.OpensAtMost q) (lift : ProbCompLift ProbComp) (uk : UK) (tk : TK) :
+    ∀ z ∈ support (challengeSession lift A uk tk), z.2.2.1.tSessions.length ≤ q := by
+  intro z hz
+  simp only [challengeSession, mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hz
+  obtain ⟨u0, -, ⟨st, env⟩, hrun, k0, -, rfl⟩ := hz
+  have := simulateQ_oracleImpl_openCount_le lift tk (hq.1 uk u0.opening) _ (st, env) hrun
+  simpa using this
+
+/-- The key-distinguishing stage, run from an environment with at most `q` sessions, ends with at
+most `2 * q`. -/
+theorem Adversary.OpensAtMost.post_openCount_le {A : Adversary proto} {q : ℕ}
+    (hq : A.OpensAtMost q) (lift : ProbCompLift ProbComp) (tk : TK) (aSt : A.State)
+    (k : Option K) (env : Env proto) (henv : env.tSessions.length ≤ q) :
+    ∀ y ∈ support ((simulateQ (oracleImpl lift proto tk) (A.post aSt k)).run env),
+      y.2.tSessions.length ≤ 2 * q := by
+  intro y hy
+  have := simulateQ_oracleImpl_openCount_le lift tk (hq.2 aSt k) env y hy
+  omega
+
+/-- The composed opening budget: after the challenge stage and the key-distinguishing stage that
+`finalize` and `finalizePartnered` run from its environment, at most `2 * q` sessions are open. -/
+theorem Adversary.OpensAtMost.openCount_le_two_mul {A : Adversary proto} {q : ℕ}
+    (hq : A.OpensAtMost q) (lift : ProbCompLift ProbComp) (uk : UK) (tk : TK) :
+    ∀ z ∈ support (challengeSession lift A uk tk), ∀ k : Option K,
+      ∀ y ∈ support ((simulateQ (oracleImpl lift proto tk) (A.post z.2.1 k)).run
+          { z.2.2.1 with challengeDone := true }),
+        y.2.tSessions.length ≤ 2 * q := by
+  intro z hz k y hy
+  exact hq.post_openCount_le lift tk z.2.1 k { z.2.2.1 with challengeDone := true }
+    (hq.challengeSession_openCount_le lift uk tk z hz) y hy
+
+end AKE.UAKE
