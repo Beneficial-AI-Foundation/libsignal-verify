@@ -103,8 +103,7 @@ The book is not the proof. The proofs are checked by `lake build` of the Lean de
   that commit is the one in `source-revision`, as it is in the publishing workflow.
 - **Upstream docstring.** One popup shows a docstring from VCV-io that starts with a note
   about an upstream design choice. It is upstream text and is left as it is.
-- **Open statements.** The book describes the code as it stands. Pull request #71 changes the
-  matching of sessions in the security theorems, and chapters 2 and 3 say where. The
+- **Open statements.** The book describes the code as it stands. The
   correctness and the security of the production handshake are open
   ([#72](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/72) and
   [#79](https://github.com/Beneficial-AI-Foundation/libsignal-verify/issues/79)).
