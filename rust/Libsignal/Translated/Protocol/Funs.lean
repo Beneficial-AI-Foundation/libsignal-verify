@@ -5687,6 +5687,47 @@ def state.session.SessionState.with_receiver_chain
   := do
   state.session.SessionState.add_receiver_chain self sender chain_key
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 174:4-199:5 -/
+def state.session.SessionState.new
+  (version : Std.U8) (our_identity : identity_key.IdentityKey)
+  (their_identity : identity_key.IdentityKey) (root_key : ratchet.keys.RootKey)
+  (alice_base_key : libsignal_core.curve.PublicKey)
+  (pq_ratchet_state : alloc.vec.Vec Std.U8) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  let i ← lift (UScalar.cast .U32 version)
+  let pk ← identity_key.IdentityKey.impl.public_key our_identity
+  let s ← libsignal_core.curve.PublicKey.serialize pk
+  let v := alloc.slice.Slice.into_vec s
+  let s1 ← identity_key.IdentityKey.serialize their_identity
+  let v1 := alloc.slice.Slice.into_vec s1
+  let a ← ratchet.keys.RootKey.impl.key root_key
+  let s2 ← lift (Array.to_slice a)
+  let v2 ← alloc.slice.Slice.to_vec core.clone.CloneU8 s2
+  let s3 ← libsignal_core.curve.PublicKey.serialize alice_base_key
+  let v3 := alloc.slice.Slice.into_vec s3
+  ok
+    {
+      session :=
+        {
+          session_version := i,
+          local_identity_public := v,
+          remote_identity_public := v1,
+          root_key := v2,
+          previous_counter := 0#u32,
+          sender_chain := none,
+          receiver_chains :=
+            (alloc.vec.Vec.new proto.storage.session_structure.Chain),
+          pending_pre_key := none,
+          pending_kyber_pre_key := none,
+          remote_registration_id := 0#u32,
+          local_registration_id := 0#u32,
+          alice_base_key := v3,
+          pq_ratchet_state
+        }
+    }
+
 /-- [libsignal_protocol::ratchet::initialize_initiator_session::{impl core::ops::function::FnOnce<(spqr::Error,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::ratchet::initialize_initiator_session::{closure}<R>}::call_once]:
     Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
 def
@@ -5927,6 +5968,18 @@ def ratchet.initialize_bob_session
     core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
       state.session.SessionState (core.convert.FromSame
       error.SignalProtocolError) residual
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 747:4-752:5 -/
+def state.session.SessionRecord.new
+  (session_state : state.session.SessionState) :
+  Result state.session.SessionRecord
+  := do
+  ok
+    {
+      current_session := (some session_state),
+      previous_sessions := (alloc.vec.Vec.new (alloc.vec.Vec Std.U8))
+    }
 
 /-- [libsignal_protocol::ratchet::initialize_alice_session_record]:
     Source: 'rust/protocol/src/ratchet.rs', lines 176:0-183:1
@@ -8838,6 +8891,45 @@ def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone :
   clone :=
     state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone.clone
 }
+
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey,), (libsignal_protocol::state::kyber_prekey::KyberPreKeyId, &'_3 [u8])> for libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{closure}<'a, '_1, '_2, '_3>}]
+    Source: 'rust/protocol/src/state/session.rs', lines 63:17-63:85 -/
+@[reducible]
+def
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8
+  : core.ops.function.FnOnce
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure
+  proto.storage.session_structure.PendingKyberPreKey
+  (state.kyber_prekey.KyberPreKeyId × (Slice Std.U8)) := {
+  call_once :=
+    state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8.call_once
+}
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 55:4-73:5 -/
+def state.session.UnacknowledgedPreKeyMessageItems.new
+  (pre_key_id : Option state.prekey.PreKeyId)
+  (signed_pre_key_id : state.signed_prekey.SignedPreKeyId)
+  (base_key : libsignal_core.curve.PublicKey)
+  (pending_kyber_pre_key : Option
+  proto.storage.session_structure.PendingKyberPreKey)
+  (timestamp : std.time.SystemTime) :
+  Result state.session.UnacknowledgedPreKeyMessageItems
+  := do
+  let o ←
+    core.option.Option.map
+      state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8
+      pending_kyber_pre_key ()
+  let (kyber_pre_key_id, kyber_ciphertext) ← core.option.OptionPair.unzip o
+  ok
+    {
+      pre_key_id,
+      signed_pre_key_id,
+      base_key,
+      kyber_pre_key_id,
+      kyber_ciphertext,
+      timestamp
+    }
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::pre_key_id]:
     Source: 'rust/protocol/src/state/session.rs', lines 75:4-77:5 -/

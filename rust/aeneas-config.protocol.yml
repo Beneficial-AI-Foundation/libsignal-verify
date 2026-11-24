@@ -221,7 +221,13 @@ charon:
     # From<SessionStructure> for SessionState and From<InvalidSessionError> for
     # SignalProtocolError are translated.
     - "libsignal_protocol::state::session::{impl core::convert::From<_> for libsignal_protocol::proto::storage::SessionStructure}::from"
-    - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
+    # UnacknowledgedPreKeyMessageItems::new maps its Option argument with a closure that returns a
+    # borrowed slice. Aeneas fails on the closure's call_once with "Can't end abstraction 16 as it
+    # is set as non-endable" (layer aeneas; Aeneas de16f3cf877976e966906dc890f63dcb418884fa,
+    # Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca), so that impl stays opaque. The three new
+    # of this module (SessionState, SessionRecord, UnacknowledgedPreKeyMessageItems) are translated:
+    # no pattern tells their inherent impls apart, and only the last one has a closure.
+    - "libsignal_protocol::state::session::_::new::{impl core::ops::function::FnOnce<_> for _}"
     # state::bundle — PreKeyBundle builder
     - "libsignal_protocol::state::bundle::_::modify"
     # double_ratchet — logging helpers only (Aeneas fails on log! expansions).

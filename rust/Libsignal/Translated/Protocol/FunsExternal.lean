@@ -185,6 +185,14 @@ axiom core.option.Option.and_then
 axiom core.option.Option.zip
   {T : Type} {U : Type} : Option T → Option U → Result (Option (T × U))
 
+/-- [core::option::{core::option::Option<(T, U)>}::unzip]:
+    Source: '/rustc/library/core/src/option.rs', lines 2111:4-2111:48
+    Name pattern: [core::option::{core::option::Option<(@T, @U)>}::unzip]
+    Visibility: public -/
+@[rust_fun "core::option::{core::option::Option<(@T, @U)>}::unzip"]
+axiom core.option.OptionPair.unzip
+  {T : Type} {U : Type} : Option (T × U) → Result ((Option T) × (Option U))
+
 -- (dropped axiom core.option.OptionResult.transpose; provided by an imported sibling lib)
 
 /-- [core::option::{impl core::clone::Clone for core::option::Option<T>}::clone]:
@@ -1714,19 +1722,6 @@ axiom state.session.SessionState.add_receiver_chain
   state.session.SessionState → libsignal_core.curve.PublicKey →
     ratchet.keys.ChainKey → Result state.session.SessionState
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 174:4-199:5 -/
-axiom state.session.SessionState.new
-  :
-  Std.U8 → identity_key.IdentityKey → identity_key.IdentityKey →
-    ratchet.keys.RootKey → libsignal_core.curve.PublicKey → alloc.vec.Vec
-    Std.U8 → Result state.session.SessionState
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 746:4-751:5 -/
-axiom state.session.SessionRecord.new
-  : state.session.SessionState → Result state.session.SessionRecord
-
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderMessageKey}::new]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 34:4-45:5 -/
 axiom sender_keys.SenderMessageKey.new
@@ -1868,14 +1863,14 @@ noncomputable def state.signed_prekey.GenericSignedPreKey.deserialize.default
     (Clause0_Clause0_PublicKey := Clause0_Clause0_PublicKey)
     (Clause0_Clause0_PrivateKey := Clause0_Clause0_PrivateKey)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 55:4-73:5 -/
-axiom state.session.UnacknowledgedPreKeyMessageItems.new
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey,), (libsignal_protocol::state::kyber_prekey::KyberPreKeyId, &'_3 [u8])> for libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{closure}<'a, '_1, '_2, '_3>}::call_once]:
+    Source: 'rust/protocol/src/state/session.rs', lines 63:17-63:85 -/
+axiom
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8.call_once
   :
-  Option state.prekey.PreKeyId → state.signed_prekey.SignedPreKeyId →
-    libsignal_core.curve.PublicKey → Option
-    proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
-    → Result state.session.UnacknowledgedPreKeyMessageItems
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure →
+    proto.storage.session_structure.PendingKyberPreKey → Result
+    (state.kyber_prekey.KyberPreKeyId × (Slice Std.U8))
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 223:4-225:5 -/

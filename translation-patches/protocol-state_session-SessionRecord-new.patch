@@ -1,0 +1,21 @@
+Translation patch: libsignal_protocol::state::session::SessionRecord::new
+
+Change: the parameter `state` is renamed `session_state`, on the same two lines, so no line of the file moves.
+Why: a parameter named like the `state` module shadows the module in the generated Lean ([aeneas#1098](https://github.com/AeneasVerif/aeneas/issues/1098)); the return type `state.session.SessionRecord` then fails to elaborate.
+Behaviour: identical.
+
+diff --git a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -715,9 +715,9 @@
+         }
+     }
+ 
+-    pub(crate) fn new(state: SessionState) -> Self {
++    pub(crate) fn new(session_state: SessionState) -> Self {
+         Self {
+-            current_session: Some(state),
++            current_session: Some(session_state),
+             previous_sessions: Vec::new(),
+         }
+     }
