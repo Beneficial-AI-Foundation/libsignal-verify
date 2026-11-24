@@ -1,0 +1,20 @@
+Translation patch: libsignal_protocol::state::session::SessionRecord::archive_current_state_inner
+
+Change: the two lines `self.previous_sessions` / `.insert(0, current_session.session.encode_to_vec());` become the two lines `let encoded = current_session.session.encode_to_vec();` and `if self.previous_sessions.len() == 0 { self.previous_sessions.push(encoded) } else { self.previous_sessions.insert(0, encoded) }`, so no later line of the file moves.
+Why: the Aeneas library at nightly-2026.10.30-de16f3c models `Vec::insert(i, x)` as a failure (`arrayOutOfBounds`) when `i` equals the length of the vector, where Rust appends. On an empty vector, index 0 is the length, so the extracted model failed where Rust succeeds. The pinned `push` model appends.
+Behaviour: identical under boundary B. Boundary B compares results, errors, panics, random generator use, session and store changes, store calls, the target, module, file, level and message of each log call, and the order of these effects. It leaves out log line numbers, allocation and the time at which the parameter objects are dropped, also when the future is cancelled. It requires that allocations succeed and that no callback, in particular no log callback, turns the left-out line, allocation or parameter-lifetime observations into compared effects. The session is encoded at the same point as before, and only then is the vector changed. On an empty vector, `insert(0, x)` passes its `index > len` check, grows the buffer exactly when `push` does (`len == capacity`), copies no element and writes `x` at position 0, so both calls leave the vector `[x]`. When the buffer grows, the request for more memory comes from `push` and not from `insert`, an allocation observation that boundary B leaves out. On a non-empty vector the call is the original `insert(0, x)`.
+
+diff --git a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -817,8 +817,8 @@
+                 self.previous_sessions.pop();
+             }
+             current_session.clear_unacknowledged_pre_key_message();
+-            self.previous_sessions
+-                .insert(0, current_session.session.encode_to_vec());
++            let encoded = current_session.session.encode_to_vec();
++            if self.previous_sessions.len() == 0 { self.previous_sessions.push(encoded) } else { self.previous_sessions.insert(0, encoded) }
+             true
+         } else {
+             false
