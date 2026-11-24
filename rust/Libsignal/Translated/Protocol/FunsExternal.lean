@@ -115,10 +115,12 @@ axiom core.iter.traits.iterator.Iterator.position.default
     Source: '/rustc/library/core/src/marker.rs', lines 848:4-848:27
     Name pattern: [core::marker::{core::clone::Clone<core::marker::PhantomData<@T>>}::clone]
     Visibility: public -/
+-- core returns `*self`, a copy of its argument.
 @[rust_fun
   "core::marker::{core::clone::Clone<core::marker::PhantomData<@T>>}::clone"]
-axiom core.marker.PhantomData.Insts.CoreCloneClone.clone
-  {T : Type} : core.marker.PhantomData T → Result (core.marker.PhantomData T)
+def core.marker.PhantomData.Insts.CoreCloneClone.clone
+  {T : Type} : core.marker.PhantomData T → Result (core.marker.PhantomData T) :=
+  fun x => ok x
 
 -- (dropped axiom core.mem.take; provided by an imported sibling lib)
 
@@ -384,15 +386,34 @@ axiom BoxSlice.Insts.CoreConvertFromShared0Slice.from
   {T : Type} (corecloneCloneInst : core.clone.Clone T) :
   Slice T → Result (Slice T)
 
+-- Clones the elements of a list from the first to the last and stops at the first failure.
+-- `List.mapM_with_length` in the Aeneas library runs the clones from the last element to
+-- the first.
+private def BoxSlice.cloneElems {T : Type} (clone : T → Result T) :
+    (l : List T) → Result {l' : List T // l'.length = l.length}
+  | [] => ok ⟨[], rfl⟩
+  | a :: rest => do
+    let a' ← clone a
+    let l ← BoxSlice.cloneElems clone rest
+    ok ⟨a' :: l.val, congrArg Nat.succ l.property⟩
+
 /-- [alloc::boxed::{impl core::clone::Clone for alloc::boxed::Box<[T]>}::clone]:
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2136:4-2136:27
     Name pattern: [alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone]
     Visibility: public -/
+-- alloc clones the allocator, then clones the elements from the first to the last into a
+-- new box (`to_vec_in`, `into_boxed_slice`), so a failing clone stops at the first
+-- failure; for a type with a trivial clone, such as `u8`, `to_vec_in` copies the elements
+-- instead, which gives the same values. Aeneas models `Box<[T], A>` as `Slice T`, with no
+-- allocator value, so only the element clones are modelled; any of them may fail.
 @[rust_fun "alloc::boxed::{core::clone::Clone<Box<[@T]>>}::clone"]
-axiom BoxSlice.Insts.CoreCloneClone.clone
+def BoxSlice.Insts.CoreCloneClone.clone
   {T : Type} {A : Type} (corecloneCloneInst : core.clone.Clone T)
   (corecloneCloneInst1 : core.clone.Clone A) :
-  Slice T → Result (Slice T)
+  Slice T → Result (Slice T) :=
+  fun s => do
+    let l ← BoxSlice.cloneElems corecloneCloneInst.clone s.val
+    ok (Slice.from l.val (by rw [l.property]; exact s.property))
 
 /-- [alloc::boxed::{impl core::convert::AsRef<T> for alloc::boxed::Box<T>}::as_ref]:
     Source: '/rustc/library/alloc/src/boxed.rs', lines 2429:4-2429:26
@@ -547,10 +568,12 @@ axiom alloc.vec.Vec.pop
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4445:4-4445:28
     Name pattern: [alloc::vec::{core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>}::as_ref]
     Visibility: public -/
+-- alloc returns `self`, deref-coerced to the slice of the vector's elements.
 @[rust_fun
   "alloc::vec::{core::convert::AsRef<alloc::vec::Vec<@T>, [@T]>}::as_ref"]
-axiom alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref
-  {T : Type} (A : Type) : alloc.vec.Vec T → Result (Slice T)
+def alloc.vec.Vec.Insts.CoreConvertAsRefSlice.as_ref
+  {T : Type} (A : Type) : alloc.vec.Vec T → Result (Slice T) :=
+  fun v => ok (alloc.vec.Vec.deref v)
 
 /-- [alloc::vec::{impl core::convert::From<&'_0 [T]> for alloc::vec::Vec<T>}::from]:
     Source: '/rustc/library/alloc/src/vec/mod.rs', lines 4467:4-4467:30
@@ -1421,12 +1444,6 @@ def double_ratchet.log_jump_ahead
 def double_ratchet.log_corrupt_receiver_chain : Result Unit :=
   ok ()
 
-/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::InvalidSessionError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 36:4-38:5
-    Visibility: public -/
-axiom error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
-  : state.session.InvalidSessionError → Result error.SignalProtocolError
-
 /-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
     Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-221:5 -/
 axiom ratchet.keys.RootKey.create_chain
@@ -1540,12 +1557,6 @@ axiom
   :
   Slice Std.U8 → Result (core.result.Result protocol.SignalMessage
     error.SignalProtocolError)
-
-/-- [libsignal_protocol::protocol::{libsignal_protocol::protocol::PreKeySignalMessage}::kyber_ciphertext]:
-    Source: 'rust/protocol/src/protocol.rs', lines 415:4-417:5
-    Visibility: public -/
-axiom protocol.PreKeySignalMessage.kyber_ciphertext
-  : protocol.PreKeySignalMessage → Result (Option (Slice Std.U8))
 
 /-- [libsignal_protocol::protocol::{impl core::convert::TryFrom<&'_0 [u8], libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::protocol::PreKeySignalMessage}::try_from]:
     Source: 'rust/protocol/src/protocol.rs', lines 449:4-516:5
@@ -1819,25 +1830,6 @@ axiom state.session.UnacknowledgedPreKeyMessageItems.new
     proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
     → Result state.session.UnacknowledgedPreKeyMessageItems
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 201:4-204:5 -/
-axiom state.session.SessionState.alice_base_key
-  : state.session.SessionState → Result (Slice Std.U8)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 206:4-211:5 -/
-axiom state.session.SessionState.session_version
-  :
-  state.session.SessionState → Result (core.result.Result Std.U32
-    state.session.InvalidSessionError)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 213:4-221:5 -/
-axiom state.session.SessionState.remote_identity_key
-  :
-  state.session.SessionState → Result (core.result.Result (Option
-    identity_key.IdentityKey) state.session.InvalidSessionError)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 223:4-225:5 -/
 axiom state.session.SessionState.remote_identity_key_bytes
@@ -1935,12 +1927,6 @@ axiom state.session.SessionState.local_registration_id
 axiom state.session.SessionState.get_kyber_ciphertext
   : state.session.SessionState → Result (Option (alloc.vec.Vec Std.U8))
 
-/-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::proto::storage::SessionStructure> for libsignal_protocol::state::session::SessionState}::from]:
-    Source: 'rust/protocol/src/state/session.rs', lines 715:4-717:5
-    Visibility: public -/
-axiom state.session.SessionState.Insts.CoreConvertFromSessionStructure.from
-  : proto.storage.SessionStructure → Result state.session.SessionState
-
 /-- [libsignal_protocol::state::session::{impl core::convert::From<libsignal_protocol::state::session::SessionState> for libsignal_protocol::proto::storage::SessionStructure}::from]:
     Source: 'rust/protocol/src/state/session.rs', lines 721:4-723:5
     Visibility: public -/
@@ -2000,14 +1986,6 @@ axiom state.session.SessionRecord.local_registration_id
   state.session.SessionRecord → Result (core.result.Result Std.U32
     error.SignalProtocolError)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version]:
-    Source: 'rust/protocol/src/state/session.rs', lines 897:4-906:5
-    Visibility: public -/
-axiom state.session.SessionRecord.session_version
-  :
-  state.session.SessionRecord → Result (core.result.Result Std.U32
-    error.SignalProtocolError)
-
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::local_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 908:4-917:5
     Visibility: public -/
@@ -2032,14 +2010,6 @@ axiom state.session.SessionRecord.has_usable_sender_chain
   state.session.SessionRecord → std.time.SystemTime →
     state.session.SessionUsabilityRequirements → Result (core.result.Result
     Bool error.SignalProtocolError)
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key]:
-    Source: 'rust/protocol/src/state/session.rs', lines 941:4-950:5
-    Visibility: public -/
-axiom state.session.SessionRecord.alice_base_key
-  :
-  state.session.SessionRecord → Result (core.result.Result (Slice Std.U8)
-    error.SignalProtocolError)
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::get_receiver_chain_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 952:4-965:5

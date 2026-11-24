@@ -68,6 +68,11 @@ const TARGETS: Record<TargetKey, {
       "libsignal_protocol::double_ratchet::consume_message_key": 1,
       "libsignal_protocol::double_ratchet::take_skipped_key": 1,
       "libsignal_protocol::double_ratchet::find_receiver_chain_index": 1,
+      "libsignal_protocol::protocol::kyber_ciphertext": 1,
+      "libsignal_protocol::state::session::alice_base_key": 2,
+      "libsignal_protocol::state::session::session_version": 2,
+      "libsignal_protocol::state::session::remote_identity_key": 1,
+      "libsignal_protocol::state::session::archive_current_state_inner": 1,
     },
   },
   "ratchet-state": {

@@ -25,13 +25,14 @@ Model simplifications
   keyed party (Bob). Therefore we add an extra message from Bob under the AEAD
   at the end of the protocol in the T=Bob case. This would represent the second
   message in the conversation between Alice and Bob. We represent this by
-  returning `⟨sk, kb, ad, m⟩`, rather than just the shared key `sk`, if Bob's
+  returning `⟨sk, kb, ad, m, km⟩`, rather than just the shared key `sk`, if Bob's
   `accept` procedure succeeds. Here, `m` and `ad` are the same as the message
   and additional data sent by Alice in her AEAD message, and `kb` is an AEAD
   key (output by the KDF independently from the shared secret and Alice's AEAD
   key). This is then sent to Alice, who uses the `confirm` procedure to check
   that it decrypts under the same `kb` and has the correct content, and returns
-  `sk`, if so. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
+  `sk`, if so. The last field `km` is the key material that `accept` passed to the
+  KDF. The T=Alice scheme `uakeRecipient` follows PQXDH's message flow
   without Bob's extra message. Its role assignment comes from the UAKE definition and
   carries no security claim. Alice's ciphertext models the specification's initial
   ciphertext. Production sends it as the first Double Ratchet message under
@@ -198,10 +199,10 @@ structure InitialMessage (G CT C IdC IdK : Type) where
   ctxt : C
   deriving DecidableEq
 
-/-- Session context stored by Alice after running `initiate` and sending her
-  AEAD ciphertext. This is subsequently used by the `confirm` procedure. (See
-  bullet 1 of "Model simplifications".). -/
-structure SessionContext (G PQPK Msg K : Type) where
+/-- Session context of an accepted exchange. Alice stores it after `initiate` and keeps it after
+  `confirm`; Bob stores the context that `accept` returns. (See bullet 1 of "Model
+  simplifications".) -/
+structure SessionContext (G PQPK Msg K SS : Type) where
   /-- Shared key output by the KDF. -/
   sk : K
   /-- Bob's AEAD key, output by the KDF independently of `sk`.
@@ -216,6 +217,8 @@ structure SessionContext (G PQPK Msg K : Type) where
   ad : G × G × PQPK
   /-- Message encrypted in the AEAD ciphertexts. -/
   msg : Msg
+  /-- The key material `(DH1, DH2, DH3, DH4, SS)` that the session passed to `P.kdf`. -/
+  km : KeyMaterial G SS
 
 /-- Create the long-term state used by Alice and Bob respectively for all
   sessions. Bob signs his signed pre-key with his identity key. -/
@@ -257,7 +260,7 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (p : InitiatorParameters F G Msg)
     (bundle : PreKeyBundle G PQPK S IdC IdK) :
-    ProbComp (Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K)) := do
+    ProbComp (Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K SS)) := do
   if bundle.ikB ≠ p.ikB then return none
   let okSPK ← P.sig.verify p.ikB (EncodeEC bundle.spkB.1) bundle.spkSigB
   let okPQPK ← P.sig.verify p.ikB (EncodeKEM bundle.pqpkB.1) bundle.pqpkSigB
@@ -268,7 +271,8 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
   let DH2 := DH ekA.2 bundle.ikB
   let DH3 := DH ekA.2 bundle.spkB.1
   let DH4 := bundle.opkB.map fun opk => DH ekA.2 opk.1
-  let (SK, KA, KB) := P.kdf (DH1, DH2, DH3, DH4, SS)
+  let km := (DH1, DH2, DH3, DH4, SS)
+  let (SK, KA, KB) := P.kdf km
   let AD := (p.ikA.1, bundle.ikB, bundle.pqpkB.1)
   let ctxt ← P.aead.encrypt KA AD p.msg
   return some ({ ikA := p.ikA.1
@@ -278,11 +282,11 @@ def initiate [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [Decidab
                  idPQPK := bundle.pqpkB.2
                  idOPK := bundle.opkB.map Prod.snd
                  ctxt := ctxt },
-    { sk := SK, kb := KB, ad := AD, msg := p.msg })
+    { sk := SK, kb := KB, ad := AD, msg := p.msg, km })
 
 /-- Bob's confirmation procedure. Check if Alice's AEAD ciphertext decrypts with
   the correct AD and KDF-derived key. Return sk, if so. Also return the key,
-  message, and AD for Bob's own AEAD ciphertext.
+  message, and AD for Bob's own AEAD ciphertext, and the key material.
   * DEVIATION FROM SPEC: Bob's AEAD ciphertext is not present in the spec, but
     it's needed in order to fit the UAKE security definition in the T=Bob case.
     See bullet 1 of "Model simplifications". -/
@@ -290,7 +294,7 @@ def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableE
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     (p : RecipientParameters F G PQPK PQSK S)
     (msg : InitialMessage G CT C IdC IdK) :
-    ProbComp (Option (SessionContext G PQPK Msg K)) := do
+    ProbComp (Option (SessionContext G PQPK Msg K SS)) := do
   if msg.idSPK ≠ P.idEC p.spkB.1 ∨ msg.idPQPK ≠ P.idKEM p.pqpkB.1 ∨
       msg.idOPK ≠ p.opkB.map (fun opk => P.idEC opk.1) then return none
   let some SS ← P.pqkem.decaps p.pqpkB.2 msg.ct | return none
@@ -298,10 +302,12 @@ def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableE
   let DH2 := DH p.ikB.2 msg.ekA
   let DH3 := DH p.spkB.2 msg.ekA
   let DH4 := p.opkB.map fun opk => DH opk.2 msg.ekA
-  let (SK, KA, KB) := P.kdf (DH1, DH2, DH3, DH4, SS)
+  let km := (DH1, DH2, DH3, DH4, SS)
+  let (SK, KA, KB) := P.kdf km
   let AD := (msg.ikA, p.ikB.1, p.pqpkB.1)
   match P.aead.decrypt KA AD msg.ctxt with
-  | some m => return some { sk := SK, kb := KB, ad := AD, msg := m }
+  | some m =>
+      return some { sk := SK, kb := KB, ad := AD, msg := m, km }
   | none => return none
 
 /-- Alice's confirmation procedure: Check if Bob's AEAD ciphertext decrypts
@@ -309,7 +315,7 @@ def accept [Field F] [AddCommGroup G] [Module F G] [DecidableEq IdC] [DecidableE
   so. -/
 def confirm [DecidableEq Msg]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
-    (ctx : SessionContext G PQPK Msg K) (conf : C) : Option K :=
+    (ctx : SessionContext G PQPK Msg K SS) (conf : C) : Option K :=
   if P.aead.decrypt ctx.kb ctx.ad conf = some ctx.msg then some ctx.sk
   else none
 

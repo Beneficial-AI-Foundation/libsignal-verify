@@ -147,19 +147,26 @@ charon:
     # NB: matcher uses the trait's DEFINING path `prost::message::Message` (the
     # `prost::Message` re-export path does NOT match). Patterns cover each nesting
     # depth prost emits for nested messages.
+    # An attempt with include lines on the Message methods of SessionStructure and the five
+    # messages it contains fails in aeneas: first on "Unimplemented" for the FnOnce instance of
+    # <u32 as Default>::default that the generated code passes as a function value, then with
+    # "Internal error: please file an issue" (Aeneas de16f3cf877976e966906dc890f63dcb418884fa,
+    # Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca).
     - "libsignal_protocol::proto::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
-    # libsignal-protocol::kem — Plan A scope:
+    # libsignal-protocol::kem — which functions are translated and which stay opaque:
     # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
-    # TRANSPARENT (their bodies are extracted; the libcrux ML-KEM primitive is
+    # TRANSPARENT (their bodies are extracted; the libcrux Kyber-1024 primitive is
     # the axiomatic leaf). Everything else in kem.rs that touches the
     # `DynParameters` vtable becomes opaque — these aren't called from the
     # PQXDH verification target.
     - "libsignal_protocol::kem::_::key_length"            # KeyKind::key_length impls (Public, Secret) use parameters()
     - "libsignal_protocol::kem::_::generate"              # KeyPair::generate uses parameters().generate() (inherent-method `_::` form)
-    # libcrux ML-KEM 1024 primitive — the axiomatic leaf (FIPS 203).
+    # libcrux Kyber-1024 primitive — the axiomatic leaf. kyber1024.rs calls
+    # libcrux_ml_kem::kyber1024, which libcrux documents as Kyber 1024 of NIST PQC Round 3,
+    # not the FIPS 203 ML-KEM-1024.
     - "libsignal_protocol::kem::kyber1024::_::encapsulate"
     - "libsignal_protocol::kem::kyber1024::_::decapsulate"
     - "libsignal_protocol::kem::kyber1024::_::generate"
@@ -187,7 +194,11 @@ charon:
     # InvalidSessionError(&'static str) / SignalProtocolError, use format!/log,
     # or decode protobuf — all hit "no bottoms" / Internal error. Simple
     # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
-    - "libsignal_protocol::state::session::_::alice_base_key"
+    # alice_base_key and session_version are translated, for SessionState and for
+    # SessionRecord: Charon's name matcher never matches an impl pattern against an inherent
+    # impl segment (that arm returns false), so no pattern selects the methods of one of the
+    # two types. remote_identity_key, whose map_err closure returns InvalidSessionError with
+    # a literal, is translated as well.
     - "libsignal_protocol::state::session::_::current_pq_state"
     - "libsignal_protocol::state::session::_::deserialize"
     - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
@@ -200,15 +211,16 @@ charon:
     - "libsignal_protocol::state::session::_::local_identity_key_bytes"
     - "libsignal_protocol::state::session::_::local_registration_id"
     - "libsignal_protocol::state::session::_::previous_session_states"
-    - "libsignal_protocol::state::session::_::remote_identity_key"
     - "libsignal_protocol::state::session::_::remote_identity_key_bytes"
     - "libsignal_protocol::state::session::_::remote_registration_id"
     - "libsignal_protocol::state::session::_::sender_ratchet_private_key"
-    - "libsignal_protocol::state::session::_::session_version"
     - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
     - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
     - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
-    - "libsignal_protocol::state::session::_::from"                    # From<InvalidSessionError> (&str) + protobuf conversions
+    # The two conversions back to SessionStructure are off the handshake path.
+    # From<SessionStructure> for SessionState and From<InvalidSessionError> for
+    # SignalProtocolError are translated.
+    - "libsignal_protocol::state::session::{impl core::convert::From<_> for libsignal_protocol::proto::storage::SessionStructure}::from"
     - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
     # state::bundle — PreKeyBundle builder
     - "libsignal_protocol::state::bundle::_::modify"
@@ -244,13 +256,11 @@ charon:
     - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
     - "libsignal_protocol::sender_keys::_::add_sender_key_state"
     - "libsignal_protocol::sender_keys::_::new"  # slow: Index<RangeFull> trait-proof recursion (charon a535e914)
-    # protocol — signature verify (crypto), kyber_ciphertext accessor
-    # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
-    # free fns.
+    # protocol — signature verify (crypto), TryFrom protobuf parse (&str), float-ratio +
+    # content free fns. kyber_ciphertext is translated through a translation patch.
     - "libsignal_protocol::protocol::_::verify_signature"
     - "libsignal_protocol::protocol::log_invalid_local_addresses"  # log::warn!
     - "libsignal_protocol::protocol::log_address_mismatch"         # log::warn!
-    - "libsignal_protocol::protocol::_::kyber_ciphertext"
     - "libsignal_protocol::protocol::_::try_from"
     - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
     - "libsignal_protocol::protocol::_::from"   # From impls building protobuf structs (Default::default)
@@ -333,8 +343,10 @@ aeneas_args:
 tweaks:
   files: ["Types.lean", "Funs.lean"]
   substitutions:
-    # Explicit kernel-checked literal bounds avoid toStr's native_decide default.
-    # These substitutions change only proof arguments, not strings or operations.
+    # toStr takes a proof that the literal fits in U32. Its default in the pinned Aeneas
+    # library is `by rw [U32.max_eq]; decide +kernel`; these substitutions pass
+    # `by rw [U32.max_eq]; decide` instead. Neither uses native_decide. They change only
+    # proof arguments, not strings or operations.
     - find: 'toStr "valid length"'
       replace: 'toStr "valid length" (by rw [U32.max_eq]; decide)'
       required: true
