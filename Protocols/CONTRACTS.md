@@ -16,7 +16,7 @@ The file covers:
 - the opaque declarations of the extraction that the PQXDH statements reach. These are the axioms of
   the extraction among those that the `#guard_msgs` checks of `rust/Libsignal/Specs/Protocol/Pqxdh.lean`,
   `rust/Libsignal/Specs/Protocol/Kem.lean` and `Protocols/Specs/PQXDH.lean` print. The checks also
-  print `propext`, `Classical.choice` and `Quot.sound`, and seven checks in `Protocols/Specs/PQXDH.lean`
+  print `propext`, `Classical.choice` and `Quot.sound`, and five checks in `Protocols/Specs/PQXDH.lean`
   print `sorryAx`. None of these comes from the extraction (section 9).
 
 The fault-or-value form of a contract says only what a call returns when it returns: each `*Partial`
@@ -610,11 +610,10 @@ The declarations below are all the axioms of the extraction that the frozen clos
 `#guard_msgs` check on its `#print axioms` output fixes it, so that `lake build` fails when it
 changes. The checks are those of the three spec summaries named under "Scope and conventions". No other
 axiom of the extraction is reached. Besides these declarations, the closures contain `propext`,
-`Classical.choice` and `Quot.sound`. Seven closures in `Protocols/Specs/PQXDH.lean` also contain
+`Classical.choice` and `Quot.sound`. Five closures in `Protocols/Specs/PQXDH.lean` also contain
 `sorryAx`: those of `uakeInitiator_secure_dh`, `uakeInitiator_secure_pq`, their two `_total`
-corollaries, `fullExp_noLostMass` and both `wrapperAgreement_*`. This `sorryAx` comes
-from the admitted statements that `Protocols/LEDGER.md` lists under "Security placeholders" and
-"Temporary stubs", not from the extraction.
+corollaries and `fullExp_noLostMass`. This `sorryAx` comes from the admitted statements that
+`Protocols/LEDGER.md` lists under "Security placeholders", not from the extraction.
 
 | Declaration | Covered by |
 | --- | --- |
