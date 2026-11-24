@@ -29,7 +29,9 @@ variable {Rand Msg C IdC IdK : Type}
 /-- The law of Core's `generate` on a state drawn from `P.coins` is the law of `readClampDerive` on
 that state. Every event has the same probability under both, and a fault counts only as missing
 mass. The statement holds for every law `P.coins`; it says nothing about what `fill_bytes` returns
-on a state from `P.coins`, nor about the state it leaves. -/
+on a state from `P.coins`, nor about the state it leaves. The two computations are also equal as
+terms, by `generate_eq_readClampDerive` at each state. Use that equation where the kind of a fault
+matters: the law does not tell a panic from a divergence. -/
 theorem generate_coins_evalDistEq (P : Params Rand Msg C IdC IdK) :
     ((do
         let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
