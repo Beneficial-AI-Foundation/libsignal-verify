@@ -35,7 +35,11 @@ Each contract comes in two forms. The total form says that a leaf returns, and w
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
 and `fullExp_noLostMass` take, together with `GenerateTotal`, the total form for Core's key
 generator `KeyPair::generate`. The fault-or-value form says only what a leaf returns if it
-returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
+returns. The total forms imply the fault-or-value forms, except two parts, which are stated for
+every generator, while `SignTotal` and `KyberEncapsBackend` assume a total generator (`RngTotal`):
+the first part of `SignaturePartial` and the part of `KyberPartial` for encapsulation on a
+1568-byte key. These two parts are separate assumptions. `PartialContracts` bundles the
+fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 `generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
 -/
@@ -129,8 +133,8 @@ def SignVerify : Prop :=
       curve.PrivateKey.calculate_signature crng rng sk msg r = .ok (.Ok σ, r') →
         libsignal_core.curve.PublicKey.verify_signature pk msg σ = .ok true
 
-/-- On every public key, message and signature, verification returns a Boolean, and it returns
-`false` for a malformed signature or key
+/-- On every public key, list of message parts and signature, the multipart verification
+terminates without a panic and returns a Boolean
 (`rust/core/src/curve.rs:138-151`; `rust/core/src/curve/curve25519.rs:119-139`). -/
 def VerifyTotal : Prop :=
   ∀ (pk : ECPub) (parts : Slice (Slice U8)) (σ : Slice U8),
@@ -167,8 +171,9 @@ def KyberEncapsBadLength : Prop :=
 in `Dom`, encapsulation on a 1568-byte key terminates without panicking, with a 32-byte shared
 secret, a 1568-byte ciphertext and a state in `Dom`. libcrux 0.0.10 converts the key by length
 only (`libcrux-ml-kem-0.0.10/src/types.rs:45-54`) and validates nothing else. Its rejection
-sampling loop has no proved bound (`src/sampling.rs:74`, `:95-102`), so the contract trusts
-termination. -/
+sampling loop has no bound in the code (`src/sampling.rs:74`, `:95-102`). ePrint 2023/708 proves
+that Kyber's sampling, as specified, ends on every seed; that proof is about the algorithm, not this
+code, so the contract trusts termination. -/
 def KyberEncapsBackend : Prop :=
   ∀ {R : Type} (crng : rand_core_1.CryptoRng R) (Dom : R → Prop), RngTotal crng.RngCoreInst Dom →
     ∀ (key : kem.KeyMaterial kem.Public) (r : R), key.data.length = 1568 → Dom r →
