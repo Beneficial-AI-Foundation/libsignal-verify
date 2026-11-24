@@ -64,6 +64,7 @@ const TARGETS: Record<TargetKey, {
       "libsignal_protocol::state::session::remote_identity_key": 1,
       "libsignal_protocol::state::session::archive_current_state_inner": 1,
       "libsignal_protocol::state::session::new": 3,
+      "libsignal_protocol::state::session::add_receiver_chain": 1,
     },
   },
   "ratchet-state": {

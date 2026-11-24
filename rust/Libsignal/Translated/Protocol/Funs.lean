@@ -5678,6 +5678,37 @@ def state.session.SessionState.with_sender_chain
   := do
   state.session.SessionState.set_sender_chain self sender next_chain_key
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::add_receiver_chain]:
+    Source: 'rust/protocol/src/state/session.rs', lines 370:4-394:5 -/
+def state.session.SessionState.add_receiver_chain
+  (self : state.session.SessionState) (sender : libsignal_core.curve.PublicKey)
+  (chain_key : ratchet.keys.ChainKey) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  let i ← ratchet.keys.ChainKey.impl.index chain_key
+  let a ← ratchet.keys.ChainKey.impl.key chain_key
+  let s ← lift (Array.to_slice a)
+  let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s
+  let s1 ← libsignal_core.curve.PublicKey.serialize sender
+  let v1 ← alloc.slice.Slice.to_vec core.clone.CloneU8 s1
+  let v2 ←
+    alloc.vec.Vec.push self.session.receiver_chains
+      ({
+         sender_ratchet_key := v1,
+         sender_ratchet_key_private := (alloc.vec.Vec.new Std.U8),
+         chain_key := (some { index := i, key := v }),
+         message_keys :=
+           (alloc.vec.Vec.new proto.storage.session_structure.chain.MessageKey)
+       } : proto.storage.session_structure.Chain)
+  let i1 := alloc.vec.Vec.len v2
+  if i1 > consts.MAX_RECEIVER_CHAINS
+  then
+    state.session.log_trimming_receiver_chain
+      { session := { self.session with receiver_chains := v2 } }
+    let (_, v3) ← alloc.vec.Vec.remove alloc.alloc.Global v2 0#usize
+    ok { session := { self.session with receiver_chains := v3 } }
+  else ok { session := { self.session with receiver_chains := v2 } }
+
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::with_receiver_chain]:
     Source: 'rust/protocol/src/state/session.rs', lines 396:4-399:5 -/
 def state.session.SessionState.with_receiver_chain

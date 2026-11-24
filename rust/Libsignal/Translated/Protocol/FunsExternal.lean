@@ -1715,12 +1715,12 @@ axiom ratchet.keys.ChainKey.calculate_base_material
   ratchet.keys.ChainKey → Array Std.U8 1#usize → Result (Array Std.U8
     32#usize)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::add_receiver_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 370:4-394:5 -/
-axiom state.session.SessionState.add_receiver_chain
-  :
-  state.session.SessionState → libsignal_core.curve.PublicKey →
-    ratchet.keys.ChainKey → Result state.session.SessionState
+/-- [libsignal_protocol::state::session::log_trimming_receiver_chain]:
+    Source: 'rust/protocol/src/state/session.rs', lines 1022:0-1030:1 -/
+-- Logging has no effect on protocol state or results.
+def state.session.log_trimming_receiver_chain
+  (_state : state.session.SessionState) : Result Unit :=
+  ok ()
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderMessageKey}::new]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 34:4-45:5 -/

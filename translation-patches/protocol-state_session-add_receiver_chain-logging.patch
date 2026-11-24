@@ -1,0 +1,45 @@
+Translation patch: libsignal_protocol::state::session::SessionState::add_receiver_chain
+
+Change: the `log::info!` call that reports a trimmed receiver chain moves into the new function `log_trimming_receiver_chain` at the end of the file, marked `#[track_caller]`. It is called on the line of the old call with the session state; five comment lines take the other lines of the old call, so no other line of the file moves. The helper's `log::info!` has the same format string and the same two arguments, now read through the helper's parameter.
+Why: Aeneas stops with an internal error on `log!` expansions. The helper is opaque in the extraction (`aeneas-config.protocol.yml`).
+Behaviour: same log record: level, target, module path, file, line and message. The arguments (`sender_ratchet_key_for_logging`, its `format!` fallback, the chain count) are evaluated in the same order and, as before, only when the level is enabled. `log` takes the record's location from `Location::caller()` in its `#[track_caller]` function `loc()`; because the helper is `#[track_caller]` too, that location is the helper's call site, the line of the old call.
+
+diff --git a/rust/protocol/src/state/session.rs b/rust/protocol/src/state/session.rs
+--- a/rust/protocol/src/state/session.rs
++++ b/rust/protocol/src/state/session.rs
+@@ -355,12 +355,12 @@
+         self.session.receiver_chains.push(chain);
+ 
+         if self.session.receiver_chains.len() > consts::MAX_RECEIVER_CHAINS {
+-            log::info!(
+-                "Trimming excessive receiver_chain for session with base key {}, chain count: {}",
+-                self.sender_ratchet_key_for_logging()
+-                    .unwrap_or_else(|e| format!("<error: {}>", e.0)),
+-                self.session.receiver_chains.len()
+-            );
++            log_trimming_receiver_chain(self);
++            // Modified for Aeneas: the `log!` expansion moves into the helper at the end of
++            // this file, which the extraction treats as an opaque effect. The helper holds the
++            // same macro call with the same arguments, so they are evaluated only when the
++            // level is enabled, in the same order. It reports this line as the record's
++            // location (`#[track_caller]`).
+             self.session.receiver_chains.remove(0);
+         }
+     }
+@@ -968,3 +968,16 @@
+             .get_kyber_ciphertext())
+     }
+ }
++
++// Logging helper: Aeneas fails on `log!` expansions, so the extraction treats
++// it as an opaque effect. Level, message, arguments and the recorded line are unchanged.
++#[track_caller]
++fn log_trimming_receiver_chain(state: &SessionState) {
++    log::info!(
++        "Trimming excessive receiver_chain for session with base key {}, chain count: {}",
++        state
++            .sender_ratchet_key_for_logging()
++            .unwrap_or_else(|e| format!("<error: {}>", e.0)),
++        state.session.receiver_chains.len()
++    );
++}

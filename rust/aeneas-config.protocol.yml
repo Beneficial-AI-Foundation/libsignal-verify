@@ -189,7 +189,6 @@ charon:
     # construct InvalidSessionError(&'static str) (Aeneas "no bottoms" on &str
     # Err payloads) or use log!/format! (Internal error). Opaqued as reached.
     - "libsignal_protocol::state::session::_::sender_ratchet_key"
-    - "libsignal_protocol::state::session::_::add_receiver_chain"
     # state::session SessionState/SessionRecord methods that construct
     # InvalidSessionError(&'static str) / SignalProtocolError, use format!/log,
     # or decode protobuf — all hit "no bottoms" / Internal error. Simple
@@ -217,6 +216,11 @@ charon:
     - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
     - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
     - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
+    # Logging helper of add_receiver_chain (translation patch). Kept transparent, Aeneas reports
+    # "Internal error: please file an issue" at the log! expansion, then stops with "Fatal error:
+    # exception Not_found" in llbc/FunsAnalysis.ml, line 166 (Aeneas
+    # de16f3cf877976e966906dc890f63dcb418884fa, Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca).
+    - "libsignal_protocol::state::session::log_trimming_receiver_chain"
     # The two conversions back to SessionStructure are off the handshake path.
     # From<SessionStructure> for SessionState and From<InvalidSessionError> for
     # SignalProtocolError are translated.
