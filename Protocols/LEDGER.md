@@ -26,7 +26,9 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/PQXDH.lean`: the key-derivation mirror, the branch equations of the two entry
   points, the lemmas of one honest run, the two wrapper agreement lemmas and the statements of the
   Full realization;
-- `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key;
+- `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key, the equation
+  on `PrivateKey::public_key`, and the equation on `KeyPair::generate` with its right-hand side
+  `readClampDerive`;
 - `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization of a Kyber key and the serialization
   and deserialization of a Kyber ciphertext;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
