@@ -1,7 +1,7 @@
 Translation patch: libsignal_protocol::ratchet::keys::RootKey::create_chain
 
 Change: `derive_arrays` is replaced by a zeroed 64-byte buffer filled by `crate::crypto::hkdf_sha256(Some(&self.key), &shared_secret, b"WhisperRatchet", ..)`, then copied into two 32-byte arrays (`derive_arrays` derived 32, 32 and 0 bytes here). The `.expect("valid output length")` moves from the closure to the call. The `use libsignal_core::derive_arrays` stays, for `MessageKeys::derive_keys`.
-Why: `derive_arrays` has no body in the extraction (its zerocopy layout traits are excluded, as for protocol-pqxdh-HandshakeKeys-derive_with_label). Without this patch, `create_chain` translates but takes both keys from that bodiless function, so nothing links them to the HKDF output.
+Why: `derive_arrays` has no body in any profile. The core profile excludes it, because its zerocopy-based impls crash an Aeneas pre-pass (`aeneas-config.core.yml`), and the protocol profile has only an outside declaration for it. Without this patch, `create_chain` translates but takes both keys from that bodiless function, so nothing links them to the HKDF output.
 Behaviour: identical. The same HKDF call, with the same salt, input and info, fills the same 64 bytes; bytes 0-31 become the root key and bytes 32-63 the chain key, as before, with the same `expect` message.
 Relies on: protocol-crypto-hkdf_sha256.patch
 Applies after: protocol-ratchet_keys-RootKey-create_chain.patch (its lines are this patch's context).
