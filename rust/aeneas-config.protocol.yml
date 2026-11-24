@@ -181,7 +181,6 @@ charon:
     # libsignal-protocol::ratchet — HKDF chain/message-key derivation (crypto
     # leaves), plus from_pb which returns Result<_, &'static str> (Aeneas
     # "no bottoms" on &str Err payloads — opaque skips the body).
-    - "libsignal_protocol::ratchet::keys::_::create_chain"
     - "libsignal_protocol::ratchet::keys::_::derive_keys"
     - "libsignal_protocol::ratchet::keys::_::calculate_base_material"
     - "libsignal_protocol::ratchet::keys::_::from_pb"

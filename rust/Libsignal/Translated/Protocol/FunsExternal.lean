@@ -1499,14 +1499,6 @@ def double_ratchet.log_jump_ahead
 def double_ratchet.log_corrupt_receiver_chain : Result Unit :=
   ok ()
 
-/-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-221:5 -/
-axiom ratchet.keys.RootKey.create_chain
-  :
-  ratchet.keys.RootKey → libsignal_core.curve.PublicKey →
-    libsignal_core.curve.PrivateKey → Result (core.result.Result
-    (ratchet.keys.RootKey × ratchet.keys.ChainKey) error.SignalProtocolError)
-
 /-- [libsignal_protocol::fingerprint::get_encoded_string]:
     Source: 'rust/protocol/src/fingerprint.rs', lines 42:0-64:1 -/
 axiom fingerprint.get_encoded_string

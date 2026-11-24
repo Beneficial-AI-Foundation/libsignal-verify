@@ -1685,6 +1685,83 @@ def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError :
     error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
 }
 
+/-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
+    Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
+    Visibility: public -/
+def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
+  (e : libsignal_core.curve.CurveError) :
+  Result error.SignalProtocolError
+  := do
+  match e with
+  | libsignal_core.curve.CurveError.NoKeyTypeIdentifier =>
+    ok error.SignalProtocolError.NoKeyTypeIdentifier
+  | libsignal_core.curve.CurveError.BadKeyType raw =>
+    ok (error.SignalProtocolError.BadKeyType raw)
+  | libsignal_core.curve.CurveError.BadKeyLength key_type len =>
+    ok (error.SignalProtocolError.BadKeyLength key_type len)
+  | libsignal_core.curve.CurveError.InvalidKeyAgreement =>
+    ok error.SignalProtocolError.InvalidKeyAgreement
+
+/-- Trait implementation: [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}]
+    Source: 'rust/protocol/src/error.rs', lines 150:0-159:1 -/
+@[reducible]
+def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
+  core.convert.From error.SignalProtocolError libsignal_core.curve.CurveError
+  := {
+  «from» := error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
+}
+
+/-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-226:5 -/
+def ratchet.keys.RootKey.create_chain
+  (self : ratchet.keys.RootKey)
+  (their_ratchet_key : libsignal_core.curve.PublicKey)
+  (our_ratchet_key : libsignal_core.curve.PrivateKey) :
+  Result (core.result.Result (ratchet.keys.RootKey × ratchet.keys.ChainKey)
+    error.SignalProtocolError)
+  := do
+  let r ←
+    libsignal_core.curve.PrivateKey.calculate_agreement our_ratchet_key
+      their_ratchet_key
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let bytes := Array.repeat 64#usize 0#u8
+    let s ← lift (Array.to_slice self.key)
+    let s1 ←
+      lift (Array.to_slice
+        (Array.make 14#usize [
+          87#u8, 104#u8, 105#u8, 115#u8, 112#u8, 101#u8, 114#u8, 82#u8, 97#u8,
+          116#u8, 99#u8, 104#u8, 101#u8, 116#u8
+          ]))
+    let (s2, to_slice_mut_back) ← lift (Array.to_slice_mut bytes)
+    let (r1, s3) ← crypto.hkdf_sha256 (some s) val s1 s2
+    core.result.Result.expect hkdf.errors.InvalidLength.Insts.CoreFmtDebug r1
+      (toStr "valid output length")
+    let root_key := Array.repeat 32#usize 0#u8
+    let chain_key := Array.repeat 32#usize 0#u8
+    let (s4, to_slice_mut_back1) ← lift (Array.to_slice_mut root_key)
+    let bytes1 := to_slice_mut_back s3
+    let s5 ←
+      core.array.Array.index (core.ops.index.IndexSlice
+        (core.slice.index.SliceIndexRangeToUsizeSlice Std.U8)) bytes1
+        { «end» := 32#usize }
+    let s6 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s4 s5
+    let (s7, to_slice_mut_back2) ← lift (Array.to_slice_mut chain_key)
+    let s8 ←
+      core.array.Array.index (core.ops.index.IndexSlice
+        (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) bytes1
+        { start := 32#usize }
+    let s9 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s7 s8
+    let root_key1 := to_slice_mut_back1 s6
+    let chain_key1 := to_slice_mut_back2 s9
+    ok (core.result.Result.Ok ({ key := root_key1 },
+      { key := chain_key1, index := 0#u32 }))
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      (ratchet.keys.RootKey × ratchet.keys.ChainKey)
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError residual
+
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop body 0:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
 @[rust_loop_body]
@@ -2289,32 +2366,6 @@ def double_ratchet.RatchetState.consume_message_key
 def error.SessionNotFound.without_address
   (op : Str) : Result error.SessionNotFound := do
   ok { address := none, op }
-
-/-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
-    Visibility: public -/
-def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
-  (e : libsignal_core.curve.CurveError) :
-  Result error.SignalProtocolError
-  := do
-  match e with
-  | libsignal_core.curve.CurveError.NoKeyTypeIdentifier =>
-    ok error.SignalProtocolError.NoKeyTypeIdentifier
-  | libsignal_core.curve.CurveError.BadKeyType raw =>
-    ok (error.SignalProtocolError.BadKeyType raw)
-  | libsignal_core.curve.CurveError.BadKeyLength key_type len =>
-    ok (error.SignalProtocolError.BadKeyLength key_type len)
-  | libsignal_core.curve.CurveError.InvalidKeyAgreement =>
-    ok error.SignalProtocolError.InvalidKeyAgreement
-
-/-- Trait implementation: [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}]
-    Source: 'rust/protocol/src/error.rs', lines 150:0-159:1 -/
-@[reducible]
-def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
-  core.convert.From error.SignalProtocolError libsignal_core.curve.CurveError
-  := {
-  «from» := error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
-}
 
 /-- [libsignal_protocol::fingerprint::_]
     Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
