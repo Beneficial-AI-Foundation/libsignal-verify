@@ -48,6 +48,36 @@ info: 'libsignal_protocol.session_core.set_unacknowledged_prekey_ids_eq' depends
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.session_core.set_unacknowledged_prekey_ids_eq
 
+open Aeneas Aeneas.Std Result libsignal_protocol libsignal_protocol.session_core in
+recall libsignal_protocol.session_core.set_unacknowledged_prekey_ids_none
+    (st : state.session.SessionState)
+    (opkId : Option state.prekey.PreKeyId) (B : state.bundle.PreKeyBundle)
+    (kp : libsignal_core.curve.KeyPair) (now : std.time.SystemTime)
+    (hp : st.session.pending_kyber_pre_key = none) :
+    set_unacknowledged_prekey_ids st opkId B kp now = (do
+      let _ ← st.set_unacknowledged_pre_key_message opkId B.ec_signed_pre_key.id
+        kp.public_key now
+      .fail .panic)
+
+/--
+info: 'libsignal_protocol.session_core.set_unacknowledged_prekey_ids_none' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ core.time.Duration,
+ std.time.SystemTime,
+ std.time.SystemTimeError,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ core.result.Result.unwrap_or_default,
+ core.time.Duration.as_secs,
+ std.time.SystemTime.UNIX_EPOCH,
+ std.time.SystemTime.duration_since,
+ core.time.Duration.Insts.CoreDefaultDefault.default]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.session_core.set_unacknowledged_prekey_ids_none
+
 /-! ## `reject_pre_kyber_version` -/
 
 open Aeneas Aeneas.Std Result libsignal_protocol libsignal_protocol.session_core in
