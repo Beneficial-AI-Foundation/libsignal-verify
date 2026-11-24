@@ -16,12 +16,17 @@ compares outcomes, not the number of calls. The equation is proved from the extr
 uses no behavioral law for the generator or the dalek calls.
 
 The calls into curve25519-dalek and x25519-dalek stay opaque, so the equation says nothing about
-what they return: not that `clamp_integer` clamps, not that `to_bytes` returns the bytes that
-`StaticSecret::from` stored, not which point `PublicKey::from` computes, and not that any of them
-returns. It says nothing about what `fill_bytes` returns or about its law on any state. Only the
+what they return:
+
+* not that `clamp_integer` clamps;
+* not that `to_bytes` returns the bytes that `StaticSecret::from` stored;
+* not which point `PublicKey::from` computes;
+* not that any of them returns.
+
+It says nothing about what `fill_bytes` returns or about its law on any state. Only the
 `CryptoRng` view of the generator is read. The extracted function also takes the `rand::Rng` view
 and does not use it; Lean has two views of the generator with no stated relation, where Rust has
-one generator. If `fill_bytes` returns a slice of another length than 32, the array that
+one generator. If `fill_bytes` returns a slice of a length other than 32, the array that
 `Array.from_slice` rebuilds is the zero buffer, as in the extracted code. Rust cannot change the
 length of the buffer.
 

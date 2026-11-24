@@ -10,10 +10,11 @@ import Libsignal.Proofs.Core.Curve.PublicKey
 /-!
 # Spec summary: `rust/core/src/curve.rs`
 
-This file freezes the specifications of the items of `rust/core/src/curve.rs`. Each theorem is
+This file freezes the specifications of the items of `rust/core/src/curve.rs`. Each statement is
 restated with `recall` and has a `#guard_msgs` check on the axioms it depends on.
 
-The one theorem covers the serialization of a curve25519 public key.
+It covers the serialization of a curve25519 public key, `PrivateKey::public_key` on a Djb key, and
+`KeyPair::generate` with its right-hand side `readClampDerive`.
 -/
 
 /-! ## `PublicKey::serialize` -/
