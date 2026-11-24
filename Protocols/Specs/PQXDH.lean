@@ -1929,7 +1929,7 @@ info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.Adversary.SendsFittingMessages
 
-/-! ## Ephemeral key generation -/
+/-! ## Core's `KeyPair::generate` on `P.coins` -/
 
 recall Protocols.PQXDH.generate_coins_evalDistEq
     {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK) :

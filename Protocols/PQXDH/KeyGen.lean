@@ -9,7 +9,7 @@ import Protocols.Realization.RustOracleComp
 import VCVio.EvalDist.EvalDistEq
 
 /-!
-# The law of PQXDH ephemeral key generation
+# Core's `KeyPair::generate` on `P.coins`
 
 Alice draws her generator state from `P.coins` and passes it to Core's `KeyPair::generate`. For
 every law `P.coins`, `generate` and `readClampDerive` give the same law on the returned key pair
