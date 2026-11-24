@@ -11,6 +11,7 @@ import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.OracleInvariants
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Partnering
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Party
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Runtime
+import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.SessionPartnering
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transcript
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.Transport
 import Protocols.ToVCVio.CryptoFoundations.HardnessAssumptions.DiffieHellman
