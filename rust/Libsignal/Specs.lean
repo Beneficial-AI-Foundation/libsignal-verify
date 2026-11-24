@@ -3,6 +3,8 @@ import Libsignal.Specs.Core.Curve
 import Libsignal.Specs.Protocol.Crypto
 import Libsignal.Specs.Protocol.Kem
 import Libsignal.Specs.Protocol.Pqxdh
+import Libsignal.Specs.Protocol.SessionCore
+import Libsignal.Specs.Protocol.State.Session
 import Libsignal.Specs.Std.Alloc.Boxed
 import Libsignal.Specs.Std.Alloc.Vec
 import Libsignal.Specs.Std.Core.Array
