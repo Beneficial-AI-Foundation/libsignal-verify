@@ -474,9 +474,12 @@ tweaks:
       replace: "_root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp"
     - find: "timestamp.Timestamp.from_epoch_millis i"
       replace: "_root_.libsignal_protocol.timestamp.Timestamp.from_epoch_millis i"
-    # -- state (param shadows module in SessionState setters + apply_to_session_state)
+    # -- state (param shadows module in SessionState setters + apply_to_session_state,
+    #    and in SessionRecord::new)
     - find: "Result state.session.SessionState"
       replace: "Result _root_.libsignal_protocol.state.session.SessionState"
+    - find: "Result state.session.SessionRecord"
+      replace: "Result _root_.libsignal_protocol.state.session.SessionRecord"
     - find: "state.session.SessionState.set_sender_chain_key state"
       replace: "_root_.libsignal_protocol.state.session.SessionState.set_sender_chain_key state"
     - find: "state.session.SessionState.set_pq_ratchet_state state1"

@@ -6054,12 +6054,12 @@ def ratchet.initialize_bob_session
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
     Source: 'rust/protocol/src/state/session.rs', lines 747:4-752:5 -/
 def state.session.SessionRecord.new
-  (session_state : state.session.SessionState) :
-  Result state.session.SessionRecord
+  (state : state.session.SessionState) :
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   ok
     {
-      current_session := (some session_state),
+      current_session := (some state),
       previous_sessions := (alloc.vec.Vec.new (alloc.vec.Vec Std.U8))
     }
 
@@ -6070,7 +6070,7 @@ def ratchet.initialize_alice_session_record
   {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
   : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (csprng : R) :
-  Result ((core.result.Result state.session.SessionRecord
+  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionRecord
     error.SignalProtocolError) × R)
   := do
   let (r, csprng1) ←
@@ -6094,7 +6094,7 @@ def ratchet.initialize_alice_session_record
 def ratchet.initialize_bob_session_record
   (parameters : pqxdh.RecipientParameters)
   (our_ratchet_key_pair : libsignal_core.curve.KeyPair) :
-  Result (core.result.Result state.session.SessionRecord
+  Result (core.result.Result _root_.libsignal_protocol.state.session.SessionRecord
     error.SignalProtocolError)
   := do
   let r ← ratchet.initialize_bob_session parameters our_ratchet_key_pair
@@ -7082,7 +7082,7 @@ def state.session.SessionRecord.archive_current_state_inner
 def state.session.SessionRecord.promote_state
   (self : state.session.SessionRecord) (new_state : state.session.SessionState)
   :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let (_, self1) ←
     state.session.SessionRecord.archive_current_state_inner self
@@ -7093,7 +7093,7 @@ def state.session.SessionRecord.promote_state
 def state.session.SessionRecord.promote_old_session
   (self : state.session.SessionRecord) (old_session : Std.Usize)
   (updated_session : state.session.SessionState) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let (_, v) ←
     alloc.vec.Vec.remove alloc.alloc.Global self.previous_sessions old_session
@@ -9484,7 +9484,7 @@ def proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState :
     Visibility: public -/
 def state.session.SessionRecord.Insts.CoreCloneClone.clone
   (self : state.session.SessionRecord) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let o ←
     core.option.Option.Insts.CoreCloneClone.clone
@@ -9506,7 +9506,7 @@ def state.session.SessionRecord.Insts.CoreCloneClone : core.clone.Clone
     Source: 'rust/protocol/src/state/session.rs', lines 740:4-745:5
     Visibility: public -/
 def state.session.SessionRecord.new_fresh
-  : Result state.session.SessionRecord := do
+  : Result _root_.libsignal_protocol.state.session.SessionRecord := do
   ok
     {
       current_session := none,
@@ -9530,7 +9530,7 @@ def state.session.SessionRecord.session_state_mut
     Source: 'rust/protocol/src/state/session.rs', lines 830:4-832:5 -/
 def state.session.SessionRecord.set_session_state
   (self : state.session.SessionRecord) (session : state.session.SessionState) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   ok { self with current_session := (some session) }
 
