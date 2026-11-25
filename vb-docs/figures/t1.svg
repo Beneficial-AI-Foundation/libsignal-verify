@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="probtree" viewBox="0 0 340 200" role="img" aria-labelledby="t1-title t1-desc" style="width:100%;max-width:340px">
+  <title id="t1-title">The tree of t₁</title>
+  <desc id="t1-desc">A draw node for x with two outcomes. Outcome 0 leads to the leaf (false, false). Outcome 1 leads to the leaf (true, true).</desc>
+  <style>
+    svg.probtree .edge { stroke: var(--bp-color-border-strong, #94a3b8); stroke-width: 2; fill: none; }
+    svg.probtree .draw { fill: var(--bp-color-surface-muted, #f8fafc); stroke: var(--bp-color-accent-info, #7c3aed); stroke-width: 2; }
+    svg.probtree .leaf { fill: var(--bp-color-surface, #ffffff); stroke: var(--bp-color-accent-success, #16a34a); stroke-width: 2; }
+    svg.probtree text { font-family: inherit; fill: var(--bp-color-text-strong, #0f172a); }
+    svg.probtree .name { font-size: 15px; text-anchor: middle; }
+    svg.probtree .value { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; text-anchor: middle; }
+    svg.probtree .outcome { font-size: 13px; fill: var(--bp-color-text-subtle, #475569); }
+  </style>
+  <g class="edge">
+    <line x1="170" y1="58" x2="85" y2="150"/>
+    <line x1="170" y1="58" x2="255" y2="150"/>
+  </g>
+  <text class="outcome" x="124" y="100" text-anchor="end">x = 0</text>
+  <text class="outcome" x="216" y="100" text-anchor="start">x = 1</text>
+  <rect class="draw" x="125" y="24" width="90" height="34" rx="10"/>
+  <text class="name" x="170" y="46">draw x</text>
+  <rect class="leaf" x="20" y="150" width="130" height="32"/>
+  <text class="value" x="85" y="171">(false, false)</text>
+  <rect class="leaf" x="190" y="150" width="130" height="32"/>
+  <text class="value" x="255" y="171">(true, true)</text>
+</svg>

@@ -24,11 +24,24 @@ named hypothesis. A `Result` type allows a panic and a loop, and a contract excl
 where it says so. Each contract cites the Rust code it describes. We read that code but did not
 verify it, so every contract is trusted and has its own row in `Protocols/LEDGER.md`.
 
+Core's `KeyPair::generate` and `PrivateKey::public_key` are extracted with their bodies, and
+`GenerateTotal` and the contracts that name `public_key` speak of these definitions. The bodies
+call items of two crates outside libsignal that have no body in Lean: `clamp_integer` of
+curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey` and the functions
+`From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey`
+and `PublicKey::as_bytes`. No fact about these items is stated.
+
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
-and `fullExp_noLostMass` take. The fault-or-value form says only what a leaf returns if it
-returns, and it follows from the total form. `PartialContracts` bundles the fault-or-value forms.
+and `fullExp_noLostMass` take, together with `GenerateTotal`, the total form for Core's key
+generator `KeyPair::generate`. The fault-or-value form says only what a leaf returns if it
+returns. The total forms imply the fault-or-value forms, except two parts, which are stated for
+every generator, while `SignTotal` and `KyberEncapsBackend` assume a total generator (`RngTotal`):
+the first part of `SignaturePartial` and the part of `KyberPartial` for encapsulation on a
+1568-byte key. These two parts are separate assumptions. `PartialContracts` bundles the
+fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
+`generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
 -/
 
 open Aeneas Aeneas.Std Result
@@ -120,14 +133,28 @@ def SignVerify : Prop :=
       curve.PrivateKey.calculate_signature crng rng sk msg r = .ok (.Ok σ, r') →
         libsignal_core.curve.PublicKey.verify_signature pk msg σ = .ok true
 
-/-- On every public key, message and signature, verification returns a Boolean, and it returns
-`false` for a malformed signature or key
+/-- On every public key, list of message parts and signature, the multipart verification
+terminates without a panic and returns a Boolean
 (`rust/core/src/curve.rs:138-151`; `rust/core/src/curve/curve25519.rs:119-139`). -/
 def VerifyTotal : Prop :=
   ∀ (pk : ECPub) (parts : Slice (Slice U8)) (σ : Slice U8),
     ∃ b, curve.PublicKey.verify_signature_for_multipart_message pk parts σ = .ok b
 
 end Signature
+
+section KeyGen
+
+/-- On a state in `Dom`, Core's extracted `KeyPair::generate` (`curve.KeyPair.generate`) returns a
+curve25519 pair satisfying `ECKeyPairValid` and a state in `Dom`, provided both generator views
+are total on `Dom`. It reads 32 bytes through `fill_bytes`, clamps them and derives the public key
+(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). -/
+def GenerateTotal : Prop :=
+  ∀ {R : Type} (rng : rand.rng.Rng R) (crng : rand_core_1.CryptoRng R) (Dom : R → Prop),
+    RngTotal crng.RngCoreInst Dom → RngTotal rng.rand_core_1RngCoreInst Dom →
+      ∀ r : R, Dom r →
+        curve.KeyPair.generate rng crng r ⦃ kp r' => ECKeyPairValid kp ∧ Dom r' ⦄
+
+end KeyGen
 
 section Kyber
 
@@ -144,8 +171,9 @@ def KyberEncapsBadLength : Prop :=
 in `Dom`, encapsulation on a 1568-byte key terminates without panicking, with a 32-byte shared
 secret, a 1568-byte ciphertext and a state in `Dom`. libcrux 0.0.10 converts the key by length
 only (`libcrux-ml-kem-0.0.10/src/types.rs:45-54`) and validates nothing else. Its rejection
-sampling loop has no proved bound (`src/sampling.rs:74`, `:95-102`), so the contract trusts
-termination. -/
+sampling loop has no bound in the code (`src/sampling.rs:74`, `:95-102`). ePrint 2023/708 proves
+that Kyber's sampling, as specified, ends on every seed; that proof is about the algorithm, not this
+code, so the contract trusts termination. -/
 def KyberEncapsBackend : Prop :=
   ∀ {R : Type} (crng : rand_core_1.CryptoRng R) (Dom : R → Prop), RngTotal crng.RngCoreInst Dom →
     ∀ (key : kem.KeyMaterial kem.Public) (r : R), key.data.length = 1568 → Dom r →
@@ -274,9 +302,9 @@ def HkdfSha256Partial (H : crypto.HmacSha256) : Prop :=
 
 end Partial
 
-/-- The fault-or-value contracts on every opaque leaf that the Full realization calls, for the
-MAC interface `H`. They are the premises of the security statements, which count faults
-separately. -/
+/-- The fault-or-value contracts on the opaque leaves that the Full realization calls, for the
+MAC interface `H`, except Core's `generate`, which has only the total form `GenerateTotal`. They
+are the premises of the security statements, which count faults separately. -/
 structure PartialContracts (H : crypto.HmacSha256) : Prop where
   /-- See `AgreementPartial`. -/
   agreement : AgreementPartial

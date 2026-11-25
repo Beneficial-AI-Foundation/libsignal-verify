@@ -23,10 +23,13 @@ charon:
     - "libsignal_protocol::protocol" 
     - "libsignal_protocol::double_ratchet" 
     - "libsignal_protocol::triple_ratchet" 
-    # group_cipher + session are SOURCE-GATED out under `feature="extraction"` 
+    # group_cipher + session are SOURCE-GATED out under `feature="extraction"`
     # - "libsignal_protocol::group_cipher"
     # - "libsignal_protocol::session"
-    - "libsignal_protocol::session_management" 
+    # session_core holds the synchronous steps of process_prekey and
+    # process_prekey_bundle, which the gated `session` module calls.
+    - "libsignal_protocol::session_core"
+    - "libsignal_protocol::session_management"
     # DEFERRED: `sealed_sender` causes Charon to be very slow
     # - "libsignal_protocol::sealed_sender" #4
     # DEFERRED: storage is `#[async_trait]` store traits (SessionStore, ...) +
@@ -103,23 +106,15 @@ charon:
     # ...::protocol` (module-rooting); its sole callers are tests + the bridge layer
     # (external), so nothing in scope references it.
     - "libsignal_protocol::protocol::should_use_nonpq_session"
-    # Iterator-adaptor users: build `Map`/`position` iterators, but Aeneas's base
+    # Iterator-adaptor user: builds a `Map` iterator, but Aeneas's base
     # `core.iter.traits.iterator.Iterator` (Aeneas/Std/Core/Iter.lean) only models
     # {next, step_by, enumerate, take} — NOT `map`/`position` — so the generated
     # `Map` Iterator instance has fields the base struct lacks ("not a field" / "fields
-    # missing"). Both are `pub(crate)` and their ONLY callers live in source-gated-out
-    # modules (chain_ids_for_logging ← group_cipher; promote_matching_session ←
-    # session), so they're module-rooted dead weight — exclude (nothing in scope
-    # references them). chain_ids_for_logging also returns `impl ExactSizeIterator`
-    # (RPIT), which opaque can't represent anyway.
+    # missing"). It is `pub(crate)` and its only caller lives in a source-gated-out
+    # module (group_cipher), so module rooting alone reaches it: exclude it (nothing in
+    # scope references it). It also returns `impl ExactSizeIterator` (RPIT), which
+    # opaque cannot represent.
     - "libsignal_protocol::sender_keys::_::chain_ids_for_logging"
-    - "libsignal_protocol::state::session::_::promote_matching_session"
-    # set_unacknowledged_kyber_pre_key_id: `pub(crate)`, only caller is
-    # session::process_prekey_bundle (in the source-gated-out `session` module), so
-    # module-rooted dead weight. Its body destructures `Option::as_mut(...).expect(...)`
-    # as an `&mut` writeback pair on a proto type, which Aeneas mis-models ("expected
-    # a product type, got PendingKyberPreKey"). Nothing in scope references it → exclude.
-    - "libsignal_protocol::state::session::_::set_unacknowledged_kyber_pre_key_id"
     # kem::KeyType::parameters returns `&'static dyn DynParameters` — excluded
     # (invisible) so its `&dyn` signature is never translated and the
     # DynParameters trait + blanket impl (with `&mut dyn CryptoRng`) are never
@@ -152,19 +147,26 @@ charon:
     # NB: matcher uses the trait's DEFINING path `prost::message::Message` (the
     # `prost::Message` re-export path does NOT match). Patterns cover each nesting
     # depth prost emits for nested messages.
+    # An attempt with include lines on the Message methods of SessionStructure and the five
+    # messages it contains fails in aeneas: first on "Unimplemented" for the FnOnce instance of
+    # <u32 as Default>::default that the generated code passes as a function value, then with
+    # "Internal error: please file an issue" (Aeneas de16f3cf877976e966906dc890f63dcb418884fa,
+    # Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca).
     - "libsignal_protocol::proto::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::{impl prost::message::Message for _}"
     - "libsignal_protocol::proto::_::_::_::_::{impl prost::message::Message for _}"
-    # libsignal-protocol::kem — Plan A scope:
+    # libsignal-protocol::kem — which functions are translated and which stay opaque:
     # encapsulate, decapsulate, Ciphertext::serialize/deserialize are
-    # TRANSPARENT (their bodies are extracted; the libcrux ML-KEM primitive is
+    # TRANSPARENT (their bodies are extracted; the libcrux Kyber-1024 primitive is
     # the axiomatic leaf). Everything else in kem.rs that touches the
     # `DynParameters` vtable becomes opaque — these aren't called from the
     # PQXDH verification target.
     - "libsignal_protocol::kem::_::key_length"            # KeyKind::key_length impls (Public, Secret) use parameters()
     - "libsignal_protocol::kem::_::generate"              # KeyPair::generate uses parameters().generate() (inherent-method `_::` form)
-    # libcrux ML-KEM 1024 primitive — the axiomatic leaf (FIPS 203).
+    # libcrux Kyber-1024 primitive — the axiomatic leaf. kyber1024.rs calls
+    # libcrux_ml_kem::kyber1024, which libcrux documents as Kyber 1024 of NIST PQC Round 3,
+    # not the FIPS 203 ML-KEM-1024.
     - "libsignal_protocol::kem::kyber1024::_::encapsulate"
     - "libsignal_protocol::kem::kyber1024::_::decapsulate"
     - "libsignal_protocol::kem::kyber1024::_::generate"
@@ -179,7 +181,6 @@ charon:
     # libsignal-protocol::ratchet — HKDF chain/message-key derivation (crypto
     # leaves), plus from_pb which returns Result<_, &'static str> (Aeneas
     # "no bottoms" on &str Err payloads — opaque skips the body).
-    - "libsignal_protocol::ratchet::keys::_::create_chain"
     - "libsignal_protocol::ratchet::keys::_::derive_keys"
     - "libsignal_protocol::ratchet::keys::_::calculate_base_material"
     - "libsignal_protocol::ratchet::keys::_::from_pb"
@@ -187,12 +188,15 @@ charon:
     # construct InvalidSessionError(&'static str) (Aeneas "no bottoms" on &str
     # Err payloads) or use log!/format! (Internal error). Opaqued as reached.
     - "libsignal_protocol::state::session::_::sender_ratchet_key"
-    - "libsignal_protocol::state::session::_::add_receiver_chain"
     # state::session SessionState/SessionRecord methods that construct
     # InvalidSessionError(&'static str) / SignalProtocolError, use format!/log,
     # or decode protobuf — all hit "no bottoms" / Internal error. Simple
     # getters (pre_key_id, base_key, timestamp, *_counter, ...) stay transparent.
-    - "libsignal_protocol::state::session::_::alice_base_key"
+    # alice_base_key and session_version are translated, for SessionState and for
+    # SessionRecord: Charon's name matcher never matches an impl pattern against an inherent
+    # impl segment (that arm returns false), so no pattern selects the methods of one of the
+    # two types. remote_identity_key, whose map_err closure returns InvalidSessionError with
+    # a literal, is translated as well.
     - "libsignal_protocol::state::session::_::current_pq_state"
     - "libsignal_protocol::state::session::_::deserialize"
     - "libsignal_protocol::state::session::_::get_kyber_ciphertext"
@@ -205,16 +209,28 @@ charon:
     - "libsignal_protocol::state::session::_::local_identity_key_bytes"
     - "libsignal_protocol::state::session::_::local_registration_id"
     - "libsignal_protocol::state::session::_::previous_session_states"
-    - "libsignal_protocol::state::session::_::remote_identity_key"
     - "libsignal_protocol::state::session::_::remote_identity_key_bytes"
     - "libsignal_protocol::state::session::_::remote_registration_id"
     - "libsignal_protocol::state::session::_::sender_ratchet_private_key"
-    - "libsignal_protocol::state::session::_::session_version"
     - "libsignal_protocol::state::session::_::unacknowledged_pre_key_message_items"
     - "libsignal_protocol::state::session::_::archive_current_state"  # log::info!
     - "libsignal_protocol::state::session::_::has_usable_sender_chain" # uses bitflags .contains()
-    - "libsignal_protocol::state::session::_::from"                    # From<InvalidSessionError> (&str) + protobuf conversions
-    - "libsignal_protocol::state::session::_::new"                     # UnacknowledgedPreKeyMessageItems::new closure returns &[u8] (borrow-region)
+    # Logging helper of add_receiver_chain (translation patch). If it is transparent, Aeneas
+    # reports "Internal error: please file an issue" at the log! expansion, then stops with
+    # "Fatal error: exception Not_found" in llbc/FunsAnalysis.ml, line 166 (Aeneas
+    # de16f3cf877976e966906dc890f63dcb418884fa, Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca).
+    - "libsignal_protocol::state::session::log_trimming_receiver_chain"
+    # The two conversions back to SessionStructure are off the handshake path.
+    # From<SessionStructure> for SessionState and From<InvalidSessionError> for
+    # SignalProtocolError are translated.
+    - "libsignal_protocol::state::session::{impl core::convert::From<_> for libsignal_protocol::proto::storage::SessionStructure}::from"
+    # UnacknowledgedPreKeyMessageItems::new maps its Option argument with a closure that returns a
+    # borrowed slice. Aeneas fails on the closure's call_once with "Can't end abstraction 16 as it
+    # is set as non-endable" (layer aeneas; Aeneas de16f3cf877976e966906dc890f63dcb418884fa,
+    # Charon 373d84044d80f6eb44285c2c349bae1453f5b6ca), so that impl stays opaque. The three new
+    # of this module (SessionState, SessionRecord, UnacknowledgedPreKeyMessageItems) are translated:
+    # no pattern tells their inherent impls apart, and only the last one has a closure.
+    - "libsignal_protocol::state::session::_::new::{impl core::ops::function::FnOnce<_> for _}"
     # state::bundle — PreKeyBundle builder
     - "libsignal_protocol::state::bundle::_::modify"
     # double_ratchet — logging helpers only (Aeneas fails on log! expansions).
@@ -249,13 +265,11 @@ charon:
     - "libsignal_protocol::sender_keys::_::sender_key_state_mut"
     - "libsignal_protocol::sender_keys::_::add_sender_key_state"
     - "libsignal_protocol::sender_keys::_::new"  # slow: Index<RangeFull> trait-proof recursion (charon a535e914)
-    # protocol — signature verify (crypto), kyber_ciphertext accessor
-    # (borrow-returning closure), TryFrom protobuf parse (&str), float-ratio + content
-    # free fns.
+    # protocol — signature verify (crypto), TryFrom protobuf parse (&str), float-ratio +
+    # content free fns. kyber_ciphertext is translated through a translation patch.
     - "libsignal_protocol::protocol::_::verify_signature"
     - "libsignal_protocol::protocol::log_invalid_local_addresses"  # log::warn!
     - "libsignal_protocol::protocol::log_address_mismatch"         # log::warn!
-    - "libsignal_protocol::protocol::_::kyber_ciphertext"
     - "libsignal_protocol::protocol::_::try_from"
     - "libsignal_protocol::protocol::extract_decryption_error_message_from_serialized_content"
     - "libsignal_protocol::protocol::_::from"   # From impls building protobuf structs (Default::default)
@@ -294,13 +308,11 @@ charon:
     - "libsignal_protocol::state::kyber_prekey::_::deserialize"
     - "libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize"
     # libsignal_core::curve — Curve25519 (curve25519_dalek) crypto primitives:
-    # DH, keygen, sign/verify, deserialize (log macro). Axiomatic crypto leaves.
+    # DH, keygen, sign/verify. Axiomatic crypto leaves.
     # TODO: remove all the core and crypto excludes since this shouldn't change anything
-    - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::try_derive_arrays"
     # libsignal-core functions that use unsupported features
     - "libsignal_core::address::_::service_id_string"       # uses format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
     - "libsignal_core::curve::_::public_key"
     - "libsignal_core::curve::_::generate"
@@ -310,7 +322,6 @@ charon:
     - "libsignal_core::curve::_::verify_signature"
     - "libsignal_core::curve::_::verify_signature_for_multipart_message"
     - "libsignal_core::curve::_::is_torsion_free"
-    - "libsignal_core::curve::_::try_from"
     # signal_crypto — AES-CBC/CTR/GCM + hash wrappers over external crypto crates.
     - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
     - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
@@ -326,10 +337,10 @@ charon:
     - "signal_crypto::hash::_::finalize"
     # libsignal_core::address — opaque (NOT exclude): these are *called* by
     # protocol fns (is_same_account, serialize_addresses), so excluding them
-    # dangles. The str::Pattern GAT / format! is only in the body; signatures
-    # (&str -> Option<Self> / -> String) are clean, so opaque works.
+    # dangles. The format! is only in the body of service_id_string, which
+    # to_protocol_address calls; the signatures (-> String and
+    # -> ProtocolAddress) are clean, so opaque works.
     - "libsignal_core::address::_::service_id_string"            # format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
 
 aeneas_args:
@@ -341,8 +352,10 @@ aeneas_args:
 tweaks:
   files: ["Types.lean", "Funs.lean"]
   substitutions:
-    # Explicit kernel-checked literal bounds avoid toStr's native_decide default.
-    # These substitutions change only proof arguments, not strings or operations.
+    # toStr takes a proof that the literal fits in U32. Its default in the pinned Aeneas
+    # library is `by rw [U32.max_eq]; decide +kernel`; these substitutions pass
+    # `by rw [U32.max_eq]; decide` instead. Neither uses native_decide. They change only
+    # proof arguments, not strings or operations.
     - find: 'toStr "valid length"'
       replace: 'toStr "valid length" (by rw [U32.max_eq]; decide)'
       required: true
@@ -458,9 +471,12 @@ tweaks:
       replace: "_root_.libsignal_protocol.timestamp.Timestamp.epoch_millis timestamp"
     - find: "timestamp.Timestamp.from_epoch_millis i"
       replace: "_root_.libsignal_protocol.timestamp.Timestamp.from_epoch_millis i"
-    # -- state (param shadows module in SessionState setters + apply_to_session_state)
+    # -- state (param shadows module in SessionState setters + apply_to_session_state,
+    #    and in SessionRecord::new)
     - find: "Result state.session.SessionState"
       replace: "Result _root_.libsignal_protocol.state.session.SessionState"
+    - find: "Result state.session.SessionRecord"
+      replace: "Result _root_.libsignal_protocol.state.session.SessionRecord"
     - find: "state.session.SessionState.set_sender_chain_key state"
       replace: "_root_.libsignal_protocol.state.session.SessionState.set_sender_chain_key state"
     - find: "state.session.SessionState.set_pq_ratchet_state state1"

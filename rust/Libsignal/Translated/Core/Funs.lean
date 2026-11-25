@@ -87,6 +87,14 @@ def U8.Insts.CoreNumNonzeroZeroablePrimitiveNonZeroU8Inner :
   markerCopyInst1 := core.num.niche_types.NonZeroU8Inner.Insts.CoreMarkerCopy
 }
 
+/-- Trait implementation: [subtle::{impl subtle::ConstantTimeEq for u8}]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 346:8-346:36; this code is generated from a macro invocation at: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 370:0-370:34
+    Name pattern: [subtle::ConstantTimeEq<u8>] -/
+@[reducible, rust_trait_impl "subtle::ConstantTimeEq<u8>"]
+def U8.Insts.SubtleConstantTimeEq : subtle.ConstantTimeEq Std.U8 := {
+  ct_eq := U8.Insts.SubtleConstantTimeEq.ct_eq
+}
+
 /-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceIdKind> for libsignal_core::address::ServiceIdKind}::eq]:
     Source: 'rust/core/src/address.rs', lines 16:28-16:37
     Visibility: public -/
@@ -127,6 +135,28 @@ def U8.Insts.CoreConvertFromServiceIdKind.from
 def U8.Insts.CoreConvertFromServiceIdKind : core.convert.From Std.U8
   address.ServiceIdKind := {
   «from» := U8.Insts.CoreConvertFromServiceIdKind.from
+}
+
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}::eq]:
+    Source: 'rust/core/src/address.rs', lines 62:22-62:31
+    Visibility: public -/
+def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  {RAW_KIND : Std.U8} (self : address.SpecificServiceId RAW_KIND)
+  (other : address.SpecificServiceId RAW_KIND) :
+  Result Bool
+  := do
+  uuid.Uuid.Insts.CoreCmpPartialEqUuid.eq self.uuid other.uuid
+
+/-- Trait implementation: [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<RAW_KIND>> for libsignal_core::address::SpecificServiceId<RAW_KIND>}]
+    Source: 'rust/core/src/address.rs', lines 62:22-62:31 -/
+@[reducible]
+impl_def address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId
+  (RAW_KIND : Std.U8) : core.cmp.PartialEq (address.SpecificServiceId RAW_KIND)
+  (address.SpecificServiceId RAW_KIND) := {
+  eq := address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    (address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId
+    RAW_KIND)
 }
 
 /-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::from_uuid]:
@@ -397,6 +427,144 @@ def address.SpecificServiceId.parse_from_service_id_fixed_width_binary
     core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
       (address.SpecificServiceId KIND) residual
 
+/-- [libsignal_core::address::strip_pni_prefix]:
+    Source: 'rust/core/src/address.rs', lines 831:0-840:1 -/
+def address.strip_pni_prefix (input : Str) : Result (Option Str) := do
+  let bytes ← core.str.Str.as_bytes input
+  let «prefix» ←
+    lift (Array.to_slice (Array.make 4#usize [ 80#u8, 78#u8, 73#u8, 58#u8 ]))
+  let i := Slice.len bytes
+  let i1 := Slice.len «prefix»
+  if i >= i1
+  then
+    let i2 := Slice.len «prefix»
+    let s ←
+      core.slice.index.Slice.index
+        (core.slice.index.SliceIndexRangeToUsizeSlice Std.U8) bytes
+        { «end» := i2 }
+    let b ←
+      core.slice.cmp.PartialEqSlice.eq core.cmp.PartialEqU8 s «prefix»
+    if b
+    then
+      let i3 := Slice.len «prefix»
+      let (_, rest) ← core.str.Str.split_at input i3
+      ok (some rest)
+    else ok none
+  else ok none
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string::try_parse_hyphenated]:
+    Source: 'rust/core/src/address.rs', lines 268:8-275:9 -/
+def address.ServiceId.parse_from_service_id_string.try_parse_hyphenated
+  (input : Str) : Result (Option uuid.Uuid) := do
+  let i ← core.str.Str.len input
+  let i1 ← uuid.fmt.Hyphenated.LENGTH
+  if i != i1
+  then ok none
+  else let r ← uuid.parser.Uuid.try_parse input
+       core.result.Result.ok r
+
+/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
+    Source: 'rust/core/src/address.rs', lines 267:4-284:5
+    Visibility: public -/
+def address.ServiceId.parse_from_service_id_string
+  (input : Str) : Result (Option address.ServiceId) := do
+  let o ← address.strip_pni_prefix input
+  match o with
+  | none =>
+    let o1 ←
+      address.ServiceId.parse_from_service_id_string.try_parse_hyphenated input
+    let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o1
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let ssi ←
+        core.convert.IntoFrom.into
+          (address.SpecificServiceId.Insts.CoreConvertFromUuid 0#u8) val
+      ok (some (address.ServiceId.Aci ssi))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+        address.ServiceId residual
+  | some uuid_string =>
+    let o1 ←
+      address.ServiceId.parse_from_service_id_string.try_parse_hyphenated
+        uuid_string
+    let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o1
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let ssi ←
+        core.convert.IntoFrom.into
+          (address.SpecificServiceId.Insts.CoreConvertFromUuid 1#u8) val
+      ok (some (address.ServiceId.Pni ssi))
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+        address.ServiceId residual
+
+/-- [libsignal_core::address::{libsignal_core::address::SpecificServiceId<KIND>}::parse_from_service_id_string]:
+    Source: 'rust/core/src/address.rs', lines 135:4-139:5
+    Visibility: public -/
+def address.SpecificServiceId.parse_from_service_id_string
+  {Clause1_Error : Type _} {KIND : Std.U8}
+  (coreconvertFromServiceIdSpecificServiceIdInst : core.convert.From
+  address.ServiceId (address.SpecificServiceId KIND))
+  (coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst :
+  core.convert.TryFrom (address.SpecificServiceId KIND) address.ServiceId
+  Clause1_Error) (input : Str) :
+  Result (Option (address.SpecificServiceId KIND))
+  := do
+  let o ← address.ServiceId.parse_from_service_id_string input
+  let cf ← core.option.Option.Insts.CoreOpsTry_traitTry.branch o
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let r ←
+      core.convert.TryInto.Blanket.try_into
+        coreconvertTryFromSpecificServiceIdServiceIdClause1_ErrorInst val
+    core.result.Result.ok r
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.option.Option.Insts.CoreOpsTry_traitFromResidualOptionNever.from_residual
+      (address.SpecificServiceId KIND) residual
+
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
+    Source: 'rust/core/src/address.rs', lines 184:28-184:37
+    Visibility: public -/
+def address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
+  (self : address.ServiceId) (other : address.ServiceId) : Result Bool := do
+  let self1 := read_discriminant self
+  let other1 := read_discriminant other
+  if self1 = other1
+  then
+    match self with
+    | address.ServiceId.Aci __self_0 =>
+      match other with
+      | address.ServiceId.Aci __arg1_0 =>
+        address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+          __self_0 __arg1_0
+      | address.ServiceId.Pni _ => fail panic
+    | address.ServiceId.Pni __self_0 =>
+      match other with
+      | address.ServiceId.Aci _ => fail panic
+      | address.ServiceId.Pni __arg1_0 =>
+        address.SpecificServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+          __self_0 __arg1_0
+  else ok false
+
+/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::SpecificServiceId<KIND>> for libsignal_core::address::ServiceId}::eq]:
+    Source: 'rust/core/src/address.rs', lines 338:4-340:5
+    Visibility: public -/
+def address.ServiceId.Insts.CoreCmpPartialEqSpecificServiceId.eq
+  {KIND : Std.U8} (coreconvertFromServiceIdSpecificServiceIdInst :
+  core.convert.From address.ServiceId (address.SpecificServiceId KIND))
+  (self : address.ServiceId) (other : address.SpecificServiceId KIND) :
+  Result Bool
+  := do
+  let si ← coreconvertFromServiceIdSpecificServiceIdInst.«from» other
+  address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq self si
+
+/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
+    Source: 'rust/core/src/address.rs', lines 683:15-683:20
+    Visibility: public -/
+def address.DeviceId.Insts.CoreCloneClone.clone
+  (self : address.DeviceId) : Result address.DeviceId := do
+  ok self
+
 /-- [libsignal_core::address::MAX_VALID_DEVICE_ID]
     Source: 'rust/core/src/address.rs', lines 719:0-719:36 -/
 @[global_simps, irreducible] def address.MAX_VALID_DEVICE_ID : Std.U8 := 127#u8
@@ -429,6 +597,15 @@ def address.DeviceId.new
   | none => ok (core.result.Result.Err ())
   | some id1 => address.DeviceId.new_nonzero id1
 
+/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
+    Source: 'rust/core/src/address.rs', lines 776:9-776:14
+    Visibility: public -/
+def address.ProtocolAddress.Insts.CoreCloneClone.clone
+  (self : address.ProtocolAddress) : Result address.ProtocolAddress := do
+  let s ← alloc.string.String.Insts.CoreCloneClone.clone self.name
+  let di ← address.DeviceId.Insts.CoreCloneClone.clone self.device_id
+  ok { «name» := s, device_id := di }
+
 /-- [libsignal_core::address::{libsignal_core::address::ProtocolAddress}::new]:
     Source: 'rust/core/src/address.rs', lines 802:4-804:5
     Visibility: public -/
@@ -452,10 +629,146 @@ def address.ProtocolAddress.impl.device_id
   (self : address.ProtocolAddress) : Result address.DeviceId := do
   ok self.device_id
 
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::new]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 27:4-38:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.new
+  {R : Type _} (rand_core_1CryptoRngInst : rand_core_1.CryptoRng R)
+  (randrngRngInst : rand.rng.Rng R) (csprng : R) :
+  Result (curve.curve25519.PrivateKey × R)
+  := do
+  let bytes := Array.repeat 32#usize 0#u8
+  let (s, to_slice_mut_back) ← lift (Array.to_slice_mut bytes)
+  let (csprng1, s1) ←
+    rand_core_1CryptoRngInst.RngCoreInst.fill_bytes csprng s
+  let bytes1 := to_slice_mut_back s1
+  let bytes2 ← curve25519_dalek.scalar.clamp_integer bytes1
+  let secret ←
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from bytes2
+  ok ({ secret }, csprng1)
+
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::derive_public_key_bytes]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 161:4-163:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.derive_public_key_bytes
+  (self : curve.curve25519.PrivateKey) : Result (Array Std.U8 32#usize) := do
+  let pk ←
+    x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from
+      self.secret
+  x25519_dalek.x25519.PublicKey.as_bytes pk
+
+/-- [libsignal_core::curve::curve25519::{libsignal_core::curve::curve25519::PrivateKey}::private_key_bytes]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 165:4-167:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.private_key_bytes
+  (self : curve.curve25519.PrivateKey) : Result (Array Std.U8 32#usize) := do
+  x25519_dalek.x25519.StaticSecret.to_bytes self.secret
+
+/-- [libsignal_core::curve::curve25519::{impl core::convert::From<[u8; 32usize]> for libsignal_core::curve::curve25519::PrivateKey}::from]:
+    Source: 'rust/core/src/curve/curve25519.rs', lines 171:4-174:5
+    Visibility: public -/
+def curve.curve25519.PrivateKey.Insts.CoreConvertFromArrayU832.from
+  (private_key : Array Std.U8 32#usize) :
+  Result curve.curve25519.PrivateKey
+  := do
+  let a ← curve25519_dalek.scalar.clamp_integer private_key
+  let secret ←
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from a
+  ok { secret }
+
+/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::KeyType> for libsignal_core::curve::KeyType}::eq]:
+    Source: 'rust/core/src/curve.rs', lines 14:29-14:38
+    Visibility: public -/
+def curve.KeyType.Insts.CoreCmpPartialEqKeyType.eq
+  (self : curve.KeyType) (other : curve.KeyType) : Result Bool := do
+  ok true
+
+/-- Trait implementation: [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::KeyType> for libsignal_core::curve::KeyType}]
+    Source: 'rust/core/src/curve.rs', lines 14:29-14:38 -/
+@[reducible]
+impl_def curve.KeyType.Insts.CoreCmpPartialEqKeyType : core.cmp.PartialEq
+  curve.KeyType curve.KeyType := {
+  eq := curve.KeyType.Insts.CoreCmpPartialEqKeyType.eq
+  ne := core.cmp.PartialEq.ne.trait_default
+    curve.KeyType.Insts.CoreCmpPartialEqKeyType
+}
+
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyType}::value]:
     Source: 'rust/core/src/curve.rs', lines 26:4-30:5 -/
 def curve.KeyType.value (self : curve.KeyType) : Result Std.U8 := do
   ok 5#u8
+
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<u8, libsignal_core::curve::CurveError> for libsignal_core::curve::KeyType}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 50:4-55:5
+    Visibility: public -/
+def curve.KeyType.Insts.CoreConvertTryFromU8CurveError.try_from
+  (x : Std.U8) :
+  Result (core.result.Result curve.KeyType curve.CurveError)
+  := do
+  match x with
+  | 5#uscalar => ok (core.result.Result.Ok curve.KeyType.Djb)
+  | _ => ok (core.result.Result.Err (curve.CurveError.BadKeyType x))
+
+/-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PublicKeyData> for libsignal_core::curve::PublicKey}::from]:
+    Source: 'rust/core/src/curve.rs', lines 63:26-63:43
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreConvertFromPublicKeyData.from
+  (value : curve.PublicKeyData) : Result curve.PublicKey := do
+  ok { key := value }
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::new]:
+    Source: 'rust/core/src/curve.rs', lines 80:4-82:5 -/
+def curve.PublicKey.new
+  (key : curve.PublicKeyData) : Result curve.PublicKey := do
+  ok { key }
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::deserialize]:
+    Source: 'rust/core/src/curve.rs', lines 84:4-105:5
+    Visibility: public -/
+def curve.PublicKey.deserialize
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  let o ← core.slice.Slice.split_first value
+  let r ← core.option.Option.ok_or o curve.CurveError.NoKeyTypeIdentifier
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue p =>
+    let (key_type, value1) := p
+    let r1 ←
+      curve.KeyType.Insts.CoreConvertTryFromU8CurveError.try_from key_type
+    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+    match cf1 with
+    | core.ops.control_flow.ControlFlow.Continue _ =>
+      let o1 ← core.slice.Slice.split_first_chunk 32#usize value1
+      let i := Slice.len value1
+      let i1 ← i + 1#usize
+      let r2 ←
+        core.option.Option.ok_or o1 (curve.CurveError.BadKeyLength
+          curve.KeyType.Djb i1)
+      let cf2 ← core.result.Result.Insts.CoreOpsTry.branch r2
+      match cf2 with
+      | core.ops.control_flow.ControlFlow.Continue p1 =>
+        let (key, tail) := p1
+        let b ← core.slice.Slice.is_empty tail
+        if b
+        then
+          ok (core.result.Result.Ok
+            { key := (curve.PublicKeyData.DjbPublicKey key) })
+        else
+          let i2 := Slice.len tail
+          curve.log_public_key_trailing_bytes i2
+          ok (core.result.Result.Ok
+            { key := (curve.PublicKeyData.DjbPublicKey key) })
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+          curve.PublicKey (core.convert.FromSame curve.CurveError) residual
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+        curve.PublicKey (core.convert.FromSame curve.CurveError) residual
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      curve.PublicKey (core.convert.FromSame curve.CurveError) residual
 
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::public_key_bytes]:
     Source: 'rust/core/src/curve.rs', lines 107:4-111:5
@@ -518,6 +831,13 @@ def curve.PublicKey.verify_signature
   let s ← lift (Array.to_slice (Array.make 1#usize [ message ]))
   curve.PublicKey.verify_signature_for_multipart_message self s signature
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::key_data]:
+    Source: 'rust/core/src/curve.rs', lines 153:4-157:5 -/
+def curve.PublicKey.key_data
+  (self : curve.PublicKey) : Result (Slice Std.U8) := do
+  let ⟨ k ⟩ := self.key
+  Array.Insts.CoreConvertAsRefSlice.as_ref k
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PublicKey}::scalar_is_in_range]:
     Source: 'rust/core/src/curve.rs', lines 176:4-186:5 -/
 def curve.PublicKey.scalar_is_in_range
@@ -558,6 +878,94 @@ def curve.PublicKey.is_canonical (self : curve.PublicKey) : Result Bool := do
   then curve.PublicKey.scalar_is_in_range self
   else ok false
 
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PublicKey}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 196:4-198:5
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  curve.PublicKey.deserialize value
+
+/-- [libsignal_core::curve::{impl subtle::ConstantTimeEq for libsignal_core::curve::PublicKey}::ct_eq]:
+    Source: 'rust/core/src/curve.rs', lines 206:4-211:5
+    Visibility: public -/
+def curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq
+  (self : curve.PublicKey) (other : curve.PublicKey) :
+  Result subtle.Choice
+  := do
+  let kt ← curve.PublicKey.key_type self
+  let kt1 ← curve.PublicKey.key_type other
+  let b ←
+    core.cmp.PartialEq.ne.trait_default
+      curve.KeyType.Insts.CoreCmpPartialEqKeyType kt kt1
+  if b
+  then I32.Insts.SubtleConstantTimeEq.ct_eq 0#i32 1#i32
+  else
+    let s ← curve.PublicKey.key_data self
+    let s1 ← curve.PublicKey.key_data other
+    Slice.Insts.SubtleConstantTimeEq.ct_eq U8.Insts.SubtleConstantTimeEq s s1
+
+/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
+    Source: 'rust/core/src/curve.rs', lines 215:4-217:5
+    Visibility: public -/
+def curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
+  (self : curve.PublicKey) (other : curve.PublicKey) : Result Bool := do
+  let c ← curve.PublicKey.Insts.SubtleConstantTimeEq.ct_eq self other
+  Bool.Insts.CoreConvertFromChoice.from c
+
+/-- [libsignal_core::curve::{impl core::convert::From<libsignal_core::curve::PrivateKeyData> for libsignal_core::curve::PrivateKey}::from]:
+    Source: 'rust/core/src/curve.rs', lines 236:37-236:54
+    Visibility: public -/
+def curve.PrivateKey.Insts.CoreConvertFromPrivateKeyData.from
+  (value : curve.PrivateKeyData) : Result curve.PrivateKey := do
+  ok { key := value }
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{impl core::ops::function::FnOnce<(core::array::TryFromSliceError,), libsignal_core::curve::CurveError> for libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}<'_0>}::call_once]:
+    Source: 'rust/core/src/curve.rs', lines 245:21-245:76 -/
+def
+  curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError.call_once
+  (c : curve.PrivateKey.deserialize.closure)
+  (tupled_args : core.array.TryFromSliceError) :
+  Result curve.CurveError
+  := do
+  let i := Slice.len c
+  ok (curve.CurveError.BadKeyLength curve.KeyType.Djb i)
+
+/-- Trait implementation: [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{impl core::ops::function::FnOnce<(core::array::TryFromSliceError,), libsignal_core::curve::CurveError> for libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}<'_0>}]
+    Source: 'rust/core/src/curve.rs', lines 245:21-245:76 -/
+@[reducible]
+def
+  curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError
+  : core.ops.function.FnOnce curve.PrivateKey.deserialize.closure
+  core.array.TryFromSliceError curve.CurveError := {
+  call_once :=
+    curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError.call_once
+}
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize]:
+    Source: 'rust/core/src/curve.rs', lines 242:4-251:5
+    Visibility: public -/
+def curve.PrivateKey.deserialize
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PrivateKey curve.CurveError)
+  := do
+  let r ←
+    core.array.TryFromArrayCopySlice.try_from 32#usize core.marker.CopyU8 value
+  let r1 ←
+    core.result.Result.map_err
+      curve.PrivateKey.deserialize.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromSliceErrorCurveError
+      r value
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r1
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let key ← curve25519_dalek.scalar.clamp_integer val
+    ok (core.result.Result.Ok
+      { key := (curve.PrivateKeyData.DjbPrivateKey key) })
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      curve.PrivateKey (core.convert.FromSame curve.CurveError) residual
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::serialize]:
     Source: 'rust/core/src/curve.rs', lines 253:4-257:5
     Visibility: public -/
@@ -567,12 +975,56 @@ def curve.PrivateKey.serialize
   let s ← lift (Array.to_slice v)
   alloc.slice.Slice.to_vec core.clone.CloneU8 s
 
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::public_key]:
+    Source: 'rust/core/src/curve.rs', lines 259:4-267:5
+    Visibility: public -/
+def curve.PrivateKey.public_key
+  (self : curve.PrivateKey) :
+  Result (core.result.Result curve.PublicKey curve.CurveError)
+  := do
+  let ⟨ private_key ⟩ := self.key
+  let pk ←
+    curve.curve25519.PrivateKey.Insts.CoreConvertFromArrayU832.from private_key
+  let public_key ← curve.curve25519.PrivateKey.derive_public_key_bytes pk
+  let pk1 ← curve.PublicKey.new (curve.PublicKeyData.DjbPublicKey public_key)
+  ok (core.result.Result.Ok pk1)
+
 /-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::key_type]:
     Source: 'rust/core/src/curve.rs', lines 269:4-273:5
     Visibility: public -/
 def curve.PrivateKey.key_type
   (self : curve.PrivateKey) : Result curve.KeyType := do
   ok curve.KeyType.Djb
+
+/-- [libsignal_core::curve::{impl core::convert::TryFrom<&'_0 [u8], libsignal_core::curve::CurveError> for libsignal_core::curve::PrivateKey}::try_from]:
+    Source: 'rust/core/src/curve.rs', lines 315:4-317:5
+    Visibility: public -/
+def curve.PrivateKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from
+  (value : Slice Std.U8) :
+  Result (core.result.Result curve.PrivateKey curve.CurveError)
+  := do
+  curve.PrivateKey.deserialize value
+
+/-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::generate]:
+    Source: 'rust/core/src/curve.rs', lines 327:4-341:5
+    Visibility: public -/
+def curve.KeyPair.generate
+  {R : Type _} (randrngRngInst : rand.rng.Rng R) (rand_core_1CryptoRngInst :
+  rand_core_1.CryptoRng R) (csprng : R) :
+  Result (curve.KeyPair × R)
+  := do
+  let (private_key, csprng1) ←
+    curve.curve25519.PrivateKey.new rand_core_1CryptoRngInst randrngRngInst
+      csprng
+  let a ← curve.curve25519.PrivateKey.derive_public_key_bytes private_key
+  let public_key ←
+    curve.PublicKey.Insts.CoreConvertFromPublicKeyData.from
+      (curve.PublicKeyData.DjbPublicKey a)
+  let a1 ← curve.curve25519.PrivateKey.private_key_bytes private_key
+  let private_key1 ←
+    curve.PrivateKey.Insts.CoreConvertFromPrivateKeyData.from
+      (curve.PrivateKeyData.DjbPrivateKey a1)
+  ok ({ public_key, private_key := private_key1 }, csprng1)
 
 /-- [libsignal_core::curve::{libsignal_core::curve::KeyPair}::from_public_and_private]:
     Source: 'rust/core/src/curve.rs', lines 350:4-360:5

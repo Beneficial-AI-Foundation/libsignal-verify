@@ -7,7 +7,9 @@ Ported with changes from https://github.com/GaloisInc/libsignal-docs-and-models,
 Protocols/ATTRIBUTION.md.
 -/
 import Protocols.PQXDH.Contracts
+import Protocols.PQXDH.HonestRun
 import Protocols.PQXDH.Scheme
+import Protocols.PQXDH.WrapperRun
 import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 
 /-!
@@ -23,15 +25,23 @@ conditioning on success. Rejections, protocol errors, panics and divergence coun
 Faults contribute only missing probability mass.
 
 The agreement statements hold with probability at least `1 - δ`, where `δ` bounds the
-correctness error of the extracted Kyber operations (`KyberDeltaCorrect`). For `δ = 0` they
-become probability-one statements. For `δ > 0`, the parties can hold different keys after a Kyber
-mismatch, and a party can then reject the other's synthetic ciphertext.
+correctness error of the extracted Kyber operations. The core statement uses `KyberDeltaCorrect`,
+with encapsulation on a state from `P.coins`. The wrapper statements use
+`KyberDeltaCorrectAfterGenerate`, with encapsulation on the state that Alice's key generation
+returns, because the wrapper draws her ephemeral key with Core's `generate` and passes the
+returned state on. The core statements keep the ideal draw of her ephemeral key. The wrapper
+statements hold for Bob's sessions with one-time Kyber prekeys and with the last-resort prekey.
+For `δ = 0` the agreement statements become probability-one statements. For `δ > 0`, the parties
+can hold different keys after a Kyber mismatch, and a party can then reject the other's synthetic
+ciphertext.
 
 The fixtures in `ProtocolsTest/PQXDH/FaultFixtures.lean` show that the success events
 are not vacuous: entry points that always panic, always return an error or never terminate fail
 every statement for every `δ < 1`.
 
-The proofs of the four theorems are stubs, which `Protocols/LEDGER.md` lists as temporary stubs.
+The two core statements are proved from the honest run of `HonestRun.lean`. The two wrapper
+statements are proved from `uakeInitiator_agreement_le` and `uakeRecipient_agreement_le` of
+`WrapperRun.lean`, which carry the honest run through the synthetic wrapper.
 -/
 
 open OracleSpec OracleComp AKE ENNReal
@@ -112,8 +122,7 @@ for some MAC interface `H`, valid curve25519 pairs from `P.ecKeygen`, Kyber1024-
 
 Completion does not depend on Kyber's correctness. Kyber decapsulation returns a secret even when
 it disagrees with the encapsulated one (`rust/protocol/src/kem/kyber1024.rs:42-54`), and
-`pqxdh_accept` derives keys without checking them (`rust/protocol/src/pqxdh.rs:379-386`). The
-proof is a temporary stub. -/
+`pqxdh_accept` derives keys without checking them (`rust/protocol/src/pqxdh.rs:379-386`). -/
 theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -121,14 +130,38 @@ theorem coreCompletion_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) :
     rustRuntime.evalDist (coreCompletionExp P EntryPoints.extracted hasOPK) {true} = 1 := by
-  sorry
+  rw [rustRuntime_evalDist_true]
+  refine le_antisymm (prEvent_le_one _) ?_
+  simp only [coreCompletionExp, coreHonestRun, bind_assoc]
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikA hikA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikB hikB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun spkB hspkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun opkB hopkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun pqpkB hpqpkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ekA hekA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun R hR => ?_
+  rw [ExceptT.support_liftM] at hikA hikB hspkB hopkB hpqpkB hekA hR
+  obtain ⟨ss, ct, ss', r', hkA, hkB, -, -, hinit, hacc, -, -⟩ :=
+    honest_run_ok hC H hH P.rngInst P.cryptoRngInst Dom hRng ikA ikB spkB ekA opkB pqpkB R
+      (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) (hEC _ hekA)
+      (genOPK_valid P hasOPK hEC _ hopkB) (hPQ _ hpqpkB) (hCoins _ hR)
+  simp only [EntryPoints.extracted, hinit, hacc, liftResult_ok, pure_bind]
+  rw [prEvent_pure]
+  simp
 
 /-- Joint key-record agreement: on honest inputs, both extracted entry points return their keys,
 the two joint outputs agree on the root key, the chain key with its index and the post-quantum
 ratchet key, and the chain index is `0`, with probability at least `1 - δ`. Here `δ` bounds the
 correctness error of the extracted Kyber operations, and a Kyber mismatch is the only way the
-keys can differ. The hypotheses are those of `coreCompletion_extracted` and `KyberDeltaCorrect P δ`.
-The proof is a temporary stub. -/
+keys can differ. The hypotheses are those of `coreCompletion_extracted` and
+`KyberDeltaCorrect P δ`. -/
 theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bool)
     (hC : CoreContracts) (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
@@ -136,44 +169,78 @@ theorem jointKeyAgreement_extracted (P : Params Rand Msg C IdC IdK) (hasOPK : Bo
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
     1 - δ ≤ rustRuntime.evalDist (jointKeyExp P EntryPoints.extracted hasOPK) {true} := by
-  sorry
+  refine (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans ?_
+  rw [rustRuntime_evalDist_true, rustRuntime_evalDist_true]
+  simp only [jointKeyExp, coreHonestRun, KEMScheme.correctnessExperiment, kyberKem, kyberEncapsOn,
+    bind_assoc, pure_bind]
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikA hikA => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ikB hikB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun spkB hspkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun opkB hopkB => ?_
+  refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun pqpkB hpqpkB => ?_
+  refine le_prEvent_bind_of_forall_le_of_support _ (prEvent_true_liftM _) _ _
+    fun ekA hekA => ?_
+  refine prEvent_bind_mono_of_forall_le_of_support _ _ _ _ _ fun R hR => ?_
+  rw [ExceptT.support_liftM] at hikA hikB hspkB hopkB hpqpkB hekA hR
+  obtain ⟨ss, ct, ss', r', hkA, hkB, henc, hdec, hinit, hacc, hidx, hagree⟩ :=
+    honest_run_ok hC H hH P.rngInst P.cryptoRngInst Dom hRng ikA ikB spkB ekA opkB pqpkB R
+      (hEC _ hikA) (hEC _ hikB) (hEC _ hspkB) (hEC _ hekA)
+      (genOPK_valid P hasOPK hEC _ hopkB) (hPQ _ hpqpkB) (hCoins _ hR)
+  simp only [EntryPoints.extracted, henc, hdec, hinit, hacc, liftResult_ok, pure_bind]
+  rw [prEvent_pure, prEvent_pure]
+  by_cases h : ss' = ss
+  · subst h
+    have hk := hagree rfl
+    subst hk
+    simp [JointKeys.ofHandshakeKeys, hidx]
+  · simp [h]
 
 /-- Wrapper agreement with Bob authenticated: in an honest run of `uakeInitiator` on the extracted
-entry points, both parties output a key and the two keys are equal, with probability at least
-`1 - δ`. The hypotheses are those of `jointKeyAgreement_extracted`, the signature contracts,
-totality of the generator's `rand::Rng` view on `Dom` (signing uses it), and perfect correctness
-of the synthetic AEAD. The proof is a temporary stub. -/
+entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties output a key
+and the two keys are equal, with probability at least `1 - δ`. The hypotheses are those of
+`jointKeyAgreement_extracted`, with `KyberDeltaCorrectAfterGenerate P δ` in place of the Kyber
+bound. In addition, the statement assumes the signature contracts, the contract `GenerateTotal` on
+Alice's key generation, totality of the generator's `rand::Rng` view on `Dom` (signing and key
+generation use it), and perfect correctness of the synthetic AEAD. -/
 theorem wrapperAgreement_uakeInitiator [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hC : CoreContracts) (hS : SignatureContracts)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
     (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
-    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
+    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK)) {true} := by
-  sorry
+      (UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true} :=
+  (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
+    (uakeInitiator_agreement_le P msg hasOPK kind hC hS.signTotal hS.signVerify hG H hH hEC hPQ Dom
+      hRng hSigRng hCoins hAead)
 
 /-- Wrapper agreement with Alice authenticated: in an honest run of `uakeRecipient` on the
-extracted entry points, both parties output a key and the two keys are equal, with probability at
-least `1 - δ`. The hypotheses are those of `wrapperAgreement_uakeInitiator`. This direction is
-correctness-only. The proof is a temporary stub. -/
+extracted entry points, with Bob's sessions using Kyber prekeys of the kind `kind`, both parties
+output a key and the two keys are equal, with probability at least `1 - δ`. The hypotheses are
+those of `wrapperAgreement_uakeInitiator`. This direction is correctness-only. -/
 theorem wrapperAgreement_uakeRecipient [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
-    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
-    (hC : CoreContracts) (hS : SignatureContracts)
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)
     (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contract H)
     (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
     (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp)
     (Dom : Rand → Prop) (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
     (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
     (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
-    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrect P δ) :
+    (δ : ℝ≥0∞) (hδ : KyberDeltaCorrectAfterGenerate P δ) :
     1 - δ ≤ rustRuntime.evalDist
-      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK)) {true} := by
-  sorry
+      (UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true} :=
+  (KEMScheme.one_sub_le_probOutput_of_deltaCorrect hδ).trans
+    (uakeRecipient_agreement_le P msg hasOPK kind hC hS.signTotal hS.signVerify hG H hH hEC hPQ Dom
+      hRng hSigRng hCoins hAead)
 
 end
 

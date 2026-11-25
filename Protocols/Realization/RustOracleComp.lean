@@ -254,4 +254,35 @@ theorem probOutput_rustRuntime_eq_zero_iff [MeasurableSpace α] [MeasurableSingl
   rw [MeasureTheory.Measure.dirac_apply' _ hr]
   simp
 
+/-- The runtime's probability of the output `true` is the event probability of `b = true` under
+the native output measure. -/
+theorem rustRuntime_evalDist_true (mx : RustOracleComp unifSpec Bool) :
+    rustRuntime.evalDist mx {true} = Pr{let b ← mx}[b = true] := by
+  rw [rustRuntime_coherent.evalDist_eq, prEvent_eq_evalDist_of_discrete]
+  rfl
+
+/-- A draw lifted from `ProbComp` into `RustOracleComp unifSpec` loses no mass. -/
+theorem prEvent_true_liftM {α : Type} (mx : ProbComp α) :
+    Pr{let _ ← (liftM mx : RustOracleComp unifSpec α)}[True] = 1 := by
+  let : MeasurableSpace α := ⊤
+  rw [prEvent_true_eq_evalDist_apply_univ, ExceptT.evalDist_liftM,
+    ← prEvent_true_eq_evalDist_apply_univ, prEvent_true_eq_one]
+
+/-- The probability of an event on the result does not depend on the order of two independent
+draws of public randomness, lifted from `ProbComp`. -/
+theorem prEvent_liftM_bind_liftM_swap {α β γ : Type} (mx : ProbComp α) (my : ProbComp β)
+    (f : α → β → RustOracleComp unifSpec γ) (q : γ → Prop) :
+    Pr{let y ← ((liftM mx : RustOracleComp unifSpec α) >>= fun a =>
+        (liftM my : RustOracleComp unifSpec β) >>= fun b => f a b)}[q y] =
+      Pr{let y ← ((liftM my : RustOracleComp unifSpec β) >>= fun b =>
+        (liftM mx : RustOracleComp unifSpec α) >>= fun a => f a b)}[q y] := by
+  let : MeasurableSpace γ := ⊤
+  have : DiscreteMeasurableSpace γ := ⟨fun _ => trivial⟩
+  rw [prEvent_eq_evalDist_of_discrete, prEvent_eq_evalDist_of_discrete,
+    ExceptT.evalDist_eq_comap_ok, ExceptT.evalDist_eq_comap_ok]
+  congr 2
+  simp only [ExceptT.run_bind, ExceptT.run_liftM, map_eq_bind_pure_comp, bind_assoc,
+    Function.comp_apply, pure_bind]
+  exact OracleComp.evalDist_bind_bind_swap_of_uniform mx my (fun a b => (f a b).run)
+
 end Protocols.Realization

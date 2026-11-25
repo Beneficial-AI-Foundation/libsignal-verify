@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
 import Libsignal.Proofs.Protocol.Pqxdh.HandshakeKeys.Derive
+import Libsignal.Proofs.Protocol.Pqxdh.PqxdhAccept
+import Libsignal.Proofs.Protocol.Pqxdh.PqxdhInitiate
 
 /-!
 # Spec summary: `rust/protocol/src/pqxdh.rs`
@@ -12,9 +14,8 @@ This file freezes the specifications of the items of `rust/protocol/src/pqxdh.rs
 is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on. A
 definition, including the two extracted entry points, has only the axiom check.
 
-The closures of `pqxdh_initiate` and `pqxdh_accept` list the logical axioms of Lean, the opaque
-primitives and backend items of the extraction that the two functions call, and the
-native-decision constant that the extraction of `pqxdh_accept` introduces.
+The closures of `pqxdh_initiate` and `pqxdh_accept` list the logical axioms of Lean and the opaque
+primitives and backend items of the extraction that the two functions call.
 -/
 
 /-! ## `HandshakeKeys::derive_with_label` and `HandshakeKeys::derive` -/
@@ -72,6 +73,51 @@ info: 'libsignal_protocol.pqxdh.HandshakeKeys.derive_spec' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.pqxdh.HandshakeKeys.derive_spec
+
+/-! ## `pqxdh_initiate` and `pqxdh_accept` -/
+
+open libsignal_protocol libsignal_protocol.pqxdh in
+recall libsignal_protocol.pqxdh.pqxdh_initiate_self_session {R : Type _} (rng : rand_1.rng.Rng R)
+    (crng : rand_core_1.CryptoRng R) (ip : InitiatorParameters) (b : Bool) (r : R) :
+    pqxdh_initiate rng crng { ip with self_session := b } r =
+      pqxdh_initiate rng crng { ip with self_session := false } r
+
+/--
+info: 'libsignal_protocol.pqxdh.pqxdh_initiate_self_session' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.pqxdh.pqxdh_initiate_self_session
+
+open libsignal_protocol libsignal_protocol.pqxdh in
+recall libsignal_protocol.pqxdh.pqxdh_accept_self_session (rp : RecipientParameters) (b : Bool) :
+    pqxdh_accept { rp with self_session := b } =
+      pqxdh_accept { rp with self_session := false }
+
+/--
+info: 'libsignal_protocol.pqxdh.pqxdh_accept_self_session' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PublicKey.is_torsion_free,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.pqxdh.pqxdh_accept_self_session
 
 /-! ## Definitions -/
 

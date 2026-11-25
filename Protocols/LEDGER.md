@@ -7,12 +7,12 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-11 |
+| Date | 2026-11-19 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
-| `sorry` or `sorryAx` under `Protocols/` | 13 |
+| `sorry` or `sorryAx` under `Protocols/` | 7 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
 
@@ -23,7 +23,15 @@ closure, and `lake build` fails when one changes. The checks are in:
 
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
-- `Protocols/Specs/PQXDH.lean`: the key-derivation mirror and the statements of the Full realization;
+- `Protocols/Specs/PQXDH.lean`: the equality in law of `KeyPair::generate` on `P.coins` with
+  `readClampDerive`, the key-derivation mirror, the branch equations of the two entry points, the
+  lemmas of one honest run, the two wrapper agreement lemmas and the statements of the Full
+  realization;
+- `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key, the equation
+  on `PrivateKey::public_key`, and the equation on `KeyPair::generate` with its right-hand side
+  `readClampDerive`;
+- `rust/Libsignal/Specs/Protocol/Kem.lean`: the serialization of a Kyber key and the serialization
+  and deserialization of a Kyber ciphertext;
 - `rust/Libsignal/Specs/Protocol/Pqxdh.lean`: the extracted `pqxdh_initiate` and `pqxdh_accept`;
 - `ProtocolsTest/PQXDH/FaultFixtures.lean`: the three fault fixtures `alwaysPanic_fails`,
   `alwaysError_fails` and `alwaysDiverge_fails`. The file has no summary, and its checks are at its end;
@@ -33,7 +41,7 @@ closure, and `lake build` fails when one changes. The checks are in:
 The `sorryAx` in the closures of the two security theorems of the abstract model comes from the four
 admitted hops below, which are the only admitted declarations these theorems depend on. The four AEAD
 lemmas that their imports reach are proved; see "AEAD lemmas" below. The `sorryAx` in the closures of the
-Full realization statements comes from the stubs under "Security placeholders" and "Temporary stubs".
+Full realization statements comes from the stubs under "Security placeholders".
 
 ## AEAD lemmas
 
@@ -53,9 +61,9 @@ closures.
 
 | Lemma | File | Used by | Tracked in |
 | --- | --- | --- | --- |
-| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model after the KDF ruling, and this repository for the statement repair |
-| `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model after the KDF ruling |
-| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked, this repository for the statement repair |
+| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 5 | PQXDH-model; the proof waits for a choice of assumptions that is open (#81) |
+| `Protocols.Models.PQXDH.indistAdvantage_le_gap` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/DHHops.lean` | `uakeInitiator_secure_dh`, hop 6 | PQXDH-model; the proof waits for a choice of assumptions that is open (#81) |
+| `Protocols.Models.PQXDH.forgeHonestGoodProb_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 5 | discharge untracked |
 | `Protocols.Models.PQXDH.indistAdvantage_le_pq` | `Protocols/Models/PQXDH/UAKE/SecurityLemmas/PQHops.lean` | `uakeInitiator_secure_pq`, hop 6 | discharge untracked |
 
 The issue trackers of Beneficial-AI-Foundation/PQXDH-model and of this repository hold the items. The gaps
@@ -64,36 +72,48 @@ in the statements themselves, inherited from PQXDH-model, carry the label `defer
 ## Security placeholders
 
 These statements of the Full realization are stubs by design, apart from the admitted hops above. All are in
-`Protocols/PQXDH/Security.lean`.
+`Protocols/PQXDH/Security.lean`. They cover Bob's sessions with one-time Kyber prekeys only, and they await a
+restatement. The restatement will:
+
+- move them to a Full-side experiment with a replay store for the last-resort Kyber prekey and a step of Alice
+  that keeps the generator state;
+- add a joint law of `generate` on `P.coins` as a premise;
+- cover both kinds of Kyber prekey;
+- relate the new experiment to the shared UAKE experiment by a proved bridge.
 
 | Statement | Content | Premises beyond the contracts | Status |
 | --- | --- | --- | --- |
-| `Protocols.PQXDH.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint EUF-CMA of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (an adaptation of mmPRF-ODH, assumed separately; the paper's random-oracle proof under ClawStDH and GapDH does not cover it), AEAD integrity, Kyber public-key guessing | stub |
-| `Protocols.PQXDH.uakeInitiator_secure_pq` | advantage ≤ `εsig + 2q(εkem + εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | as above without Diffie-Hellman, with IND-CCA of an abstract KEM and the Kyber bridge contract, KDF as a PRF keyed by the Kyber secret | stub |
-| `Protocols.PQXDH.fullExp_noLostMass` | the Full experiment faults with probability 0 | the total contracts, RNG totality on the coin domain, Kyber1024-shaped honest Kyber pairs, an adversary sending only messages that fit in memory | stub |
+| `Protocols.PQXDH.uakeInitiator_secure_dh` | advantage ≤ `εsig + 2q(εodh + 2εaead) + 3q²εpk` + `Pr[⊥]` | joint EUF-CMA of the identity key, the PQXDH oracle Diffie-Hellman assumption on the extracted X25519 and key derivation (an adaptation of mmPRF-ODH, assumed separately; the paper's random-oracle proof under ClawStDH and GapDH does not cover it), AEAD integrity, Kyber public-key guessing | stub, pending restatement |
+| `Protocols.PQXDH.uakeInitiator_secure_pq` | advantage ≤ `εsig + 2q(εkem + εaead + εkdf) + 3q²εpk` + `Pr[⊥]` | as above without Diffie-Hellman, with IND-CCA of an abstract KEM and the Kyber bridge contract, KDF as a PRF keyed by the Kyber secret | stub, pending restatement |
+| `Protocols.PQXDH.fullExp_noLostMass` | the Full experiment faults with probability 0 | the total contracts, including `GenerateTotal`, RNG totality on the coin domain, Kyber1024-shaped honest Kyber pairs, an adversary sending only messages that fit in memory | stub, pending restatement |
 
 The corollaries `uakeInitiator_secure_dh_total` and `uakeInitiator_secure_pq_total` are proved from these and
-need no stub of their own.
+need no stub of their own. They take `GenerateTotal`, and they are pending restatement with the statements
+above.
+
+Until the restatement, these statements differ from production in three ways.
+
+- A retry reuses the ephemeral key. A rejected step of Alice keeps her generator state `R`, so the next
+  bundle runs `generate` on the same `R` and draws the same ephemeral key. Production has advanced its generator
+  and draws a fresh key. A rejected attempt is visible to the adversary and sends no message, and a later
+  accepted attempt uses a key that a rejected attempt already drew.
+- The premises do not describe Alice's ephemeral draw. `ECKeyPairValid` on `P.ecKeygen` and the key `a` of
+  `pqxdhODHExp` are stated for `P.ecKeygen`. `KyberBridge` is stated for a state drawn from `P.coins`. The
+  wrapper draws her key with `generate` and encapsulates on the state that `generate` returns, and no premise
+  relates the two.
+- `PartialContracts` has no fault-or-value form of `generate`.
 
 ## Temporary stubs
 
-The stubs of these statements are temporary, unlike the security placeholders above.
-
-| Statement | File | Content | Status |
-| --- | --- | --- | --- |
-| `Protocols.PQXDH.coreCompletion_extracted` | `Correctness.lean` | both extracted entry points return their keys with probability 1 | stub |
-| `Protocols.PQXDH.jointKeyAgreement_extracted` | `Correctness.lean` | equal joint key records, chain index 0, with probability ≥ 1 − δ | stub |
-| `Protocols.PQXDH.wrapperAgreement_uakeInitiator` | `Correctness.lean` | both parties output equal keys, with probability ≥ 1 − δ | stub |
-| `Protocols.PQXDH.wrapperAgreement_uakeRecipient` | `Correctness.lean` | the same, in the correctness-only direction | stub |
-| `Protocols.PQXDH.initiate_kdfInput_witness` | `Witness.lean` | a successful `pqxdh_initiate` derives its keys from its own key material | stub |
-| `Protocols.PQXDH.accept_kdfInput_witness` | `Witness.lean` | the same for `pqxdh_accept` | stub |
+None remain. The two wrapper agreement statements, `Protocols.PQXDH.wrapperAgreement_uakeInitiator`
+and `Protocols.PQXDH.wrapperAgreement_uakeRecipient`, are proved in `Correctness.lean`.
 
 ## Contracts, policies and modelling choices of the Full realization
 
-These are the hypotheses of the Full statements, each a named proposition. A contract describes an opaque
-leaf of the extraction and is trusted. A policy describes what the calling application supplies. A modelling
-choice describes something outside the extracted code. The contracts are in
-`Protocols/PQXDH/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
+These are the hypotheses of the Full statements, each a named proposition. A contract describes an opaque leaf
+of the extraction, or an extracted function whose body calls opaque leaves, and is trusted. A policy describes
+what the calling application supplies. A modelling choice describes something outside the extracted code. The
+contracts are in `Protocols/PQXDH/Contracts.lean`, with fault-or-value forms in `PartialContracts`.
 
 | Item | Kind | Describes | Discharged by |
 | --- | --- | --- | --- |
@@ -104,13 +124,18 @@ choice describes something outside the extracted code. The contracts are in
 | `RngTotal` | contract | totality of the caller's generator on a domain containing the drawn states | the caller's choice of generator |
 | `ToOwnedTotal` | contract | `str::to_owned` terminates; `pqxdh_accept` calls it only to build the error message for a non-canonical ephemeral key | none: the Aeneas standard library models no way to build a `String` from a `str`, so no translation patch can route the call through a modelled one |
 | `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | unchanged from `main` |
+| `GenerateTotal` | contract | Core's `KeyPair::generate`, the call that draws Alice's ephemeral key in `initiate`: on a state in the domain of a total generator it returns a valid pair and a state in the domain. Only the total form exists; `PartialContracts` has no fault-or-value form. `generate` is extracted with its body; the outside items that it calls have no body | curve25519-dalek-fork (`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the `rand` crate |
 | `KyberBridge` | contract | extracted Kyber calls fault or return the outputs of an abstract KEM `K` | a model of libcrux |
-| `KyberDeltaCorrect` | contract | correctness error of the extracted Kyber operations at most `δ` | published Kyber analysis with a model of libcrux |
+| `KyberDeltaCorrect` | contract | correctness error of the extracted Kyber operations at most `δ`, with encapsulation on a state from `P.coins` (core statement) | published Kyber analysis with a model of libcrux |
+| `KyberDeltaCorrectAfterGenerate` | contract | the same bound with encapsulation on the state that Alice's `generate` returns, as in the wrapper; faults of `generate` count as failures; assumes no law of that state beyond the law of `P.coins` (wrapper statements) | published Kyber analysis with a model of libcrux |
 | `ECKeyPairValid` on `P.ecKeygen` | policy | key pairs from the ideal generator have derived public halves | a correspondence with production key generation |
 | `PQKeyPairShape` on `P.pqKeygen` | policy | Kyber pairs have the Kyber1024 type and lengths | a correspondence with production key generation |
 | `Adversary.SendsFittingMessages` | policy | no message carries a Kyber key of `usize::MAX` bytes, which Rust cannot allocate | none needed |
-| `P.coins` | modelling choice | one ideal draw of the generator state per session | a correspondence with production's generator |
-| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent (see "Full EC key generation and abstract-generator relation" below) | a correspondence with production key generation |
+| `P.coins` | modelling choice | an ideal draw of the generator state. Alice draws her initial generator state from it once per session. Each call to `signBytes` draws again: `setup` draws twice, for the signed prekey and for the last-resort Kyber prekey, unless an earlier step faults; a one-time session of Bob draws once more to sign its Kyber prekey when the signed-prekey signature is `Ok` and encoding the Kyber key does not fault; a last-resort session draws nothing for signing | a correspondence with production's generator |
+| `P.ecKeygen`, `P.pqKeygen` | modelling choice | ideal key draws in place of `KeyPair::generate` on the caller's generator; their law is related neither to production's clamped generation nor to the abstract uniform exponent (see "Full EC key generation and abstract-generator relation" below). Alice's ephemeral key in `initiate` is the exception: it comes from Core's `generate` on her generator state, and the core statements still draw it from `P.ecKeygen` | a correspondence with production key generation |
+| Last-resort Kyber prekey, `RecipientIdentity.lrpqpkB` | modelling choice | Bob draws one last-resort Kyber prekey from `P.pqKeygen` and signs it once in `setup`; sessions of the last-resort kind use it. The PQXDH specification (Kret and Schmidt, "The PQXDH Key Agreement Protocol", revision of 23 January 2024, §2.5) has Bob change this key periodically; the model never changes it. The store's replay check for it (`rust/protocol/src/storage/traits.rs:129-133`) is not modelled | a correspondence with production's prekey store |
+| Kind of Kyber prekey, `KyberPrekeyKind` | modelling choice | a statement parameter chosen once for all of Bob's sessions: one-time or last-resort. Runs in which some sessions use one kind and others the other kind are not covered | a restatement over mixed runs |
+| No corruption oracle for long-term or prekey secrets | limit | the UAKE game has no oracle that exposes a long-term or prekey secret (`UAKE/Defs.lean`, the `Op` type). So no statement can show the weaker forward secrecy of runs without one-time prekeys (the specification, §4.6 and §4.7). The model of Fiedler and Günther ("Security Analysis of Signal's PQXDH Handshake", PKC 2025, §4.2) has such an oracle, `CorruptSSKey` | a game with a corruption oracle |
 | `syntheticAeadRoles`, `P.aead` | modelling choice | the synthetic UAKE/AEAD wrapper and its key roles; production has no such ciphertexts | a correspondence with production's first message |
 
 ## Modelling choices of the abstract model
@@ -122,6 +147,8 @@ an admission.
 | --- | --- | --- | --- |
 | Single identity key, `Parameters.sig` | modelling choice | Bob's identity key pair signs his pre-keys and takes part in Diffie-Hellman, as in production; the signature scheme `Parameters.sig` draws its keys with `dhKeygen`, so completeness and unforgeability of `P.sig` refer to Diffie-Hellman identity keys | matches production's key use |
 | Joint EUF-CMA of the identity key (hop 3) | premise | the premise `hsig` of both security theorems bounds every adversary in `SignatureAlg.jointUnforgeableExp` for `P.sig`: signing queries and agreement queries `Y ↦ DH x Y` on the one key pair, with no freshness condition on agreement queries, and a win by a valid signature on a message that was never signed. The signature forgery event compares signed keys and not signature bytes, because XEdDSA signatures are malleable. The bound has no resource limit (#41) | assumed; the Full realization states the same premise as `jointSigForgeExp` |
+| Original-key partnering, `originalKeyPartnering` | modelling choice | the experiment of both security theorems is `PartneredExp`: Alice's challenge session and a session of Bob are partners when both accepted with the same associated data and the same key material `km`, the input of `P.kdf`, which each session context stores; an authentication partner must have accepted no later than Alice; the key identifiers, the signatures and the bytes of an unsigned one-time pre-key are not authenticated | the same relation as the Full realization's `fullPartnering`, which takes `km` from the entry-point call |
+| `hkemCorrect` in the PQ hops 5 and 6 | idealization | perfect correctness of the abstract KEM, false for production Kyber, which decapsulates wrongly with a small probability; no theorem instantiates these hops at production Kyber | assumed |
 | Full EC key generation and abstract-generator relation | open bridge obligation | the abstract model draws identity, signed and one-time keys with `dhKeygen`, a uniform exponent; the Full realization draws with `P.ecKeygen`, whose law, public/private relation (`ECKeyPairValid`), clamping and generator assumption are separate. The relation between the two generators is not established, and results proved on the uniform exponent are not transferred to production | open |
 
 ## How to check
