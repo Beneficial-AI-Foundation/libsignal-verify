@@ -299,13 +299,11 @@ charon:
     - "libsignal_protocol::state::kyber_prekey::_::deserialize"
     - "libsignal_protocol::state::signed_prekey::GenericSignedPreKey::deserialize"
     # libsignal_core::curve — Curve25519 (curve25519_dalek) crypto primitives:
-    # DH, keygen, sign/verify, deserialize (log macro). Axiomatic crypto leaves.
+    # DH, keygen, sign/verify. Axiomatic crypto leaves.
     # TODO: remove all the core and crypto excludes since this shouldn't change anything
-    - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::try_derive_arrays"
     # libsignal-core functions that use unsupported features
     - "libsignal_core::address::_::service_id_string"       # uses format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"      # calls service_id_string
     - "libsignal_core::curve::_::public_key"
     - "libsignal_core::curve::_::generate"
@@ -315,7 +313,6 @@ charon:
     - "libsignal_core::curve::_::verify_signature"
     - "libsignal_core::curve::_::verify_signature_for_multipart_message"
     - "libsignal_core::curve::_::is_torsion_free"
-    - "libsignal_core::curve::_::try_from"
     # signal_crypto — AES-CBC/CTR/GCM + hash wrappers over external crypto crates.
     - "signal_crypto::aes_cbc::aes_256_cbc_encrypt"
     - "signal_crypto::aes_cbc::aes_256_cbc_decrypt"
@@ -331,10 +328,10 @@ charon:
     - "signal_crypto::hash::_::finalize"
     # libsignal_core::address — opaque (NOT exclude): these are *called* by
     # protocol fns (is_same_account, serialize_addresses), so excluding them
-    # dangles. The str::Pattern GAT / format! is only in the body; signatures
-    # (&str -> Option<Self> / -> String) are clean, so opaque works.
+    # dangles. The format! is only in the body of service_id_string, which
+    # to_protocol_address calls; the signatures (-> String and
+    # -> ProtocolAddress) are clean, so opaque works.
     - "libsignal_core::address::_::service_id_string"            # format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
 
 aeneas_args:
