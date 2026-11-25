@@ -98,7 +98,7 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #84 for the coins |
 | `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` | the decryption-failure probability of Kyber-1024, with encapsulation on a state from `P.coins` or on the state that `generate` returns | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux; for the second, also a description of the state that `generate` returns |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
-| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | proved from `ClampIntegerContract`, `X25519SecretContract` and `RngTotal` (`generateTotal_of_contracts`) |
+| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | proved from `ClampIntegerContract` and `X25519SecretContract` (`generateTotal_of_contracts`); `RngTotal` is a premise inside `GenerateTotal` |
 | `ClampIntegerContract` | `clamp_integer` of `curve25519-dalek` 5.0.0 | the fork's `clamp_integer_spec`, with clamp idempotence on numbers and the link from our constant to the fork's function |
 | `X25519SecretContract` | `StaticSecret`, `PublicKey::from(&StaticSecret)` and `PublicKey::as_bytes` of `x25519-dalek` 3.0.0 | an extraction or a verification of `x25519-dalek` |
 
@@ -551,7 +551,7 @@ nothing about the law of the pair or of the returned state.
 function of libsignal-core itself, not of an outside library. The Core extraction gives it and the
 three functions of `curve::curve25519` that it calls their bodies
 (`rust/Libsignal/Translated/Core/Funs.lean`), so the contract is a statement about these definitions.
-It is proved from two contracts on outside crates and the totality of the generator: see
+It is proved from two contracts on outside crates, with the totality of the generator as its premise: see
 "Discharge". The bodies call `clamp_integer` of curve25519-dalek and items of x25519-dalek that have
 no body in Lean (section 9). The contract stands for these lines:
 
@@ -567,8 +567,8 @@ In the Full realization, `initiate` (`Protocols/PQXDH/Scheme.lean`) calls the ex
 calls it before encapsulation (section 6).
 
 **Checked here.** `generateTotal_of_contracts` (`Protocols/PQXDH/KeyGen.lean`) proves the contract in
-Lean from `ClampIntegerContract` (section 10), `X25519SecretContract` (section 11) and `RngTotal` of
-the `CryptoRng` view (section 3). The proof follows the code:
+Lean from `ClampIntegerContract` (section 10) and `X25519SecretContract` (section 11), using its premise
+`RngTotal` of the `CryptoRng` view (section 3). The proof follows the code:
 
 - `generate_eq_readClampDerive` rewrites `generate` as one `fill_bytes` on a zeroed 32-byte buffer,
   then `clamp_integer`, `StaticSecret::from`, `PublicKey::from`, `as_bytes` and `to_bytes`. On a
