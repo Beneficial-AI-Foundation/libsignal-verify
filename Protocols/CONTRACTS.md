@@ -93,9 +93,9 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | --- | --- | --- |
 | `HkdfSha256Contract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0 | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
-| `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | #75; an OS entropy failure stays outside any proof |
+| `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
-| `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #75 for the coins |
+| `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #84 for the coins |
 | `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` | the decryption-failure probability of Kyber-1024, with encapsulation on a state from `P.coins` or on the state that `generate` returns | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux; for the second, also a description of the state that `generate` returns |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
 | `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | proved from `ClampIntegerContract`, `X25519SecretContract` and `RngTotal` (`generateTotal_of_contracts`) |
@@ -247,9 +247,10 @@ statements and `fullExp_noLostMass` depend on it. The two fault-counting securit
 The two `_total` corollaries take `RngTotal` for both views of the generator, on a domain that
 contains the states from `P.coins` (`Protocols/PQXDH/Security.lean`), so they depend on it.
 
-**Discharge.** #75 (step 3) decides whether the draws from `P.coins` need a correspondence with
-production's generator. For a deterministic generator, such as the
-ChaCha generator of the tests, `RngTotal` could be proved from a body.
+**Discharge.** The draws from `P.coins` stay a modelling choice for the correctness statements. How
+they relate to a caller's generator across sessions belongs to the Full-side security experiment
+(#84). For a deterministic generator, such as the ChaCha generator of the tests, `RngTotal` could
+be proved from a body.
 
 ## 4. Kyber1024 backend: `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps`
 
@@ -381,8 +382,8 @@ calls must be checked. We did not write this construction in Lean.
 
 **Gaps.** IND-CCA of Kyber-1024 is a hardness assumption, out of scope for the correctness work (#72).
 libsignal draws the 32 encapsulation bytes with `csprng.random()`. The premise is the standard Kyber
-assumption only if these bytes are uniform when the state comes from `P.coins`. #75 includes the
-`P.coins` draw (its step 3). Two more
+assumption only if these bytes are uniform when the state comes from `P.coins`. The Full-side
+security experiment (#84) is where this question belongs. Two more
 differences separate the Lean premise from the usual computational assumption. The premise `hkem` of
 `uakeInitiator_secure_pq` bounds the advantage of every `K.IND_CCA_Adversary`, with no resource bound
 (#41; see the limits in the module docstring of `Protocols/PQXDH/Security.lean`). And `K`'s key
@@ -397,7 +398,7 @@ state drawn from `P.coins`, and no premise relates the law of that state to `P.c
 hypothesis, next to the IND-CCA premise on `K`. If the bridge fails for a `K`, the statements say
 nothing for that `K`, so its IND-CCA premise gives no bound on the extracted Kyber.
 
-**Discharge.** A model of libcrux's Kyber-1024, with #75 for the coins.
+**Discharge.** A model of libcrux's Kyber-1024, with #84 for the coins.
 
 ## 6. `KyberDeltaCorrect` and `KyberDeltaCorrectAfterGenerate`
 
@@ -711,7 +712,7 @@ translation of `clamp_integer`: the call returns, and the value of the result, r
 little-endian number, is the RFC 7748 clamp of the value of the input. We did not check that proof.
 
 **Gaps.** The contract does not give the value of the result. A statement about the law of the
-generated key needs that value (#75). Nothing in Lean links our constant
+generated key needs that value (#84). Nothing in Lean links our constant
 `curve25519_dalek.scalar.clamp_integer` to the fork's definition.
 
 **If false.** `generateTotal_of_contracts` gives nothing, and nothing then supports the hypothesis
