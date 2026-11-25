@@ -54,6 +54,12 @@ abbrev rand.rng.Rng := _root_.rand.rng.Rng
     Visibility: public -/
 abbrev rand_core_1.CryptoRng := _root_.rand_core_1.CryptoRng
 
+/-- Trait declaration: [subtle::ConstantTimeEq]
+    Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 262:0-262:24
+    Name pattern: [subtle::ConstantTimeEq]
+    Visibility: public -/
+abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq
+
 /-- [libsignal_core::address::ServiceIdKind]
     Source: 'rust/core/src/address.rs', lines 19:0-24:1
     Visibility: public -/
@@ -141,6 +147,11 @@ inductive curve.PrivateKeyData where
     Visibility: public -/
 structure curve.PrivateKey where
   key : curve.PrivateKeyData
+
+/-- [libsignal_core::curve::{libsignal_core::curve::PrivateKey}::deserialize::{closure}]
+    Source: 'rust/core/src/curve.rs', lines 245:21-245:76 -/
+@[reducible]
+def curve.PrivateKey.deserialize.closure := Slice Std.U8
 
 /-- [libsignal_core::curve::KeyPair]
     Source: 'rust/core/src/curve.rs', lines 321:0-324:1
