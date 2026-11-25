@@ -1709,7 +1709,8 @@ axiom ratchet.keys.ChainKey.calculate_base_material
 
 /-- [libsignal_protocol::state::session::log_trimming_receiver_chain]:
     Source: 'rust/protocol/src/state/session.rs', lines 1022:0-1030:1 -/
--- Logging has no effect on protocol state or results.
+-- The model leaves out the log record and the logger's effects, and assumes
+-- that the logger returns.
 def state.session.log_trimming_receiver_chain
   (_state : state.session.SessionState) : Result Unit :=
   ok ()
