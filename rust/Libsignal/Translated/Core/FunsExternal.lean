@@ -244,7 +244,8 @@ axiom x25519_dalek.x25519.PublicKey.as_bytes
 
 /-- [libsignal_core::curve::log_public_key_trailing_bytes]:
     Source: 'rust/core/src/curve.rs', lines 567:0-569:1 -/
--- Logging affects neither the key nor the result.
+-- The model leaves out the log record and the logger's effects,
+-- and assumes that the logger returns.
 def curve.log_public_key_trailing_bytes (_trailing : Std.Usize) : Result Unit :=
   ok ()
 
