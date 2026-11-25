@@ -10,8 +10,8 @@ weak.linter.style.header = false
 maxRecDepth = 10000
 
 # The curve25519-dalek fork at the last commit of its main that builds on our Lean, Mathlib and
-# Aeneas pins. We import its curve mathematics (the libraries Curve25519 and EllipticCurve), not its
-# dalek-level theorems.
+# Aeneas pins. We import its curve mathematics (the library Curve25519 and the package
+# EllipticCurve that it requires), not its dalek-level theorems.
 [[require]]
 name = "curve25519-dalek"
 git = "https://github.com/Beneficial-AI-Foundation/curve25519-dalek-fork.git"

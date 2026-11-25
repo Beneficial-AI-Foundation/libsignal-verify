@@ -9,17 +9,17 @@ import Curve25519.Montgomery
 /-!
 # Facts about X25519 and clamping
 
-Four facts about RFC 7748 `X25519` and the clamping of its scalars. They are stated with the
-definitions of the `Curve25519` library of the curve25519-dalek fork (`Curve25519.X25519` and
-`Curve25519.Montgomery`), which is the only part of the fork that this module imports. Each
-fact is proved from the fork's theorems, with no assumption: `Protocols/Specs/PQXDH.lean` checks
-the axioms that each depends on.
+Four facts about the RFC 7748 function `X25519` of the fork's mathematics library and the
+clamping of its scalars. They are stated with the definitions of the `Curve25519` library of the
+curve25519-dalek fork (`Curve25519.X25519` and `Curve25519.Montgomery`), which is the only part of
+the fork that this module imports. Each fact is proved from the fork's theorems, with no assumption
+beyond Lean's axioms: `Protocols/Specs/PQXDH.lean` checks the axioms that each depends on.
 
 * `x25519_basepoint_comm`: the two parties of a Diffie-Hellman exchange from the base point
   compute the same 32 bytes.
 * `L_not_dvd_clamp`: a clamped scalar is not a multiple of the order of the base point.
-* `x25519_basepoint_ne_zero`: the shared secret of two keys derived from the base point is not
-  the all-zero encoding.
+* `x25519_basepoint_ne_zero`: the shared secret of the private key `a` and the public key
+  `X25519 b 9` is not the all-zero encoding.
 * `clamp_clamp`: clamping a scalar twice gives the same value as clamping it once.
 -/
 
@@ -59,8 +59,8 @@ theorem L_not_dvd_clamp (k : ℕ) : ¬ L ∣ clamp k := by
   · have hle : L * 8 ≤ L * t := Nat.mul_le_mul_left _ (Nat.le_of_dvd hpos ht8)
     exact absurd (hbig.trans_le hle) (not_lt.mpr h1.le)
 
-/-- For all 32-byte scalars `a` and `b`, the shared secret `X25519 a (X25519 b 9)` of the two keys
-derived from the base point is not the all-zero encoding. -/
+/-- For all 32-byte scalars `a` and `b`, the shared secret `X25519 a (X25519 b 9)` of the private
+key `a` and the public key `X25519 b 9` is not the all-zero encoding. -/
 theorem x25519_basepoint_ne_zero (a b : Vector UInt8 32) :
     X25519 a (X25519 b (encodeUCoordinate 9)) ≠ encodeUCoordinate 0 := by
   rw [X25519_basepoint b,
