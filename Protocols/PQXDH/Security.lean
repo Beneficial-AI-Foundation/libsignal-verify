@@ -14,9 +14,12 @@ import Protocols.PQXDH.SecurityDefs
 Two statements bound the advantage of every adversary against `uakeInitiator`, the Full
 realization in which Bob is the authenticated party. `uakeInitiator_secure_dh` covers the
 classical setting, from an oracle Diffie-Hellman premise on the protocol's own Diffie-Hellman
-values and key derivation. `uakeInitiator_secure_pq` covers a post-quantum setting, from the
-security of Kyber and with no Diffie-Hellman premise. `SecurityDefs.lean` defines the premise
-games.
+values and key derivation. `uakeInitiator_secure_pq` is a KEM-based bound against classical
+adversaries, from the security of Kyber and with no Diffie-Hellman premise; it keeps the joint
+signature premise. Leaving out the Diffie-Hellman premise is not the same as an experiment that
+gives the adversary a Diffie-Hellman break: the statement does not model an adversary that
+breaks Diffie-Hellman, and it makes no claim about quantum adversaries. `SecurityDefs.lean`
+defines the premise games.
 
 The experiment `fullExp` is the UAKE experiment of Dodis and Fiore over original-key partnering
 (`PartneredExp` with `fullPartnering`, see `Partnering.lean`). The adversary runs sessions of Bob
@@ -55,10 +58,10 @@ Until then, the statements differ from production in three ways:
   force the ε of each hardness premise (`εsig`, `εodh`, `εkem`, `εkdf`) close to 1, so each bound
   exceeds 1/2 and holds trivially. The bounds become meaningful only once #41 adds resource
   bounds.
-* The PQ statement models post-quantum security as UAKE security without the Diffie-Hellman
-  premise. It keeps the signature premise, and joint unforgeability with an agreement oracle
-  implies that discrete logarithms are hard for the identity key. This limitation is inherited
-  from PQXDH-model. Here the same key also performs agreement.
+* The PQ statement is a KEM-based bound against classical adversaries: UAKE security without the
+  Diffie-Hellman premise. It keeps the signature premise, and joint unforgeability with an
+  agreement oracle implies that discrete logarithms are hard for the identity key. This limitation
+  is inherited from PQXDH-model. Here the same key also performs agreement.
 * A Kyber decapsulation mismatch changes the key-derivation input `km` of Bob's session, so his
   session is not Alice's partner. If the two inputs still give the same keys, Alice accepts and
   `PartneredExp` counts a win. No premise of the PQ statement bounds that run: `kdfPRF` is a
@@ -134,8 +137,8 @@ theorem uakeInitiator_secure_dh (P : Params Rand Msg C IdC IdK) (msg : Msg) (has
         (rustRuntime.prFail (fullExp P msg hasOPK .oneTime A)).toReal := by
   sorry
 
-/-- Security of the Full realization in the post-quantum setting: for every adversary that opens
-at most `q` sessions of Bob in each stage, its advantage is at most
+/-- KEM-based security of the Full realization against classical adversaries: for every adversary
+that opens at most `q` sessions of Bob in each stage, its advantage is at most
 `εsig + 2q (εkem + εaead + εkdf) + 3 q² εpk` plus the probability that the experiment faults.
 
 The premises are those of `uakeInitiator_secure_dh` without the Diffie-Hellman assumption,
@@ -213,8 +216,9 @@ theorem uakeInitiator_secure_dh_total (P : Params Rand Msg C IdC IdK) (msg : Msg
   rwa [fullExp_noLostMass P msg hasOPK hCt hS hG H hH hPQ Dom hRng hSigRng hCoins A hA,
     ENNReal.toReal_zero, add_zero] at h
 
-/-- Post-quantum security without the fault term: the bound of `uakeInitiator_secure_pq` holds
-without `Pr[⊥]` when the premises of `fullExp_noLostMass` also hold. -/
+/-- KEM-based security against classical adversaries without the fault term: the bound of
+`uakeInitiator_secure_pq` holds without `Pr[⊥]` when the premises of `fullExp_noLostMass` also
+hold. -/
 theorem uakeInitiator_secure_pq_total (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool)
     (H : crypto.HmacSha256) (hC : PartialContracts H)
     (hCt : CoreContracts) (hS : SignatureContracts) (hG : GenerateTotal)

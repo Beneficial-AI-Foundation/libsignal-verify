@@ -19,11 +19,10 @@ on. The build fails if a statement or its trust changes. A reader can check the 
 together with the definitions they mention, without reading the proofs.
 
 The dependencies of a statement are the opaque leaves of the extracted code that its definitions
-mention (for example `curve.PrivateKey.calculate_agreement`), the native-decision constant that
-the extraction of `pqxdh_accept` introduces, and the stub marker when the proof, or a proof it
-uses, is a stub. `Protocols/LEDGER.md` lists the stubs apart from the admitted hops of the
-abstract model, in two groups: temporary stubs of the two wrapper agreement statements, and
-security placeholders for the security statements and `fullExp_noLostMass`.
+mention (for example `curve.PrivateKey.calculate_agreement`), and the stub marker when the proof, or
+a proof it uses, is a stub. In this file only the security statements and `fullExp_noLostMass` carry
+the marker, and their corollaries inherit it. `Protocols/LEDGER.md` lists these security
+placeholders apart from the admitted hops of the abstract model.
 
 The fault fixtures, which show that the correctness statements are not vacuous, are in
 `ProtocolsTest/PQXDH/FaultFixtures.lean` and carry their own dependency checks.
@@ -356,6 +355,92 @@ info: 'Protocols.PQXDH.jointKeyAgreement_extracted' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.jointKeyAgreement_extracted
 
+recall Protocols.PQXDH.uakeInitiator_agreement_le
+    {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hST : SignTotal) (hSV : SignVerify) (hG : GenerateTotal)
+    (H : libsignal_protocol.crypto.HmacSha256)
+    (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
+    (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
+    (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
+    (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
+    (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
+    (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
+    : rustRuntime.evalDist (kyberKemAfterGenerate P).correctnessExperiment {true}
+      ≤ rustRuntime.evalDist
+      (AKE.UAKE.agreementExp (uakeInitiator P EntryPoints.extracted msg hasOPK kind)) {true}
+
+/--
+info: 'Protocols.PQXDH.uakeInitiator_agreement_le' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PrivateKey.calculate_signature,
+ curve.PublicKey.is_torsion_free,
+ curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.uakeInitiator_agreement_le
+
+recall Protocols.PQXDH.uakeRecipient_agreement_le
+    {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
+    (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
+    (hC : CoreContracts) (hST : SignTotal) (hSV : SignVerify) (hG : GenerateTotal)
+    (H : libsignal_protocol.crypto.HmacSha256)
+    (hH : libsignal_protocol.crypto.HkdfSha256Contract H)
+    (hEC : ∀ kp ∈ support P.ecKeygen, ECKeyPairValid kp)
+    (hPQ : ∀ kp ∈ support P.pqKeygen, PQKeyPairShape kp) (Dom : Rand → Prop)
+    (hRng : RngTotal P.cryptoRngInst.RngCoreInst Dom)
+    (hSigRng : RngTotal P.rngInst.rand_core_1RngCoreInst Dom)
+    (hCoins : ∀ r ∈ support P.coins, Dom r) (hAead : AEAD.PerfectlyCorrect P.aead)
+    : rustRuntime.evalDist (kyberKemAfterGenerate P).correctnessExperiment {true}
+      ≤ rustRuntime.evalDist
+      (AKE.UAKE.agreementExp (uakeRecipient P EntryPoints.extracted msg hasOPK kind)) {true}
+
+/--
+info: 'Protocols.PQXDH.uakeRecipient_agreement_le' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256,
+ curve.PrivateKey.calculate_agreement,
+ curve.PrivateKey.calculate_signature,
+ curve.PublicKey.is_torsion_free,
+ curve.PublicKey.verify_signature_for_multipart_message,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ Str.Insts.AllocBorrowToOwnedString.to_owned,
+ core.num.niche_types.NonZeroU8Inner,
+ core.num.nonzero.NonZero,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate,
+ kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.uakeRecipient_agreement_le
+
 recall Protocols.PQXDH.wrapperAgreement_uakeInitiator
     {Rand Msg C IdC IdK : Type} [DecidableEq Msg] [DecidableEq IdC] [DecidableEq IdK]
     (P : Params Rand Msg C IdC IdK) (msg : Msg) (hasOPK : Bool) (kind : KyberPrekeyKind)
@@ -375,7 +460,6 @@ recall Protocols.PQXDH.wrapperAgreement_uakeInitiator
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeInitiator' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
@@ -420,7 +504,6 @@ recall Protocols.PQXDH.wrapperAgreement_uakeRecipient
 /--
 info: 'Protocols.PQXDH.wrapperAgreement_uakeRecipient' depends on axioms:
  [propext,
- sorryAx,
  Classical.choice,
  Quot.sound,
  crypto.hkdf_sha256,
@@ -1320,6 +1403,23 @@ info: 'Protocols.Realization.liftResult_eq_pure_of_spec' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.Realization.liftResult_eq_pure_of_spec
+
+recall Protocols.Realization.prEvent_liftM_bind_liftM_swap
+    {α β γ : Type} (mx : ProbComp α) (my : ProbComp β)
+    (f : α → β → RustOracleComp unifSpec γ) (q : γ → Prop)
+    : Pr{let y ← ((liftM mx : RustOracleComp unifSpec α) >>= fun a =>
+        (liftM my : RustOracleComp unifSpec β) >>= fun b => f a b)}[q y] =
+      Pr{let y ← ((liftM my : RustOracleComp unifSpec β) >>= fun b =>
+        (liftM mx : RustOracleComp unifSpec α) >>= fun a => f a b)}[q y]
+
+/--
+info: 'Protocols.Realization.prEvent_liftM_bind_liftM_swap' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.Realization.prEvent_liftM_bind_liftM_swap
 
 recall Protocols.Realization.probOutput_rustRuntime
     {α : Type} [MeasurableSpace α] [MeasurableSingletonClass α]

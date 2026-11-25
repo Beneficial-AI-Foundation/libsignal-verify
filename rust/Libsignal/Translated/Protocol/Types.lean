@@ -1047,6 +1047,11 @@ structure state.bundle.PreKeyBundle where
   identity_key : identity_key.IdentityKey
   kyber_pre_key : state.bundle.KyberPreKey
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 218:29-218:83 -/
+@[reducible]
+def state.session.SessionState.remote_identity_key.closure := Unit
+
 /-- [libsignal_protocol::session_core::reuse_matching_session::{closure}]
     Source: 'rust/protocol/src/session_core.rs', lines 149:25-149:67 -/
 @[reducible]
@@ -1229,6 +1234,16 @@ def state.session.SessionState.all_receiver_chain_logging_info.closure := Unit
     Source: 'rust/protocol/src/state/session.rs', lines 884:63-884:75 -/
 @[reducible]
 def state.session.SessionRecord.serialize.closure := Unit
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::session_version::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 919:24-923:13 -/
+@[reducible]
+def state.session.SessionRecord.session_version.closure := Unit
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::alice_base_key::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 963:24-967:13 -/
+@[reducible]
+def state.session.SessionRecord.alice_base_key.closure := Unit
 
 /-- [libsignal_protocol::state::signed_prekey::SignedPreKeyRecord]
     Source: 'rust/protocol/src/state/signed_prekey.rs', lines 27:0-29:1

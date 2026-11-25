@@ -131,7 +131,7 @@ lemma mem_support_initiate
     [Field F] [AddCommGroup G] [Module F G] [SampleableType F] [DecidableEq G]
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     {p : InitiatorParameters F G Msg} {bundle : PreKeyBundle G PQPK S IdC IdK}
-    {r : Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K)}
+    {r : Option (InitialMessage G CT C IdC IdK × SessionContext G PQPK Msg K SS)}
     (hpin : bundle.ikB = p.ikB)
     (hok₁ : ∀ b ∈ support (P.sig.verify p.ikB (EncodeEC bundle.spkB.1) bundle.spkSigB),
       b = true)
@@ -150,7 +150,9 @@ lemma mem_support_initiate
             Option.map (fun opk => DH ekA.2 opk.1) bundle.opkB, cs.2)).1,
           (P.kdf (DH p.ikA.2 bundle.spkB.1, DH ekA.2 p.ikB, DH ekA.2 bundle.spkB.1,
             Option.map (fun opk => DH ekA.2 opk.1) bundle.opkB, cs.2)).2.2,
-          (p.ikA.1, p.ikB, bundle.pqpkB.1), p.msg⟩) := by
+          (p.ikA.1, p.ikB, bundle.pqpkB.1), p.msg,
+          (DH p.ikA.2 bundle.spkB.1, DH ekA.2 p.ikB, DH ekA.2 bundle.spkB.1,
+            Option.map (fun opk => DH ekA.2 opk.1) bundle.opkB, cs.2)⟩) := by
   simp only [initiate, hpin, ne_eq, not_true_eq_false, if_false,
     mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hr
   obtain ⟨okSPK, hok, okPQPK, hok', hr⟩ := hr
@@ -176,7 +178,7 @@ lemma mem_support_accept
     (P : Parameters F G SS PQPK PQSK CT S C Msg K IdC IdK)
     {p : RecipientParameters F G PQPK PQSK S}
     {im : InitialMessage G CT C IdC IdK} {ss : SS} {m₀ : Msg}
-    {r : Option (SessionContext G PQPK Msg K)}
+    {r : Option (SessionContext G PQPK Msg K SS)}
     (hid₁ : im.idSPK = P.idEC p.spkB.1)
     (hid₂ : im.idPQPK = P.idKEM p.pqpkB.1)
     (hid₃ : im.idOPK = Option.map (fun opk => P.idEC opk.1) p.opkB)
@@ -190,7 +192,9 @@ lemma mem_support_accept
         Option.map (fun opk => DH opk.2 im.ekA) p.opkB, ss)).1,
       (P.kdf (DH p.spkB.2 im.ikA, DH p.ikB.2 im.ekA, DH p.spkB.2 im.ekA,
         Option.map (fun opk => DH opk.2 im.ekA) p.opkB, ss)).2.2,
-      (im.ikA, p.ikB.1, p.pqpkB.1), m₀⟩ := by
+      (im.ikA, p.ikB.1, p.pqpkB.1), m₀,
+      (DH p.spkB.2 im.ikA, DH p.ikB.2 im.ekA, DH p.spkB.2 im.ekA,
+        Option.map (fun opk => DH opk.2 im.ekA) p.opkB, ss)⟩ := by
   simp only [accept, hid₁, hid₂, hid₃, ne_eq, not_true, or_self, if_false,
     mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hr
   obtain ⟨o, ho, hr⟩ := hr
