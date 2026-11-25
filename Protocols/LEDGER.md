@@ -24,7 +24,8 @@ closure, and `lake build` fails when one changes. The checks are in:
 - `Protocols/Specs/Models/PQXDH.lean`: the six endpoint theorems of the abstract model and its
   security hops;
 - `Protocols/Specs/PQXDH.lean`: the equality in law of `KeyPair::generate` on `P.coins` with
-  `readClampDerive`, the key-derivation mirror, the branch equations of the two entry points, the
+  `readClampDerive`, the contracts on curve25519-dalek and x25519-dalek and the proof of
+  `GenerateTotal` from them, the key-derivation mirror, the branch equations of the two entry points, the
   lemmas of one honest run, the two wrapper agreement lemmas and the statements of the Full
   realization;
 - `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key, the equation
@@ -124,7 +125,9 @@ contracts are in `Protocols/PQXDH/Contracts.lean`, with fault-or-value forms in 
 | `RngTotal` | contract | totality of the caller's generator on a domain containing the drawn states | the caller's choice of generator |
 | `ToOwnedTotal` | contract | `str::to_owned` terminates; `pqxdh_accept` calls it only to build the error message for a non-canonical ephemeral key | none: the Aeneas standard library models no way to build a `String` from a `str`, so no translation patch can route the call through a modelled one |
 | `HkdfSha256Contract` | contract | `crypto.hkdf_sha256` computes RFC 5869 from the MAC interface `H` | unchanged from `main` |
-| `GenerateTotal` | contract | Core's `KeyPair::generate`, the call that draws Alice's ephemeral key in `initiate`: on a state in the domain of a total generator it returns a valid pair and a state in the domain. Only the total form exists; `PartialContracts` has no fault-or-value form. `generate` is extracted with its body; the outside items that it calls have no body | curve25519-dalek-fork (`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the `rand` crate |
+| `GenerateTotal` | contract | Core's `KeyPair::generate`, the call that draws Alice's ephemeral key in `initiate`: on a state in the domain of a total generator it returns a valid pair and a state in the domain. Only the total form exists; `PartialContracts` has no fault-or-value form. `generate` is extracted with its body; the outside items that it calls have no body. Proved from `ClampIntegerContract`, `X25519SecretContract` and `RngTotal` of the `CryptoRng` view (`generateTotal_of_contracts`); the statements that take it still take it as a hypothesis | `ClampIntegerContract`, `X25519SecretContract` and the caller's generator |
+| `ClampIntegerContract` | contract | curve25519-dalek's `clamp_integer`, which `KeyPair::generate` and `PrivateKey::public_key` call: it returns on every 32-byte array, and returns its own output unchanged | curve25519-dalek-fork (`clamp_integer_spec`), with clamp idempotence on numbers and the link from our constant to the fork's function |
+| `X25519SecretContract` | contract | x25519-dalek's `StaticSecret` returns the bytes it was built from, and `PublicKey::from(&StaticSecret)` and `PublicKey::as_bytes` return | an extraction or a verification of x25519-dalek, which the curve25519-dalek fork does not translate to Lean |
 | `KyberBridge` | contract | extracted Kyber calls fault or return the outputs of an abstract KEM `K` | a model of libcrux |
 | `KyberDeltaCorrect` | contract | correctness error of the extracted Kyber operations at most `δ`, with encapsulation on a state from `P.coins` (core statement) | published Kyber analysis with a model of libcrux |
 | `KyberDeltaCorrectAfterGenerate` | contract | the same bound with encapsulation on the state that Alice's `generate` returns, as in the wrapper; faults of `generate` count as failures; assumes no law of that state beyond the law of `P.coins` (wrapper statements) | published Kyber analysis with a model of libcrux |

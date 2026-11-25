@@ -1958,6 +1958,66 @@ info: 'Protocols.PQXDH.generate_coins_evalDistEq' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.generate_coins_evalDistEq
 
+/-! ## Contracts on curve25519-dalek and x25519-dalek, and `GenerateTotal` -/
+
+open Aeneas Aeneas.Std Result in
+recall Protocols.PQXDH.ClampIntegerContract : Prop :=
+  ∀ b : Array U8 32#usize, ∃ c, curve25519_dalek.scalar.clamp_integer b = .ok c ∧
+    curve25519_dalek.scalar.clamp_integer c = .ok c
+
+/--
+info: 'Protocols.PQXDH.ClampIntegerContract' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve25519_dalek.scalar.clamp_integer]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.ClampIntegerContract
+
+open Aeneas Aeneas.Std Result in
+recall Protocols.PQXDH.X25519SecretContract : Prop :=
+  (∀ x : Array U8 32#usize, ∃ s,
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from x = .ok s ∧
+    x25519_dalek.x25519.StaticSecret.to_bytes s = .ok x) ∧
+  ∀ s : x25519_dalek.x25519.StaticSecret, ∃ pk a,
+    x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from s = .ok pk ∧
+    x25519_dalek.x25519.PublicKey.as_bytes pk = .ok a
+
+/--
+info: 'Protocols.PQXDH.X25519SecretContract' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.X25519SecretContract
+
+recall Protocols.PQXDH.generateTotal_of_contracts (hClamp : ClampIntegerContract)
+    (hX : X25519SecretContract) : GenerateTotal
+
+/--
+info: 'Protocols.PQXDH.generateTotal_of_contracts' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.generateTotal_of_contracts
+
 /-! ## Key-derivation mirror
 
 The Lean mirror of the key derivation in `Protocols/PQXDH/Kdf.lean` and the byte types and

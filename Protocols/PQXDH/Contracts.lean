@@ -29,7 +29,11 @@ Core's `KeyPair::generate` and `PrivateKey::public_key` are extracted with their
 call items of two crates outside libsignal that have no body in Lean: `clamp_integer` of
 curve25519-dalek, and of x25519-dalek the types `StaticSecret` and `PublicKey` and the functions
 `From<[u8; 32]> for StaticSecret`, `StaticSecret::to_bytes`, `From<&StaticSecret> for PublicKey`
-and `PublicKey::as_bytes`. No fact about these items is stated.
+and `PublicKey::as_bytes`. `ClampIntegerContract` states that `clamp_integer` returns, and returns
+its own output unchanged. `X25519SecretContract` states that `to_bytes` gives back the bytes that
+`StaticSecret` was built from, and that the public-key derivation returns. Neither says which
+public key is derived. From these two contracts, `generateTotal_of_contracts`
+(`Protocols/PQXDH/KeyGen.lean`) proves `GenerateTotal`.
 
 Each contract comes in two forms. The total form says that a leaf returns, and what it returns.
 `CoreContracts` and `SignatureContracts` bundle the total forms, which the correctness statements
@@ -42,6 +46,7 @@ the first part of `SignaturePartial` and the part of `KyberPartial` for encapsul
 fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 `generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
+`ClampIntegerContract` and `X25519SecretContract` are stated in one form only.
 -/
 
 open Aeneas Aeneas.Std Result
@@ -142,12 +147,42 @@ def VerifyTotal : Prop :=
 
 end Signature
 
+section Curve25519Bytes
+
+/-- curve25519-dalek's `clamp_integer` returns on every 32-byte array, and on an array that it
+returned it returns that same array. It clears the three low bits of byte 0, clears bit 7 of
+byte 31 and sets bit 6 of byte 31 (`curve25519-dalek` 5.0.0, `src/scalar.rs:1407-1412`). It is a
+`const fn` without a panic path, and clamping twice gives the same bytes as clamping once. The
+contract does not state which array the call returns. -/
+def ClampIntegerContract : Prop :=
+  ∀ b : Array U8 32#usize, ∃ c, curve25519_dalek.scalar.clamp_integer b = .ok c ∧
+    curve25519_dalek.scalar.clamp_integer c = .ok c
+
+/-- x25519-dalek's `StaticSecret` keeps the 32 bytes it is built from, and the public-key
+derivation returns. `From<[u8; 32]> for StaticSecret` stores the bytes unchanged and
+`StaticSecret::to_bytes` returns them (`x25519-dalek` 3.0.0, `src/x25519.rs:247-252`,
+`:235-237`). `From<&StaticSecret> for PublicKey` computes
+`EdwardsPoint::mul_base_clamped(secret.0).to_montgomery()` (`:255-260`), and `PublicKey::as_bytes`
+returns the bytes of the point (`:50-52`). The contract says nothing about which point that is.
+We did not read `mul_base_clamped` and `to_montgomery` of `curve25519-dalek` 5.0.0 for panics. -/
+def X25519SecretContract : Prop :=
+  (∀ x : Array U8 32#usize, ∃ s,
+    x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from x = .ok s ∧
+    x25519_dalek.x25519.StaticSecret.to_bytes s = .ok x) ∧
+  ∀ s : x25519_dalek.x25519.StaticSecret, ∃ pk a,
+    x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from s = .ok pk ∧
+    x25519_dalek.x25519.PublicKey.as_bytes pk = .ok a
+
+end Curve25519Bytes
+
 section KeyGen
 
 /-- On a state in `Dom`, Core's extracted `KeyPair::generate` (`curve.KeyPair.generate`) returns a
 curve25519 pair satisfying `ECKeyPairValid` and a state in `Dom`, provided both generator views
 are total on `Dom`. It reads 32 bytes through `fill_bytes`, clamps them and derives the public key
-(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`). -/
+(`rust/core/src/curve.rs:327-341`, `rust/core/src/curve/curve25519.rs:27-37`).
+`generateTotal_of_contracts` (`Protocols/PQXDH/KeyGen.lean`) proves it from `ClampIntegerContract`
+and `X25519SecretContract`. -/
 def GenerateTotal : Prop :=
   ∀ {R : Type} (rng : rand.rng.Rng R) (crng : rand_core_1.CryptoRng R) (Dom : R → Prop),
     RngTotal crng.RngCoreInst Dom → RngTotal rng.rand_core_1RngCoreInst Dom →
