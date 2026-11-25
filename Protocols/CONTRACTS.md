@@ -567,8 +567,8 @@ In the Full realization, `initiate` (`Protocols/PQXDH/Scheme.lean`) calls the ex
 calls it before encapsulation (section 6).
 
 **Checked here.** `generateTotal_of_contracts` (`Protocols/PQXDH/KeyGen.lean`) proves the contract in
-Lean from `ClampIntegerContract` (section 10) and `X25519SecretContract` (section 11), using its premise
-`RngTotal` of the `CryptoRng` view (section 3). The proof follows the code:
+Lean from `ClampIntegerContract` (section 10) and `X25519SecretContract` (section 11), using the premise
+`RngTotal` of the `CryptoRng` view inside `GenerateTotal` (section 3). The proof follows the code:
 
 - `generate_eq_readClampDerive` rewrites `generate` as one `fill_bytes` on a zeroed 32-byte buffer,
   then `clamp_integer`, `StaticSecret::from`, `PublicKey::from`, `as_bytes` and `to_bytes`. On a
