@@ -25,8 +25,8 @@ definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok
 so it allows a panic or non-termination. The total form says that the call returns, and what it
 returns, under its own premises. A fault-or-value form does not always follow from its total form
 (finding 1). `ToOwnedTotal` and `GenerateTotal` have no fault-or-value form (finding 6).
-`ClampIntegerContract` and `X25519SecretContract` have one form, which gives its own fault-or-value
-form (sections 10 and 11).
+`ClampIntegerContract` and `X25519SecretContract` are stated in one form. What each gives as a
+fault-or-value form is in sections 10 and 11.
 
 Policies and modelling choices (`ECKeyPairValid`, `PQKeyPairShape`, `Adversary.SendsFittingMessages`,
 `P.coins`, `P.ecKeygen`, `P.pqKeygen`, the synthetic AEAD wrapper, the last-resort Kyber prekey,
@@ -712,8 +712,7 @@ little-endian number, is the RFC 7748 clamp of the value of the input. We did no
 
 **Gaps.** The contract does not give the value of the result. A statement about the law of the
 generated key needs that value (#75). Nothing in Lean links our constant
-`curve25519_dalek.scalar.clamp_integer` to the fork's definition: the fork is not a dependency of
-this project.
+`curve25519_dalek.scalar.clamp_integer` to the fork's definition.
 
 **If false.** `generateTotal_of_contracts` gives nothing, and nothing then supports the hypothesis
 `GenerateTotal` of the statements that take it (section 8).
