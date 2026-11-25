@@ -5,6 +5,7 @@ Authors: Alessandro D'Angelo
 -/
 import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
+import Protocols.PQXDH.KeyGen
 import Protocols.PQXDH.Security
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.DistAdvantage
 
@@ -1927,6 +1928,35 @@ info: 'Protocols.PQXDH.Adversary.SendsFittingMessages' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.Adversary.SendsFittingMessages
+
+/-! ## Core's `KeyPair::generate` on `P.coins` -/
+
+recall Protocols.PQXDH.generate_coins_evalDistEq
+    {Rand Msg C IdC IdK : Type} (P : Params Rand Msg C IdC IdK) :
+    ((do
+        let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
+        liftResult (curve.KeyPair.generate P.rngInst P.cryptoRngInst r)) :
+      RustOracleComp unifSpec (ECKeyPair × Rand)) =ᵈ
+    ((do
+        let r ← (liftM P.coins : RustOracleComp unifSpec Rand)
+        liftResult (libsignal_core.curve.KeyPair.readClampDerive P.cryptoRngInst r)) :
+      RustOracleComp unifSpec (ECKeyPair × Rand))
+
+/--
+info: 'Protocols.PQXDH.generate_coins_evalDistEq' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ curve25519_dalek.scalar.clamp_integer,
+ x25519_dalek.x25519.PublicKey,
+ x25519_dalek.x25519.StaticSecret,
+ x25519_dalek.x25519.PublicKey.as_bytes,
+ x25519_dalek.x25519.StaticSecret.to_bytes,
+ x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from,
+ x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.generate_coins_evalDistEq
 
 /-! ## Key-derivation mirror
 
