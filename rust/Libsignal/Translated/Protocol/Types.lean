@@ -1219,6 +1219,11 @@ structure state.session.UnacknowledgedPreKeyMessageItems where
   kyber_ciphertext : Option (Slice Std.U8)
   timestamp : std.time.SystemTime
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{closure}]
+    Source: 'rust/protocol/src/state/session.rs', lines 63:17-63:85 -/
+@[reducible]
+def state.session.UnacknowledgedPreKeyMessageItems.new.closure := Unit
+
 /-- [libsignal_protocol::state::session::SessionUsabilityRequirements]
     Source: 'rust/protocol/src/state/session.rs', lines 146:0-146:45
     Visibility: public -/
