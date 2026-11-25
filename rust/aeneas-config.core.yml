@@ -20,12 +20,19 @@ charon:
     - "libsignal_core::address::_::service_id_fixed_width_binary"
     - "libsignal_core::address::_::parse_from_service_id_binary"
     - "libsignal_core::address::_::parse_from_service_id_fixed_width_binary"
+    - "libsignal_core::address::_::parse_from_service_id_string"
     - "libsignal_core::address::_::raw_uuid"
     - "libsignal_core::address::_::from_uuid_bytes"
     - "libsignal_core::address::_::from_uuid"
     - "libsignal_core::address::_::name"
     - "libsignal_core::address::_::device_id"
+    # Derived clones and equalities that libsignal-protocol calls.
+    - "{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone"
+    - "{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone"
+    - "{impl core::cmp::PartialEq for libsignal_core::address::ServiceId}::eq"
+    - "{impl core::cmp::PartialEq for libsignal_core::curve::PublicKey}::eq"
     - "libsignal_core::curve::_::deserialize"
+    - "{impl core::convert::TryFrom for libsignal_core::curve::PublicKey}::try_from"
     - "libsignal_core::curve::_::serialize"
     - "libsignal_core::curve::_::key_type"
     - "libsignal_core::curve::_::public_key"
@@ -51,7 +58,6 @@ charon:
     - "libsignal_core::_::{impl core::error::Error for _}"
     # Functions using unsupported features
     - "libsignal_core::address::_::service_id_string"            # uses format! macro
-    - "libsignal_core::address::_::parse_from_service_id_string" # uses str::Pattern (GAT)
     - "libsignal_core::address::_::to_protocol_address"          # calls service_id_string
     # Crate-level excludes
     - "core::str::pattern"                # GATs unsupported by Aeneas
@@ -65,13 +71,12 @@ charon:
     - "libsignal_core::try_derive_arrays"
   opaque:
     # curve functions that call into curve25519_dalek or use log::warn!
-    - "libsignal_core::curve::_::deserialize"
     - "libsignal_core::curve::_::verify_signature_for_multipart_message"
     - "libsignal_core::curve::_::is_torsion_free"
+    - "libsignal_core::curve::log_public_key_trailing_bytes" # log::warn!
     - "libsignal_core::curve::_::calculate_signature"
     - "libsignal_core::curve::_::calculate_signature_for_multipart_message"
     - "libsignal_core::curve::_::calculate_agreement"
-    - "libsignal_core::curve::_::try_from"
 
 aeneas_args:
   options:
@@ -114,6 +119,13 @@ tweaks:
         structure derive_more.convert.try_from.TryFromReprError (T : Type _) where
           input : T
       replace: "abbrev derive_more.convert.try_from.TryFromReprError := _root_.derive_more.convert.try_from.TryFromReprError\n"
+      required: true
+    # Reuse the subtle trait and its concrete models owned by Crypto, as Protocol does.
+    - find: |
+        @[rust_trait "subtle::ConstantTimeEq"]
+        structure subtle.ConstantTimeEq (Self : Type _) where
+          ct_eq : Self → Self → Result subtle.Choice
+      replace: "abbrev subtle.ConstantTimeEq := signal_crypto.subtle.ConstantTimeEq\n"
       required: true
 
     # Duplicate parentClauses name: core::num::nonzero::ZeroablePrimitive gets two

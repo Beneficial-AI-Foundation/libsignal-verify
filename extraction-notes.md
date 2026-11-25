@@ -2,7 +2,7 @@
 
 Each crate is extracted by its own profile (see [`scripts/README.md`](scripts/README.md)): `libsignal-core`, the supported `signal-crypto` operations, and `libsignal-protocol`. Types shared across crates are declared once, by the profile that owns them.
 
-The crypto profile translates AES-GCM constructors, encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. The constructors propagate errors and assemble their state; `setup_gcm`, including its key/nonce validation and primitive initialization, remains external. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Protocol through an exact trait alias.
+The crypto profile translates AES-GCM constructors, encryption/decryption and tag control flow, GCM state cloning, and MAC update-and-return. The constructors propagate errors and assemble their state; `setup_gcm`, including its key/nonce validation and primitive initialization, remains external. Its existing AES/CTR/GHASH/hash primitive interfaces remain opaque; HPKE remains excluded. Backend declarations reached through opaque-type layout metadata are excluded without hiding additional local operations. The existing concrete `subtle::Choice` and equality models are owned by Crypto and reused by Core and Protocol through an exact trait alias.
 
 PQXDH's optional-prekey accessors, `HandshakeKeys::derive` and `derive_with_label` are translated. The generated code supplies the domain-separation label, calls HKDF-SHA256 for 96 bytes, and copies bytes 0–31, 32–63 and 64–95 into the root, chain and initial PQR keys. HKDF remains the primitive boundary; splitting and key construction are generated.
 
@@ -86,7 +86,7 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - ~~`service_id_string(&self) -> String`~~ — excluded (uses `format!`)
 - `parse_from_service_id_binary(bytes: &[u8]) -> Option<Self>`
 - `parse_from_service_id_fixed_width_binary(bytes: &ServiceIdFixedWidthBinaryBytes) -> Option<Self>`
-- ~~`parse_from_service_id_string(input: &str) -> Option<Self>`~~ — excluded (uses `str::Pattern` GAT)
+- `parse_from_service_id_string(input: &str) -> Option<Self>` (calls `ServiceId::parse_from_service_id_string`)
 
 ### ServiceId
 
@@ -96,8 +96,9 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - ~~`service_id_string(&self) -> String`~~ — excluded (uses `format!`)
 - `parse_from_service_id_binary(bytes: &[u8]) -> Option<Self>`
 - `parse_from_service_id_fixed_width_binary(bytes: &ServiceIdFixedWidthBinaryBytes) -> Option<Self>`
-- ~~`parse_from_service_id_string(input: &str) -> Option<Self>`~~ — excluded (uses `str::Pattern` GAT)
+- `parse_from_service_id_string(input: &str) -> Option<Self>` — `strip_prefix` replaced by `strip_pni_prefix`, a byte-prefix test and `split_at` (patch `core-address-ServiceId-parse_from_service_id_string`); calls `str::{len, as_bytes, split_at}` and `Uuid::try_parse`, which have no model
 - `raw_uuid(self) -> Uuid`
+- derived `PartialEq` (with the derived `PartialEq` of `SpecificServiceId`), and `PartialEq<SpecificServiceId<KIND>> for ServiceId`
 - ~~`to_protocol_address(&self, device_id: DeviceId) -> ProtocolAddress`~~ — excluded (calls `service_id_string`)
 
 ### DeviceId
@@ -108,12 +109,14 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 ### ProtocolAddress
 
 - `new(name: String, device_id: DeviceId) -> Self`
+- derived `Clone` (with the derived `Clone` of `DeviceId`)
 - `name(&self) -> &str`
 - `device_id(&self) -> DeviceId`
 
 ### PublicKey
 
-- `deserialize(value: &[u8]) -> Result<Self, CurveError>` — opaque (uses `log::warn!`)
+- `deserialize(value: &[u8]) -> Result<Self, CurveError>` — the `log::warn!` for trailing bytes moves into `log_public_key_trailing_bytes`, which stays opaque; calls `split_first` and `split_first_chunk` of `core::slice`, which have no model
+- `TryFrom<&[u8]>` (calls `deserialize`)
 - `public_key_bytes(&self) -> &[u8]`
 - `from_djb_public_key_bytes(bytes: &[u8]) -> Result<Self, CurveError>`
 - `serialize(&self) -> Box<[u8]>`
@@ -121,10 +124,12 @@ Depends on: `curve25519-dalek`, `x25519-dalek`, `sha2`, `uuid`, `zerocopy`, `der
 - `verify_signature_for_multipart_message(&self, message: &[&[u8]], signature: &[u8]) -> bool` — opaque (calls curve25519)
 - `key_type(&self) -> KeyType`
 - `is_canonical(&self) -> bool`
+- `PartialEq` (calls `ConstantTimeEq for PublicKey`, `key_data` and the derived `PartialEq` of `KeyType`)
 
 ### PrivateKey
 
-- `deserialize(value: &[u8]) -> Result<Self, CurveError>` — opaque (calls `scalar::clamp_integer`)
+- `deserialize(value: &[u8]) -> Result<Self, CurveError>` — calls `scalar::clamp_integer`, which has no model
+- `TryFrom<&[u8]>` (calls `deserialize`)
 - `serialize(&self) -> Vec<u8>`
 - `public_key(&self) -> Result<PublicKey, CurveError>` — extracted with its body (calls `curve25519::PrivateKey::from` and `derive_public_key_bytes`)
 - `key_type(&self) -> KeyType`
@@ -202,6 +207,8 @@ Each workaround names its limitation in the patch header or in a comment in the 
 
 | Patch | Change | Limitation | Revert when |
 | --- | --- | --- | --- |
+| `core-address-ServiceId-parse_from_service_id_string` | `input.strip_prefix("PNI:")` → `strip_pni_prefix(input)`, a new function at the end of the file that tests that `input.as_bytes()` starts with `b"PNI:"` (a length check and a slice comparison) and returns the second half of `input.split_at(4)` | `str::strip_prefix` is generic over `core::str::pattern::Pattern`, which the profiles exclude (generic associated types); without the patch Aeneas reports "Could not find: trait_decl_id" at the signature of `strip_prefix` and leaves the parser without a body | `core::str::pattern` translates |
+| `core-curve-PublicKey-deserialize-logging` | The `log::warn!` for trailing bytes in `PublicKey::deserialize` moved into `log_public_key_trailing_bytes`, a `#[track_caller]` function called on the line of the old call with `tail.len()`; same level, target, module path, file, line and message, with one extra stack frame (the helper's) while the warning is logged | Aeneas stops with an internal error on the `log!` expansion, then with `Not_found` in `llbc/FunsAnalysis.ml` | `log!` translates inline |
 | `protocol-crypto-hkdf_sha256`; callers `protocol-ratchet_keys-MessageKeys-derive_keys`, `protocol-ratchet_keys-RootKey-create_chain`, `protocol-pqxdh-HandshakeKeys-derive_with_label` | Byte-slice HKDF-SHA256 helper, same salt/input/info/output | Charon cannot lift HKDF's generic-array associated types under `--preset=aeneas` | `Hkdf::<Sha256>::expand` translates inline |
 | `protocol-crypto-hmac_sha256_parts`; caller `protocol-protocol-SignalMessage-compute_mac` | One HMAC-SHA256 state fed the same three parts in order | Same associated-type limitation, for incremental `Hmac` | Inline `Hmac::update` calls translate |
 | `protocol-pqxdh-HandshakeKeys-derive_with_label` | Replace `derive_arrays` with a zeroed 96-byte buffer and three fixed 32-byte copies; retain the same HKDF call, label, error expectation and chain counter zero | Excluded zerocopy traits leave impls that trigger an Aeneas prepass error; retaining them exposes unsupported pointer operations | The original array helper translates with concrete splitting and no added assumptions |
@@ -230,7 +237,7 @@ Each workaround names its limitation in the patch header or in a comment in the 
 
 The root `Cargo.toml` adds `exclude = [".aeneas"]`, so Cargo does not treat the work copy in `.aeneas/work/` as part of the repository's workspace.
 
-The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
+The helper `log_public_key_trailing_bytes` (in core's `curve.rs`) is marked opaque in `aeneas-config.core.yml`, and `Core/FunsExternal.lean` defines it as `ok ()`. The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
 
 ## Lean model choices
 
@@ -246,16 +253,18 @@ The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.r
 | `signal_crypto::aes_cbc::{aes_256_cbc_encrypt, aes_256_cbc_decrypt}` and their error types | Reuse the crypto profile's externals and types | Protocol and Crypto share one AES-CBC model. Exact-match tweaks remove Protocol's duplicate error types and fail if their generated shape changes. |
 | `spqr::{initial_state, send, recv}` | Externals | The SPQR v1.6.0 interface libsignal consumes; SPQR itself is extracted and verified in SPQR-verify |
 | `triple_ratchet::{is_state_decode, is_bad_key_or_iv}` | `ok (match error with \| .StateDecode => true \| _ => false)` and the same for `BadKeyOrIv` | Exact transcription of the `matches!` bodies; the Lean inductive has no borrow problem |
-| The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol` | `ok ()` | Logging affects neither protocol state nor results |
+| The `log_*` helpers in `double_ratchet`, `triple_ratchet` and `protocol`, and `curve::log_public_key_trailing_bytes` in Core | `ok ()` | The model leaves out the log records and the loggers' effects, and assumes that an enabled logger returns; then logging affects neither protocol state nor results |
 | `Option::default` | `fun T => ok none` | The derived `Default` of `SessionStructure`, which `decode` takes as an argument, calls it. The Aeneas library does not model it |
-| `ProtocolAddress::clone` | `fun a => ok a` | The derived `Clone` copies the name and the device ID. `session_core::require_trusted_identity` clones the address for the `UntrustedIdentity` error |
+| `String::clone` (`Core/FunsExternal.lean`) | `fun s => ok s` | The clone holds the same characters. Core's derived `Clone` of `ProtocolAddress` clones the name with it, and `session_core::require_trusted_identity` calls that `Clone` for the `UntrustedIdentity` error; Protocol uses Core's definition |
+| `uuid::fmt::Hyphenated::LENGTH` (`Core/FunsExternal.lean`) | `ok 36#usize` | uuid 1.23.4 declares `pub const LENGTH: usize = 36`. `ServiceId::parse_from_service_id_string` compares the input length with it; `Uuid::try_parse`, `str::len`, `str::as_bytes` and `str::split_at` stay external |
+| `PartialEq for uuid::Uuid` (`Core/FunsExternal.lean`) | `ok (decide (self.bytes = other.bytes))` | uuid 1.23.4 declares `struct Uuid([u8; 16])` with a derived `PartialEq`, which compares the 16 bytes. Core's derived equality of `ServiceId` calls it |
 | `PublicKey::verify_signature` | Dropped; Core's definition is used | `session_core::verify_bundle_signatures` calls it. Core defines it over the root axiom `curve.PublicKey.verify_signature_for_multipart_message`, so no Protocol-side verifier axiom enters the closure |
 | `KeyPair::generate`, `PrivateKey::public_key` | Dropped; Core's generated definitions `libsignal_core.curve.KeyPair.generate` and `libsignal_core.curve.PrivateKey.public_key` have the names that the Protocol code calls. `Core/CurveProvider.lean` makes the root names `curve.KeyPair.generate` and `curve.PrivateKey.public_key` aliases of these definitions | Core extracts both functions with their bodies. There is one constant for each Rust function, and the PQXDH statements, which use the root names, speak of the extracted definitions |
-| `PrivateKey::{calculate_signature, calculate_signature_for_multipart_message}`, `PublicKey::verify_signature_for_multipart_message`, `TryFrom<&[u8]> for PublicKey` | Dropped; `Core/CurveProvider.lean` makes each Protocol name an alias of Core's root axiom (`curve.PrivateKey.calculate_signature` and so on) | Core has no body for them. With the alias there is one constant for each Rust function, so a contract on Core's constant also covers the Protocol callers |
+| `PrivateKey::{calculate_signature, calculate_signature_for_multipart_message}`, `PublicKey::verify_signature_for_multipart_message` | Dropped; `Core/CurveProvider.lean` makes each Protocol name an alias of Core's root axiom (`curve.PrivateKey.calculate_signature` and so on) | Core has no body for them. With the alias there is one constant for each Rust function, so a contract on Core's constant also covers the Protocol callers |
 | `double_ratchet::skipped_key_from_pb` | `MessageKeyGenerator::from_pb` followed by the same `map` and `map_err` | Transcription; `InvalidSessionError` translates to `Str` |
 | `Iterator::position` for slice iterators | Transcription of the loop in core's `slice/iter/macros.rs`: apply the predicate in order, stop at the first `true`, consume that element | It was an axiom, so nothing fixed which receiver chain or skipped key `find_receiver_chain_index` and `take_skipped_key` select |
 | `subtle::Choice` | Structure with one `U8` field, owned by Crypto and imported by Protocol | Rust defines `struct Choice(u8)`, holding 0 or 1 |
-| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model |
+| `subtle::ConstantTimeEq` for `u8` and `[T]`; `From<Choice> for bool` (owned by Crypto, reused by Core and Protocol) | `u8`: 1 when the bytes are equal, 0 otherwise. `[T]`: transcription of the loop (0 on different lengths, else the AND of the elementwise results). `bool`: `val != 0` | The values computed by `subtle` 2.6.1; constant-time execution is outside the model. `ConstantTimeEq for i32`, which `ConstantTimeEq for PublicKey` calls as `0.ct_eq(&1)` when the key types differ, has no model (`Core/FunsExternal.lean`) |
 | `core::slice::{first_chunk, split_last_chunk}` | Definitions with `List.take` and `List.drop` | The Aeneas library does not model them; the definitions follow the core library's documented results |
 | `<Box<T, A> as AsRef<T>>::as_ref` | `fun x => ok x` | The `alloc` body returns `self`, a borrow of the boxed value with no failing path, and Aeneas models both `Box<T, A>` and `&T` as `T`. The allocator type parameter stays in the signature |
 | `<Vec<T, A> as AsRef<[T]>>::as_ref` | `fun v => ok (alloc.vec.Vec.deref v)` | The `alloc` body returns `self`, deref-coerced to the slice of the elements; the library's `Vec.deref` gives that slice |
