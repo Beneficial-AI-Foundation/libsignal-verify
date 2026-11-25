@@ -237,7 +237,7 @@ Each workaround names its limitation in the patch header or in a comment in the 
 
 The root `Cargo.toml` adds `exclude = [".aeneas"]`, so Cargo does not treat the work copy in `.aeneas/work/` as part of the repository's workspace.
 
-The helper `log_public_key_trailing_bytes` (in core's `curve.rs`) is marked opaque in `aeneas-config.core.yml`, and `Core/FunsExternal.lean` defines it as `ok ()`. The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs` and `protocol.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
+The helper `log_public_key_trailing_bytes` (in core's `curve.rs`) is marked opaque in `aeneas-config.core.yml`, and `Core/FunsExternal.lean` defines it as `ok ()`. The helpers `log_*` (in `double_ratchet.rs`, `triple_ratchet.rs`, `protocol.rs` and `state/session.rs`), `skipped_key_from_pb`, `is_bad_key_or_iv`, `decrypt_failure_message` and `is_state_decode` are marked opaque in `aeneas-config.protocol.yml`, because their bodies contain the constructs listed above. `Protocol/FunsExternal.lean` gives Lean definitions for all of them except `decrypt_failure_message` (see [Lean model choices](#lean-model-choices)), so only that message formatting stays external.
 
 ## Lean model choices
 
