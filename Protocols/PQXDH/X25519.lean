@@ -12,8 +12,9 @@ import Curve25519.Montgomery
 Four facts about the RFC 7748 function `X25519` of the fork's mathematics library and the
 clamping of its scalars. They are stated with the definitions of the `Curve25519` library of the
 curve25519-dalek fork (`Curve25519.X25519` and `Curve25519.Montgomery`), which is the only part of
-the fork that this module imports. Each fact is proved from the fork's theorems, with no assumption
-beyond Lean's axioms: `Protocols/Specs/PQXDH.lean` checks the axioms that each depends on.
+the fork that this module imports. The proofs use the fork's definitions and lemmas, with no
+assumption beyond Lean's axioms: `Protocols/Specs/PQXDH.lean` checks the axioms that each
+depends on.
 
 * `x25519_basepoint_comm`: the two parties of a Diffie-Hellman exchange from the base point
   compute the same 32 bytes.
