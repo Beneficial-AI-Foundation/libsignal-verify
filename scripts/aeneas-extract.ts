@@ -25,7 +25,17 @@ type TargetKey = "core" | "crypto" | "crypto-cbc" | "crypto-full" | "protocol" |
 const TARGETS: Record<TargetKey, {
   configs: string[]; diagnostic?: boolean; requiredBodies?: Record<string, number>;
 }> = {
-  core: { configs: ["core"] },
+  core: {
+    configs: ["core"],
+    requiredBodies: {
+      "libsignal_core::address::clone": 2,
+      "libsignal_core::address::eq": 2,
+      "libsignal_core::curve::eq": 1,
+      "libsignal_core::curve::deserialize": 2,
+      "libsignal_core::curve::try_from": 1,
+      "libsignal_core::address::parse_from_service_id_string": 2,
+    },
+  },
   crypto: {
     configs: ["crypto"],
     requiredBodies: {
@@ -63,6 +73,9 @@ const TARGETS: Record<TargetKey, {
       "libsignal_protocol::state::session::session_version": 2,
       "libsignal_protocol::state::session::remote_identity_key": 1,
       "libsignal_protocol::state::session::archive_current_state_inner": 1,
+      "libsignal_protocol::state::session::new": 3,
+      "libsignal_protocol::state::session::add_receiver_chain": 1,
+      "libsignal_protocol::ratchet::keys::create_chain": 1,
     },
   },
   "ratchet-state": {

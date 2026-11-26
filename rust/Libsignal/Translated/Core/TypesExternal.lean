@@ -1,6 +1,7 @@
 -- [libsignal_core]: external types.
 import Aeneas
 import Libsignal.Translated.Shared
+import Libsignal.Translated.Crypto.Funs
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
@@ -35,6 +36,8 @@ axiom core.num.niche_types.NonZeroU8Inner : Type
     Visibility: public -/
 @[rust_type "core::num::nonzero::NonZero"]
 axiom core.num.nonzero.NonZero (T : Type) (Clause0_NonZeroInner : Type) : Type
+
+-- (dropped axiom subtle.Choice; provided by an imported sibling lib)
 
 /-- [uuid::error::Error]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.19.0/src/error.rs', lines 5:0-5:16

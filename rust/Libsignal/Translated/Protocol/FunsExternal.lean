@@ -185,6 +185,14 @@ axiom core.option.Option.and_then
 axiom core.option.Option.zip
   {T : Type} {U : Type} : Option T → Option U → Result (Option (T × U))
 
+/-- [core::option::{core::option::Option<(T, U)>}::unzip]:
+    Source: '/rustc/library/core/src/option.rs', lines 2111:4-2111:48
+    Name pattern: [core::option::{core::option::Option<(@T, @U)>}::unzip]
+    Visibility: public -/
+@[rust_fun "core::option::{core::option::Option<(@T, @U)>}::unzip"]
+axiom core.option.OptionPair.unzip
+  {T : Type} {U : Type} : Option (T × U) → Result ((Option T) × (Option U))
+
 -- (dropped axiom core.option.OptionResult.transpose; provided by an imported sibling lib)
 
 /-- [core::option::{impl core::clone::Clone for core::option::Option<T>}::clone]:
@@ -528,12 +536,7 @@ axiom alloc.fmt.format : core.fmt.Arguments → Result String
   "alloc::str::{alloc::borrow::ToOwned<str, alloc::string::String>}::to_owned"]
 axiom Str.Insts.AllocBorrowToOwnedString.to_owned : Str → Result String
 
-/-- [alloc::string::{impl core::clone::Clone for alloc::string::String}::clone]:
-    Source: '/rustc/library/alloc/src/string.rs', lines 2425:4-2425:27
-    Name pattern: [alloc::string::{core::clone::Clone<alloc::string::String>}::clone]
-    Visibility: public -/
-@[rust_fun "alloc::string::{core::clone::Clone<alloc::string::String>}::clone"]
-axiom alloc.string.String.Insts.CoreCloneClone.clone : String → Result String
+-- (dropped axiom alloc.string.String.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 -- (dropped axiom alloc.string.String.Insts.CoreOpsDerefDerefStr.deref; provided by an imported sibling lib)
 
@@ -665,36 +668,13 @@ axiom hex.encode
   Std.U8)) :
   T → Result String
 
-/-- [libsignal_core::address::{impl core::cmp::PartialEq<libsignal_core::address::ServiceId> for libsignal_core::address::ServiceId}::eq]:
-    Source: 'rust/core/src/address.rs', lines 184:28-184:37
-    Name pattern: [libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceId, libsignal_core::address::ServiceId>}::eq]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{core::cmp::PartialEq<libsignal_core::address::ServiceId, libsignal_core::address::ServiceId>}::eq"]
-axiom libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq
-  :
-  libsignal_core.address.ServiceId → libsignal_core.address.ServiceId →
-    Result Bool
+-- (dropped axiom libsignal_core.address.ServiceId.Insts.CoreCmpPartialEqServiceId.eq; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.ServiceId.service_id_fixed_width_binary; provided by an imported sibling lib)
 
-/-- [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]:
-    Source: 'rust/core/src/address.rs', lines 267:4-267:68
-    Name pattern: [libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{libsignal_core::address::ServiceId}::parse_from_service_id_string"]
-axiom libsignal_core.address.ServiceId.parse_from_service_id_string
-  : Str → Result (Option libsignal_core.address.ServiceId)
+-- (dropped axiom libsignal_core.address.ServiceId.parse_from_service_id_string; provided by an imported sibling lib)
 
-/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::DeviceId}::clone]:
-    Source: 'rust/core/src/address.rs', lines 683:15-683:20
-    Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::DeviceId>}::clone]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::address::{core::clone::Clone<libsignal_core::address::DeviceId>}::clone"]
-axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
-  : libsignal_core.address.DeviceId → Result libsignal_core.address.DeviceId
+-- (dropped axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 /-- [libsignal_core::address::{impl core::convert::From<libsignal_core::address::DeviceId> for u8}::from]:
     Source: 'rust/core/src/address.rs', lines 728:4-728:36
@@ -705,17 +685,7 @@ axiom libsignal_core.address.DeviceId.Insts.CoreCloneClone.clone
 axiom U8.Insts.CoreConvertFromDeviceId.from
   : libsignal_core.address.DeviceId → Result Std.U8
 
-/-- [libsignal_core::address::{impl core::clone::Clone for libsignal_core::address::ProtocolAddress}::clone]:
-    Source: 'rust/core/src/address.rs', lines 776:9-776:14
-    Name pattern: [libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone]
-    Visibility: public -/
--- The derived `Clone` copies the name and the device ID, so the copy equals the original.
-@[rust_fun
-  "libsignal_core::address::{core::clone::Clone<libsignal_core::address::ProtocolAddress>}::clone"]
-def libsignal_core.address.ProtocolAddress.Insts.CoreCloneClone.clone
-  (a : libsignal_core.address.ProtocolAddress) :
-  Result libsignal_core.address.ProtocolAddress :=
-  ok a
+-- (dropped axiom libsignal_core.address.ProtocolAddress.Insts.CoreCloneClone.clone; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.address.ProtocolAddress.name; provided by an imported sibling lib)
 
@@ -755,16 +725,7 @@ axiom libsignal_core.curve.PublicKey.Insts.CoreCloneClone.clone
 
 -- (dropped axiom libsignal_core.curve.PublicKey.Insts.CoreConvertTryFromShared0SliceU8CurveError.try_from; provided by an imported sibling lib)
 
-/-- [libsignal_core::curve::{impl core::cmp::PartialEq<libsignal_core::curve::PublicKey> for libsignal_core::curve::PublicKey}::eq]:
-    Source: 'rust/core/src/curve.rs', lines 215:4-215:43
-    Name pattern: [libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::eq]
-    Visibility: public -/
-@[rust_fun
-  "libsignal_core::curve::{core::cmp::PartialEq<libsignal_core::curve::PublicKey, libsignal_core::curve::PublicKey>}::eq"]
-axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq
-  :
-  libsignal_core.curve.PublicKey → libsignal_core.curve.PublicKey → Result
-    Bool
+-- (dropped axiom libsignal_core.curve.PublicKey.Insts.CoreCmpPartialEqPublicKey.eq; provided by an imported sibling lib)
 
 -- (dropped axiom libsignal_core.curve.PrivateKey.deserialize; provided by an imported sibling lib)
 
@@ -1491,14 +1452,6 @@ def double_ratchet.log_jump_ahead
 def double_ratchet.log_corrupt_receiver_chain : Result Unit :=
   ok ()
 
-/-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
-    Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-221:5 -/
-axiom ratchet.keys.RootKey.create_chain
-  :
-  ratchet.keys.RootKey → libsignal_core.curve.PublicKey →
-    libsignal_core.curve.PrivateKey → Result (core.result.Result
-    (ratchet.keys.RootKey × ratchet.keys.ChainKey) error.SignalProtocolError)
-
 /-- [libsignal_protocol::fingerprint::get_encoded_string]:
     Source: 'rust/protocol/src/fingerprint.rs', lines 42:0-64:1 -/
 axiom fingerprint.get_encoded_string
@@ -1707,25 +1660,13 @@ axiom ratchet.keys.ChainKey.calculate_base_material
   ratchet.keys.ChainKey → Array Std.U8 1#usize → Result (Array Std.U8
     32#usize)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::add_receiver_chain]:
-    Source: 'rust/protocol/src/state/session.rs', lines 370:4-394:5 -/
-axiom state.session.SessionState.add_receiver_chain
-  :
-  state.session.SessionState → libsignal_core.curve.PublicKey →
-    ratchet.keys.ChainKey → Result state.session.SessionState
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 174:4-199:5 -/
-axiom state.session.SessionState.new
-  :
-  Std.U8 → identity_key.IdentityKey → identity_key.IdentityKey →
-    ratchet.keys.RootKey → libsignal_core.curve.PublicKey → alloc.vec.Vec
-    Std.U8 → Result state.session.SessionState
-
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 746:4-751:5 -/
-axiom state.session.SessionRecord.new
-  : state.session.SessionState → Result state.session.SessionRecord
+/-- [libsignal_protocol::state::session::log_trimming_receiver_chain]:
+    Source: 'rust/protocol/src/state/session.rs', lines 1022:0-1030:1 -/
+-- The model leaves out the log record and the logger's effects, and assumes
+-- that the logger returns.
+def state.session.log_trimming_receiver_chain
+  (_state : state.session.SessionState) : Result Unit :=
+  ok ()
 
 /-- [libsignal_protocol::sender_keys::{libsignal_protocol::sender_keys::SenderMessageKey}::new]:
     Source: 'rust/protocol/src/sender_keys.rs', lines 34:4-45:5 -/
@@ -1868,14 +1809,14 @@ noncomputable def state.signed_prekey.GenericSignedPreKey.deserialize.default
     (Clause0_Clause0_PublicKey := Clause0_Clause0_PublicKey)
     (Clause0_Clause0_PrivateKey := Clause0_Clause0_PrivateKey)
 
-/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new]:
-    Source: 'rust/protocol/src/state/session.rs', lines 55:4-73:5 -/
-axiom state.session.UnacknowledgedPreKeyMessageItems.new
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey,), (libsignal_protocol::state::kyber_prekey::KyberPreKeyId, &'_3 [u8])> for libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{closure}<'a, '_1, '_2, '_3>}::call_once]:
+    Source: 'rust/protocol/src/state/session.rs', lines 63:17-63:85 -/
+axiom
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8.call_once
   :
-  Option state.prekey.PreKeyId → state.signed_prekey.SignedPreKeyId →
-    libsignal_core.curve.PublicKey → Option
-    proto.storage.session_structure.PendingKyberPreKey → std.time.SystemTime
-    → Result state.session.UnacknowledgedPreKeyMessageItems
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure →
+    proto.storage.session_structure.PendingKyberPreKey → Result
+    (state.kyber_prekey.KyberPreKeyId × (Slice Std.U8))
 
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::remote_identity_key_bytes]:
     Source: 'rust/protocol/src/state/session.rs', lines 223:4-225:5 -/
