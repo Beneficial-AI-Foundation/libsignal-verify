@@ -4,14 +4,16 @@ The PQXDH statements of the Full realization rest on contracts: named hypotheses
 the extraction, or about extracted functions whose bodies call opaque leaves. `Protocols/LEDGER.md`
 lists them. This file reviews the contracts that stay assumptions: what each one states, which Rust
 code it stands for, why we believe it, what breaks if it is false, and what would discharge it. It
-also reviews `GenerateTotal`, which is now proved from two of them (section 8).
+also reviews `GenerateTotal`, which is now proved from two of them (section 8), and
+`HkdfSha256Contract`, which is now proved from `HkdfSha256RfcContract` (section 1).
 
 ## Scope and conventions
 
 The file covers:
 
 - the contracts in `Protocols/PQXDH/Contracts.lean`, with their fault-or-value forms where they exist;
-- `HkdfSha256Contract` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`;
+- `HkdfSha256RfcContract` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`, and
+  `HkdfSha256Contract` in the same file, which is proved from it;
 - `KyberBridge` in `Protocols/PQXDH/SecurityDefs.lean`, and `KyberDeltaCorrect` and
   `KyberDeltaCorrectAfterGenerate` in `Protocols/PQXDH/Kem.lean`;
 - the opaque declarations of the extraction that the PQXDH statements reach. These are the axioms of
@@ -74,8 +76,9 @@ numbers in that patched copy. This file cites the committed tree unless it says 
    `KyberDeltaCorrectAfterGenerate` bounds the same mass with encapsulation on the state that Core's
    `generate` returns. No premise describes the law of that state, and this contract cannot be derived
    in Lean from `KyberDeltaCorrect`. See section 6.
-4. **The HKDF contract describes a patched helper.** `crypto::hkdf_sha256` exists only in the patched
-   copy. Its link to production is the two translation patches, which we checked. See section 1.
+4. **The HKDF contracts describe a patched helper.** `crypto::hkdf_sha256` exists only in the patched
+   copy. Its link to production is the translation patches that add it and route its callers through
+   it, which we checked. See section 1.
 5. **Stale citation.** The docstring of `RngTotal` cites `rand_core` 0.9.3. `Cargo.lock` pins 0.9.5.
    The cited lines are the same in both versions.
 6. **The security statements reach `generate` with no premise on it.** `uakeInitiator_secure_dh` and
@@ -91,7 +94,8 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 | Contract | Stands for | Discharge |
 | --- | --- | --- |
-| `HkdfSha256Contract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0 | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
+| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
+| `HkdfSha256Contract` | the same helper with no salt and 96 bytes of output | proved from `HkdfSha256RfcContract` (`hkdfSha256Contract_of_rfc`) |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
@@ -102,14 +106,22 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | `ClampIntegerContract` | `clamp_integer` of `curve25519-dalek` 5.0.0 | the fork's `clamp_integer_spec`, with clamp idempotence on numbers and the link from our constant to the fork's function |
 | `X25519SecretContract` | `StaticSecret`, `PublicKey::from(&StaticSecret)` and `PublicKey::as_bytes` of `x25519-dalek` 3.0.0 | an extraction or a verification of `x25519-dalek` |
 
-## 1. `HkdfSha256Contract`
+## 1. `HkdfSha256RfcContract` and `HkdfSha256Contract`
 
-**Statement.** `HkdfSha256Contract H` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`. For
-every input key material `ikm`, every `info` and every 96-byte buffer `out`, the call
-`crypto.hkdf_sha256 none ikm info out` returns `Ok(())` and a buffer of the same length. The buffer
-holds `hkdfSha256Okm96 H none ikm info`: HKDF-Extract followed by HKDF-Expand (RFC 5869, Sections 2.2
-and 2.3) for 96 bytes, computed from the MAC interface `H`. The contract does not say that `H` is
-HMAC-SHA256.
+**Statement.** `HkdfSha256RfcContract H` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`.
+For every optional salt, every input key material `ikm`, every `info` and every buffer `out` of at
+most 255 · 32 = 8,160 bytes, the call `crypto.hkdf_sha256 salt ikm info out` returns `Ok(())` and a
+buffer of the same length. The buffer holds `hkdfSha256Okm H salt ikm info L`, where `L` is the
+length of `out`: HKDF-Extract with the salt, followed by HKDF-Expand for `L` bytes (RFC 5869,
+Sections 2.2 and 2.3), computed from the MAC interface `H`. A present salt, the empty one included,
+is the HMAC key as given. An absent salt is `hkdfDefaultSalt`, 32 zero bytes. The contract does not
+say that `H` is HMAC-SHA256.
+
+`HkdfSha256Contract H`, in the same file, is the case that PQXDH uses: no salt and a 96-byte buffer,
+filled with `hkdfSha256Okm96 H none ikm info`. Its statement is unchanged, and it is no longer
+assumed: `hkdfSha256Contract_of_rfc` proves it from `HkdfSha256RfcContract H`, through
+`hkdfSha256Okm_ninetySix`, which says that the HKDF output of `hkdfSha256Okm` at 96 bytes is
+`hkdfSha256Okm96`. The statements that take `HkdfSha256Contract H` still take it as a hypothesis.
 
 **Stands for.** The helper `libsignal_protocol::crypto::hkdf_sha256` that
 `translation-patches/protocol-crypto-hkdf_sha256.patch` adds. Its body is
@@ -117,9 +129,12 @@ HMAC-SHA256.
 helper. Upstream `HandshakeKeys::derive_with_label` (`rust/protocol/src/pqxdh.rs`) makes the same
 `Hkdf` call inside `libsignal_core::derive_arrays`.
 `translation-patches/protocol-pqxdh-HandshakeKeys-derive_with_label.patch` replaces that call with the
-helper on a 96-byte buffer, split into three 32-byte arrays.
+helper on a 96-byte buffer, split into three 32-byte arrays. In the patched copy, the helper also
+serves `RootKey::create_chain` (`rust/protocol/src/ratchet/keys.rs`), with the 32-byte root key as
+salt and a 64-byte buffer, and `MessageKeys::derive_keys`, inside `derive_arrays`. No statement uses
+these two calls yet.
 
-**Checked here.**
+**Checked here.** The review of the 96-byte case without salt read these lines:
 
 - In `hkdf` 0.13.0, a missing salt becomes `Output::<H>::default()`, that is 32 zero bytes
   (`src/lib.rs:46-50`). This is RFC 5869's default salt and the Lean `hkdfDefaultSalt`.
@@ -138,45 +153,96 @@ helper on a 96-byte buffer, split into three 32-byte arrays.
   arrays and returns them in order. So the patched split `[..32]`, `[32..64]`, `[64..]` gives the same
   three arrays.
 
+For the general contract, this review read these lines of `hkdf` 0.13.0, `hmac` 0.13.0 and
+`digest` 0.11.3:
+
+- A present salt. `GenericHkdfExtract::new` (`hkdf`, `src/lib.rs:46-51`) passes a present salt
+  unchanged to `HmacImpl::new_from_slice` (`src/hmac_impl.rs:23-25`). That function calls
+  `KeyInit::new_from_slice` of `Hmac<Sha256>` and expects its result. The wrapper passes the key to
+  `HmacCore::new_from_slice` (`digest`, `src/buffer_macros/fixed.rs:374-378`), which always
+  returns `Ok` (`hmac`, `src/block_api.rs:53-69`). Its `get_der_key` (`hmac`, `src/utils.rs:9-32`)
+  pads a key of at most 64 bytes with zeros to one block and hashes a longer key first. So every
+  salt gives an HMAC key, the empty one and one longer than 64 bytes included, and the `expect`
+  cannot fail. This is HMAC's key rule. In Rust, the empty salt and the absent salt therefore give the
+  same PRK. In Lean the contract writes `H.mac [] ikm` for the empty salt and
+  `H.mac hkdfDefaultSalt ikm` for the absent one. Both are right when `H` is HMAC-SHA256, but
+  `HmacSha256` records only the length of a tag, so Lean cannot show that the two are equal.
+- The PRK and the `expect` of `finalize` are as in the 96-byte case: the PRK has 32 bytes whatever
+  the salt (`src/lib.rs:60-64`, `:104-112`).
+- The output length. `expand_multi_info` returns `InvalidLength` only when the buffer is longer than
+  `32 * 255` bytes (`src/lib.rs:137-140`), before it writes anything. Otherwise
+  `okm.chunks_mut(32)` (`:142`) splits the buffer into `N = ⌈L / 32⌉` chunks, the last one shorter
+  when 32 does not divide `L`. Each chunk receives the first `block.len()` bytes of its block
+  (`:159-160`). So the buffer holds the first `L` bytes of `T(1) | … | T(N)`, which is
+  `hkdfExpand`, and the call returns `Ok(())` (`:165`). For the lengths that this review traced:
+  - 0: no chunk, and the buffer stays empty (`hkdfExpand` gives `[]`);
+  - 1 and 31: one chunk with the first byte, or the first 31 bytes, of `T(1)`;
+  - 32: one full chunk;
+  - 33: `T(1)` and the first byte of `T(2)`;
+  - 64 and 96: two and three full chunks;
+  - 8,160: 255 full chunks.
+- The truncation of the last block changes nothing later: the next block, if any, takes the full
+  32-byte output of the block before (`:162`, `:145-147`), as RFC 5869 and `hkdfT` do. The first
+  block takes nothing before `info` (`prev` starts as `None`, `:135`), and `hkdfT` starts from the
+  empty `T(0)`.
+- The counter. `enumerate` gives the block indices 0 to `N - 1`, at most 254. So
+  `u8::try_from(block_n)` succeeds, and adding 1 gives at most 255 without overflow (`:155`). This
+  is the byte `i + 1` of `hkdfT` for `i` from 0 to 254, where `BitVec.ofNat 8 (i + 1)` does not wrap.
+- The buffer. The helper writes into the `&mut [u8]` it is given and never changes its length. The
+  extraction returns the new slice, and the contract states that it keeps the length.
+- Above 8,160 bytes the helper returns `Err(InvalidLength)` and writes nothing. The contract has the
+  premise `out.length ≤ 255 * hashLen` and says nothing about these buffers. It does not state that
+  the call fails there.
+
 **From the source.** That `Hmac<Sha256>` from the `hmac` and `sha2` crates computes HMAC-SHA256
 (FIPS 198-1 over FIPS 180-4).
 
-**Gaps.** The contract describes the patched helper. Its link to production is the two patches, which
-we read. `H` is a parameter: a theorem that assumes `HkdfSha256Contract H` holds for every `H` that the
-helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The contract fixes the
-salt and the output length to those of the call that PQXDH makes: no salt and 96 bytes of output. It
-does not restrict the lengths of `ikm` and `info`.
+**Gaps.** The contract describes the patched helper. Its link to production is the patches, which
+we read. `H` is a parameter: a theorem that assumes `HkdfSha256RfcContract H` holds for every `H`
+that the helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The
+contract bounds the output length only. It does not restrict the lengths of the salt, `ikm` and
+`info`. Lean cannot show that the empty salt and the absent salt give the same output (see above).
 
-The contract allows `ikm` and `info` of any length, and the argument above bounds only the output.
-HMAC's inner SHA-256 hash receives one 64-byte pad block before the message (`hmac` 0.13.0,
-`src/block_api.rs:53-63`). `sha2` 0.11.0 computes the message length in bits as `8 * (…)` in `u64`
-(`src/block_api.rs:66`), so the product overflows once a hash has received 2^61 bytes or more. The
-workspace builds `sha2` without overflow checks in release (`Cargo.toml`,
-`[profile.release.package.sha2]`), so the product wraps there, and a build with overflow checks
-panics. With overflow checks, the contract is therefore stronger than the Rust code on inputs this
-long. In the release profile the call returns, but SHA-256 (FIPS 180-4) is defined only for messages
-shorter than 2^64 bits, so there the reading of `H` as HMAC-SHA256 fails. The PQXDH call is far below this limit: its input
-key material has at most 192 bytes (`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info`
-is the fixed label `WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`.
+The contract allows a salt, `ikm` and `info` of any length, and the argument above bounds only the
+output. HMAC's inner SHA-256 hash receives one 64-byte pad block before the message (`hmac` 0.13.0,
+`src/block_api.rs:53-63`), and HMAC hashes a salt longer than 64 bytes as a key (`src/utils.rs:17-18`).
+`sha2` 0.11.0 computes the message length in bits as `8 * (…)` in `u64` (`src/block_api.rs:66`), so
+the product overflows once a hash has received 2^61 bytes or more. The workspace builds `sha2`
+without overflow checks in release (`Cargo.toml`, `[profile.release.package.sha2]`), so the product
+wraps there, and a build with overflow checks panics. With overflow checks, the contract is therefore
+stronger than the Rust code on inputs this long, a long present salt included. In the release
+profile the call returns, but SHA-256 (FIPS 180-4) is defined only for messages shorter than 2^64
+bits, so there the reading of `H` as HMAC-SHA256 fails. The calls that the statements reach are far
+below this limit. The PQXDH call has no salt, its input key material has at most 192 bytes
+(`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info` is the fixed label
+`WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`.
 
-**If false.** `derive_spec` and `derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis
-`h_hkdf`. If the contract fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems
-then say nothing about production: neither that the derivation returns, nor that the root key, the
-chain key and the pqr key are bytes 0 to 32, 32 to 64 and 64 to 96 of the HKDF output. The same
-hypothesis fails in `deriveKeysTotal` and in every Full statement that takes the contract:
-`coreCompletion_extracted`, `jointKeyAgreement_extracted`, both `wrapperAgreement_*`,
-`fullExp_noLostMass` and the two `_total` corollaries. The security statements take the fault-or-value
-form `HkdfSha256Partial` through `PartialContracts`. If the helper returns anything else (an error, another length or other bytes), that hypothesis
-fails too, and the security statements say nothing about production's key derivation. If the helper
-could fail, the `expect` in `derive_with_label` would panic.
+**If false.** `hkdfSha256Contract_of_rfc` then gives nothing, and nothing supports
+`HkdfSha256Contract H`. If the helper returns a wrong output, another length, an error or a fault
+on the 96-byte call without salt, `HkdfSha256Contract` fails too. `derive_spec` and
+`derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis `h_hkdf`. If the contract
+fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems then say nothing about
+production: neither that the derivation returns, nor that the root key, the chain key and the pqr key
+are bytes 0 to 32, 32 to 64 and 64 to 96 of the HKDF output. The same hypothesis fails in
+`deriveKeysTotal` and in every Full statement that takes the contract: `coreCompletion_extracted`,
+`jointKeyAgreement_extracted`, both `wrapperAgreement_*`, `fullExp_noLostMass` and the two `_total`
+corollaries. The security statements take the fault-or-value form `HkdfSha256Partial` through
+`PartialContracts`. If the helper returns anything else (an error, another length or other bytes),
+that hypothesis fails too, and the security statements say nothing about production's key derivation.
+If the helper could fail, the `expect` in `derive_with_label` would panic, and so would the
+`expect` in `create_chain` on its call with a salt.
 
 **Discharge.** A verified HMAC-SHA256 and HKDF that the extraction can call, or an extraction of the
-`hkdf`, `hmac` and `sha2` crates. `derive_spec` already proves the extracted key derivation from this
-contract. The contract as stated includes inputs of 2^61 bytes or more, on which a build with overflow
-checks panics (see "Gaps"). So a discharge from the pinned crates with overflow checks cannot prove the
-contract on these inputs.
+`hkdf`, `hmac` and `sha2` crates, on the whole domain of `HkdfSha256RfcContract`. That discharges
+`HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and `derive_spec` already proves the
+extracted key derivation from it. The contract as stated includes inputs of 2^61 bytes or more, on
+which a build with overflow checks panics (see "Gaps"). So a discharge from the pinned crates with
+overflow checks cannot prove the contract on these inputs: it needs a bound on the input lengths,
+and that changes the statement of the contract. The identification of `H` with HMAC-SHA256 stays
+outside Lean in both cases.
 
-**Fault-or-value form.** `HkdfSha256Partial H`. It follows from the total form, on the same domain.
+**Fault-or-value form.** `HkdfSha256Partial H`. It follows from `HkdfSha256Contract H`, on the same
+domain, and so from `HkdfSha256RfcContract H`.
 
 ## 2. `ToOwnedTotal`
 
@@ -626,7 +692,7 @@ corollaries and `fullExp_noLostMass`. This `sorryAx` comes from the admitted sta
 
 | Declaration | Covered by |
 | --- | --- |
-| `crypto.hkdf_sha256` | `HkdfSha256Contract` (section 1) |
+| `crypto.hkdf_sha256` | `HkdfSha256RfcContract`, and `HkdfSha256Contract`, which is proved from it (section 1) |
 | `Str.Insts.AllocBorrowToOwnedString.to_owned` | `ToOwnedTotal` (section 2) |
 | `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.encapsulate` | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |
 | `kem.kyber1024.Parameters.Insts.Libsignal_protocolKemParameters.decapsulate` | `KyberDecaps`, `KyberBridge`, `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` (sections 4 to 6) |

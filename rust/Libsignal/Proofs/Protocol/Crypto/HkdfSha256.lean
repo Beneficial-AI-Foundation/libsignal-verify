@@ -5,7 +5,7 @@ Authors: Alessandro D'Angelo
 -/
 import Libsignal.Translated.Protocol.FunsExternal
 
-/-! # HKDF-SHA256 and the contract for `crypto::hkdf_sha256`
+/-! # HKDF-SHA256 and the contracts for `crypto::hkdf_sha256`
 
 The Rust helper `libsignal_protocol::crypto::hkdf_sha256` is extracted as the opaque declaration
 `crypto.hkdf_sha256`: Aeneas does not translate the `hkdf` crate, so Lean knows only its type.
@@ -18,15 +18,20 @@ parametric in a supplied MAC interface `H`.
   (FIPS 180-4); that identification is external trust, stated in this documentation only. No
   security property (PRF, random oracle) is assumed.
 * **HKDF (RFC 5869).** HKDF-Extract and HKDF-Expand are defined from the supplied interface,
-  following the RFC exactly. Only the 96-byte output length used by PQXDH is defined, as three
-  Expand blocks. The result is HKDF-SHA256 precisely when the supplied interface is HMAC-SHA256.
+  following the RFC exactly. HKDF-Expand is defined for every output length (`hkdfExpand`, from
+  the blocks `hkdfT`). The 96-byte output used by PQXDH also has its own definition, as three
+  Expand blocks, and the two agree at 96 bytes (`hkdfSha256Okm_ninetySix`). The result is
+  HKDF-SHA256 precisely when the supplied interface is HMAC-SHA256.
 
-`HkdfSha256Contract H` connects the extracted helper to these definitions: on a 96-byte output
-buffer and an absent salt, the helper succeeds, keeps the buffer length and writes the RFC 5869
-output computed from `H`. It is a hypothesis of the theorems that use it, never an axiom, and it
-says nothing about which function `H` is.
+`HkdfSha256RfcContract H` connects the extracted helper to these definitions: for every optional
+salt and every output buffer of at most 255 · 32 = 8,160 bytes, the helper succeeds, keeps the
+buffer length and writes the RFC 5869 output computed from `H`. It is the assumption of this
+file. `HkdfSha256Contract H`, the case of an absent salt and a 96-byte buffer that PQXDH uses,
+follows from it (`hkdfSha256Contract_of_rfc`). Both are hypotheses of the theorems that use them,
+never axioms, and neither says which function `H` is.
 
-**Source**: rust/protocol/src/crypto.rs, lines 50:0-57:1
+**Source**: rust/protocol/src/crypto.rs, lines 50:0-57:1 of the patched copy: the helper exists only
+after `translation-patches/protocol-crypto-hkdf_sha256.patch`
 (`hkdf::Hkdf::<Sha256>::new(salt, input_key_material).expand(info, output)`); the `hkdf` 0.13.0
 crate realises RFC 5869 over `Hmac<Sha256>`.
 -/
@@ -100,9 +105,10 @@ material `ikm`, every `info` and every output buffer `out` of 96 bytes, the call
   the written bytes (Aeneas models `&mut [u8]` by returning the new slice);
 - fills the buffer with `hkdfSha256Okm96 H none ikm info`, whatever `out` contained before.
 
-This is a trusted assumption that the opaque helper agrees with the RFC 5869 definitions above
-for the given `H`, stated as a hypothesis. It does not discharge, and is independent of, the
-assumption that `H` is HMAC-SHA256. -/
+It is the case of an absent salt and a 96-byte buffer of the general contract
+`HkdfSha256RfcContract` below, and it follows from that contract by `hkdfSha256Contract_of_rfc`,
+so it is not assumed on its own. The theorems that use it still take it as a hypothesis. It does
+not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. -/
 def HkdfSha256Contract (H : HmacSha256) : Prop :=
   ∀ (ikm info out : Slice Std.U8), out.length = 96 →
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
@@ -120,5 +126,87 @@ theorem hkdf_sha256_okm96_spec {H : HmacSha256} (h : HkdfSha256Contract H)
         out'.val = hkdfSha256Okm96 H none ikm.val info.val ⦄ := by
   unfold HkdfSha256Contract at h
   exact h ikm info out h_len
+
+/-! ## HKDF for every output length -/
+
+/-- The HKDF-Expand blocks (RFC 5869, Section 2.3): `hkdfT H prk info n` is `T(n)`.
+
+`T(0)` is the empty string, and `T(i + 1) = HMAC-Hash(PRK, T(i) | info | i + 1)`, where the counter
+is a single byte. The byte is `i + 1` modulo 256, so these are RFC 5869's blocks for `n ≤ 255`, the
+largest counter that the RFC allows. -/
+def hkdfT (H : HmacSha256) (prk info : List Std.U8) : Nat → List Std.U8
+  | 0 => []
+  | i + 1 => hkdfExpandBlock H prk (hkdfT H prk info i) info
+      (⟨BitVec.ofNat 8 (i + 1)⟩ : Std.U8)
+
+/-- HKDF-Expand (RFC 5869, Section 2.3) for an output of `L` bytes.
+
+With `N = ⌈L / HashLen⌉`, the output is the first `L` bytes of `T(1) | T(2) | … | T(N)`.
+RFC 5869 allows `L ≤ 255 · HashLen`, that is 8,160 bytes. The definition is total in `L`: above
+that bound the counter byte wraps, and the result is no longer RFC 5869's. Every block has
+`HashLen` bytes, so the output has exactly `L` bytes for every `L` (`hkdfExpand_length`). -/
+def hkdfExpand (H : HmacSha256) (prk info : List Std.U8) (L : Nat) : List Std.U8 :=
+  ((List.range ((L + hashLen - 1) / hashLen)).flatMap
+    (fun i => hkdfT H prk info (i + 1))).take L
+
+/-- RFC 5869 HKDF with `L` bytes of output, computed from the supplied interface `H`:
+HKDF-Extract with the optional salt, followed by HKDF-Expand. It is HKDF-SHA256 when `H` is
+HMAC-SHA256 and `L ≤ 255 · HashLen`. -/
+def hkdfSha256Okm (H : HmacSha256) (salt : Option (List Std.U8))
+    (ikm info : List Std.U8) (L : Nat) : List Std.U8 :=
+  hkdfExpand H (hkdfExtract H salt ikm) info L
+
+/-- HKDF-Expand returns exactly `L` bytes, for every `L`. -/
+theorem hkdfExpand_length (H : HmacSha256) (prk info : List Std.U8) (L : Nat) :
+    (hkdfExpand H prk info L).length = L := by
+  have hT : ∀ n, (hkdfT H prk info (n + 1)).length = hashLen := fun n => by
+    simp [hkdfT, hkdfExpandBlock, H.mac_length, hashLen]
+  unfold hkdfExpand
+  rw [List.length_take, List.length_flatMap]
+  simp only [hT, List.map_const', List.sum_replicate, List.length_range, smul_eq_mul, hashLen]
+  omega
+
+/-- At 96 bytes, the HKDF output of every length is the three-block output `hkdfSha256Okm96`. -/
+theorem hkdfSha256Okm_ninetySix (H : HmacSha256) (salt : Option (List Std.U8))
+    (ikm info : List Std.U8) :
+    hkdfSha256Okm H salt ikm info 96 = hkdfSha256Okm96 H salt ikm info := by
+  simp [hkdfSha256Okm, hkdfSha256Okm96, hkdfExpand, hkdfExpand96, hashLen, List.range_succ, hkdfT]
+  rfl
+
+/-- **Contract for the opaque `crypto::hkdf_sha256`: RFC 5869 for every salt and every output
+length up to 8,160 bytes.**
+
+The extracted declaration is the root-level `crypto.hkdf_sha256`. For every optional salt, every
+input keying material `ikm`, every `info` and every output buffer `out` of at most
+255 · 32 = 8,160 bytes, the call `hkdf_sha256(salt, ikm, info, out)`
+- returns `Ok(())`;
+- returns a buffer of the same length as `out` (Aeneas models `&mut [u8]` by returning the new
+  slice);
+- fills the buffer with `hkdfSha256Okm H salt ikm info out.length`, whatever `out` contained
+  before. A present salt, the empty one included, is the HMAC key as given; an absent salt is
+  `hkdfDefaultSalt`.
+
+This is the trusted assumption of this file: that the helper, which calls `Hkdf::<Sha256>` of the
+`hkdf` 0.13.0 crate over `Hmac<Sha256>` of `hmac` 0.13.0 and `sha2` 0.11.0, agrees with the
+RFC 5869 definitions above for the given `H`. It is a hypothesis of the theorems that use it.
+It does not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. It does
+not restrict the lengths of the salt, `ikm` and `info`: once a SHA-256 input reaches 2^61 bytes,
+a build with overflow checks panics inside `sha2`, so on such inputs the contract is stronger than
+the Rust code (`Protocols/CONTRACTS.md`, section 1). On a buffer longer than 8,160 bytes the
+helper returns an error, and the contract says nothing there. -/
+def HkdfSha256RfcContract (H : HmacSha256) : Prop :=
+  ∀ (salt : Option (Slice Std.U8)) (ikm info out : Slice Std.U8),
+    out.length ≤ 255 * hashLen →
+    _root_.crypto.hkdf_sha256 salt ikm info out ⦃ r out' =>
+      r = .Ok () ∧ out'.length = out.length ∧
+        out'.val = hkdfSha256Okm H (salt.map (·.val)) ikm.val info.val out.length ⦄
+
+/-- The 96-byte contract follows from the general one: `HkdfSha256Contract H` is the case of
+`HkdfSha256RfcContract H` with an absent salt and a 96-byte buffer. -/
+theorem hkdfSha256Contract_of_rfc {H : HmacSha256} (h : HkdfSha256RfcContract H) :
+    HkdfSha256Contract H := by
+  intro ikm info out h96
+  have hs := h none ikm info out (by simp [hashLen, h96])
+  simpa [h96, hkdfSha256Okm_ninetySix] using hs
 
 end libsignal_protocol.crypto
