@@ -3,7 +3,8 @@
 The PQXDH statements of the Full realization rest on contracts: named hypotheses about opaque leaves of
 the extraction, or about extracted functions whose bodies call opaque leaves. `Protocols/LEDGER.md`
 lists them. This file reviews the contracts that stay assumptions: what each one states, which Rust
-code it stands for, why we believe it, what breaks if it is false, and what would discharge it.
+code it stands for, why we believe it, what breaks if it is false, and what would discharge it. It
+also reviews `GenerateTotal`, which is now proved from two of them (section 8).
 
 ## Scope and conventions
 
@@ -24,6 +25,8 @@ definition in `Protocols/PQXDH/Contracts.lean` assumes that the call equals `.ok
 so it allows a panic or non-termination. The total form says that the call returns, and what it
 returns, under its own premises. A fault-or-value form does not always follow from its total form
 (finding 1). `ToOwnedTotal` and `GenerateTotal` have no fault-or-value form (finding 6).
+`ClampIntegerContract` and `X25519SecretContract` are stated in one form. What each gives as a
+fault-or-value form is in sections 10 and 11.
 
 Policies and modelling choices (`ECKeyPairValid`, `PQKeyPairShape`, `Adversary.SendsFittingMessages`,
 `P.coins`, `P.ecKeygen`, `P.pqKeygen`, the synthetic AEAD wrapper, the last-resort Kyber prekey,
@@ -90,12 +93,14 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 | --- | --- | --- |
 | `HkdfSha256Contract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0 | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
-| `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | #75; an OS entropy failure stays outside any proof |
+| `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
-| `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #75 for the coins |
+| `KyberBridge` | libcrux Kyber-1024 as the abstract KEM of the PQ statement | a model of libcrux, with #84 for the coins |
 | `KyberDeltaCorrect`, `KyberDeltaCorrectAfterGenerate` | the decryption-failure probability of Kyber-1024, with encapsulation on a state from `P.coins` or on the state that `generate` returns | a proof that the failure mass on the ideal draws is at most δ, from the published analysis and a model of libcrux; for the second, also a description of the state that `generate` returns |
 | `AgreementDerived`, `AgreementTotal`, `TorsionFreeTotal`, `DerivedCanonical`, `SignTotal`, `SignVerify`, `VerifyTotal` | X25519 and XEdDSA in `rust/core/src/curve.rs` | #76, from the curve25519-dalek specifications |
-| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | curve25519-dalek-fork (`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the `rand` crate |
+| `GenerateTotal` | `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs`), extracted with its body, which calls items of curve25519-dalek and x25519-dalek that have no body | proved from `ClampIntegerContract` and `X25519SecretContract` (`generateTotal_of_contracts`); `RngTotal` is a premise inside `GenerateTotal` |
+| `ClampIntegerContract` | `clamp_integer` of `curve25519-dalek` 5.0.0 | the fork's `clamp_integer_spec`, with clamp idempotence on numbers and the link from our constant to the fork's function |
+| `X25519SecretContract` | `StaticSecret`, `PublicKey::from(&StaticSecret)` and `PublicKey::as_bytes` of `x25519-dalek` 3.0.0 | an extraction or a verification of `x25519-dalek` |
 
 ## 1. `HkdfSha256Contract`
 
@@ -242,9 +247,10 @@ statements and `fullExp_noLostMass` depend on it. The two fault-counting securit
 The two `_total` corollaries take `RngTotal` for both views of the generator, on a domain that
 contains the states from `P.coins` (`Protocols/PQXDH/Security.lean`), so they depend on it.
 
-**Discharge.** #75 (step 3) decides whether the draws from `P.coins` need a correspondence with
-production's generator. For a deterministic generator, such as the
-ChaCha generator of the tests, `RngTotal` could be proved from a body.
+**Discharge.** The draws from `P.coins` stay a modelling choice for the correctness statements. How
+they relate to a caller's generator across sessions belongs to the Full-side security experiment
+(#84). For a deterministic generator, such as the ChaCha generator of the tests, `RngTotal` could
+be proved from a body.
 
 ## 4. Kyber1024 backend: `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps`
 
@@ -376,8 +382,8 @@ calls must be checked. We did not write this construction in Lean.
 
 **Gaps.** IND-CCA of Kyber-1024 is a hardness assumption, out of scope for the correctness work (#72).
 libsignal draws the 32 encapsulation bytes with `csprng.random()`. The premise is the standard Kyber
-assumption only if these bytes are uniform when the state comes from `P.coins`. #75 includes the
-`P.coins` draw (its step 3). Two more
+assumption only if these bytes are uniform when the state comes from `P.coins`. The Full-side
+security experiment (#84) is where this question belongs. Two more
 differences separate the Lean premise from the usual computational assumption. The premise `hkem` of
 `uakeInitiator_secure_pq` bounds the advantage of every `K.IND_CCA_Adversary`, with no resource bound
 (#41; see the limits in the module docstring of `Protocols/PQXDH/Security.lean`). And `K`'s key
@@ -392,7 +398,7 @@ state drawn from `P.coins`, and no premise relates the law of that state to `P.c
 hypothesis, next to the IND-CCA premise on `K`. If the bridge fails for a `K`, the statements say
 nothing for that `K`, so its IND-CCA premise gives no bound on the extracted Kyber.
 
-**Discharge.** A model of libcrux's Kyber-1024, with #75 for the coins.
+**Discharge.** A model of libcrux's Kyber-1024, with #84 for the coins.
 
 ## 6. `KyberDeltaCorrect` and `KyberDeltaCorrectAfterGenerate`
 
@@ -484,7 +490,8 @@ curve25519-dalek specifications. This review stands until then.
 `curve25519-dalek` 5.0.0. Of these, `PrivateKey::public_key` is extracted with its body
 (`rust/Libsignal/Translated/Core/Funs.lean`), and the contracts that name it speak of that definition.
 The body calls `clamp_integer` of curve25519-dalek and items of x25519-dalek that have no body in Lean
-(section 9).
+(section 9). `ClampIntegerContract` and `X25519SecretContract` state facts about these items (sections
+10 and 11).
 
 | Contract | Statement | Checked here | From the source |
 | --- | --- | --- | --- |
@@ -543,9 +550,10 @@ nothing about the law of the pair or of the returned state.
 **Stands for.** `KeyPair::generate` of libsignal-core (`rust/core/src/curve.rs:327-341`). This is a
 function of libsignal-core itself, not of an outside library. The Core extraction gives it and the
 three functions of `curve::curve25519` that it calls their bodies
-(`rust/Libsignal/Translated/Core/Funs.lean`), so the contract is a statement about these definitions,
-not yet proved. The bodies call `clamp_integer` of curve25519-dalek and items of x25519-dalek that
-have no body in Lean (section 9). The contract stands for these lines:
+(`rust/Libsignal/Translated/Core/Funs.lean`), so the contract is a statement about these definitions.
+It is proved from two contracts on outside crates, with the totality of the generator as its premise: see
+"Discharge". The bodies call `clamp_integer` of curve25519-dalek and items of x25519-dalek that have
+no body in Lean (section 9). The contract stands for these lines:
 
 - `KeyPair::generate` (`curve.rs:327-341`). It calls `curve25519::PrivateKey::new`, and it stores
   `derive_public_key_bytes()` as the public key and `private_key_bytes()` as the private key.
@@ -558,24 +566,25 @@ In the Full realization, `initiate` (`Protocols/PQXDH/Scheme.lean`) calls the ex
 `curve.KeyPair.generate` on Alice's generator state for the same purpose, and `kyberKemAfterGenerate`
 calls it before encapsulation (section 6).
 
-**Checked here.**
+**Checked here.** `generateTotal_of_contracts` (`Protocols/PQXDH/KeyGen.lean`) proves the contract in
+Lean from `ClampIntegerContract` (section 10) and `X25519SecretContract` (section 11), using the premise
+`RngTotal` of the `CryptoRng` view inside `GenerateTotal` (section 3). The proof follows the code:
 
-- `generate` has no `Result` and no panic path of its own. It uses the generator once, through
-  `fill_bytes` on a 32-byte array. So when the generator is total on `Dom`, the returned state is in
-  `Dom`.
-- The pair satisfies `ECKeyPairValid`. Let `b` be the clamped bytes. In `x25519-dalek` 3.0.0,
-  `StaticSecret::from` stores the bytes unchanged and `to_bytes` returns them (`src/x25519.rs:235-237`,
-  `:247-252`), so the private half holds `b`. The public half is `PublicKey::from(&StaticSecret)`, a
-  base-point multiplication on `b` (`src/x25519.rs:255-260`). `PrivateKey::public_key`
-  (`curve.rs:259-267`) rebuilds a `curve25519::PrivateKey` from the stored bytes, which clamps them
-  again (`curve25519.rs:170-174`), and calls the same `derive_public_key_bytes`. Clamping is
-  idempotent: it clears the three low bits and the top bit and sets bit 254 (`curve25519-dalek` 5.0.0,
-  `src/scalar.rs:1407-1412`). So `public_key` applies the same function to the same bytes `b` and
-  returns `Ok` of the same public key. Both paths wrap the bytes as `PublicKeyData::DjbPublicKey`
-  (`PublicKey::new`, `curve.rs:80-82`, and the derived `From` that `generate` uses, `curve.rs:63-64`).
+- `generate_eq_readClampDerive` rewrites `generate` as one `fill_bytes` on a zeroed 32-byte buffer,
+  then `clamp_integer`, `StaticSecret::from`, `PublicKey::from`, `as_bytes` and `to_bytes`. On a
+  state in `Dom`, `fill_bytes` returns a state in `Dom`, and the two contracts say that each later
+  call returns. So `generate` returns, with the state that `fill_bytes` returned.
+- The private half holds the clamped bytes `c`, because `to_bytes` gives back the bytes that
+  `StaticSecret::from` stored. `public_key_djb_eq` rewrites `PrivateKey::public_key` on `c` as the
+  same sequence of calls, which clamps `c` again. `clamp_integer` returns `c` on `c`, so
+  `public_key` makes the same calls on the same bytes and returns `Ok` of the same public key:
+  `ECKeyPairValid` holds.
 
-**From the source.** Assumed, not checked: the base-point multiplication of `curve25519-dalek` 5.0.0
-does not panic. As for X25519 in section 7, we did not read this code for panics.
+The proof uses neither `RngTotal` of the `rand::Rng` view, which `generate` never calls, nor the
+part of `RngTotal` that keeps the length of the buffer.
+
+**From the source.** As in sections 10 and 11. In particular, the base-point multiplication of
+`curve25519-dalek` 5.0.0 is assumed not to panic (section 11).
 
 **Gaps.**
 
@@ -586,20 +595,20 @@ does not panic. As for X25519 in section 7, we did not read this code for panics
   key, which comes from `generate` and not from `P.ecKeygen`, or the law of the state that `generate`
   returns from a state drawn from `P.coins`. `Protocols/LEDGER.md` records this under "Security
   placeholders". Sections 5 and 6 meet the same gap for the state.
+- The statements that use the contract still take it as the hypothesis `hG`. They do not take the two
+  contracts in its place.
 
-**If false.** Alice's ephemeral draw could fault on honest runs, or give a pair whose public half is
+**If false.** Then, by `generateTotal_of_contracts`, `ClampIntegerContract` or `X25519SecretContract`
+is false. Alice's ephemeral draw could fault on honest runs, or give a pair whose public half is
 not the one derived from its private half. `fullExp_noLostMass`, the two `_total` corollaries and both
 `wrapperAgreement_*` take `GenerateTotal` as the hypothesis `hG`. If it fails, these statements say
 nothing about production. `coreCompletion_extracted` and `jointKeyAgreement_extracted` do not take it:
 they draw the ephemeral key from `P.ecKeygen` (`coreHonestRun` in `Protocols/PQXDH/Correctness.lean`),
 and they do not run `generate`.
 
-**Discharge.** `KeyPair::generate`, the functions of `curve::curve25519` that it calls, and
-`PrivateKey::public_key` in `ECKeyPairValid` are extracted with their bodies, so the contract is a
-statement about these bodies, not yet proved. The bodies call items of curve25519-dalek and
-x25519-dalek that have no body in Lean (section 9). `Protocols/LEDGER.md` gives curve25519-dalek-fork
-(`clamp_integer`), x25519-dalek (`StaticSecret`, `PublicKey` and four functions on them) and the
-`rand` crate as the discharge. This review did not check that route.
+**Discharge.** Proved: `generateTotal_of_contracts` derives `GenerateTotal` from
+`ClampIntegerContract` and `X25519SecretContract`. What remains is to discharge these two contracts
+(sections 10 and 11) and, for each caller, the totality of its generator (section 3).
 
 **Fault-or-value form.** None. `PartialContracts` does not include `GenerateTotal`.
 
@@ -625,8 +634,9 @@ corollaries and `fullExp_noLostMass`. This `sorryAx` comes from the admitted sta
 | `curve.PrivateKey.calculate_signature` | `SignTotal`, `SignVerify` (section 7) |
 | `curve.PublicKey.is_torsion_free` | `TorsionFreeTotal`, and `DerivedCanonical` through `is_canonical` (section 7) |
 | `curve.PublicKey.verify_signature_for_multipart_message` | `VerifyTotal`, and `SignVerify` through `verify_signature` (section 7) |
-| `curve25519_dalek.scalar.clamp_integer`, `x25519_dalek.x25519.StaticSecret`, `x25519_dalek.x25519.PublicKey`, `x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from`, `x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from`, `x25519_dalek.x25519.PublicKey.as_bytes` | no contract of their own; the bodies of `public_key` and `generate` call them, see below |
-| `x25519_dalek.x25519.StaticSecret.to_bytes` | no contract of its own; the body of `generate` calls it, see below |
+| `curve25519_dalek.scalar.clamp_integer` | `ClampIntegerContract` (section 10); the bodies of `public_key` and `generate` call it, see below |
+| `x25519_dalek.x25519.StaticSecret`, `x25519_dalek.x25519.PublicKey`, `x25519_dalek.x25519.StaticSecret.Insts.CoreConvertFromArrayU832.from`, `x25519_dalek.x25519.PublicKey.Insts.CoreConvertFromSharedAStaticSecret.from`, `x25519_dalek.x25519.PublicKey.as_bytes` | `X25519SecretContract` (section 11); the bodies of `public_key` and `generate` call them, see below |
+| `x25519_dalek.x25519.StaticSecret.to_bytes` | `X25519SecretContract` (section 11); the body of `generate` calls it, see below |
 | `kem.Public.Insts.Libsignal_protocolKemKeyKind.key_length`, `kem.Secret.Insts.Libsignal_protocolKemKeyKind.key_length` | none needed, see below |
 | `core.num.niche_types.NonZeroU8Inner`, `core.num.nonzero.NonZero` | none needed, see below |
 
@@ -665,12 +675,103 @@ corollaries and `fullExp_noLostMass`. This `sorryAx` comes from the admitted sta
   `jointKeyAgreement_extracted` contain all of them but `StaticSecret.to_bytes`, and the closures of
   the statements that run `generate`, such as the four security statements, `fullExp_noLostMass`,
   both `wrapperAgreement_*`, `GenerateTotal` and `KyberDeltaCorrectAfterGenerate`, contain all
-  seven. The closures of `pqxdh_initiate` and `pqxdh_accept` contain none of them. No contract
-  states a fact about these items, and this file does not review them. Section 8 cites the lines of
-  their source that its check of `ECKeyPairValid` uses.
+  seven. The closures of `pqxdh_initiate` and `pqxdh_accept` contain none of them.
+  `ClampIntegerContract` and `X25519SecretContract` state the facts about them that the proof of
+  `GenerateTotal` uses; sections 10 and 11 review them and cite the lines of their source.
 - The two `key_length` axioms enter the closures only as the field of the `KeyKind` instances
   (`rust/Libsignal/Translated/Protocol/Funs.lean`). On the PQXDH paths the instance is passed to
   `KeyMaterial`'s `deref`, which ignores it and returns the key bytes. No PQXDH path calls `key_length`.
 - The two `NonZero` axioms are opaque types from Rust's `core`. They enter because variants of
   `SignalProtocolError` carry a `ProtocolAddress`, whose `DeviceId` holds a `NonZero<u8>`. An axiom of
   type `Type` claims only that a type exists.
+
+## 10. `ClampIntegerContract`
+
+**Statement.** `ClampIntegerContract` in `Protocols/PQXDH/Contracts.lean`. For every 32-byte array `b`,
+the call `curve25519_dalek.scalar.clamp_integer b` returns some array `c`, and the call on `c` returns
+`c`. The contract says that the function returns and that it returns its own output unchanged. It
+does not say which array `c` is.
+
+**Stands for.** `clamp_integer` of `curve25519-dalek` 5.0.0 (`src/scalar.rs:1407-1412`), which the
+extraction declares without a body (`rust/Libsignal/Translated/Core/FunsExternal.lean`).
+`curve25519::PrivateKey::new` (`rust/core/src/curve/curve25519.rs:34`) and
+`From<[u8; 32]> for curve25519::PrivateKey` (`curve25519.rs:170-174`) call it, so `KeyPair::generate`
+and `PrivateKey::public_key` reach it.
+
+**Checked here.**
+
+- `clamp_integer` is a `const fn` on a `[u8; 32]`. It masks byte 0 with `0b1111_1000`, masks byte 31
+  with `0b0111_1111`, sets bit 6 of byte 31 with `0b0100_0000`, and returns the array. The two
+  indices are constants inside the array, and the operations are bitwise, so the function has no
+  panic path and no loop.
+- On its own output the function changes no bit: the three low bits of byte 0 and bit 7 of byte 31
+  are already clear, and bit 6 of byte 31 is already set.
+
+**From the source.** The fork of curve25519-dalek proves `clamp_integer_spec` for its own Lean
+translation of `clamp_integer`: the call returns, and the value of the result, read as a
+little-endian number, is the RFC 7748 clamp of the value of the input. We did not check that proof.
+
+**Gaps.** The contract does not give the value of the result. A statement about the law of the
+generated key needs that value (#84). Nothing in Lean links our constant
+`curve25519_dalek.scalar.clamp_integer` to the fork's definition.
+
+**If false.** `generateTotal_of_contracts` gives nothing, and nothing then supports the hypothesis
+`GenerateTotal` of the statements that take it (section 8).
+
+**Discharge.** The curve25519-dalek fork's `clamp_integer_spec`, with clamp idempotence on numbers and
+the link from our constant to the fork's function.
+
+**Fault-or-value form.** None of its own. Because a Lean function has one value on each input, the
+contract also gives the fault-or-value form: if `clamp_integer b` returns `c`, then `clamp_integer c`,
+when it returns, returns `c`.
+
+## 11. `X25519SecretContract`
+
+**Statement.** `X25519SecretContract` in `Protocols/PQXDH/Contracts.lean`, with two clauses. First,
+for every 32-byte array `x`, `StaticSecret::from` on `x` returns a secret `s`, and
+`StaticSecret::to_bytes` on `s` returns `x`. Second, for every secret `s`,
+`PublicKey::from(&StaticSecret)` on `s` returns a public key `pk`, and `PublicKey::as_bytes` on `pk`
+returns some 32 bytes. The contract says nothing about which public key or which bytes these are.
+
+**Stands for.** Items of `x25519-dalek` 3.0.0 that the extraction declares without a body
+(`rust/Libsignal/Translated/Core/FunsExternal.lean` and `TypesExternal.lean`): the types
+`StaticSecret` (`src/x25519.rs:206`) and `PublicKey` (`:32`), `From<[u8; 32]> for StaticSecret`
+(`:247-252`), `StaticSecret::to_bytes` (`:235-237`), `From<&StaticSecret> for PublicKey` (`:255-260`)
+and `PublicKey::as_bytes` (`:50-52`). In libsignal-core, `curve25519::PrivateKey::new`,
+`derive_public_key_bytes`, `private_key_bytes` and `From<[u8; 32]> for curve25519::PrivateKey` call them
+(`rust/core/src/curve/curve25519.rs:36`, `:161-174`).
+
+**Checked here.**
+
+- `StaticSecret` is a tuple struct around a `[u8; 32]`. `From<[u8; 32]>` stores the array, and
+  `to_bytes` returns the field. Neither has a panic path.
+- `PublicKey` is a tuple struct around a `MontgomeryPoint`. `PublicKey::as_bytes` returns
+  `self.0.as_bytes()`, and `MontgomeryPoint::as_bytes` returns a reference to the point's 32-byte
+  field (`curve25519-dalek` 5.0.0, `src/montgomery.rs:214-216`).
+- `From<&StaticSecret> for PublicKey` computes
+  `EdwardsPoint::mul_base_clamped(secret.0).to_montgomery()`.
+
+**From the source.** Assumed, not checked: `EdwardsPoint::mul_base_clamped` and
+`EdwardsPoint::to_montgomery` of `curve25519-dalek` 5.0.0 do not panic. We did not read them for
+panics, as in section 7.
+
+**Gaps.**
+
+- The second clause says only that the derivation returns. A statement about agreement or about
+  the law of the public key needs the point it computes.
+- In Lean `StaticSecret` is opaque, so the second clause is stated for every value of that type. In
+  Rust a `StaticSecret` is 32 bytes.
+
+**If false.** `generateTotal_of_contracts` gives nothing, and nothing then supports the hypothesis
+`GenerateTotal` of the statements that take it (section 8). The proof uses the second clause only on
+a secret that `StaticSecret::from` returns on the output of `clamp_integer`. A failure of the second
+clause only on other values of the opaque type would make the contract false and lose this proof,
+but would say nothing against `GenerateTotal`: `generate` makes no call on such a value.
+
+**Discharge.** An extraction or a verification of `x25519-dalek` 3.0.0. The fork of curve25519-dalek
+contains the source of x25519-dalek but no Lean translation of it, so a dependency on the fork does
+not discharge this contract.
+
+**Fault-or-value form.** None of its own. The first clause also gives the fault-or-value form of the
+round trip: if `StaticSecret::from` on `x` returns `s`, then `to_bytes` on `s`, when it returns,
+returns `x`.
