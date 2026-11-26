@@ -722,8 +722,8 @@ generated key needs that value (#84). Nothing in Lean links our constant
 the link from our constant to the fork's function.
 
 **Fault-or-value form.** None of its own. Because a Lean function has one value on each input, the
-contract also gives the fault-or-value form: if `clamp_integer b` returns `c`, then `clamp_integer c`
-returns `c`.
+contract also gives the fault-or-value form: if `clamp_integer b` returns `c`, then `clamp_integer c`,
+when it returns, returns `c`.
 
 ## 11. `X25519SecretContract`
 
@@ -763,11 +763,15 @@ panics, as in section 7.
   Rust a `StaticSecret` is 32 bytes.
 
 **If false.** `generateTotal_of_contracts` gives nothing, and nothing then supports the hypothesis
-`GenerateTotal` of the statements that take it (section 8).
+`GenerateTotal` of the statements that take it (section 8). The proof uses the second clause only on
+a secret that `StaticSecret::from` returns on the output of `clamp_integer`. A failure of the second
+clause only on other values of the opaque type would make the contract false and lose this proof,
+but would say nothing against `GenerateTotal`: `generate` makes no call on such a value.
 
 **Discharge.** An extraction or a verification of `x25519-dalek` 3.0.0. The fork of curve25519-dalek
 contains the source of x25519-dalek but no Lean translation of it, so a dependency on the fork does
 not discharge this contract.
 
 **Fault-or-value form.** None of its own. The first clause also gives the fault-or-value form of the
-round trip: if `StaticSecret::from` on `x` returns `s`, then `to_bytes` on `s` returns `x`.
+round trip: if `StaticSecret::from` on `x` returns `s`, then `to_bytes` on `s`, when it returns,
+returns `x`.
