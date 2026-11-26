@@ -1685,6 +1685,83 @@ def error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError :
     error.SignalProtocolError.Insts.CoreConvertFromInvalidSessionError.from
 }
 
+/-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
+    Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
+    Visibility: public -/
+def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
+  (e : libsignal_core.curve.CurveError) :
+  Result error.SignalProtocolError
+  := do
+  match e with
+  | libsignal_core.curve.CurveError.NoKeyTypeIdentifier =>
+    ok error.SignalProtocolError.NoKeyTypeIdentifier
+  | libsignal_core.curve.CurveError.BadKeyType raw =>
+    ok (error.SignalProtocolError.BadKeyType raw)
+  | libsignal_core.curve.CurveError.BadKeyLength key_type len =>
+    ok (error.SignalProtocolError.BadKeyLength key_type len)
+  | libsignal_core.curve.CurveError.InvalidKeyAgreement =>
+    ok error.SignalProtocolError.InvalidKeyAgreement
+
+/-- Trait implementation: [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}]
+    Source: 'rust/protocol/src/error.rs', lines 150:0-159:1 -/
+@[reducible]
+def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
+  core.convert.From error.SignalProtocolError libsignal_core.curve.CurveError
+  := {
+  «from» := error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
+}
+
+/-- [libsignal_protocol::ratchet::keys::{libsignal_protocol::ratchet::keys::RootKey}::create_chain]:
+    Source: 'rust/protocol/src/ratchet/keys.rs', lines 203:4-226:5 -/
+def ratchet.keys.RootKey.create_chain
+  (self : ratchet.keys.RootKey)
+  (their_ratchet_key : libsignal_core.curve.PublicKey)
+  (our_ratchet_key : libsignal_core.curve.PrivateKey) :
+  Result (core.result.Result (ratchet.keys.RootKey × ratchet.keys.ChainKey)
+    error.SignalProtocolError)
+  := do
+  let r ←
+    libsignal_core.curve.PrivateKey.calculate_agreement our_ratchet_key
+      their_ratchet_key
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let bytes := Array.repeat 64#usize 0#u8
+    let s ← lift (Array.to_slice self.key)
+    let s1 ←
+      lift (Array.to_slice
+        (Array.make 14#usize [
+          87#u8, 104#u8, 105#u8, 115#u8, 112#u8, 101#u8, 114#u8, 82#u8, 97#u8,
+          116#u8, 99#u8, 104#u8, 101#u8, 116#u8
+          ]))
+    let (s2, to_slice_mut_back) ← lift (Array.to_slice_mut bytes)
+    let (r1, s3) ← crypto.hkdf_sha256 (some s) val s1 s2
+    core.result.Result.expect hkdf.errors.InvalidLength.Insts.CoreFmtDebug r1
+      (toStr "valid output length")
+    let root_key := Array.repeat 32#usize 0#u8
+    let chain_key := Array.repeat 32#usize 0#u8
+    let (s4, to_slice_mut_back1) ← lift (Array.to_slice_mut root_key)
+    let bytes1 := to_slice_mut_back s3
+    let s5 ←
+      core.array.Array.index (core.ops.index.IndexSlice
+        (core.slice.index.SliceIndexRangeToUsizeSlice Std.U8)) bytes1
+        { «end» := 32#usize }
+    let s6 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s4 s5
+    let (s7, to_slice_mut_back2) ← lift (Array.to_slice_mut chain_key)
+    let s8 ←
+      core.array.Array.index (core.ops.index.IndexSlice
+        (core.slice.index.SliceIndexRangeFromUsizeSlice Std.U8)) bytes1
+        { start := 32#usize }
+    let s9 ← core.slice.Slice.copy_from_slice core.marker.CopyU8 s7 s8
+    let root_key1 := to_slice_mut_back1 s6
+    let chain_key1 := to_slice_mut_back2 s9
+    ok (core.result.Result.Ok ({ key := root_key1 },
+      { key := chain_key1, index := 0#u32 }))
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTry_traitFromResidualResult.from_residual
+      (ratchet.keys.RootKey × ratchet.keys.ChainKey)
+      error.SignalProtocolError.Insts.CoreConvertFromCurveError residual
+
 /-- [libsignal_protocol::double_ratchet::{libsignal_protocol::double_ratchet::RatchetState}::dh_ratchet_step]: loop body 0:
     Source: 'rust/protocol/src/double_ratchet.rs', lines 357:8-359:9 -/
 @[rust_loop_body]
@@ -2289,32 +2366,6 @@ def double_ratchet.RatchetState.consume_message_key
 def error.SessionNotFound.without_address
   (op : Str) : Result error.SessionNotFound := do
   ok { address := none, op }
-
-/-- [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}::from]:
-    Source: 'rust/protocol/src/error.rs', lines 151:4-158:5
-    Visibility: public -/
-def error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
-  (e : libsignal_core.curve.CurveError) :
-  Result error.SignalProtocolError
-  := do
-  match e with
-  | libsignal_core.curve.CurveError.NoKeyTypeIdentifier =>
-    ok error.SignalProtocolError.NoKeyTypeIdentifier
-  | libsignal_core.curve.CurveError.BadKeyType raw =>
-    ok (error.SignalProtocolError.BadKeyType raw)
-  | libsignal_core.curve.CurveError.BadKeyLength key_type len =>
-    ok (error.SignalProtocolError.BadKeyLength key_type len)
-  | libsignal_core.curve.CurveError.InvalidKeyAgreement =>
-    ok error.SignalProtocolError.InvalidKeyAgreement
-
-/-- Trait implementation: [libsignal_protocol::error::{impl core::convert::From<libsignal_core::curve::CurveError> for libsignal_protocol::error::SignalProtocolError}]
-    Source: 'rust/protocol/src/error.rs', lines 150:0-159:1 -/
-@[reducible]
-def error.SignalProtocolError.Insts.CoreConvertFromCurveError :
-  core.convert.From error.SignalProtocolError libsignal_core.curve.CurveError
-  := {
-  «from» := error.SignalProtocolError.Insts.CoreConvertFromCurveError.from
-}
 
 /-- [libsignal_protocol::fingerprint::_]
     Source: 'rust/protocol/src/fingerprint.rs', lines 16:16-16:35 -/
@@ -5678,6 +5729,37 @@ def state.session.SessionState.with_sender_chain
   := do
   state.session.SessionState.set_sender_chain self sender next_chain_key
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::add_receiver_chain]:
+    Source: 'rust/protocol/src/state/session.rs', lines 370:4-394:5 -/
+def state.session.SessionState.add_receiver_chain
+  (self : state.session.SessionState) (sender : libsignal_core.curve.PublicKey)
+  (chain_key : ratchet.keys.ChainKey) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  let i ← ratchet.keys.ChainKey.impl.index chain_key
+  let a ← ratchet.keys.ChainKey.impl.key chain_key
+  let s ← lift (Array.to_slice a)
+  let v ← alloc.slice.Slice.to_vec core.clone.CloneU8 s
+  let s1 ← libsignal_core.curve.PublicKey.serialize sender
+  let v1 ← alloc.slice.Slice.to_vec core.clone.CloneU8 s1
+  let v2 ←
+    alloc.vec.Vec.push self.session.receiver_chains
+      ({
+         sender_ratchet_key := v1,
+         sender_ratchet_key_private := (alloc.vec.Vec.new Std.U8),
+         chain_key := (some { index := i, key := v }),
+         message_keys :=
+           (alloc.vec.Vec.new proto.storage.session_structure.chain.MessageKey)
+       } : proto.storage.session_structure.Chain)
+  let i1 := alloc.vec.Vec.len v2
+  if i1 > consts.MAX_RECEIVER_CHAINS
+  then
+    state.session.log_trimming_receiver_chain
+      { session := { self.session with receiver_chains := v2 } }
+    let (_, v3) ← alloc.vec.Vec.remove alloc.alloc.Global v2 0#usize
+    ok { session := { self.session with receiver_chains := v3 } }
+  else ok { session := { self.session with receiver_chains := v2 } }
+
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::with_receiver_chain]:
     Source: 'rust/protocol/src/state/session.rs', lines 396:4-399:5 -/
 def state.session.SessionState.with_receiver_chain
@@ -5686,6 +5768,47 @@ def state.session.SessionState.with_receiver_chain
   Result _root_.libsignal_protocol.state.session.SessionState
   := do
   state.session.SessionState.add_receiver_chain self sender chain_key
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionState}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 174:4-199:5 -/
+def state.session.SessionState.new
+  (version : Std.U8) (our_identity : identity_key.IdentityKey)
+  (their_identity : identity_key.IdentityKey) (root_key : ratchet.keys.RootKey)
+  (alice_base_key : libsignal_core.curve.PublicKey)
+  (pq_ratchet_state : alloc.vec.Vec Std.U8) :
+  Result _root_.libsignal_protocol.state.session.SessionState
+  := do
+  let i ← lift (UScalar.cast .U32 version)
+  let pk ← identity_key.IdentityKey.impl.public_key our_identity
+  let s ← libsignal_core.curve.PublicKey.serialize pk
+  let v := alloc.slice.Slice.into_vec s
+  let s1 ← identity_key.IdentityKey.serialize their_identity
+  let v1 := alloc.slice.Slice.into_vec s1
+  let a ← ratchet.keys.RootKey.impl.key root_key
+  let s2 ← lift (Array.to_slice a)
+  let v2 ← alloc.slice.Slice.to_vec core.clone.CloneU8 s2
+  let s3 ← libsignal_core.curve.PublicKey.serialize alice_base_key
+  let v3 := alloc.slice.Slice.into_vec s3
+  ok
+    {
+      session :=
+        {
+          session_version := i,
+          local_identity_public := v,
+          remote_identity_public := v1,
+          root_key := v2,
+          previous_counter := 0#u32,
+          sender_chain := none,
+          receiver_chains :=
+            (alloc.vec.Vec.new proto.storage.session_structure.Chain),
+          pending_pre_key := none,
+          pending_kyber_pre_key := none,
+          remote_registration_id := 0#u32,
+          local_registration_id := 0#u32,
+          alice_base_key := v3,
+          pq_ratchet_state
+        }
+    }
 
 /-- [libsignal_protocol::ratchet::initialize_initiator_session::{impl core::ops::function::FnOnce<(spqr::Error,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::ratchet::initialize_initiator_session::{closure}<R>}::call_once]:
     Source: 'rust/protocol/src/ratchet.rs', lines 92:13-98:5 -/
@@ -5928,6 +6051,18 @@ def ratchet.initialize_bob_session
       state.session.SessionState (core.convert.FromSame
       error.SignalProtocolError) residual
 
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::SessionRecord}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 747:4-752:5 -/
+def state.session.SessionRecord.new
+  (state : state.session.SessionState) :
+  Result _root_.libsignal_protocol.state.session.SessionRecord
+  := do
+  ok
+    {
+      current_session := (some state),
+      previous_sessions := (alloc.vec.Vec.new (alloc.vec.Vec Std.U8))
+    }
+
 /-- [libsignal_protocol::ratchet::initialize_alice_session_record]:
     Source: 'rust/protocol/src/ratchet.rs', lines 176:0-183:1
     Visibility: public -/
@@ -5935,7 +6070,7 @@ def ratchet.initialize_alice_session_record
   {R : Type _} (rand_1rngRngInst : rand_1.rng.Rng R) (rand_core_1CryptoRngInst
   : rand_core_1.CryptoRng R) (parameters : pqxdh.InitiatorParameters)
   (csprng : R) :
-  Result ((core.result.Result state.session.SessionRecord
+  Result ((core.result.Result _root_.libsignal_protocol.state.session.SessionRecord
     error.SignalProtocolError) × R)
   := do
   let (r, csprng1) ←
@@ -5959,7 +6094,7 @@ def ratchet.initialize_alice_session_record
 def ratchet.initialize_bob_session_record
   (parameters : pqxdh.RecipientParameters)
   (our_ratchet_key_pair : libsignal_core.curve.KeyPair) :
-  Result (core.result.Result state.session.SessionRecord
+  Result (core.result.Result _root_.libsignal_protocol.state.session.SessionRecord
     error.SignalProtocolError)
   := do
   let r ← ratchet.initialize_bob_session parameters our_ratchet_key_pair
@@ -6947,7 +7082,7 @@ def state.session.SessionRecord.archive_current_state_inner
 def state.session.SessionRecord.promote_state
   (self : state.session.SessionRecord) (new_state : state.session.SessionState)
   :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let (_, self1) ←
     state.session.SessionRecord.archive_current_state_inner self
@@ -6958,7 +7093,7 @@ def state.session.SessionRecord.promote_state
 def state.session.SessionRecord.promote_old_session
   (self : state.session.SessionRecord) (old_session : Std.Usize)
   (updated_session : state.session.SessionState) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let (_, v) ←
     alloc.vec.Vec.remove alloc.alloc.Global self.previous_sessions old_session
@@ -8839,6 +8974,45 @@ def state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone :
     state.session.UnacknowledgedPreKeyMessageItems.Insts.CoreCloneClone.clone
 }
 
+/-- Trait implementation: [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{impl core::ops::function::FnOnce<(&'_2 libsignal_protocol::proto::storage::session_structure::PendingKyberPreKey,), (libsignal_protocol::state::kyber_prekey::KyberPreKeyId, &'_3 [u8])> for libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new::{closure}<'a, '_1, '_2, '_3>}]
+    Source: 'rust/protocol/src/state/session.rs', lines 63:17-63:85 -/
+@[reducible]
+def
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8
+  : core.ops.function.FnOnce
+  state.session.UnacknowledgedPreKeyMessageItems.new.closure
+  proto.storage.session_structure.PendingKyberPreKey
+  (state.kyber_prekey.KyberPreKeyId × (Slice Std.U8)) := {
+  call_once :=
+    state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8.call_once
+}
+
+/-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::new]:
+    Source: 'rust/protocol/src/state/session.rs', lines 55:4-73:5 -/
+def state.session.UnacknowledgedPreKeyMessageItems.new
+  (pre_key_id : Option state.prekey.PreKeyId)
+  (signed_pre_key_id : state.signed_prekey.SignedPreKeyId)
+  (base_key : libsignal_core.curve.PublicKey)
+  (pending_kyber_pre_key : Option
+  proto.storage.session_structure.PendingKyberPreKey)
+  (timestamp : std.time.SystemTime) :
+  Result state.session.UnacknowledgedPreKeyMessageItems
+  := do
+  let o ←
+    core.option.Option.map
+      state.session.UnacknowledgedPreKeyMessageItems.new.closure.Insts.CoreOpsFunctionFnOnceTupleShared1PendingKyberPreKeyPairKyberPreKeyIdShared2SliceU8
+      pending_kyber_pre_key ()
+  let (kyber_pre_key_id, kyber_ciphertext) ← core.option.OptionPair.unzip o
+  ok
+    {
+      pre_key_id,
+      signed_pre_key_id,
+      base_key,
+      kyber_pre_key_id,
+      kyber_ciphertext,
+      timestamp
+    }
+
 /-- [libsignal_protocol::state::session::{libsignal_protocol::state::session::UnacknowledgedPreKeyMessageItems<'a>}::pre_key_id]:
     Source: 'rust/protocol/src/state/session.rs', lines 75:4-77:5 -/
 def state.session.UnacknowledgedPreKeyMessageItems.impl.pre_key_id
@@ -9310,7 +9484,7 @@ def proto.storage.SessionStructure.Insts.CoreConvertFromShared0SessionState :
     Visibility: public -/
 def state.session.SessionRecord.Insts.CoreCloneClone.clone
   (self : state.session.SessionRecord) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   let o ←
     core.option.Option.Insts.CoreCloneClone.clone
@@ -9332,7 +9506,7 @@ def state.session.SessionRecord.Insts.CoreCloneClone : core.clone.Clone
     Source: 'rust/protocol/src/state/session.rs', lines 740:4-745:5
     Visibility: public -/
 def state.session.SessionRecord.new_fresh
-  : Result state.session.SessionRecord := do
+  : Result _root_.libsignal_protocol.state.session.SessionRecord := do
   ok
     {
       current_session := none,
@@ -9356,7 +9530,7 @@ def state.session.SessionRecord.session_state_mut
     Source: 'rust/protocol/src/state/session.rs', lines 830:4-832:5 -/
 def state.session.SessionRecord.set_session_state
   (self : state.session.SessionRecord) (session : state.session.SessionState) :
-  Result state.session.SessionRecord
+  Result _root_.libsignal_protocol.state.session.SessionRecord
   := do
   ok { self with current_session := (some session) }
 
