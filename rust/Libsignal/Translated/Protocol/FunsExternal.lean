@@ -959,7 +959,10 @@ axiom spqr.Error.Insts.CoreFmtDisplay.fmt
     core.fmt.Error) × core.fmt.Formatter)
 
 -- SPQR v1.6.0 interface consumed by libsignal (`initial_state`, `send`, `recv`).
--- SPQR-verify extracts and verifies SPQR itself.
+-- This repository assumes `spqr::initial_state`, `spqr::send`, `spqr::recv` and
+-- the `Display` formatter of `spqr::Error` without bodies. It imports nothing
+-- from SPQR-verify, a separate project that extracts SPQR itself and proves
+-- specifications of some SPQR functions.
 /-- [spqr::initial_state]:
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 211:0-211:70
     Name pattern: [spqr::initial_state]
