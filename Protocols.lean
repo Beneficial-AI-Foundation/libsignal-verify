@@ -8,6 +8,7 @@ import Protocols.Models.PQXDH
 import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.Security
+import Protocols.PQXDH.X25519
 import Protocols.Realization.RustOracleComp
 import Protocols.Specs.Models.PQXDH
 import Protocols.Specs.PQXDH

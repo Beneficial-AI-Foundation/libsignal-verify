@@ -7,6 +7,7 @@ import Protocols.PQXDH.Correctness
 import Protocols.PQXDH.Kdf
 import Protocols.PQXDH.KeyGen
 import Protocols.PQXDH.Security
+import Protocols.PQXDH.X25519
 import Protocols.ToVCVio.CryptoFoundations.AKE.UAKE.DistAdvantage
 
 /-!
@@ -2140,6 +2141,60 @@ info: 'Protocols.PQXDH.pqrKeyBytes' depends on axioms:
 /-- info: 'Protocols.PQXDH.Bytes' does not depend on any axioms -/
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.Bytes
+
+/-! ## X25519 facts
+
+Facts about RFC 7748 `X25519` and clamping, stated with the definitions of the curve25519-dalek fork
+that `Protocols/PQXDH/X25519.lean` imports. -/
+
+open curve25519 in
+recall Protocols.PQXDH.x25519_basepoint_comm (a b : Vector UInt8 32) :
+    X25519 a (X25519 b (encodeUCoordinate 9)) = X25519 b (X25519 a (encodeUCoordinate 9))
+
+/--
+info: 'Protocols.PQXDH.x25519_basepoint_comm' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.x25519_basepoint_comm
+
+open curve25519 in
+recall Protocols.PQXDH.L_not_dvd_clamp (k : ℕ) : ¬ L ∣ clamp k
+
+/--
+info: 'Protocols.PQXDH.L_not_dvd_clamp' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.L_not_dvd_clamp
+
+open curve25519 in
+recall Protocols.PQXDH.x25519_basepoint_ne_zero (a b : Vector UInt8 32) :
+    X25519 a (X25519 b (encodeUCoordinate 9)) ≠ encodeUCoordinate 0
+
+/--
+info: 'Protocols.PQXDH.x25519_basepoint_ne_zero' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.x25519_basepoint_ne_zero
+
+open curve25519 in
+recall Protocols.PQXDH.clamp_clamp (k : ℕ) : clamp (clamp k) = clamp k
+
+/--
+info: 'Protocols.PQXDH.clamp_clamp' depends on axioms:
+ [propext,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.clamp_clamp
 
 /-! ## Score convention
 

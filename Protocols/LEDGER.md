@@ -7,11 +7,12 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-19 |
+| Date | 2026-11-23 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
 | Aeneas | nightly-2026.10.30-de16f3c |
+| curve25519-dalek fork | 19c37220 |
 | `sorry` or `sorryAx` under `Protocols/` | 7 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |
 | `axiom`, `native_decide`, `set_option` under `Protocols/` and `ProtocolsTest/` | 0 |
@@ -25,8 +26,8 @@ closure, and `lake build` fails when one changes. The checks are in:
   security hops;
 - `Protocols/Specs/PQXDH.lean`: the equality in law of `KeyPair::generate` on `P.coins` with
   `readClampDerive`, the key-derivation mirror, the branch equations of the two entry points, the
-  lemmas of one honest run, the two wrapper agreement lemmas and the statements of the Full
-  realization;
+  lemmas of one honest run, the two wrapper agreement lemmas, the statements of the Full
+  realization and the four facts about X25519 and clamping of `Protocols/PQXDH/X25519.lean`;
 - `rust/Libsignal/Specs/Core/Curve.lean`: the serialization of a curve25519 public key, the equation
   on `PrivateKey::public_key`, and the equation on `KeyPair::generate` with its right-hand side
   `readClampDerive`;
