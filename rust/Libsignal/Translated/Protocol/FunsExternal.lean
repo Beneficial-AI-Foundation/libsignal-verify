@@ -948,15 +948,6 @@ noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_encrypt :=
 noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_decrypt :=
   _root_.aes_cbc.aes_256_cbc_decrypt
 
-/-- [spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default]:
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 29:4-29:24
-    Name pattern: [spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default]
-    Visibility: public -/
-@[rust_fun
-  "spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default"]
-axiom spqr.chain.ChainParams.Insts.CoreDefaultDefault.default
-  : Result spqr.chain.ChainParams
-
 /-- [spqr::{impl core::fmt::Display for spqr::Error}::fmt]:
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 96:16-96:32
     Name pattern: [spqr::{core::fmt::Display<spqr::Error>}::fmt]
