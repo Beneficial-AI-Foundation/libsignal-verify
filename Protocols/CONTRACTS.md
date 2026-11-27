@@ -241,7 +241,8 @@ workspace `Cargo.toml`:
   2^61 bytes. When one does, a build with overflow checks panics in `sha2`. The release build of
   this workspace wraps instead, and returns a value that is not
   HMAC-SHA256, since SHA-256 is not defined on such inputs. Aeneas translates Rust arithmetic as
-  checked arithmetic, so an extraction of `sha2` would also fail there. The contract says nothing
+  checked arithmetic (at the Aeneas pin, `UScalar.mul` is `UScalar.tryMk` of the product,
+  `Aeneas/Std/Scalar/Ops/Mul.lean:18-19`), so an extraction of `sha2` would also fail there. The contract says nothing
   about these inputs.
 
 **From the source.** That `Hmac<Sha256>` from the `hmac` and `sha2` crates computes HMAC-SHA256
@@ -256,7 +257,9 @@ partial block. The argument for the limit above assumes, without reading that cr
 count stays below 64 and does not overflow.
 
 The domain bounds the inputs in bytes, with the same numbers on every target. On a 32-bit target
-every slice has fewer than 2^32 bytes, so every input is in the domain. On a 64-bit target the type
+every slice has fewer than 2^32 bytes, so every input is in the domain: an Aeneas slice has at most
+`Usize.max` elements (`Aeneas/Std/SliceDef.lean:18`), and `Usize.max` is 2^32 - 1 there
+(`Aeneas/Std/Scalar/Core.lean:53`, `:97`). On a 64-bit target the type
 allows longer slices, and the domain excludes them. The calls that the statements reach are far
 below the limit. The PQXDH call has no salt, its input key material has at most 192 bytes
 (`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info` is the fixed 46-byte label

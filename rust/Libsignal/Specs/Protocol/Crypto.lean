@@ -12,8 +12,8 @@ This file freezes the specification of `crypto::hkdf_sha256` from `rust/protocol
 the RFC 5869 definitions computed from an assumed MAC interface, a bound on the input lengths
 that keeps every SHA-256 input below 2^61 bytes, the general contract that the opaque extracted
 function meets them on these inputs, the 96-byte contract that follows from it, and the lemmas
-about them. Each theorem is restated with `recall` and has a `#guard_msgs` check on the axioms it
-depends on. A definition has the axiom check only.
+about them. Each theorem is restated with `recall`
+and has a `#guard_msgs` check on the axioms it depends on. A definition has the axiom check only.
 -/
 
 /-! ## Lemmas -/
