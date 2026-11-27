@@ -948,15 +948,6 @@ noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_encrypt :=
 noncomputable abbrev signal_crypto.aes_cbc.aes_256_cbc_decrypt :=
   _root_.aes_cbc.aes_256_cbc_decrypt
 
-/-- [spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default]:
-    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 29:4-29:24
-    Name pattern: [spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default]
-    Visibility: public -/
-@[rust_fun
-  "spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default"]
-axiom spqr.chain.ChainParams.Insts.CoreDefaultDefault.default
-  : Result spqr.chain.ChainParams
-
 /-- [spqr::{impl core::fmt::Display for spqr::Error}::fmt]:
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 96:16-96:32
     Name pattern: [spqr::{core::fmt::Display<spqr::Error>}::fmt]
@@ -968,7 +959,10 @@ axiom spqr.Error.Insts.CoreFmtDisplay.fmt
     core.fmt.Error) × core.fmt.Formatter)
 
 -- SPQR v1.6.0 interface consumed by libsignal (`initial_state`, `send`, `recv`).
--- SPQR-verify extracts and verifies SPQR itself.
+-- This repository assumes `spqr::initial_state`, `spqr::send`, `spqr::recv` and
+-- the `Display` formatter of `spqr::Error` without bodies. It imports nothing
+-- from SPQR-verify, a separate project that extracts SPQR itself and proves
+-- specifications of some SPQR functions.
 /-- [spqr::initial_state]:
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 211:0-211:70
     Name pattern: [spqr::initial_state]

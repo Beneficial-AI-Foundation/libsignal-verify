@@ -83,10 +83,10 @@
    "type": "git",
    "subDir": "backends/lean",
    "scope": "",
-   "rev": "de16f3cf877976e966906dc890f63dcb418884fa",
+   "rev": "ab34bd28458a08c150b7cbf1873e59af74588138",
    "name": "aeneas",
    "manifestFile": "lake-manifest.json",
-   "inputRev": "nightly-2026.10.30-de16f3c",
+   "inputRev": "nightly-2026.11.03-ab34bd2",
    "inherited": true,
    "configFile": "lakefile.lean"},
   {"url":

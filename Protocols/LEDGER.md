@@ -7,11 +7,11 @@ the admission counts of the State table. The command is at the end.
 
 | Item | Value |
 | --- | --- |
-| Date | 2026-11-23 |
+| Date | 2026-11-26 |
 | Lean | v4.35.0 |
 | Mathlib | 56a00585 (v4.35.0) |
 | VCVio | 88efe971 |
-| Aeneas | nightly-2026.10.30-de16f3c |
+| Aeneas | nightly-2026.11.03-ab34bd2 |
 | curve25519-dalek fork | 19c37220 |
 | `sorry` or `sorryAx` under `Protocols/` | 7 |
 | `sorry` or `sorryAx` under `ProtocolsTest/` | 0 |

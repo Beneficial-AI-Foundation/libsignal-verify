@@ -324,6 +324,23 @@ def rand_core_1.os.OsRng.Insts.Rand_core_1TryCryptoRngOsError :
   TryRngCoreInst := rand_core_1.os.OsRng.Insts.Rand_core_1TryRngCoreOsError
 }
 
+/-- [spqr::chain::DEFAULT_CHAIN_PARAMS]
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 34:0-34:39
+    Name pattern: [spqr::chain::DEFAULT_CHAIN_PARAMS] -/
+@[global_simps, irreducible, rust_const "spqr::chain::DEFAULT_CHAIN_PARAMS"]
+def spqr.chain.DEFAULT_CHAIN_PARAMS : spqr.chain.ChainParams :=
+  { max_jump := 25000#u32, max_ooo_keys := 2000#u32 }
+
+/-- [spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default]:
+    Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/chain.rs', lines 29:4-29:24
+    Name pattern: [spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default]
+    Visibility: public -/
+@[rust_fun
+  "spqr::chain::{core::default::Default<spqr::chain::ChainParams>}::default"]
+def spqr.chain.ChainParams.Insts.CoreDefaultDefault.default
+  : Result spqr.chain.ChainParams := do
+  ok spqr.chain.DEFAULT_CHAIN_PARAMS
+
 /-- Trait implementation: [spqr::{impl core::fmt::Display for spqr::Error}]
     Source: '/cargo/git/checkouts/sparsepostquantumratchet-b58d7f56e3645ccd/06959b4/src/lib.rs', lines 96:16-96:32
     Name pattern: [core::fmt::Display<spqr::Error>] -/

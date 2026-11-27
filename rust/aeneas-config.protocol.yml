@@ -37,10 +37,14 @@ charon:
     # DEFERRED: session_cipher_legacy triggers a charon-driver (hax) panic on the
     # kem DynParameters `&mut dyn CryptoRng` blanket-impl methods 
     # - "libsignal_protocol::session_cipher_legacy"
-  # Translate the reached HKDF error formatter used by expect. Primitive bodies
-  # remain external; shared Core/Crypto definitions are imported from their owners.
+  # Translate these items of dependency crates. Primitive bodies remain external;
+  # shared Core/Crypto definitions are imported from their owners.
   include:
+    # The reached HKDF error formatter used by expect.
     - "hkdf::errors::_::fmt"
+    # SPQR's Default for ChainParams, which spqr_chain_params calls, and the constant it returns.
+    - "spqr::chain::{impl core::default::Default for spqr::chain::ChainParams}::default"
+    - "spqr::chain::DEFAULT_CHAIN_PARAMS"
   exclude:
     # displaydoc helper traits are formatting-only scaffolding. Exclude their
     # implementations too, avoiding dangling references to excluded traits.
@@ -121,7 +125,7 @@ charon:
     # pulled. Its only callers (key_length, KeyPair::generate) are opaque, so
     # nothing references it transparently. (`_::` = inherent-method form.)
     - "libsignal_protocol::kem::_::parameters"
-    # previous_session_states is opaque (below). From de16f3c on, Aeneas also
+    # previous_session_states is opaque (below). At de16f3c, Aeneas also
     # reaches the FnMut/FnOnce impls of its map closure, and their bodies fail a
     # prepass ("Unexpected error"), so opaque cannot help. Aeneas 0855ce1 did not
     # emit these impls at all. Excluding them keeps that shape.
