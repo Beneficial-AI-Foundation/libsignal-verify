@@ -47,7 +47,7 @@ natural language specs:
 • For a supplied MAC interface `H`, assume `hkdf_sha256` meets `HkdfSha256Contract H`, and let
   `okm = hkdfSha256Okm96 H none secret_input pqxdhKdfLabel`, the RFC 5869 output from `H`.
 • The function succeeds for every `secret_input` of fewer than 2^61 - 64 bytes: with the 46-byte
-  label, these are the inputs on which HKDF-SHA256 is defined (`HkdfSha256Domain`).
+  label, these are the inputs that keep every SHA-256 input below 2^61 bytes (`HkdfSha256Domain`).
 • The root key is `okm[0..32)`, the chain key is `okm[32..64)` with chain index `0`, and the
   PQR key is `okm[64..96)`.
 -/

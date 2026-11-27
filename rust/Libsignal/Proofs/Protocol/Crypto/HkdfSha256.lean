@@ -24,9 +24,9 @@ parametric in a supplied MAC interface `H`.
   HKDF-SHA256 precisely when the supplied interface is HMAC-SHA256.
 
 `HkdfSha256RfcContract H` connects the extracted helper to these definitions: for every optional
-salt and every output buffer of at most 255 · 32 = 8,160 bytes, on the input lengths on which
-HKDF-SHA256 is defined (`HkdfSha256Domain`), the helper succeeds, keeps the buffer length and
-writes the RFC 5869 output computed from `H`. It is the assumption of this file.
+salt and every output buffer of at most 255 · 32 = 8,160 bytes, on input lengths that keep every
+SHA-256 input below 2^61 bytes (`HkdfSha256Domain`), the helper succeeds, keeps the buffer length
+and writes the RFC 5869 output computed from `H`. It is the assumption of this file.
 `HkdfSha256Contract H`, the case of an absent salt and a 96-byte buffer that PQXDH uses, follows
 from it (`hkdfSha256Contract_of_rfc`). Both are hypotheses of the theorems that use them, never
 axioms, and neither says which function `H` is.
@@ -104,7 +104,12 @@ or more overflows it. HKDF-SHA256 hashes these messages: a salt longer than the 
 which HMAC hashes into a key; in Extract, one 64-byte pad block followed by `ikm`;
 in Expand, one 64-byte pad block, the 32-byte block before (none for the first block), `info` and
 the one-byte counter, so at most `info` and 97 bytes. Every other SHA-256 input has at most
-96 bytes. -/
+96 bytes.
+
+The bound on `info` is one bound for every output length. It is sufficient, but not always
+necessary: at output length 0 Expand does not hash `info`, and for an output of 1 to 32 bytes its
+only block needs `info.length + 65 < 2 ^ 61`. From 33 bytes on, the bound is the one that the code
+needs. -/
 def HkdfSha256Domain (salt : Option (List Std.U8)) (ikm info : List Std.U8) : Prop :=
   (∀ s ∈ salt, s.length < 2 ^ 61) ∧ ikm.length + 64 < 2 ^ 61 ∧ info.length + 97 < 2 ^ 61
 
@@ -189,7 +194,7 @@ theorem hkdfSha256Okm_ninetySix (H : HmacSha256) (salt : Option (List Std.U8))
   rfl
 
 /-- **Contract for the opaque `crypto::hkdf_sha256`: RFC 5869 for every salt and every output
-length up to 8,160 bytes, on the domain of HKDF-SHA256.**
+length up to 8,160 bytes, on the input lengths of `HkdfSha256Domain`.**
 
 The extracted declaration is the root-level `crypto.hkdf_sha256`. For every optional salt, every
 input keying material `ikm`, every `info` and every output buffer `out` of at most
@@ -206,10 +211,10 @@ This is the trusted assumption of this file: that the helper, which calls `Hkdf:
 `hkdf` 0.13.0 crate over `Hmac<Sha256>` of `hmac` 0.13.0 and `sha2` 0.11.0, agrees with the
 RFC 5869 definitions above for the given `H`. It is a hypothesis of the theorems that use it.
 It does not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. Outside
-`HkdfSha256Domain` some SHA-256 input reaches 2^61 bytes, and a build with overflow checks panics
-inside `sha2`; the contract says nothing there (`Protocols/CONTRACTS.md`, section 1). On a
-buffer longer than 8,160 bytes the helper returns an error, and the contract says nothing there
-either. -/
+`HkdfSha256Domain` the contract says nothing. There a SHA-256 input of the call can reach 2^61
+bytes, and then a build with overflow checks panics inside `sha2` (`Protocols/CONTRACTS.md`,
+section 1). Once Extract completes, a buffer longer than 8,160 bytes makes Expand return an error
+before it writes any byte, and the contract says nothing about such buffers either. -/
 def HkdfSha256RfcContract (H : HmacSha256) : Prop :=
   ∀ (salt : Option (Slice Std.U8)) (ikm info out : Slice Std.U8),
     out.length ≤ 255 * hashLen →

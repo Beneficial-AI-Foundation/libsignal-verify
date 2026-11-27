@@ -95,7 +95,7 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 | Contract | Stands for | Discharge |
 | --- | --- | --- |
-| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes, on the input lengths on which HKDF-SHA256 is defined (`HkdfSha256Domain`) | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
+| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes, on input lengths that keep every SHA-256 input below 2^61 bytes (`HkdfSha256Domain`) | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
 | `HkdfSha256Contract` | the same helper with no salt and 96 bytes of output, on the same input lengths | proved from `HkdfSha256RfcContract` (`hkdfSha256Contract_of_rfc`) |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
@@ -118,10 +118,12 @@ Sections 2.2 and 2.3), computed from the MAC interface `H`. A present salt, the 
 is the HMAC key as given. An absent salt is `hkdfDefaultSalt`, 32 zero bytes. The contract does not
 say that `H` is HMAC-SHA256.
 
-`HkdfSha256Domain salt ikm info` is the set of inputs on which HKDF-SHA256 is defined: a present salt
-has fewer than 2^61 bytes, `ikm` has fewer than 2^61 - 64 bytes, and `info` has fewer than
-2^61 - 97 bytes. On these inputs, every SHA-256 input of the call has fewer than 2^61 bytes. This is
-the limit of FIPS 180-4 and of the `sha2` crate. "Checked here" gives the reason for each number.
+`HkdfSha256Domain salt ikm info` bounds the input lengths: a present salt has fewer than 2^61 bytes,
+`ikm` has fewer than 2^61 - 64 bytes, and `info` has fewer than 2^61 - 97 bytes. On these inputs,
+every SHA-256 input of the call has fewer than 2^61 bytes. This is the limit of FIPS 180-4 and of
+the `sha2` crate. The bound is uniform in the output length, so it is sufficient for every output
+length but not always necessary (see the `info` item below). "Checked here" gives the reason for
+each number.
 
 `HkdfSha256Contract H`, in the same file, is the case that PQXDH uses: no salt, a 96-byte buffer, and
 `ikm` and `info` in `HkdfSha256Domain`. The buffer is filled with `hkdfSha256Okm96 H none ikm info`.
@@ -222,8 +224,11 @@ workspace `Cargo.toml`:
   `ikm.length + 64 < 2^61`.
 - `info`. In Expand, the inner hash of each block receives the pad block, the 32-byte block before
   (none for the first block), `info` and the counter byte (`hkdf`, `src/lib.rs:142-155`). That is
-  at most `info.length + 97` bytes. The domain uses this one bound for every output length. For
-  outputs of at most 32 bytes it gives up 32 bytes of `info` that the code would accept.
+  at most `info.length + 97` bytes. The exact need depends on the output length `L`: at `L = 0`
+  Expand hashes no block and `info` needs no bound; for `1 ≤ L ≤ 32` the only block needs
+  `info.length + 65 < 2^61`; for `33 ≤ L ≤ 8,160` the second block needs
+  `info.length + 97 < 2^61`. The domain uses the last bound for every output length. It is
+  sufficient for each `L`, and it excludes some long `info` that the code accepts at `L ≤ 32`.
 - Every other SHA-256 input has at most 96 bytes. HMAC's outer hash receives the 64-byte pad block
   and the 32-byte inner hash (`hmac`, `src/block_api.rs:79-90`). The PRK has 32 bytes, so HMAC
   pads it and does not hash it.
@@ -232,8 +237,9 @@ workspace `Cargo.toml`:
   8,160 bytes does not reach the `InvalidLength` check when a build with overflow checks panics in
   Extract.
 - Overflow checks. The workspace turns them on for release builds (`Cargo.toml:251-252`) and off
-  for `sha2` and `hmac` (`:257-261`). Outside the domain, a build with overflow checks panics in
-  `sha2`. The release build of this workspace wraps instead, and returns a value that is not
+  for `sha2` and `hmac` (`:257-261`). Outside the domain, a SHA-256 input of the call can reach
+  2^61 bytes. When one does, a build with overflow checks panics in `sha2`. The release build of
+  this workspace wraps instead, and returns a value that is not
   HMAC-SHA256, since SHA-256 is not defined on such inputs. Aeneas translates Rust arithmetic as
   checked arithmetic, so an extraction of `sha2` would also fail there. The contract says nothing
   about these inputs.
