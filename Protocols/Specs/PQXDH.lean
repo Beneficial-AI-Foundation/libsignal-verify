@@ -2019,6 +2019,21 @@ info: 'Protocols.PQXDH.generateTotal_of_contracts' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms Protocols.PQXDH.generateTotal_of_contracts
 
+/-! ## The fault-or-value form of the HKDF contract -/
+
+recall Protocols.PQXDH.hkdfSha256Partial_of_contract {H : libsignal_protocol.crypto.HmacSha256}
+    (h : libsignal_protocol.crypto.HkdfSha256Contract H) : HkdfSha256Partial H
+
+/--
+info: 'Protocols.PQXDH.hkdfSha256Partial_of_contract' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms Protocols.PQXDH.hkdfSha256Partial_of_contract
+
 /-! ## Key-derivation mirror
 
 The Lean mirror of the key derivation in `Protocols/PQXDH/Kdf.lean` and the byte types and

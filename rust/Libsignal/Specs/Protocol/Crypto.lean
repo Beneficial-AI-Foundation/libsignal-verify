@@ -9,10 +9,11 @@ import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 # Spec summary: `rust/protocol/src/crypto.rs`
 
 This file freezes the specification of `crypto::hkdf_sha256` from `rust/protocol/src/crypto.rs`:
-the RFC 5869 definitions computed from an assumed MAC interface, the general contract that the
-opaque extracted function meets them, the 96-byte contract that follows from it, and the lemmas
-about them. Each theorem is restated with `recall`
-and has a `#guard_msgs` check on the axioms it depends on. A definition has the axiom check only.
+the RFC 5869 definitions computed from an assumed MAC interface, the input lengths on which
+HKDF-SHA256 is defined, the general contract that the opaque extracted function meets them on
+these inputs, the 96-byte contract that follows from it, and the lemmas about them. Each theorem
+is restated with `recall` and has a `#guard_msgs` check on the axioms it depends on. A definition
+has the axiom check only.
 -/
 
 /-! ## Lemmas -/
@@ -32,7 +33,8 @@ info: 'libsignal_protocol.crypto.hkdfExpand96_length' depends on axioms:
 
 open Aeneas Aeneas.Std Result libsignal_protocol.crypto in
 recall libsignal_protocol.crypto.hkdf_sha256_okm96_spec {H : HmacSha256}
-    (h : HkdfSha256Contract H) (ikm info out : Slice Std.U8) (h_len : out.length = 96) :
+    (h : HkdfSha256Contract H) (ikm info out : Slice Std.U8) (h_len : out.length = 96)
+    (h_dom : HkdfSha256Domain none ikm.val info.val) :
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = hkdfSha256Okm96 H none ikm.val info.val ⦄
@@ -138,6 +140,10 @@ info: 'libsignal_protocol.crypto.hkdfSha256Okm96' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.crypto.hkdfSha256Okm96
+
+/-- info: 'libsignal_protocol.crypto.HkdfSha256Domain' depends on axioms: [propext] -/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.HkdfSha256Domain
 
 /--
 info: 'libsignal_protocol.crypto.HkdfSha256Contract' depends on axioms:

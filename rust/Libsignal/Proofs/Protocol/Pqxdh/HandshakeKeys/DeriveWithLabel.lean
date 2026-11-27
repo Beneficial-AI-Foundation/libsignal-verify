@@ -18,10 +18,11 @@ post-quantum ratchet (PQR).
 
 HKDF itself is opaque in the extraction. The theorem is parametric in a supplied MAC interface
 `H : HmacSha256` (assumed, not proved, to be HMAC-SHA256). It assumes `HkdfSha256Contract H`
-and proves, under that assumption only, that the extracted code succeeds and returns the three
-slices of the RFC 5869 output `hkdfSha256Okm96 H none secret_input label` computed from `H`. It
-says nothing about which function `H` is, about the security of HKDF, or about how the keys are
-used later.
+and that the secret material and the label are inputs on which HKDF-SHA256 is defined
+(`HkdfSha256Domain`). It proves, under these assumptions only, that the extracted code succeeds
+and returns the three slices of the RFC 5869 output `hkdfSha256Okm96 H none secret_input label`
+computed from `H`. It says nothing about which function `H` is, about the security of HKDF, or
+about how the keys are used later.
 
 **Source**: rust/protocol/src/pqxdh.rs, lines 79:4-96:5. For extraction, the upstream
 `derive_arrays` helper is replaced by an explicit 96-byte buffer and three 32-byte copies with
@@ -29,7 +30,7 @@ the same HKDF call, label, `expect` and chain index (see `extraction-notes.md`).
 -/
 
 open Aeneas Aeneas.Std Result
-open libsignal_protocol.crypto (HmacSha256 HkdfSha256Contract hkdfSha256Okm96)
+open libsignal_protocol.crypto (HmacSha256 HkdfSha256Contract HkdfSha256Domain hkdfSha256Okm96)
 open libsignal_protocol.ratchet.keys (RootKey ChainKey)
 
 namespace libsignal_protocol.pqxdh.HandshakeKeys
@@ -54,18 +55,22 @@ natural language specs:
 
 • For a supplied MAC interface `H`, assume `hkdf_sha256` meets `HkdfSha256Contract H`, and let
   `okm = hkdfSha256Okm96 H none secret_input label` be the RFC 5869 output computed from `H`.
-• The function succeeds for every `label` and `secret_input`.
+• The function succeeds for every `label` and `secret_input` on which HKDF-SHA256 is defined:
+  `secret_input` has fewer than 2^61 - 64 bytes and `label` fewer than 2^61 - 97 bytes
+  (`HkdfSha256Domain` with no salt).
 • The root key is `okm[0..32)`, the chain key is `okm[32..64)` with chain index `0`, and the
   PQR key is `okm[64..96)`.
 -/
 
-/-- For any MAC interface `H` and under `HkdfSha256Contract H`, write `okm` for the 96-byte
-RFC 5869 output computed from `H`. `pqxdh.HandshakeKeys.derive_with_label` succeeds and splits
+/-- For any MAC interface `H`, under `HkdfSha256Contract H` and for `secret_input` and `label` in
+the domain `HkdfSha256Domain` with no salt, write `okm` for the 96-byte RFC 5869 output computed
+from `H`. `pqxdh.HandshakeKeys.derive_with_label` succeeds and splits
 `okm` into root key `okm[0..32)`, chain key `okm[32..64)` with index `0`, and PQR key
 `okm[64..96)`. -/
 @[step]
 theorem derive_with_label_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
-    (label secret_input : Slice Std.U8) :
+    (label secret_input : Slice Std.U8)
+    (h_dom : HkdfSha256Domain none secret_input.val label.val) :
     derive_with_label label secret_input ⦃ (keys : pqxdh.HandshakeKeys) =>
       let okm := hkdfSha256Okm96 H none secret_input.val label.val
       (keys.root_key.key).val = okm.slice 0 32 ∧
@@ -74,7 +79,7 @@ theorem derive_with_label_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
       keys.pqr_key.val = okm.slice 64 96 ⦄ := by
   unfold derive_with_label
   step*
-  step with crypto.hkdf_sha256_okm96_spec h_hkdf
+  step with crypto.hkdf_sha256_okm96_spec h_hkdf (h_dom := h_dom)
   subst r_post
   simp only [expect_ok]
   step*

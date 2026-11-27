@@ -24,11 +24,12 @@ parametric in a supplied MAC interface `H`.
   HKDF-SHA256 precisely when the supplied interface is HMAC-SHA256.
 
 `HkdfSha256RfcContract H` connects the extracted helper to these definitions: for every optional
-salt and every output buffer of at most 255 · 32 = 8,160 bytes, the helper succeeds, keeps the
-buffer length and writes the RFC 5869 output computed from `H`. It is the assumption of this
-file. `HkdfSha256Contract H`, the case of an absent salt and a 96-byte buffer that PQXDH uses,
-follows from it (`hkdfSha256Contract_of_rfc`). Both are hypotheses of the theorems that use them,
-never axioms, and neither says which function `H` is.
+salt and every output buffer of at most 255 · 32 = 8,160 bytes, on the input lengths on which
+HKDF-SHA256 is defined (`HkdfSha256Domain`), the helper succeeds, keeps the buffer length and
+writes the RFC 5869 output computed from `H`. It is the assumption of this file.
+`HkdfSha256Contract H`, the case of an absent salt and a 96-byte buffer that PQXDH uses, follows
+from it (`hkdfSha256Contract_of_rfc`). Both are hypotheses of the theorems that use them, never
+axioms, and neither says which function `H` is.
 
 **Source**: rust/protocol/src/crypto.rs, lines 50:0-57:1 of the patched copy: the helper exists only
 after `translation-patches/protocol-crypto-hkdf_sha256.patch`
@@ -95,11 +96,23 @@ theorem hkdfExpand96_length (H : HmacSha256) (prk info : List Std.U8) :
     (hkdfExpand96 H prk info).length = 96 := by
   simp [hkdfExpand96, hkdfExpandBlock, H.mac_length]
 
+/-- The input lengths on which HKDF-SHA256 is defined: every SHA-256 input has fewer than
+2^61 bytes (FIPS 180-4).
+
+The `sha2` crate computes the length of a message in bits as a `u64`, so a message of 2^61 bytes
+or more overflows it. HKDF-SHA256 hashes these messages: a salt longer than the 64-byte block,
+which HMAC hashes into a key; in Extract, one 64-byte pad block followed by `ikm`;
+in Expand, one 64-byte pad block, the 32-byte block before (none for the first block), `info` and
+the one-byte counter, so at most `info` and 97 bytes. Every other SHA-256 input has at most
+96 bytes. -/
+def HkdfSha256Domain (salt : Option (List Std.U8)) (ikm info : List Std.U8) : Prop :=
+  (∀ s ∈ salt, s.length < 2 ^ 61) ∧ ikm.length + 64 < 2 ^ 61 ∧ info.length + 97 < 2 ^ 61
+
 /-- **Contract for the opaque `crypto::hkdf_sha256` at 96 bytes without salt.**
 
 The extracted declaration is the root-level `crypto.hkdf_sha256`. For every input keying
-material `ikm`, every `info` and every output buffer `out` of 96 bytes, the call
-`hkdf_sha256(None, ikm, info, out)`
+material `ikm`, every `info` and every output buffer `out` of 96 bytes, with `ikm` and `info`
+in the domain `HkdfSha256Domain` with no salt, the call `hkdf_sha256(None, ikm, info, out)`
 - returns `Ok(())`, so the caller's `expect` cannot panic;
 - returns a buffer of the same length as `out`, so writing it back into the caller's array keeps
   the written bytes (Aeneas models `&mut [u8]` by returning the new slice);
@@ -111,6 +124,7 @@ so it is not assumed on its own. The theorems that use it still take it as a hyp
 not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. -/
 def HkdfSha256Contract (H : HmacSha256) : Prop :=
   ∀ (ikm info out : Slice Std.U8), out.length = 96 →
+    HkdfSha256Domain none ikm.val info.val →
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = hkdfSha256Okm96 H none ikm.val info.val ⦄
@@ -120,12 +134,13 @@ def HkdfSha256Contract (H : HmacSha256) : Prop :=
 This lemma is deliberately untagged and invoked explicitly, as in
 `step with hkdf_sha256_okm96_spec h …`. -/
 theorem hkdf_sha256_okm96_spec {H : HmacSha256} (h : HkdfSha256Contract H)
-    (ikm info out : Slice Std.U8) (h_len : out.length = 96) :
+    (ikm info out : Slice Std.U8) (h_len : out.length = 96)
+    (h_dom : HkdfSha256Domain none ikm.val info.val) :
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = hkdfSha256Okm96 H none ikm.val info.val ⦄ := by
   unfold HkdfSha256Contract at h
-  exact h ikm info out h_len
+  exact h ikm info out h_len h_dom
 
 /-! ## HKDF for every output length -/
 
@@ -174,11 +189,12 @@ theorem hkdfSha256Okm_ninetySix (H : HmacSha256) (salt : Option (List Std.U8))
   rfl
 
 /-- **Contract for the opaque `crypto::hkdf_sha256`: RFC 5869 for every salt and every output
-length up to 8,160 bytes.**
+length up to 8,160 bytes, on the domain of HKDF-SHA256.**
 
 The extracted declaration is the root-level `crypto.hkdf_sha256`. For every optional salt, every
 input keying material `ikm`, every `info` and every output buffer `out` of at most
-255 · 32 = 8,160 bytes, the call `hkdf_sha256(salt, ikm, info, out)`
+255 · 32 = 8,160 bytes, with the salt, `ikm` and `info` in the domain `HkdfSha256Domain`, the
+call `hkdf_sha256(salt, ikm, info, out)`
 - returns `Ok(())`;
 - returns a buffer of the same length as `out` (Aeneas models `&mut [u8]` by returning the new
   slice);
@@ -189,14 +205,15 @@ input keying material `ikm`, every `info` and every output buffer `out` of at mo
 This is the trusted assumption of this file: that the helper, which calls `Hkdf::<Sha256>` of the
 `hkdf` 0.13.0 crate over `Hmac<Sha256>` of `hmac` 0.13.0 and `sha2` 0.11.0, agrees with the
 RFC 5869 definitions above for the given `H`. It is a hypothesis of the theorems that use it.
-It does not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. It does
-not restrict the lengths of the salt, `ikm` and `info`: once a SHA-256 input reaches 2^61 bytes,
-a build with overflow checks panics inside `sha2`, so on such inputs the contract is stronger than
-the Rust code (`Protocols/CONTRACTS.md`, section 1). On a buffer longer than 8,160 bytes the
-helper returns an error, and the contract says nothing there. -/
+It does not discharge, and is independent of, the assumption that `H` is HMAC-SHA256. Outside
+`HkdfSha256Domain` some SHA-256 input reaches 2^61 bytes, and a build with overflow checks panics
+inside `sha2`; the contract says nothing there (`Protocols/CONTRACTS.md`, section 1). On a
+buffer longer than 8,160 bytes the helper returns an error, and the contract says nothing there
+either. -/
 def HkdfSha256RfcContract (H : HmacSha256) : Prop :=
   ∀ (salt : Option (Slice Std.U8)) (ikm info out : Slice Std.U8),
     out.length ≤ 255 * hashLen →
+    HkdfSha256Domain (salt.map (·.val)) ikm.val info.val →
     _root_.crypto.hkdf_sha256 salt ikm info out ⦃ r out' =>
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = hkdfSha256Okm H (salt.map (·.val)) ikm.val info.val out.length ⦄
@@ -205,8 +222,8 @@ def HkdfSha256RfcContract (H : HmacSha256) : Prop :=
 `HkdfSha256RfcContract H` with an absent salt and a 96-byte buffer. -/
 theorem hkdfSha256Contract_of_rfc {H : HmacSha256} (h : HkdfSha256RfcContract H) :
     HkdfSha256Contract H := by
-  intro ikm info out h96
-  have hs := h none ikm info out (by simp [hashLen, h96])
+  intro ikm info out h96 h_dom
+  have hs := h none ikm info out (by simp [hashLen, h96]) h_dom
   simpa [h96, hkdfSha256Okm_ninetySix] using hs
 
 end libsignal_protocol.crypto

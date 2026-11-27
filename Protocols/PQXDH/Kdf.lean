@@ -150,7 +150,8 @@ theorem deriveKeysTotal_spec_ok {α : Type} {m : Aeneas.Std.Result α} {p : α �
 /-- **`deriveHK` is total under the HKDF contract**: for any MAC interface `H` and under
 `HkdfSha256Contract H`, `deriveHK` succeeds on all public keys, with or without the fourth DH
 output, and every 32-byte shared secret. The assembled input has at most 192 bytes, so no append
-overflows, and `HandshakeKeys.derive_spec` gives success of the derivation. -/
+overflows and the input is short enough for `HandshakeKeys.derive_spec`, which gives success of
+the derivation. -/
 theorem deriveKeysTotal
     (H : libsignal_protocol.crypto.HmacSha256)
     (h_hkdf : libsignal_protocol.crypto.HkdfSha256Contract H) :
@@ -167,7 +168,18 @@ theorem deriveKeysTotal
       rcases dh4 with _ | d <;> dsimp only [Option.map] <;> step*
     obtain ⟨inp, h_eq, -⟩ := deriveKeysTotal_spec_ok h
     exact ⟨inp, h_eq⟩
-  obtain ⟨keys, h_keys, -⟩ := deriveKeysTotal_spec_ok (pqxdh.HandshakeKeys.derive_spec H h_hkdf inp)
+  have h_len : inp.length + 64 < 2 ^ 61 := by
+    have h := kdfInput_fixed_spec (pubBytes dh1) (pubBytes dh2) (pubBytes dh3) (dh4.map pubBytes) ss
+    rw [Option.map_map] at h
+    obtain ⟨inp', h_eq, -, h_l⟩ := deriveKeysTotal_spec_ok h
+    have h_same : inp' = inp := by
+      have := h_eq.symm.trans h_inp
+      simpa using this
+    subst h_same
+    rw [h_l]; split <;> omega
+  obtain ⟨keys, h_keys, -⟩ :=
+    deriveKeysTotal_spec_ok (pqxdh.HandshakeKeys.derive_spec H h_hkdf inp h_len)
+  clear h_len
   refine ⟨keys, ?_⟩
   rcases dh4 with _ | d <;> simp_all [deriveHK, pubSlice, sliceOfKey, lift, pure_tc_eq]
 

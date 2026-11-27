@@ -42,8 +42,8 @@ generator `KeyPair::generate`. The fault-or-value form says only what a leaf ret
 returns. The total forms imply the fault-or-value forms, except two parts, which are stated for
 every generator, while `SignTotal` and `KyberEncapsBackend` assume a total generator (`RngTotal`):
 the first part of `SignaturePartial` and the part of `KyberPartial` for encapsulation on a
-1568-byte key. These two parts are separate assumptions. `PartialContracts` bundles the
-fault-or-value forms.
+1568-byte key. These two parts are separate assumptions. For HKDF the implication is proved
+(`hkdfSha256Partial_of_contract`). `PartialContracts` bundles the fault-or-value forms.
 The security statements take these, because they count every faulted run in the term `Pr[⊥]`.
 `generate` has no fault-or-value form yet, so `PartialContracts` does not cover it.
 `ClampIntegerContract` and `X25519SecretContract` are stated in one form only.
@@ -327,13 +327,24 @@ def KyberPartial : Prop :=
       (sk.data.length = 3168 → ct.length ≠ 1568 → res = .Err .BadCiphertext) ∧
       (sk.data.length = 3168 → ct.length = 1568 → ∃ ss, res = .Ok ss ∧ ss.length = 32)
 
-/-- The fault-or-value form of `HkdfSha256Contract H`. When the helper returns on a 96-byte buffer
-and no salt, it returns `Ok(())` and the RFC 5869 output computed from the MAC interface `H`. -/
+/-- The fault-or-value form of `HkdfSha256Contract H`. When the helper returns on a 96-byte buffer,
+no salt, and `ikm` and `info` in the domain `HkdfSha256Domain` of HKDF-SHA256, it returns `Ok(())`
+and the RFC 5869 output computed from the MAC interface `H`. -/
 def HkdfSha256Partial (H : crypto.HmacSha256) : Prop :=
   ∀ (ikm info out : Slice U8) r out', out.length = 96 →
+    crypto.HkdfSha256Domain none ikm.val info.val →
     crypto.hkdf_sha256 none ikm info out = .ok (r, out') →
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = crypto.hkdfSha256Okm96 H none ikm.val info.val
+
+/-- The fault-or-value form of the HKDF contract follows from its total form:
+`HkdfSha256Contract H` implies `HkdfSha256Partial H`. -/
+theorem hkdfSha256Partial_of_contract {H : crypto.HmacSha256} (h : crypto.HkdfSha256Contract H) :
+    HkdfSha256Partial H := by
+  intro ikm info out r out' h96 h_dom h_eq
+  have hs := h ikm info out h96 h_dom
+  rw [h_eq] at hs
+  simpa using hs
 
 end Partial
 

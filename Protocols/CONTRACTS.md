@@ -55,8 +55,9 @@ numbers in that patched copy. This file cites the committed tree unless it says 
    `SignTotal` and `KyberEncapsBackend` assume `RngTotal`, and the operations are opaque. Both parts
    are true of the Rust code, because array types fix the output sizes. They are therefore separate
    trusted claims, not consequences of the total forms. Every other part of the fault-or-value forms
-   follows from a total form. No Lean lemma states these implications: this review checked them
-   against the definitions. See sections 1, 4 and 7.
+   follows from a total form. Lean proves this for HKDF (`hkdfSha256Partial_of_contract`). For the
+   other contracts no Lean lemma states these implications: this review checked them against the
+   definitions. See sections 1, 4 and 7.
 2. **Kyber termination is a claim about SHAKE128 on every seed.** `KyberEncapsBackend` and
    `KyberDecaps` state termination for every key of the right length. libcrux samples the public matrix
    in a loop with no bound, and its seed comes from the key, which the adversary chooses. For Kyber as
@@ -94,8 +95,8 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 | Contract | Stands for | Discharge |
 | --- | --- | --- |
-| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
-| `HkdfSha256Contract` | the same helper with no salt and 96 bytes of output | proved from `HkdfSha256RfcContract` (`hkdfSha256Contract_of_rfc`) |
+| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes, on the input lengths on which HKDF-SHA256 is defined (`HkdfSha256Domain`) | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
+| `HkdfSha256Contract` | the same helper with no salt and 96 bytes of output, on the same input lengths | proved from `HkdfSha256RfcContract` (`hkdfSha256Contract_of_rfc`) |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
 | `KyberEncapsBadLength`, `KyberEncapsBackend`, `KyberDecaps` | `kyber1024::Parameters`, libcrux `kyber1024` | a model of libcrux; for termination, a bound in libcrux, an assumption on SHAKE128, or the permutation argument of section 4 once all its steps are checked |
@@ -110,18 +111,31 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 **Statement.** `HkdfSha256RfcContract H` in `rust/Libsignal/Proofs/Protocol/Crypto/HkdfSha256.lean`.
 For every optional salt, every input key material `ikm`, every `info` and every buffer `out` of at
-most 255 · 32 = 8,160 bytes, the call `crypto.hkdf_sha256 salt ikm info out` returns `Ok(())` and a
-buffer of the same length. The buffer holds `hkdfSha256Okm H salt ikm info L`, where `L` is the
+most 255 · 32 = 8,160 bytes, where the salt, `ikm` and `info` satisfy `HkdfSha256Domain`, the call
+`crypto.hkdf_sha256 salt ikm info out` returns `Ok(())` and a buffer of the same length. The buffer holds `hkdfSha256Okm H salt ikm info L`, where `L` is the
 length of `out`: HKDF-Extract with the salt, followed by HKDF-Expand for `L` bytes (RFC 5869,
 Sections 2.2 and 2.3), computed from the MAC interface `H`. A present salt, the empty one included,
 is the HMAC key as given. An absent salt is `hkdfDefaultSalt`, 32 zero bytes. The contract does not
 say that `H` is HMAC-SHA256.
 
-`HkdfSha256Contract H`, in the same file, is the case that PQXDH uses: no salt and a 96-byte buffer,
-filled with `hkdfSha256Okm96 H none ikm info`. Its statement is unchanged, and it is no longer
-assumed: `hkdfSha256Contract_of_rfc` proves it from `HkdfSha256RfcContract H`, through
-`hkdfSha256Okm_ninetySix`, which says that the HKDF output of `hkdfSha256Okm` at 96 bytes is
+`HkdfSha256Domain salt ikm info` is the set of inputs on which HKDF-SHA256 is defined: a present salt
+has fewer than 2^61 bytes, `ikm` has fewer than 2^61 - 64 bytes, and `info` has fewer than
+2^61 - 97 bytes. On these inputs, every SHA-256 input of the call has fewer than 2^61 bytes. This is
+the limit of FIPS 180-4 and of the `sha2` crate. "Checked here" gives the reason for each number.
+
+`HkdfSha256Contract H`, in the same file, is the case that PQXDH uses: no salt, a 96-byte buffer, and
+`ikm` and `info` in `HkdfSha256Domain`. The buffer is filled with `hkdfSha256Okm96 H none ikm info`.
+It is no longer assumed: `hkdfSha256Contract_of_rfc` proves it from `HkdfSha256RfcContract H`,
+through `hkdfSha256Okm_ninetySix`, which says that the HKDF output of `hkdfSha256Okm` at 96 bytes is
 `hkdfSha256Okm96`. The statements that take `HkdfSha256Contract H` still take it as a hypothesis.
+Three theorems about the extracted key derivation also take the domain as a hypothesis:
+
+- `hkdf_sha256_okm96_spec` and `derive_with_label_spec` take `HkdfSha256Domain` with no salt;
+- `derive_spec` takes `secret_input.length + 64 < 2 ^ 61`, which gives the domain with the 46-byte
+  PQXDH label.
+
+The statements above them call the derivation on at most 192 bytes, and their proofs show the bound
+by arithmetic (`deriveKeysTotal` and `kdfInput_derive_ok`).
 
 **Stands for.** The helper `libsignal_protocol::crypto::hkdf_sha256` that
 `translation-patches/protocol-crypto-hkdf_sha256.patch` adds. Its body is
@@ -142,9 +156,7 @@ these two calls yet.
 - `expand_multi_info` (`src/lib.rs:130-166`) computes `T(i) = HMAC(PRK, T(i-1) | info | i)` with a
   one-byte counter `i` from 1. This is `hkdfExpandBlock`. It returns an error only when the output is
   longer than 255 · 32 bytes, so a 96-byte output excludes this error. The loop runs three times. This
-  argument bounds only the output. It does not show that the call returns `Ok(())` on every input: a
-  build with overflow checks panics inside SHA-256 on a very long `ikm` (in Extract) or `info` (in
-  this loop), see "Gaps".
+  argument bounds only the output. The bound on the input lengths is the domain, below.
 - The three `expect` calls on this path cannot fail. HMAC accepts a key of any length
   (`src/hmac_impl.rs`), and the PRK has 32 bytes, at least `HashLen` (`src/lib.rs:60-64`, `from_prk`).
   The counter `u8::try_from(block_n).expect(..) + 1` (`src/lib.rs:155`) sees the block indices 0, 1
@@ -190,37 +202,64 @@ For the general contract, this review read these lines of `hkdf` 0.13.0, `hmac` 
   is the byte `i + 1` of `hkdfT` for `i` from 0 to 254, where `BitVec.ofNat 8 (i + 1)` does not wrap.
 - The buffer. The helper writes into the `&mut [u8]` it is given and never changes its length. The
   extraction returns the new slice, and the contract states that it keeps the length.
-- Above 8,160 bytes the helper returns `Err(InvalidLength)` and writes nothing. The contract has the
-  premise `out.length ≤ 255 * hashLen` and says nothing about these buffers. It does not state that
-  the call fails there.
+- Above 8,160 bytes, on inputs in the domain, the helper returns `Err(InvalidLength)` and writes
+  nothing. The contract has the premise `out.length ≤ 255 * hashLen` and says nothing about these
+  buffers. It does not state that the call fails there.
+
+The domain. This review read these lines of `sha2` 0.11.0, `hmac` 0.13.0 and `hkdf` 0.13.0, and the
+workspace `Cargo.toml`:
+
+- The limit. `sha2` counts the full 64-byte blocks that a hash has received (`src/block_api.rs:36-42`).
+  At the end it computes the message length in bits as `8 * (buffer.get_pos() as u64 + bs * self.block_len)`,
+  a `u64` (`:64-67`). This product overflows exactly when the hash has received 2^61 bytes or more.
+  So every SHA-256 input must have fewer than 2^61 bytes. FIPS 180-4 has the same limit: it defines
+  SHA-256 for messages of fewer than 2^64 bits.
+- The salt. HMAC hashes a key longer than the 64-byte block (`hmac`, `src/utils.rs:15-18`), so a
+  present salt longer than 64 bytes is itself a SHA-256 input. This gives the bound on the salt. A
+  salt of at most 64 bytes is not hashed, and the bound holds for it anyway.
+- `ikm`. In Extract, HMAC's inner hash receives one 64-byte pad block (`hmac`,
+  `src/block_api.rs:53-58`) and then `ikm` (`hkdf`, `src/lib.rs:53-56`, `:117-120`). This gives
+  `ikm.length + 64 < 2^61`.
+- `info`. In Expand, the inner hash of each block receives the pad block, the 32-byte block before
+  (none for the first block), `info` and the counter byte (`hkdf`, `src/lib.rs:142-155`). That is
+  at most `info.length + 97` bytes. The domain uses this one bound for every output length. For
+  outputs of at most 32 bytes it gives up 32 bytes of `info` that the code would accept.
+- Every other SHA-256 input has at most 96 bytes. HMAC's outer hash receives the 64-byte pad block
+  and the 32-byte inner hash (`hmac`, `src/block_api.rs:79-90`). The PRK has 32 bytes, so HMAC
+  pads it and does not hash it.
+- Extract runs before Expand checks the output length (`hkdf`, `src/lib.rs:94-96`). So the bounds
+  on the salt and `ikm` are needed at output length 0 too. Outside the domain, a buffer longer than
+  8,160 bytes does not reach the `InvalidLength` check when a build with overflow checks panics in
+  Extract.
+- Overflow checks. The workspace turns them on for release builds (`Cargo.toml:251-252`) and off
+  for `sha2` and `hmac` (`:257-261`). Outside the domain, a build with overflow checks panics in
+  `sha2`. The release build of this workspace wraps instead, and returns a value that is not
+  HMAC-SHA256, since SHA-256 is not defined on such inputs. Aeneas translates Rust arithmetic as
+  checked arithmetic, so an extraction of `sha2` would also fail there. The contract says nothing
+  about these inputs.
 
 **From the source.** That `Hmac<Sha256>` from the `hmac` and `sha2` crates computes HMAC-SHA256
 (FIPS 198-1 over FIPS 180-4).
 
 **Gaps.** The contract describes the patched helper. Its link to production is the patches, which
 we read. `H` is a parameter: a theorem that assumes `HkdfSha256RfcContract H` holds for every `H`
-that the helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. The
-contract bounds the output length only. It does not restrict the lengths of the salt, `ikm` and
-`info`. Lean cannot show that the empty salt and the absent salt give the same output (see above).
+that the helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. Lean
+cannot show that the empty salt and the absent salt give the same output (see above). This review
+did not read the buffer crate `block-buffer` 0.12.1, which `digest` uses to count the bytes of a
+partial block. The reading of the limit above takes from the source that this count stays below
+64 and does not overflow.
 
-The contract allows a salt, `ikm` and `info` of any length, and the argument above bounds only the
-output. HMAC's inner SHA-256 hash receives one 64-byte pad block before the message (`hmac` 0.13.0,
-`src/block_api.rs:53-63`), and HMAC hashes a salt longer than 64 bytes as a key (`src/utils.rs:17-18`).
-`sha2` 0.11.0 computes the message length in bits as `8 * (…)` in `u64` (`src/block_api.rs:66`), so
-the product overflows once a hash has received 2^61 bytes or more. The workspace builds `sha2`
-without overflow checks in release (`Cargo.toml`, `[profile.release.package.sha2]`), so the product
-wraps there, and a build with overflow checks panics. With overflow checks, the contract is therefore
-stronger than the Rust code on inputs this long, a long present salt included. In the release
-profile the call returns, but SHA-256 (FIPS 180-4) is defined only for messages shorter than 2^64
-bits, so there the reading of `H` as HMAC-SHA256 fails. The calls that the statements reach are far
-below this limit. The PQXDH call has no salt, its input key material has at most 192 bytes
-(`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info` is the fixed label
+The domain bounds the inputs in bytes, with the same numbers on every target. On a 32-bit target
+every slice has fewer than 2^32 bytes, so every input is in the domain. On a 64-bit target the type
+allows longer slices, and the domain excludes them. The calls that the statements reach are far
+below the limit. The PQXDH call has no salt, its input key material has at most 192 bytes
+(`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info` is the fixed 46-byte label
 `WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`.
 
 **If false.** `hkdfSha256Contract_of_rfc` then gives nothing, and nothing supports
 `HkdfSha256Contract H`. If the helper returns a wrong output, another length, an error or a fault
-on the 96-byte call without salt, `HkdfSha256Contract` fails too. `derive_spec` and
-`derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis `h_hkdf`. If the contract
+on the 96-byte call without salt and with inputs in the domain, `HkdfSha256Contract` fails too.
+`derive_spec` and `derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis `h_hkdf`. If the contract
 fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems then say nothing about
 production: neither that the derivation returns, nor that the root key, the chain key and the pqr key
 are bytes 0 to 32, 32 to 64 and 64 to 96 of the HKDF output. The same hypothesis fails in
@@ -233,16 +272,17 @@ If the helper could fail, the `expect` in `derive_with_label` would panic, and s
 `expect` in `create_chain` on its call with a salt.
 
 **Discharge.** A verified HMAC-SHA256 and HKDF that the extraction can call, or an extraction of the
-`hkdf`, `hmac` and `sha2` crates, on the whole domain of `HkdfSha256RfcContract`. That discharges
-`HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and `derive_spec` already proves the
-extracted key derivation from it. The contract as stated includes inputs of 2^61 bytes or more, on
-which a build with overflow checks panics (see "Gaps"). So a discharge from the pinned crates with
-overflow checks cannot prove the contract on these inputs: it needs a bound on the input lengths,
-and that changes the statement of the contract. The identification of `H` with HMAC-SHA256 stays
-outside Lean in both cases.
+`hkdf`, `hmac` and `sha2` crates, on the whole domain of `HkdfSha256RfcContract`: every optional
+salt, every output of at most 8,160 bytes and the input lengths of `HkdfSha256Domain`. That
+discharges `HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and `derive_spec` already
+proves the extracted key derivation from it. On the domain, the length computation of `sha2` does
+not overflow, so checked arithmetic, as in Aeneas, does not stand in the way. The identification of
+`H` with HMAC-SHA256 stays outside Lean in both cases.
 
-**Fault-or-value form.** `HkdfSha256Partial H`. It follows from `HkdfSha256Contract H`, on the same
-domain, and so from `HkdfSha256RfcContract H`.
+**Fault-or-value form.** `HkdfSha256Partial H`, on the same domain: no salt, a 96-byte buffer, and
+`ikm` and `info` in `HkdfSha256Domain`. `hkdfSha256Partial_of_contract`
+(`Protocols/PQXDH/Contracts.lean`) proves it from `HkdfSha256Contract H`, so it also follows from
+`HkdfSha256RfcContract H`.
 
 ## 2. `ToOwnedTotal`
 
