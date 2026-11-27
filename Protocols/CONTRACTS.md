@@ -95,7 +95,7 @@ numbers in that patched copy. This file cites the committed tree unless it says 
 
 | Contract | Stands for | Discharge |
 | --- | --- | --- |
-| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes, on input lengths that keep every SHA-256 input below 2^61 bytes (`HkdfSha256Domain`) | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2` |
+| `HkdfSha256RfcContract` | `crypto::hkdf_sha256` (patched), `hkdf` 0.13.0, for every optional salt and every output of at most 8,160 bytes, on input lengths that keep every SHA-256 input below 2^61 bytes (`HkdfSha256Domain`) | a verified HMAC-SHA256 and HKDF, or an extraction of `hkdf`, `hmac` and `sha2`, with a proof that it meets the contract |
 | `HkdfSha256Contract` | the same helper with no salt and 96 bytes of output, on the same input lengths | proved from `HkdfSha256RfcContract` (`hkdfSha256Contract_of_rfc`) |
 | `ToOwnedTotal` | `<str as ToOwned>::to_owned` | a model of `String` construction in the Aeneas standard library |
 | `RngTotal` | the caller's generator; production passes `UnwrapErr<OsRng>` | the caller's choice of generator; #84 for how the drawn states relate to it; an OS entropy failure stays outside any proof |
@@ -239,8 +239,12 @@ workspace `Cargo.toml`:
 - Overflow checks. The workspace enables them for release builds (`Cargo.toml:251-252`) and
   disables them for `sha2` and `hmac` (`:257-261`). Outside the domain, a SHA-256 input of the call can reach
   2^61 bytes. When one does, a build with overflow checks panics in `sha2`. The release build of
-  this workspace wraps instead, and returns a value that is not
-  HMAC-SHA256, since SHA-256 is not defined on such inputs. Aeneas translates Rust arithmetic as
+  this workspace wraps instead. The hash of that input then encodes the bit length modulo 2^64 and
+  returns a value, although SHA-256 is not defined on such inputs. What the helper then returns depends on
+  the output length `L`. At `L = 0` and above 8,160 bytes, only the hashes of Extract can wrap.
+  At `L = 0` the helper still returns `Ok(())` and an empty buffer. Above 8,160 bytes it still
+  returns `Err(InvalidLength)` and writes nothing. From 1 to 8,160 bytes, it returns `Ok(())` and
+  fills the buffer, and at least part of the buffer depends on a wrapped hash. Aeneas translates Rust arithmetic as
   checked arithmetic (at the Aeneas pin, `UScalar.mul` is `UScalar.tryMk` of the product,
   `Aeneas/Std/Scalar/Ops/Mul.lean:18-19`), so an extraction of `sha2` would also fail there. The contract says nothing
   about these inputs.
@@ -265,9 +269,11 @@ below the limit. The PQXDH call has no salt, its input key material has at most 
 (`deriveKeysTotal` in `Protocols/PQXDH/Kdf.lean`), and its `info` is the fixed 46-byte label
 `WhisperText_X25519_SHA-256_CRYSTALS-KYBER-1024`.
 
-**If false.** `hkdfSha256Contract_of_rfc` then gives nothing, and nothing supports
-`HkdfSha256Contract H`. If the helper returns a wrong output, another length, an error or a fault
-on the 96-byte call without salt and with inputs in the domain, `HkdfSha256Contract` fails too.
+**If false.** `hkdfSha256Contract_of_rfc` then gives nothing, and `HkdfSha256Contract H` loses
+this proof. The 96-byte contract can still hold, since it is only about the call without salt on a
+96-byte buffer. If the helper
+returns a wrong output, another length, an error or a fault on the 96-byte call without salt and
+with inputs in the domain, `HkdfSha256Contract` fails too.
 `derive_spec` and `derive_with_label_spec` take `HkdfSha256Contract H` as the hypothesis `h_hkdf`. If the contract
 fails for HMAC-SHA256, this hypothesis fails for that `H`. The two theorems then say nothing about
 production: neither that the derivation returns, nor that the root key, the chain key and the pqr key
@@ -277,15 +283,21 @@ are bytes 0 to 32, 32 to 64 and 64 to 96 of the HKDF output. The same hypothesis
 corollaries. The security statements take the fault-or-value form `HkdfSha256Partial` through
 `PartialContracts`. If the helper returns anything else (an error, another length or other bytes),
 that hypothesis fails too, and the security statements say nothing about production's key derivation.
-If the helper could fail, the `expect` in `derive_with_label` would panic, and so would the
-`expect` in `create_chain` on its call with a salt.
+Each caller passes the result of its own call to `expect`. The `expect` in `derive_with_label`
+panics only if its call, with no salt and a 96-byte buffer, returns an error. The `expect` in
+`create_chain` panics only if its call, with the 32-byte root key as salt and a 64-byte buffer,
+returns an error. The same holds for the `expect` in `MessageKeys::derive_keys` and its call. A
+fault in the helper never returns to the caller, so it never reaches an `expect`. The caller
+faults with the helper.
 
 **Discharge.** A verified HMAC-SHA256 and HKDF that the extraction can call, or an extraction of the
-`hkdf`, `hmac` and `sha2` crates, on the whole domain of `HkdfSha256RfcContract`: every optional
-salt, every output of at most 8,160 bytes and the input lengths of `HkdfSha256Domain`. That
-discharges `HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and `derive_spec` already
-proves the extracted key derivation from it. On the domain, the length computation of `sha2` does
-not overflow, so checked arithmetic, as in Aeneas, does not block such a discharge. The identification of
+`hkdf`, `hmac` and `sha2` crates, together with a proof that this code meets
+`HkdfSha256RfcContract H` on its whole domain: every optional salt, every output of at most 8,160
+bytes and the input lengths of `HkdfSha256Domain`. An extraction alone does not give this
+proof. The proof discharges `HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and
+`derive_spec` already proves the extracted key derivation from it. On the domain, the length
+computation of `sha2` does not overflow, so checked arithmetic, as in Aeneas, does not block such
+a discharge. The identification of
 `H` with HMAC-SHA256 stays outside Lean in both cases.
 
 **Fault-or-value form.** `HkdfSha256Partial H`, on the same domain: no salt, a 96-byte buffer, and

@@ -157,26 +157,10 @@ theorem deriveKeysTotal
     (h_hkdf : libsignal_protocol.crypto.HkdfSha256Contract H) :
     DeriveKeysTotal := by
   intro dh1 dh2 dh3 dh4 ss
-  have h192 : 192 ≤ Usize.max := by
-    rcases Usize.bounds_eq with h | h <;> rw [h] <;> simp only [U32.max, U64.max] <;> scalar_tac
-  obtain ⟨inp, h_inp⟩ : ∃ inp, kdfInput (pubBytes dh1).to_slice (pubBytes dh2).to_slice
-      (pubBytes dh3).to_slice (dh4.map fun d => (pubBytes d).to_slice) ss.to_slice = ok inp := by
-    have h : kdfInput (pubBytes dh1).to_slice (pubBytes dh2).to_slice (pubBytes dh3).to_slice
-        (dh4.map fun d => (pubBytes d).to_slice) ss.to_slice ⦃ _ => True ⦄ := by
-      have h_cap : ∀ j, (alloc.vec.Vec.with_capacity U8 j).length = 0 := fun _ => rfl
-      unfold kdfInput
-      rcases dh4 with _ | d <;> dsimp only [Option.map] <;> step*
-    obtain ⟨inp, h_eq, -⟩ := deriveKeysTotal_spec_ok h
-    exact ⟨inp, h_eq⟩
-  have h_len : inp.length + 64 < 2 ^ 61 := by
-    have h := kdfInput_fixed_spec (pubBytes dh1) (pubBytes dh2) (pubBytes dh3) (dh4.map pubBytes) ss
-    rw [Option.map_map] at h
-    obtain ⟨inp', h_eq, -, h_l⟩ := deriveKeysTotal_spec_ok h
-    have h_same : inp' = inp := by
-      have := h_eq.symm.trans h_inp
-      simpa using this
-    subst h_same
-    rw [h_l]; split <;> omega
+  have h := kdfInput_fixed_spec (pubBytes dh1) (pubBytes dh2) (pubBytes dh3) (dh4.map pubBytes) ss
+  rw [Option.map_map] at h
+  obtain ⟨inp, h_inp, -, h_l⟩ := deriveKeysTotal_spec_ok h
+  have h_len : inp.length + 64 < 2 ^ 61 := by rw [h_l]; split <;> omega
   obtain ⟨keys, h_keys, -⟩ :=
     deriveKeysTotal_spec_ok (pqxdh.HandshakeKeys.derive_spec H h_hkdf inp h_len)
   clear h_len
