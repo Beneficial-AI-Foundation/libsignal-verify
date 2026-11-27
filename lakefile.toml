@@ -9,9 +9,12 @@ weak.linter.mathlibStandardSet = true
 weak.linter.style.header = false
 maxRecDepth = 10000
 
-# The curve25519-dalek fork at the last commit of its main that builds on our Lean, Mathlib and
-# Aeneas pins. We import its curve mathematics (the library Curve25519 and the package
-# EllipticCurve that it requires), not its dalek-level theorems.
+# The curve25519-dalek fork at the last commit of its main that builds on our Lean and Mathlib
+# pins. Its own manifest names an older Aeneas (nightly-2026.10.30-de16f3c). Our manifest
+# overrides that with the Aeneas below. We import its curve mathematics (the library Curve25519
+# and the package EllipticCurve that it requires), not its dalek-level theorems. This
+# repository builds only Curve25519.X25519 and Curve25519.Montgomery of the fork, with the
+# modules of Curve25519 and EllipticCurve that they import. None of these imports Aeneas.
 [[require]]
 name = "curve25519-dalek"
 git = "https://github.com/Beneficial-AI-Foundation/curve25519-dalek-fork.git"
@@ -21,7 +24,7 @@ rev = "19c37220267548d72b57b0cac065e21f0d4c8f4e"
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "nightly-2026.10.30-de16f3c"
+rev = "nightly-2026.11.03-ab34bd2"
 
 # VCVio tag v4.35.0.
 [[require]]
