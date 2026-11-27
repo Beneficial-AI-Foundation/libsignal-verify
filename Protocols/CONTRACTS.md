@@ -236,8 +236,8 @@ workspace `Cargo.toml`:
   on the salt and `ikm` are needed at output length 0 too. Outside the domain, a buffer longer than
   8,160 bytes does not reach the `InvalidLength` check when a build with overflow checks panics in
   Extract.
-- Overflow checks. The workspace turns them on for release builds (`Cargo.toml:251-252`) and off
-  for `sha2` and `hmac` (`:257-261`). Outside the domain, a SHA-256 input of the call can reach
+- Overflow checks. The workspace enables them for release builds (`Cargo.toml:251-252`) and
+  disables them for `sha2` and `hmac` (`:257-261`). Outside the domain, a SHA-256 input of the call can reach
   2^61 bytes. When one does, a build with overflow checks panics in `sha2`. The release build of
   this workspace wraps instead, and returns a value that is not
   HMAC-SHA256, since SHA-256 is not defined on such inputs. Aeneas translates Rust arithmetic as
@@ -252,8 +252,8 @@ we read. `H` is a parameter: a theorem that assumes `HkdfSha256RfcContract H` ho
 that the helper matches, and the identification of `H` with HMAC-SHA256 is outside Lean. Lean
 cannot show that the empty salt and the absent salt give the same output (see above). This review
 did not read the buffer crate `block-buffer` 0.12.1, which `digest` uses to count the bytes of a
-partial block. The reading of the limit above takes from the source that this count stays below
-64 and does not overflow.
+partial block. The argument for the limit above assumes, without reading that crate, that this
+count stays below 64 and does not overflow.
 
 The domain bounds the inputs in bytes, with the same numbers on every target. On a 32-bit target
 every slice has fewer than 2^32 bytes, so every input is in the domain. On a 64-bit target the type
@@ -282,7 +282,7 @@ If the helper could fail, the `expect` in `derive_with_label` would panic, and s
 salt, every output of at most 8,160 bytes and the input lengths of `HkdfSha256Domain`. That
 discharges `HkdfSha256Contract` too, by `hkdfSha256Contract_of_rfc`, and `derive_spec` already
 proves the extracted key derivation from it. On the domain, the length computation of `sha2` does
-not overflow, so checked arithmetic, as in Aeneas, does not stand in the way. The identification of
+not overflow, so checked arithmetic, as in Aeneas, does not block such a discharge. The identification of
 `H` with HMAC-SHA256 stays outside Lean in both cases.
 
 **Fault-or-value form.** `HkdfSha256Partial H`, on the same domain: no salt, a 96-byte buffer, and
