@@ -9,8 +9,10 @@ import Libsignal.Proofs.Protocol.Crypto.HkdfSha256
 # Spec summary: `rust/protocol/src/crypto.rs`
 
 This file freezes the specification of `crypto::hkdf_sha256` from `rust/protocol/src/crypto.rs`:
-the RFC 5869 definitions computed from an assumed MAC interface, the contract that the opaque
-extracted function meets them, and the lemmas about both. Each theorem is restated with `recall`
+the RFC 5869 definitions computed from an assumed MAC interface, a bound on the input lengths
+that keeps every SHA-256 input below 2^61 bytes, the general contract that the opaque extracted
+function meets them on these inputs, the 96-byte contract that follows from it, and the lemmas
+about them. Each theorem is restated with `recall`
 and has a `#guard_msgs` check on the axioms it depends on. A definition has the axiom check only.
 -/
 
@@ -31,7 +33,8 @@ info: 'libsignal_protocol.crypto.hkdfExpand96_length' depends on axioms:
 
 open Aeneas Aeneas.Std Result libsignal_protocol.crypto in
 recall libsignal_protocol.crypto.hkdf_sha256_okm96_spec {H : HmacSha256}
-    (h : HkdfSha256Contract H) (ikm info out : Slice Std.U8) (h_len : out.length = 96) :
+    (h : HkdfSha256Contract H) (ikm info out : Slice Std.U8) (h_len : out.length = 96)
+    (h_dom : HkdfSha256Domain none ikm.val info.val) :
     crypto.hkdf_sha256 none ikm info out ⦃ r out' =>
       r = .Ok () ∧ out'.length = out.length ∧
         out'.val = hkdfSha256Okm96 H none ikm.val info.val ⦄
@@ -45,6 +48,48 @@ info: 'libsignal_protocol.crypto.hkdf_sha256_okm96_spec' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.crypto.hkdf_sha256_okm96_spec
+
+open Aeneas Aeneas.Std libsignal_protocol.crypto in
+recall libsignal_protocol.crypto.hkdfExpand_length (H : HmacSha256) (prk info : List Std.U8)
+    (L : Nat) :
+    (hkdfExpand H prk info L).length = L
+
+/--
+info: 'libsignal_protocol.crypto.hkdfExpand_length' depends on axioms:
+ [propext,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfExpand_length
+
+open Aeneas Aeneas.Std libsignal_protocol.crypto in
+recall libsignal_protocol.crypto.hkdfSha256Okm_ninetySix (H : HmacSha256)
+    (salt : Option (List Std.U8)) (ikm info : List Std.U8) :
+    hkdfSha256Okm H salt ikm info 96 = hkdfSha256Okm96 H salt ikm info
+
+/--
+info: 'libsignal_protocol.crypto.hkdfSha256Okm_ninetySix' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfSha256Okm_ninetySix
+
+open Aeneas Aeneas.Std libsignal_protocol.crypto in
+recall libsignal_protocol.crypto.hkdfSha256Contract_of_rfc {H : HmacSha256}
+    (h : HkdfSha256RfcContract H) :
+    HkdfSha256Contract H
+
+/--
+info: 'libsignal_protocol.crypto.hkdfSha256Contract_of_rfc' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfSha256Contract_of_rfc
 
 /-! ## Definitions -/
 
@@ -96,6 +141,10 @@ info: 'libsignal_protocol.crypto.hkdfSha256Okm96' depends on axioms:
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.crypto.hkdfSha256Okm96
 
+/-- info: 'libsignal_protocol.crypto.HkdfSha256Domain' depends on axioms: [propext] -/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.HkdfSha256Domain
+
 /--
 info: 'libsignal_protocol.crypto.HkdfSha256Contract' depends on axioms:
  [propext,
@@ -105,3 +154,30 @@ info: 'libsignal_protocol.crypto.HkdfSha256Contract' depends on axioms:
 -/
 #guard_msgs (whitespace := lax) in
 #print axioms libsignal_protocol.crypto.HkdfSha256Contract
+
+/-- info: 'libsignal_protocol.crypto.hkdfT' does not depend on any axioms -/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfT
+
+/-- info: 'libsignal_protocol.crypto.hkdfExpand' does not depend on any axioms -/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfExpand
+
+/--
+info: 'libsignal_protocol.crypto.hkdfSha256Okm' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.hkdfSha256Okm
+
+/--
+info: 'libsignal_protocol.crypto.HkdfSha256RfcContract' depends on axioms:
+ [propext,
+ Classical.choice,
+ Quot.sound,
+ crypto.hkdf_sha256]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms libsignal_protocol.crypto.HkdfSha256RfcContract

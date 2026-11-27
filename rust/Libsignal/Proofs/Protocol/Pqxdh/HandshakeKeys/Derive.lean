@@ -46,17 +46,19 @@ natural language specs:
 
 • For a supplied MAC interface `H`, assume `hkdf_sha256` meets `HkdfSha256Contract H`, and let
   `okm = hkdfSha256Okm96 H none secret_input pqxdhKdfLabel`, the RFC 5869 output from `H`.
-• The function succeeds for every `secret_input`.
+• The function succeeds for every `secret_input` of fewer than 2^61 - 64 bytes: with the 46-byte
+  label, these are the inputs that keep every SHA-256 input below 2^61 bytes (`HkdfSha256Domain`).
 • The root key is `okm[0..32)`, the chain key is `okm[32..64)` with chain index `0`, and the
   PQR key is `okm[64..96)`.
 -/
 
 /-- For any MAC interface `H` and under `HkdfSha256Contract H`, `pqxdh.HandshakeKeys.derive`
-succeeds and splits the 96-byte RFC 5869 output computed from `H` for the PQXDH label into root
-key, chain key with index `0`, and PQR key. -/
+succeeds on every `secret_input` of fewer than 2^61 - 64 bytes and splits the 96-byte RFC 5869
+output computed from `H` for the PQXDH label into root key, chain key with index `0`, and PQR
+key. -/
 @[step]
 theorem derive_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
-    (secret_input : Slice Std.U8) :
+    (secret_input : Slice Std.U8) (h_len : secret_input.length + 64 < 2 ^ 61) :
     derive secret_input ⦃ (keys : pqxdh.HandshakeKeys) =>
       let okm := hkdfSha256Okm96 H none secret_input.val pqxdhKdfLabel
       (keys.root_key.key).val = okm.slice 0 32 ∧
@@ -65,6 +67,10 @@ theorem derive_spec (H : HmacSha256) (h_hkdf : HkdfSha256Contract H)
       keys.pqr_key.val = okm.slice 64 96 ⦄ := by
   unfold derive
   step*
+  case h_dom =>
+    have h_s : s.val.length = 46 := by simp [s_post, Array.to_slice]
+    refine ⟨by simp, h_len, ?_⟩
+    rw [h_s]; omega
   have h_label : s.val = pqxdhKdfLabel := by
     simp [s_post, Array.to_slice, pqxdhKdfLabel]
   rw [h_label] at keys_post keys_post1 keys_post3

@@ -87,7 +87,7 @@ theorem kdfInput_derive_ok (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contra
   have e2 : d2.val.length = 32 := h2
   have e3 : d3.val.length = 32 := h3
   have es : ss.val.length = 32 := hss
-  have hlen : (kdfInputSliceBytes d1 d2 d3 d4 ss).length ≤ Usize.max := by
+  have hle : (kdfInputSliceBytes d1 d2 d3 d4 ss).length ≤ 192 := by
     rcases d4 with _ | d
     · simp only [kdfInputSliceBytes, List.length_append, List.length_replicate, e1, e2, e3, es,
         List.length_nil]
@@ -96,8 +96,11 @@ theorem kdfInput_derive_ok (H : crypto.HmacSha256) (hH : crypto.HkdfSha256Contra
       simp only [kdfInputSliceBytes, List.length_append, List.length_replicate, e1, e2, e3, es,
         e4]
       omega
-  obtain ⟨km, hkm, -⟩ := exists_ok_of_spec (kdfInput_spec d1 d2 d3 d4 ss hlen)
-  obtain ⟨hk, hder, hpost⟩ := exists_ok_of_spec (pqxdh.HandshakeKeys.derive_spec H hH km)
+  obtain ⟨km, hkm, hkmv⟩ := exists_ok_of_spec (kdfInput_spec d1 d2 d3 d4 ss (hle.trans h192))
+  have hkml : km.length + 64 < 2 ^ 61 := by
+    simp only [Slice.length, hkmv]
+    omega
+  obtain ⟨hk, hder, hpost⟩ := exists_ok_of_spec (pqxdh.HandshakeKeys.derive_spec H hH km hkml)
   exact ⟨km, hk, hkm, hder, hpost.2.2.1⟩
 
 /-- If every key pair from `P.ecKeygen` is valid, every key pair in a possible output of

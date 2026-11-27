@@ -22,7 +22,8 @@ primitives and backend items of the extraction that the two functions call.
 
 open Aeneas Aeneas.Std Result libsignal_protocol.crypto libsignal_protocol.pqxdh in
 recall libsignal_protocol.pqxdh.HandshakeKeys.derive_with_label_spec (H : HmacSha256)
-    (h_hkdf : HkdfSha256Contract H) (label secret_input : Slice Std.U8) :
+    (h_hkdf : HkdfSha256Contract H) (label secret_input : Slice Std.U8)
+    (h_dom : HkdfSha256Domain none secret_input.val label.val) :
     HandshakeKeys.derive_with_label label secret_input ⦃ (keys : HandshakeKeys) =>
       let okm := hkdfSha256Okm96 H none secret_input.val label.val
       (keys.root_key.key).val = okm.slice 0 32 ∧
@@ -56,7 +57,8 @@ info: 'libsignal_protocol.pqxdh.HandshakeKeys.pqxdhKdfLabel_eq_utf8' depends on 
 
 open Aeneas Aeneas.Std Result libsignal_protocol.crypto libsignal_protocol.pqxdh in
 recall libsignal_protocol.pqxdh.HandshakeKeys.derive_spec (H : HmacSha256)
-    (h_hkdf : HkdfSha256Contract H) (secret_input : Slice Std.U8) :
+    (h_hkdf : HkdfSha256Contract H) (secret_input : Slice Std.U8)
+    (h_len : secret_input.length + 64 < 2 ^ 61) :
     HandshakeKeys.derive secret_input ⦃ (keys : HandshakeKeys) =>
       let okm := hkdfSha256Okm96 H none secret_input.val HandshakeKeys.pqxdhKdfLabel
       (keys.root_key.key).val = okm.slice 0 32 ∧
